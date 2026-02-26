@@ -1,0 +1,60 @@
+{
+  "name": "Card Vault — Gerencie sua Coleção de TCG",
+  "short_name": "Card Vault",
+  "description": "Escaneie cartas, acompanhe preços do mercado brasileiro e gerencie seu portfólio de TCG.",
+  "start_url": "/explore",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["games", "shopping", "utilities"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Explorar Cartas",
+      "short_name": "Explorar",
+      "url": "/explore",
+      "icons": []
+    },
+    {
+      "name": "Escanear Carta",
+      "short_name": "Scan",
+      "url": "/scan",
+      "icons": []
+    },
+    {
+      "name": "Meu Portfólio",
+      "short_name": "Portfólio",
+      "url": "/portfolio",
+      "icons": []
+    }
+  ]
+}
