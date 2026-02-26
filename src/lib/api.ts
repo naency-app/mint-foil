@@ -12,6 +12,7 @@ export interface CardSet {
   id: string;
   code: string;
   name: string;
+  slug: string;
   imageUrl: string | null;
   releaseDate: string | null;
   totalCards: number | null;
