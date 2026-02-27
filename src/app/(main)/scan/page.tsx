@@ -9,6 +9,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useCamera, type CameraError } from "@/hooks/use-camera";
 import { api } from "@/lib/api";
@@ -16,6 +17,7 @@ import type { Card as CardType } from "@/lib/api";
 import {
   Camera,
   CameraOff,
+  ExternalLink,
   Loader2,
   Plus,
   RotateCcw,
@@ -310,6 +312,8 @@ export default function ScanPage() {
   const { videoRef, canvasRef, isActive, error: cameraError, start, stop, capture } = useCamera();
   const [state, setState] = useState<ScanState>("idle");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [lastSearchQuery, setLastSearchQuery] = useState("");
+  const [manualQuery, setManualQuery] = useState("");
   const [recognizedText, setRecognizedText] = useState("");
   const [results, setResults] = useState<CardType[]>([]);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
@@ -381,12 +385,12 @@ export default function ScanPage() {
       }
 
       setResults(cards);
+      setLastSearchQuery(primaryQuery);
+      setManualQuery(primaryQuery);
 
       if (cards.length === 0) {
-        toast.info(
-          `Nenhuma carta encontrada. Texto lido: "${primaryQuery.slice(0, 30)}${primaryQuery.length > 30 ? "…" : ""}"`,
-        );
-        setState("camera");
+        setSelectedCard(null);
+        setDrawerOpen(true);
       } else {
         setSelectedCard(cards.length === 1 ? cards[0] : null);
         setDrawerOpen(true);
@@ -402,7 +406,20 @@ export default function ScanPage() {
     setResults([]);
     setSelectedCard(null);
     setRecognizedText("");
+    setLastSearchQuery("");
+    setManualQuery("");
   }
+
+  async function handleManualSearchFromDrawer() {
+    if (!manualQuery.trim()) return;
+    setProcessing(true);
+    await searchCards(manualQuery.trim(), []);
+    setProcessing(false);
+  }
+
+  const searchQuery = lastSearchQuery || manualQuery;
+  const ligaSearchUrl = `https://www.ligamagic.com.br/?card=${encodeURIComponent(searchQuery)}&view=cards%2Fsearch`;
+  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery + " carta TCG preço")}`;
 
   async function handleStartCamera() {
     const ok = await start();
@@ -596,18 +613,79 @@ export default function ScanPage() {
           <DrawerHeader className="px-5 py-4">
             <DrawerTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <Zap className="size-4 text-emerald-400" />
-              {results.length === 1 ? "Carta identificada" : `${results.length} resultados`}
+              {results.length === 0
+                ? "Carta não encontrada"
+                : results.length === 1
+                  ? "Carta identificada"
+                  : `${results.length} resultados`}
             </DrawerTitle>
           </DrawerHeader>
-          <div className="px-5 pb-6 overflow-y-auto">
-            {selectedCard ? (
+          <div className="px-5 pb-6 overflow-y-auto space-y-4">
+            {results.length === 0 ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Esta carta ainda não está no nosso catálogo. Corrija o nome
+                  abaixo e tente de novo, ou busque em sites externos.
+                </p>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-foreground">
+                    Texto lido pela câmera
+                  </label>
+                  <Input
+                    value={manualQuery}
+                    onChange={(e) => setManualQuery(e.target.value)}
+                    placeholder="Nome da carta..."
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    onClick={handleManualSearchFromDrawer}
+                    disabled={processing || !manualQuery.trim()}
+                    className="w-full gap-2"
+                  >
+                    {processing ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Search className="size-4" />
+                    )}
+                    Buscar novamente
+                  </Button>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <a
+                    href={ligaSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                  >
+                    <ExternalLink className="size-4" />
+                    Buscar no LigaMagic (Magic)
+                  </a>
+                  <a
+                    href={googleSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                  >
+                    <ExternalLink className="size-4" />
+                    Buscar no Google
+                  </a>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleReset}
+                  className="w-full gap-2"
+                >
+                  <RotateCcw className="size-4" />
+                  Nova Leitura
+                </Button>
+              </>
+            ) : selectedCard ? (
               <ResultCard card={selectedCard} onReset={handleReset} />
             ) : (
               <MultipleResults
                 cards={results}
-                onSelect={(card) => {
-                  setSelectedCard(card);
-                }}
+                onSelect={(card) => setSelectedCard(card)}
                 onReset={handleReset}
               />
             )}
