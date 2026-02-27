@@ -30,7 +30,14 @@ import { toast } from "sonner";
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(true);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
+    const check = () => {
+      const isStandalone =
+        typeof window !== "undefined" &&
+        (window.matchMedia("(display-mode: standalone)").matches ||
+          (navigator as { standalone?: boolean }).standalone === true);
+      const isNarrow = window.innerWidth < 768;
+      setIsMobile(isNarrow || !!isStandalone);
+    };
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);

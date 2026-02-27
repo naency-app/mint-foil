@@ -53,10 +53,6 @@ export function useCamera({
         },
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
       setIsActive(true);
       return true;
     } catch (err) {
@@ -142,5 +138,21 @@ export function useCamera({
     };
   }, [stop]);
 
-  return { videoRef, canvasRef, isActive, error, start, stop, capture };
+  const setVideoRef = useCallback((el: HTMLVideoElement | null) => {
+    (videoRef as { current: HTMLVideoElement | null }).current = el;
+    if (el && streamRef.current) {
+      el.srcObject = streamRef.current;
+      el.play().catch(() => {});
+    }
+  }, []);
+
+  return {
+    videoRef: setVideoRef,
+    canvasRef,
+    isActive,
+    error,
+    start,
+    stop,
+    capture,
+  };
 }
