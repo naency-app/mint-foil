@@ -3,7 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { useCamera, type CameraError } from "@/hooks/use-camera";
 import { api } from "@/lib/api";
@@ -12,11 +17,10 @@ import {
   Camera,
   CameraOff,
   Loader2,
-  Monitor,
   Plus,
   RotateCcw,
-  Search,
   ScanLine,
+  Search,
   Smartphone,
   TrendingUp,
   X,
@@ -24,6 +28,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -285,13 +290,14 @@ function StepItem({
 }
 
 export default function ScanPage() {
+  const router = useRouter();
   const isMobile = useIsMobile();
   const { videoRef, canvasRef, isActive, error: cameraError, start, stop, capture } = useCamera();
   const [state, setState] = useState<ScanState>("idle");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [recognizedText, setRecognizedText] = useState("");
   const [results, setResults] = useState<CardType[]>([]);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
-  const [manualSearch, setManualSearch] = useState("");
   const [processing, setProcessing] = useState(false);
   const workerRef = useRef<import("tesseract.js").Worker | null>(null);
 
@@ -316,13 +322,14 @@ export default function ScanPage() {
       setRecognizedText(text);
 
       if (!text) {
-        toast.error("Nenhum texto reconhecido. Tente aproximar mais a carta.");
+        toast.error("Nenhum texto reconhecido. Tire a foto da carta inteira.");
         setState("camera");
         setProcessing(false);
         return;
       }
 
-      const firstLine = text.split("\n")[0].trim();
+      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+      const firstLine = lines[0] ?? "";
       await searchCards(firstLine);
     } catch {
       toast.error("Erro ao processar imagem");
@@ -340,13 +347,9 @@ export default function ScanPage() {
       if (cards.length === 0) {
         toast.info(`Nenhuma carta encontrada para "${query}"`);
         setState("camera");
-      } else if (cards.length === 1) {
-        setSelectedCard(cards[0]);
-        setState("results");
-        stop();
       } else {
-        setState("results");
-        stop();
+        setSelectedCard(cards.length === 1 ? cards[0] : null);
+        setDrawerOpen(true);
       }
     } catch {
       toast.error("Erro ao buscar cartas");
@@ -354,19 +357,11 @@ export default function ScanPage() {
     }
   }
 
-  async function handleManualSearch() {
-    if (!manualSearch.trim()) return;
-    setProcessing(true);
-    setState("processing");
-    await searchCards(manualSearch.trim());
-    setProcessing(false);
-  }
-
   function handleReset() {
+    setDrawerOpen(false);
     setResults([]);
     setSelectedCard(null);
     setRecognizedText("");
-    setState("idle");
   }
 
   async function handleStartCamera() {
@@ -376,131 +371,103 @@ export default function ScanPage() {
     }
   }
 
+  const hasTriedStart = useRef(false);
+  useEffect(() => {
+    if (isMobile && !hasTriedStart.current) {
+      hasTriedStart.current = true;
+      handleStartCamera();
+    }
+  }, [isMobile]);
+
   if (!isMobile) return <DesktopScanFallback />;
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
-          <ScanLine className="size-6 text-emerald-400" />
-          Scan de Carta
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Aponte a câmera para o nome da carta ou busque manualmente
-        </p>
-      </div>
+    <main className="fixed inset-0 flex flex-col bg-black">
+      {/* Full-screen camera */}
+      {(state === "camera" || state === "processing") && (
+        <div className="relative flex-1 min-h-0">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <canvas ref={canvasRef} className="hidden" />
 
-      {/* Manual Search */}
-      <div className="rounded-xl border border-border bg-card backdrop-blur-sm p-4 space-y-3">
-        <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">
-          Busca Manual
-        </h2>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              value={manualSearch}
-              onChange={(e) => setManualSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleManualSearch()}
-              placeholder="Nome da carta..."
-              className="pl-10"
-            />
+          {/* Processing overlay */}
+          {processing && (
+            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="size-12 text-white animate-spin" />
+              <p className="text-white font-medium">Identificando carta...</p>
+            </div>
+          )}
+
+          {/* Controls */}
+          <div className="absolute bottom-0 inset-x-0 p-6 pb-10 bg-linear-to-t from-black/90 to-transparent">
+            <div className="flex items-center justify-center gap-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  stop();
+                  handleReset();
+                  router.back();
+                }}
+                className="size-12 rounded-full border-white/30 text-white hover:bg-white/20 bg-black/40"
+              >
+                <X className="size-6" />
+              </Button>
+
+              <button
+                type="button"
+                onClick={handleCapture}
+                disabled={processing}
+                className="size-20 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-xl shadow-emerald-500/40 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                {processing ? (
+                  <Loader2 className="size-8 animate-spin" />
+                ) : (
+                  <Camera className="size-8" />
+                )}
+              </button>
+
+              <div className="size-12" />
+            </div>
+            <p className="text-center text-white/80 text-sm mt-3">
+              Tire a foto da carta inteira
+            </p>
           </div>
-          <Button onClick={handleManualSearch} disabled={processing}>
-            {processing ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              "Buscar"
-            )}
+        </div>
+      )}
+
+      {/* Idle: waiting for camera */}
+      {state === "idle" && !cameraError && (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
+          <div className="size-20 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
+            <Camera className="size-10 text-emerald-400" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-lg font-semibold text-white">
+              Abrindo câmera...
+            </p>
+            <p className="text-sm text-white/70">
+              Permita o acesso à câmera para escanear cartas
+            </p>
+          </div>
+          <Button
+            onClick={handleStartCamera}
+            className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
+          >
+            <Camera className="size-4" />
+            Abrir Câmera
           </Button>
         </div>
-      </div>
+      )}
 
-      <div className="flex items-center gap-3">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground font-medium">ou</span>
-        <Separator className="flex-1" />
-      </div>
-
-      {/* Camera Section */}
-      <div className="rounded-xl border border-border bg-card backdrop-blur-sm overflow-hidden">
-        {state === "idle" && (
-          <div className="p-8 flex flex-col items-center gap-4">
-            <div className="size-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
-              <Camera className="size-8 text-emerald-400" />
-            </div>
-            <div className="text-center space-y-1">
-              <p className="text-sm font-medium text-foreground">
-                Escanear com Câmera
-              </p>
-              <p className="text-xs text-muted-foreground max-w-xs">
-                Aponte a câmera traseira para o nome da carta. O OCR vai
-                reconhecer o texto e buscar no catálogo.
-              </p>
-            </div>
-            <Button
-              onClick={handleStartCamera}
-              className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
-            >
-              <Camera className="size-4" />
-              Abrir Câmera
-            </Button>
-          </div>
-        )}
-
-        {(state === "camera" || state === "processing") && (
-          <div className="relative">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full aspect-4/3 object-cover bg-black"
-            />
-            <canvas ref={canvasRef} className="hidden" />
-
-            {/* Scan overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[80%] h-12 border-2 border-emerald-400/60 rounded-lg relative">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-emerald-400 font-medium whitespace-nowrap">
-                  Alinhe o nome da carta aqui
-                </div>
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="absolute bottom-0 inset-x-0 p-4 bg-linear-to-t from-black/80 to-transparent">
-              <div className="flex items-center justify-center gap-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => { stop(); handleReset(); }}
-                  className="size-10 rounded-full border-white/20 text-white hover:bg-white/10 bg-black/40"
-                >
-                  <X className="size-5" />
-                </Button>
-
-                <button
-                  type="button"
-                  onClick={handleCapture}
-                  disabled={processing}
-                  className="size-16 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
-                >
-                  {processing ? (
-                    <Loader2 className="size-6 animate-spin" />
-                  ) : (
-                    <Camera className="size-6" />
-                  )}
-                </button>
-
-                <div className="size-10" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {cameraError && (
-          <div className="p-6 space-y-4">
+      {/* Error state */}
+      {cameraError && state === "idle" && (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
             <div className="flex flex-col items-center text-center gap-3">
               <div className="size-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
                 <CameraOff className="size-7 text-red-400" />
@@ -513,7 +480,7 @@ export default function ScanPage() {
                       ? "Permissão negada"
                       : "Câmera indisponível"}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                <p className="text-xs text-white/80 leading-relaxed max-w-xs mx-auto">
                   {cameraError.message}
                 </p>
               </div>
@@ -575,37 +542,38 @@ export default function ScanPage() {
               )}
             </div>
 
-            <Separator />
+            <Separator className="border-white/20" />
 
-            <p className="text-[10px] text-muted-foreground text-center">
-              Use a busca manual acima como alternativa
+            <p className="text-[10px] text-white/60 text-center">
+              Recarregue a página e tente novamente
             </p>
-          </div>
-        )}
-      </div>
-
-      {/* Recognized Text */}
-      {recognizedText && state === "results" && (
-        <div className="rounded-lg border border-border bg-muted/50 p-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-            Texto Reconhecido
-          </p>
-          <p className="text-xs text-foreground font-mono">{recognizedText}</p>
         </div>
       )}
 
-      {/* Results */}
-      {state === "results" && selectedCard && (
-        <ResultCard card={selectedCard} onReset={handleReset} />
-      )}
-
-      {state === "results" && !selectedCard && results.length > 0 && (
-        <MultipleResults
-          cards={results}
-          onSelect={(card) => setSelectedCard(card)}
-          onReset={handleReset}
-        />
-      )}
+      {/* Results Drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent className="bg-background border-border max-h-[85vh]">
+          <DrawerHeader className="px-5 py-4">
+            <DrawerTitle className="text-base font-bold text-foreground flex items-center gap-2">
+              <Zap className="size-4 text-emerald-400" />
+              {results.length === 1 ? "Carta identificada" : `${results.length} resultados`}
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="px-5 pb-6 overflow-y-auto">
+            {selectedCard ? (
+              <ResultCard card={selectedCard} onReset={handleReset} />
+            ) : (
+              <MultipleResults
+                cards={results}
+                onSelect={(card) => {
+                  setSelectedCard(card);
+                }}
+                onReset={handleReset}
+              />
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </main>
   );
 }
