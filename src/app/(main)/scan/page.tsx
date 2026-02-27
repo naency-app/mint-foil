@@ -59,6 +59,21 @@ function formatPrice(value: number) {
   });
 }
 
+function cleanOcrText(text: string): string {
+  return text
+    .replace(/[|©®™]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function pickBestSearchTerm(lines: string[]): string {
+  if (lines.length === 0) return "";
+  if (lines.length === 1) return lines[0];
+  const longest = lines.reduce((a, b) => (a.length >= b.length ? a : b));
+  const first = lines[0] ?? "";
+  return longest.length >= 4 ? longest : first;
+}
+
 function ResultCard({ card, onReset }: { card: CardType; onReset: () => void }) {
   const latestPrice = card.prices[0]?.value ?? 0;
 
@@ -304,7 +319,7 @@ export default function ScanPage() {
   const initOcr = useCallback(async () => {
     if (workerRef.current) return workerRef.current;
     const Tesseract = await import("tesseract.js");
-    const worker = await Tesseract.createWorker("eng");
+    const worker = await Tesseract.createWorker(["eng", "por"]);
     workerRef.current = worker;
     return worker;
   }, []);
@@ -328,9 +343,10 @@ export default function ScanPage() {
         return;
       }
 
-      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-      const firstLine = lines[0] ?? "";
-      await searchCards(firstLine);
+      const rawLines = text.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+      const lines = rawLines.map(cleanOcrText).filter((l) => l.length > 2);
+      const query = pickBestSearchTerm(lines);
+      await searchCards(query, lines);
     } catch {
       toast.error("Erro ao processar imagem");
       setState("camera");
@@ -339,13 +355,37 @@ export default function ScanPage() {
     }
   }
 
-  async function searchCards(query: string) {
+  async function searchCards(primaryQuery: string, allLines: string[] = []) {
     try {
-      const cards = await api.cards.list(query);
+      let cards: CardType[] = [];
+      const extraLines = allLines
+        .filter((l) => l !== primaryQuery && l.length >= 3)
+        .slice(0, 3);
+      const words = primaryQuery
+        .split(/\s+/)
+        .filter((w) => w.length >= 4)
+        .slice(0, 3);
+      const termsToTry = [
+        primaryQuery,
+        ...extraLines,
+        ...words,
+      ];
+
+      for (const term of termsToTry) {
+        if (!term.trim()) continue;
+        const found = await api.cards.list(term.trim());
+        if (found.length > 0) {
+          cards = found;
+          break;
+        }
+      }
+
       setResults(cards);
 
       if (cards.length === 0) {
-        toast.info(`Nenhuma carta encontrada para "${query}"`);
+        toast.info(
+          `Nenhuma carta encontrada. Texto lido: "${primaryQuery.slice(0, 30)}${primaryQuery.length > 30 ? "…" : ""}"`,
+        );
         setState("camera");
       } else {
         setSelectedCard(cards.length === 1 ? cards[0] : null);
