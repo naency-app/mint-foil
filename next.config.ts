@@ -1,14 +1,8 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: ".",
-  },
-  // Keeps better-auth's Node.js-only code (crypto, oslo, arctic) out of
-  // the client module graph so it never lands in a pnpm RSC boundary chunk.
-  serverExternalPackages: ["better-auth", "@better-auth/core", "oslo", "arctic"],
-  // @visx alpha packages lack stable "use client" directives; transpiling them
-  // lets Next.js control where they land in the bundle graph.
+  serverExternalPackages: ["oslo", "arctic"],
   transpilePackages: [
     "@visx/curve",
     "@visx/event",
@@ -18,6 +12,22 @@ const nextConfig: NextConfig = {
     "@visx/scale",
     "@visx/shape",
   ],
+  // Force all packages to share the same React instance (prevents the
+  // "Cannot read properties of null (reading 'useRef')" dual-React bug).
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      react: path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+    };
+    return config;
+  },
+  turbopack: {
+    resolveAlias: {
+      react: "./node_modules/react",
+      "react-dom": "./node_modules/react-dom",
+    },
+  },
   images: {
     remotePatterns: [
       {

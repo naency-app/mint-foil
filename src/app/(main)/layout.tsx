@@ -1,3 +1,4 @@
+"use client";
 import { InstallBanner } from "@/app/components/InstallBanner";
 import { Navbar } from "@/app/components/Navbar";
 
@@ -18,7 +19,7 @@ export default function MainLayout({
 
       <div className="relative">{children}</div>
 
-      <footer className="relative border-t border-border mt-12">
+      <footer className="relative border-t border-border  mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-xs text-muted-foreground">
             Minty Foil © 2026 — Gerencie sua coleção de TCG com inteligência.

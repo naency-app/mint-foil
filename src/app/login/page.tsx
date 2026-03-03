@@ -266,7 +266,11 @@ export default function LoginPage() {
             .
           </p>
         </div>
-        <Button variant="link" className="w-full" onClick={() => router.push(redirectTo)}>
+        <Button
+          variant="link"
+          className="w-full"
+          onClick={() => router.push("/explore")}
+        >
           <IconArrowLeft className="size-4" /> Voltar
         </Button>
       </div>
