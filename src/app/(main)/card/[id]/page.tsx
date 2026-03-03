@@ -41,22 +41,53 @@ const storeConfig: Record<string, { color: string; label: string }> = {
 
 function getSearchUrls(cardName: string, tcgSlug?: string) {
   const encoded = encodeURIComponent(cardName);
-  const urls: { name: string; url: string; color: string; label: string }[] = [];
+  const urls: { name: string; url: string; color: string; label: string }[] =
+    [];
 
   if (!tcgSlug || tcgSlug === "magic") {
-    urls.push({ name: "LigaMagic", url: `https://www.ligamagic.com.br/?view=cards/card&card=${encoded}`, color: "text-blue-400", label: "Buscar no LigaMagic" });
+    urls.push({
+      name: "LigaMagic",
+      url: `https://www.ligamagic.com.br/?view=cards/card&card=${encoded}`,
+      color: "text-blue-400",
+      label: "Buscar no LigaMagic",
+    });
   }
   if (!tcgSlug || tcgSlug === "pokemon") {
-    urls.push({ name: "LigaPokemon", url: `https://www.ligapokemon.com.br/?view=cards/card&card=${encoded}`, color: "text-yellow-400", label: "Buscar no LigaPokemon" });
+    urls.push({
+      name: "LigaPokemon",
+      url: `https://www.ligapokemon.com.br/?view=cards/card&card=${encoded}`,
+      color: "text-yellow-400",
+      label: "Buscar no LigaPokemon",
+    });
   }
   if (!tcgSlug || tcgSlug === "yugioh") {
-    urls.push({ name: "LigaYugioh", url: `https://www.ligayugioh.com.br/?view=cards/card&card=${encoded}`, color: "text-purple-400", label: "Buscar no LigaYugioh" });
+    urls.push({
+      name: "LigaYugioh",
+      url: `https://www.ligayugioh.com.br/?view=cards/card&card=${encoded}`,
+      color: "text-purple-400",
+      label: "Buscar no LigaYugioh",
+    });
   }
   if (!tcgSlug || tcgSlug === "onepiece") {
-    urls.push({ name: "LigaOnePiece", url: `https://www.ligaonepiece.com.br/?view=cards/card&card=${encoded}`, color: "text-red-400", label: "Buscar no LigaOnePiece" });
+    urls.push({
+      name: "LigaOnePiece",
+      url: `https://www.ligaonepiece.com.br/?view=cards/card&card=${encoded}`,
+      color: "text-red-400",
+      label: "Buscar no LigaOnePiece",
+    });
   }
-  urls.push({ name: "EpicGame", url: `https://www.epicgame.com.br/busca?q=${encoded}`, color: "text-emerald-400", label: "Buscar na EpicGame" });
-  urls.push({ name: "MyPCards", url: `https://mypcards.com/buscar?q=${encoded}`, color: "text-orange-400", label: "Buscar no MyPCards" });
+  // MyPCards: URL de busca com parâmetros ProdutoSearch
+  const myPTcg = tcgSlug ?? "yugioh";
+  const myPParams = new URLSearchParams({
+    "ProdutoSearch[marca]": myPTcg,
+    "ProdutoSearch[query]": cardName,
+  });
+  urls.push({
+    name: "MyPCards",
+    url: `https://mypcards.com/${myPTcg}?${myPParams.toString()}`,
+    color: "text-orange-400",
+    label: "Buscar no MyPCards",
+  });
 
   return urls;
 }
@@ -70,7 +101,7 @@ function formatPrice(value: number) {
 
 function CardDetailSkeleton() {
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <Skeleton className="h-4 w-64" />
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div className="space-y-2">
@@ -112,7 +143,7 @@ export default function CardDetailPage({
 
   if (error || !card) {
     return (
-      <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <AlertCircle className="size-12 text-red-400 mx-auto mb-4" />
         <h1 className="text-xl font-bold text-foreground mb-2">
           Carta não encontrada
@@ -169,7 +200,7 @@ export default function CardDetailPage({
   }
 
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Link href="/sets" className="hover:text-emerald-400 transition-colors">
@@ -194,9 +225,7 @@ export default function CardDetailPage({
           </>
         )}
         <ChevronRight className="size-3" />
-        <span className="text-foreground truncate max-w-[200px]">
-          {card.name}
-        </span>
+        <span className="text-foreground truncate max-w-50">{card.name}</span>
       </nav>
 
       {/* Header */}
@@ -271,7 +300,7 @@ export default function CardDetailPage({
               alt={card.name}
               width={400}
               height={560}
-              className="w-full rounded-lg aspect-5/7 object-cover"
+              className="w-full rounded-xl aspect-5/7 object-cover"
             />
           </div>
         </div>
@@ -549,11 +578,16 @@ export default function CardDetailPage({
                           </span>
                         )}
                         {!link.inStock && (
-                          <Badge variant="outline" className="text-[8px] text-red-400 border-red-400/30">
+                          <Badge
+                            variant="outline"
+                            className="text-[8px] text-red-400 border-red-400/30"
+                          >
                             Esgotado
                           </Badge>
                         )}
-                        <ExternalLink className={`size-3.5 ${config?.color ?? "text-muted-foreground"} opacity-50 group-hover:opacity-100 transition-opacity`} />
+                        <ExternalLink
+                          className={`size-3.5 ${config?.color ?? "text-muted-foreground"} opacity-50 group-hover:opacity-100 transition-opacity`}
+                        />
                       </div>
                     </a>
                   );
@@ -585,7 +619,9 @@ export default function CardDetailPage({
                     {link.label}
                   </span>
                 </div>
-                <ExternalLink className={`size-3.5 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`} />
+                <ExternalLink
+                  className={`size-3.5 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
+                />
               </a>
             ))}
           </div>

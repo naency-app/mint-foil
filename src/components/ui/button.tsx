@@ -1,3 +1,4 @@
+import { IconLoader, IconLoader2 } from "@tabler/icons-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import type * as React from "react";
@@ -43,10 +44,16 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  isLoading,
+  icon,
+  children,
+  disabled,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    isLoading?: boolean;
+    icon?: React.ReactNode;
   }) {
   const Comp = asChild ? Slot.Root : "button";
 
@@ -55,9 +62,13 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
+      disabled={disabled ?? isLoading}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+    >
+      {isLoading ? <IconLoader className="animate-spin" /> : (icon ?? null)}
+      {children}
+    </Comp>
   );
 }
 

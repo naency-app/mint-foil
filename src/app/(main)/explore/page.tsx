@@ -23,25 +23,31 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TcgCard } from "@/app/components/TcgCard";
 import { useCards } from "@/hooks/use-cards";
-import type { Card as CardType } from "@/lib/api";
-import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
+import { api, type Card as CardType, type Portfolio } from "@/lib/api";
+import {
+  IconFolder,
+  IconLayoutGrid,
+  IconListDetails,
+  IconLoader2,
+  IconPlus,
+} from "@tabler/icons-react";
 import {
   ArrowUpDown,
   ChevronRight,
   LayoutGrid,
   List,
   Loader2,
-  Plus,
   Search,
   SlidersHorizontal,
-  TrendingDown,
   TrendingUp,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { sileo } from "sileo";
 
 function FilterSection({
   title,
@@ -94,6 +100,14 @@ function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
 }
 
+function getPriceChange(card: CardType) {
+  if (card.prices.length < 2) return 0;
+  const current = card.prices[0].value;
+  const previous = card.prices[1].value;
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
+}
+
 function GridCardSkeleton() {
   return (
     <Card className="w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card py-0">
@@ -112,66 +126,35 @@ function GridCardSkeleton() {
   );
 }
 
-function GridCard({ card }: { card: CardType }) {
+function ListRow({
+  card,
+  activePortfolioId,
+}: {
+  card: CardType;
+  activePortfolioId: string;
+}) {
   const price = getLatestPrice(card);
+  const [adding, setAdding] = useState(false);
 
-  return (
-    <Link href={`/card/${card.id}`} className="block">
-      <Card className="group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0">
-        <CardContent className="p-0 relative">
-          <div className="overflow-hidden p-2 h-fit">
-            <Image
-              src={card.imageUrl}
-              alt={card.name}
-              className="w-full rounded-lg aspect-2/3 object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              width={200}
-              height={200}
-            />
-          </div>
-          <button
-            type="button"
-            className="absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            <Plus className="size-3.5" />
-          </button>
-        </CardContent>
-        <div className="p-3 space-y-1.5">
-          <h3 className="text-md font-bold text-foreground truncate leading-tight">
-            {card.name}
-          </h3>
-          <p className="text-xs text-muted-foreground truncate">
-            {card.setName ?? card.setCode}
-          </p>
-          <p className="text-xs text-muted-foreground leading-tight">
-            {card.rarity} • {card.setCode}
-          </p>
-          {card.cardType && (
-            <p className="text-xs text-muted-foreground">{card.cardType}</p>
-          )}
-          <div className="pt-1 border-t border-border">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="size-4 text-emerald-400" />
-                  <span className="text-sm font-bold text-foreground font-mono">
-                    R$ {formatPrice(price)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </Link>
-  );
-}
-
-function ListRow({ card }: { card: CardType }) {
-  const price = getLatestPrice(card);
+  async function handleAdd(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!activePortfolioId || adding) return;
+    setAdding(true);
+    try {
+      await api.collection.add({
+        cardId: card.id,
+        quantity: 1,
+        condition: "NM",
+        portfolioId: activePortfolioId,
+      });
+      sileo.success({ title: "Adicionado ao portfólio!" });
+    } catch {
+      sileo.error({ title: "Erro ao adicionar carta" });
+    } finally {
+      setAdding(false);
+    }
+  }
 
   return (
     <Link href={`/card/${card.id}`} className="block">
@@ -213,16 +196,19 @@ function ListRow({ card }: { card: CardType }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="shrink-0 size-8 rounded-full border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+        <Button
+          variant="outline"
+          size="icon"
+          className="shrink-0 size-8 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-200 duration-300"
+          onClick={handleAdd}
+          disabled={adding || !activePortfolioId}
         >
-          <Plus className="size-4" />
-        </button>
+          {adding ? (
+            <IconLoader2 className="size-4 animate-spin" />
+          ) : (
+            <IconPlus className="size-4" />
+          )}
+        </Button>
       </div>
     </Link>
   );
@@ -233,8 +219,20 @@ export default function ExplorePage() {
   const [sortBy, setSortBy] = useState("best-match");
   const [searchInput, setSearchInput] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [activePortfolioId, setActivePortfolioId] = useState("");
 
   const { cards, loading, error, search, setSearch } = useCards();
+
+  useEffect(() => {
+    api.collection
+      .portfolios()
+      .then((data) => {
+        setPortfolios(data);
+        if (data.length > 0) setActivePortfolioId(data[0].id);
+      })
+      .catch(() => {}); // user may not be logged in
+  }, []);
 
   function handleSearch() {
     setSearch(searchInput);
@@ -267,11 +265,9 @@ export default function ExplorePage() {
   });
 
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+    <main className="max-w-370 mx-auto px-4 sm:px-6  py-6 space-y-5">
       <section className="rounded-xl border border-border bg-card backdrop-blur-sm p-4 space-y-3">
-        <h2 className="text-sm font-bold text-foreground">
-          Buscar um Produto
-        </h2>
+        <h2 className="text-sm font-bold text-foreground">Buscar um Produto</h2>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -303,6 +299,35 @@ export default function ExplorePage() {
             <SlidersHorizontal className="size-3.5" />
             Filtros
           </Button>
+
+          {portfolios.length > 0 && (
+            <>
+              <Separator
+                orientation="vertical"
+                className="h-5 hidden sm:block"
+              />
+              <div className="hidden sm:flex items-center gap-1.5">
+                <IconFolder className="size-3.5 text-muted-foreground shrink-0" />
+                <Select
+                  value={activePortfolioId}
+                  onValueChange={setActivePortfolioId}
+                >
+                  <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[130px] max-w-[180px]">
+                    <SelectValue placeholder="Portfólio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portfolios.map((p) => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs">
+                        {p.name}
+                        {p._count != null ? ` (${p._count.items})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
           <p className="text-xs text-muted-foreground hidden sm:block">
             {loading ? (
               <span className="flex items-center gap-1">
@@ -322,12 +347,8 @@ export default function ExplorePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="best-match">Melhor Resultado</SelectItem>
-                <SelectItem value="price-asc">
-                  Preço: Menor → Maior
-                </SelectItem>
-                <SelectItem value="price-desc">
-                  Preço: Maior → Menor
-                </SelectItem>
+                <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
+                <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
                 <SelectItem value="name-asc">Nome: A → Z</SelectItem>
                 <SelectItem value="name-desc">Nome: Z → A</SelectItem>
               </SelectContent>
@@ -541,13 +562,27 @@ export default function ExplorePage() {
           ) : viewType === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {sortedCards.map((card) => (
-                <GridCard key={card.id} card={card} />
+                <Link key={card.id} href={`/card/${card.id}`} className="block">
+                  <TcgCard
+                    name={card.name}
+                    price={formatPrice(getLatestPrice(card))}
+                    imageUrl={card.imageUrl}
+                    setCode={card.setCode}
+                    change={getPriceChange(card)}
+                    cardId={card.id}
+                    defaultPortfolioId={activePortfolioId}
+                  />
+                </Link>
               ))}
             </div>
           ) : (
             <div className="space-y-2">
               {sortedCards.map((card) => (
-                <ListRow key={card.id} card={card} />
+                <ListRow
+                  key={card.id}
+                  card={card}
+                  activePortfolioId={activePortfolioId}
+                />
               ))}
             </div>
           )}

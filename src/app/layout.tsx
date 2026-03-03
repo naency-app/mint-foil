@@ -15,14 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Card Vault — Gerencie sua Coleção de TCG",
+  title: "Minty Foil — Gerencie sua Coleção de TCG",
   description:
     "Escaneie cartas, acompanhe preços do mercado brasileiro e gerencie seu portfólio de TCG. Pokémon, Magic, Yu-Gi-Oh!, One Piece e mais.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Card Vault",
+    title: "Minty Foil",
   },
 };
 
@@ -46,6 +46,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
+        suppressHydrationWarning
       >
         <Providers>{children}</Providers>
         <Script
@@ -53,7 +54,7 @@ export default function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
+              if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
                 navigator.serviceWorker.register('/sw.js').catch(() => {});
               }
             `,

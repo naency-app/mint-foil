@@ -1,5 +1,7 @@
 "use client";
 
+import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -14,14 +16,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type Card as CardType, type CardSet } from "@/lib/api";
-import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
+import { api, type Card as CardType, type CardSet, type Portfolio } from "@/lib/api";
+import { IconFolder, IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
   ArrowLeft,
   ArrowUpDown,
   ChevronRight,
   Loader2,
-  Plus,
   Search,
   TrendingUp,
 } from "lucide-react";
@@ -41,6 +42,81 @@ function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
 }
 
+function getPriceChange(card: CardType) {
+  if (card.prices.length < 2) return 0;
+  const current = card.prices[0].value;
+  const previous = card.prices[1].value;
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
+}
+
+function CardSkeleton() {
+  return (
+    <Card className="w-full h-full overflow-hidden bg-card py-0">
+      <CardContent className="p-0">
+        <div className="p-2">
+          <Skeleton className="w-full rounded-lg aspect-2/3" />
+        </div>
+      </CardContent>
+      <div className="p-3 space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-4 w-1/3 mt-2" />
+      </div>
+    </Card>
+  );
+}
+
+function ListRow({
+  card,
+  activePortfolioId,
+}: {
+  card: CardType;
+  activePortfolioId: string;
+}) {
+  const price = getLatestPrice(card);
+
+  return (
+    <Link href={`/card/${card.id}`} className="block">
+      <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-card hover:bg-background/50 transition-all group">
+        <div className="shrink-0 size-12 rounded-md overflow-hidden">
+          <Image
+            src={card.imageUrl}
+            alt={card.name}
+            width={48}
+            height={48}
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-foreground truncate">
+            {card.name}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {card.rarity} • {card.setCode}
+          </p>
+        </div>
+
+        <div className="text-right shrink-0 w-32">
+          <div className="flex items-center justify-end gap-1">
+            <TrendingUp className="size-3 text-emerald-400" />
+            <span className="text-sm font-bold text-foreground font-mono">
+              R$ {formatPrice(price)}
+            </span>
+          </div>
+        </div>
+
+        <AddToPortfolioButton
+          cardId={card.id}
+          defaultPortfolioId={activePortfolioId}
+          triggerClassName="shrink-0 size-8 rounded-full border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+        />
+      </div>
+    </Link>
+  );
+}
+
 export default function SetCardsPage() {
   const { tcg: tcgSlug, set: setSlug } = useParams<{
     tcg: string;
@@ -52,6 +128,8 @@ export default function SetCardsPage() {
   const [search, setSearch] = useState("");
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("number");
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [activePortfolioId, setActivePortfolioId] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -70,6 +148,16 @@ export default function SetCardsPage() {
     load();
   }, [tcgSlug, setSlug]);
 
+  useEffect(() => {
+    api.collection
+      .portfolios()
+      .then((data) => {
+        setPortfolios(data);
+        if (data.length > 0) setActivePortfolioId(data[0].id);
+      })
+      .catch(() => {});
+  }, []);
+
   const filteredCards = useMemo(() => {
     let result = cards;
     if (search) {
@@ -86,18 +174,12 @@ export default function SetCardsPage() {
       const priceA = getLatestPrice(a);
       const priceB = getLatestPrice(b);
       switch (sortBy) {
-        case "price-asc":
-          return priceA - priceB;
-        case "price-desc":
-          return priceB - priceA;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "name-desc":
-          return b.name.localeCompare(a.name);
-        case "rarity":
-          return b.rarity.localeCompare(a.rarity);
-        default:
-          return a.setCode.localeCompare(b.setCode);
+        case "price-asc": return priceA - priceB;
+        case "price-desc": return priceB - priceA;
+        case "name-asc": return a.name.localeCompare(b.name);
+        case "name-desc": return b.name.localeCompare(a.name);
+        case "rarity": return b.rarity.localeCompare(a.rarity);
+        default: return a.setCode.localeCompare(b.setCode);
       }
     });
   }, [cards, search, sortBy]);
@@ -106,6 +188,7 @@ export default function SetCardsPage() {
 
   return (
     <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/sets" className="hover:text-foreground transition-colors">
           Sets
@@ -123,6 +206,7 @@ export default function SetCardsPage() {
         </span>
       </div>
 
+      {/* Set header */}
       <div>
         <Link
           href={`/sets/${tcgSlug}`}
@@ -173,15 +257,40 @@ export default function SetCardsPage() {
         )}
       </div>
 
+      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar cartas..."
-            className="pl-10"
-          />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filtrar cartas..."
+              className="pl-10"
+            />
+          </div>
+
+          {portfolios.length > 0 && (
+            <>
+              <Separator orientation="vertical" className="h-5 hidden sm:block" />
+              <div className="hidden sm:flex items-center gap-1.5">
+                <IconFolder className="size-3.5 text-muted-foreground shrink-0" />
+                <Select value={activePortfolioId} onValueChange={setActivePortfolioId}>
+                  <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[130px] max-w-[180px]">
+                    <SelectValue placeholder="Portfólio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portfolios.map((p) => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs">
+                        {p.name}
+                        {p._count != null ? ` (${p._count.items})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -229,6 +338,7 @@ export default function SetCardsPage() {
         )}
       </p>
 
+      {/* Cards */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -250,130 +360,30 @@ export default function SetCardsPage() {
       ) : viewType === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filteredCards.map((card) => (
-            <GridCard key={card.id} card={card} />
+            <Link key={card.id} href={`/card/${card.id}`} className="block">
+              <TcgCard
+                name={card.name}
+                price={formatPrice(getLatestPrice(card))}
+                imageUrl={card.imageUrl}
+                setCode={card.setCode}
+                change={getPriceChange(card)}
+                cardId={card.id}
+                defaultPortfolioId={activePortfolioId}
+              />
+            </Link>
           ))}
         </div>
       ) : (
         <div className="space-y-2">
           {filteredCards.map((card) => (
-            <ListRow key={card.id} card={card} />
+            <ListRow
+              key={card.id}
+              card={card}
+              activePortfolioId={activePortfolioId}
+            />
           ))}
         </div>
       )}
     </main>
-  );
-}
-
-function CardSkeleton() {
-  return (
-    <Card className="w-full h-full overflow-hidden bg-card py-0">
-      <CardContent className="p-0">
-        <div className="p-2">
-          <Skeleton className="w-full rounded-lg aspect-2/3" />
-        </div>
-      </CardContent>
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-1/2" />
-        <Skeleton className="h-4 w-1/3 mt-2" />
-      </div>
-    </Card>
-  );
-}
-
-function GridCard({ card }: { card: CardType }) {
-  const price = getLatestPrice(card);
-
-  return (
-    <Link href={`/card/${card.id}`} className="block">
-      <Card className="group w-full h-full overflow-hidden border-border bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0">
-        <CardContent className="p-0 relative">
-          <div className="overflow-hidden p-2 h-fit">
-            <Image
-              src={card.imageUrl}
-              alt={card.name}
-              className="w-full rounded-lg aspect-2/3 object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              width={200}
-              height={300}
-            />
-          </div>
-          <button
-            type="button"
-            className="absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            <Plus className="size-3.5" />
-          </button>
-        </CardContent>
-        <div className="p-3 space-y-1.5">
-          <h3 className="text-sm font-bold text-foreground truncate leading-tight">
-            {card.name}
-          </h3>
-          <p className="text-xs text-muted-foreground leading-tight">
-            {card.rarity} • {card.setCode}
-          </p>
-          <div className="pt-1 border-t border-border">
-            <div className="flex items-center gap-1">
-              <TrendingUp className="size-3.5 text-emerald-400" />
-              <span className="text-sm font-bold text-foreground font-mono">
-                R$ {formatPrice(price)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </Link>
-  );
-}
-
-function ListRow({ card }: { card: CardType }) {
-  const price = getLatestPrice(card);
-
-  return (
-    <Link href={`/card/${card.id}`} className="block">
-      <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-card hover:bg-background/50 transition-all group">
-        <div className="shrink-0 size-12 rounded-md overflow-hidden">
-          <Image
-            src={card.imageUrl}
-            alt={card.name}
-            width={48}
-            height={48}
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground truncate">
-            {card.name}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {card.rarity} • {card.setCode}
-          </p>
-        </div>
-
-        <div className="text-right shrink-0 w-32">
-          <div className="flex items-center justify-end gap-1">
-            <TrendingUp className="size-3 text-emerald-400" />
-            <span className="text-sm font-bold text-foreground font-mono">
-              R$ {formatPrice(price)}
-            </span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="shrink-0 size-8 rounded-full border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <Plus className="size-4" />
-        </button>
-      </div>
-    </Link>
   );
 }

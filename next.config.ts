@@ -4,6 +4,20 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: ".",
   },
+  // Keeps better-auth's Node.js-only code (crypto, oslo, arctic) out of
+  // the client module graph so it never lands in a pnpm RSC boundary chunk.
+  serverExternalPackages: ["better-auth", "@better-auth/core", "oslo", "arctic"],
+  // @visx alpha packages lack stable "use client" directives; transpiling them
+  // lets Next.js control where they land in the bundle graph.
+  transpilePackages: [
+    "@visx/curve",
+    "@visx/event",
+    "@visx/gradient",
+    "@visx/grid",
+    "@visx/responsive",
+    "@visx/scale",
+    "@visx/shape",
+  ],
   images: {
     remotePatterns: [
       {

@@ -1,6 +1,6 @@
 {
-  "name": "Card Vault — Gerencie sua Coleção de TCG",
-  "short_name": "Card Vault",
+  "name": "Minty Foil — Gerencie sua Coleção de TCG",
+  "short_name": "Minty Foil",
   "description": "Escaneie cartas, acompanhe preços do mercado brasileiro e gerencie seu portfólio de TCG.",
   "start_url": "/explore",
   "display": "standalone",

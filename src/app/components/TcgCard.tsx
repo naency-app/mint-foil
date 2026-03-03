@@ -1,8 +1,17 @@
-import { Badge } from "@/components/ui/badge";
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { api } from "@/lib/api";
+import {
+  IconLoader2,
+  IconPlus,
+  IconTrendingDown,
+  IconTrendingUp,
+} from "@tabler/icons-react";
 import Image from "next/image";
+import { useState } from "react";
+import { sileo } from "sileo";
 
 export interface TcgCardProps {
   name: string;
@@ -10,6 +19,8 @@ export interface TcgCardProps {
   imageUrl: string;
   setCode: string;
   change: number;
+  cardId?: string;
+  defaultPortfolioId?: string;
 }
 
 export function TcgCard({
@@ -18,58 +29,92 @@ export function TcgCard({
   imageUrl,
   setCode,
   change,
+  cardId,
+  defaultPortfolioId,
 }: TcgCardProps) {
   const isPositive = change >= 0;
+  const [adding, setAdding] = useState(false);
+
+  async function handleAdd(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cardId || !defaultPortfolioId || adding) return;
+    setAdding(true);
+    try {
+      await api.collection.add({
+        cardId,
+        quantity: 1,
+        condition: "NM",
+        portfolioId: defaultPortfolioId,
+      });
+      sileo.success({ title: "Adicionado ao portfólio!" });
+    } catch {
+      sileo.error({ title: "Erro ao adicionar carta" });
+    } finally {
+      setAdding(false);
+    }
+  }
 
   return (
-    <Card className="group w-full overflow-hidden bg-slate-900/50 border-slate-800 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1">
-      <CardContent className="p-0 relative">
-        <Badge className="absolute top-2 right-2 z-10 bg-blue-600/90 hover:bg-blue-700 backdrop-blur-sm text-[10px] font-mono tracking-wider">
-          {setCode}
-        </Badge>
-        <div className="overflow-hidden">
+    <Card className="group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0">
+      <CardContent className="p-0 flex-1">
+        <div className="overflow-hidden p-2">
           <Image
             src={imageUrl}
             alt={name}
-            className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
             width={200}
-            height={300}
+            height={200}
           />
         </div>
-        {/* Gradient overlay at the bottom of the image */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
       </CardContent>
-      <CardFooter className="p-3 flex flex-col items-start gap-2 relative">
-        <div className="flex flex-col w-full gap-0.5">
-          <span className="text-xs font-bold text-slate-100 uppercase truncate w-full leading-tight">
-            {name}
-          </span>
-          <div className="flex items-center justify-between w-full">
-            <span className="text-sm text-emerald-400 font-mono font-semibold">
-              R$ {price}
-            </span>
-            <span
-              className={`flex items-center gap-0.5 text-[10px] font-mono font-medium ${isPositive ? "text-emerald-400" : "text-red-400"
-                }`}
-            >
+
+      <div className="p-3 space-y-1.5">
+        <h3 className="text-md font-bold text-foreground truncate leading-tight">
+          {name}
+        </h3>
+        <p className="text-xs text-muted-foreground leading-tight">{setCode}</p>
+        <div className="pt-1 border-t border-border">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 min-w-0">
               {isPositive ? (
-                <TrendingUp className="size-3" />
+                <IconTrendingUp className="size-4 text-emerald-400 shrink-0" />
               ) : (
-                <TrendingDown className="size-3" />
+                <IconTrendingDown className="size-4 text-red-400 shrink-0" />
               )}
-              {isPositive ? "+" : ""}
-              {change.toFixed(1)}%
-            </span>
+              <span className="text-sm font-bold text-foreground font-mono truncate">
+                R$ {price}
+              </span>
+              {change !== 0 && (
+                <span
+                  className={`text-[10px] font-mono font-medium shrink-0 ${
+                    isPositive ? "text-emerald-400" : "text-red-400"
+                  }`}
+                >
+                  {isPositive ? "+" : ""}
+                  {change.toFixed(1)}%
+                </span>
+              )}
+            </div>
+
+            {cardId && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 size-7 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-200 duration-300 "
+                onClick={handleAdd}
+                disabled={adding || !defaultPortfolioId}
+              >
+                {adding ? (
+                  <IconLoader2 className="size-4 animate-spin" />
+                ) : (
+                  <IconPlus className="size-4" />
+                )}
+              </Button>
+            )}
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full h-8 text-xs border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition-colors cursor-pointer"
-        >
-          Ver Detalhes
-        </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 }

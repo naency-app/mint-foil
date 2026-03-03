@@ -169,4 +169,28 @@ export const api = {
     remove: (id: string) =>
       apiFetch<CollectionItem>(`/collection/${id}`, { method: "DELETE" }),
   },
+  scan: {
+    remaining: () =>
+      apiFetch<{ remaining: number; requiresAuth?: boolean }>("/scan/remaining"),
+    identify: async (
+      imageBase64: string,
+    ): Promise<
+      | { ok: true; cardName: string }
+      | { ok: false; status: number; message: string }
+    > => {
+      const res = await fetch(`${API_URL}/scan/identify`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64 }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) return { ok: true, cardName: body.cardName };
+      return {
+        ok: false,
+        status: res.status,
+        message: body.message || `Erro ${res.status}`,
+      };
+    },
+  },
 };

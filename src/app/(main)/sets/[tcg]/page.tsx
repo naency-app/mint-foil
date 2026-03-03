@@ -3,6 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import SpotlightCards, {
+  type SpotlightItem,
+} from "@/components/kokonutui/spotlight-cards";
 import { api, type CardSet, type Tcg } from "@/lib/api";
 import {
   ArrowLeft,
@@ -15,15 +18,95 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+const TCG_COLOR: Record<string, string> = {
+  pokemon: "#f59e0b",
+  magic: "#e05c2a",
+  yugioh: "#7c3aed",
+  onepiece: "#0ea5e9",
+};
+
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return null;
+  try {
+    return new Date(dateStr).toLocaleDateString("pt-BR", {
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return null;
+  }
+}
+
+function toSpotlightItem(
+  set: CardSet,
+  tcgSlug: string,
+  color: string,
+): SpotlightItem {
+  const cardCount = set._count?.cards ?? 0;
+  const date = formatDate(set.releaseDate);
+  const descParts = [`${cardCount} cartas`];
+  if (date) descParts.push(date);
+  else descParts.push(set.code);
+
+  return {
+    image: set.imageUrl ?? undefined,
+    title: set.name,
+    description: descParts.join(" • "),
+    color,
+    href: `/sets/${tcgSlug}/${set.slug}`,
+  };
+}
+
 function SetRowSkeleton() {
   return (
     <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card">
-      <Skeleton className="size-12 rounded-lg shrink-0" />
+      <Skeleton className="size-10 rounded-lg shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-48" />
         <Skeleton className="h-3 w-32" />
       </div>
-      <Skeleton className="h-5 w-16 rounded-full" />
+    </div>
+  );
+}
+
+function SetRow({
+  set,
+  tcgSlug,
+}: {
+  set: CardSet;
+  tcgSlug: string;
+}) {
+  const date = formatDate(set.releaseDate);
+
+  return (
+    <div className="flex items-center gap-4 p-3 rounded-xl border border-border bg-card/50 opacity-50">
+      <div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+        {set.imageUrl ? (
+          <img
+            src={set.imageUrl}
+            alt={set.name}
+            className="size-full object-cover"
+          />
+        ) : (
+          <Layers className="size-4 text-muted-foreground" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sm font-medium text-foreground truncate">
+          {set.name}
+        </h3>
+        <div className="flex items-center gap-3 mt-0.5">
+          <span className="text-xs text-muted-foreground font-mono">
+            {set.code}
+          </span>
+          {date && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Calendar className="size-3" />
+              {date}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -34,6 +117,8 @@ export default function TcgSetsPage() {
   const [sets, setSets] = useState<CardSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  const color = TCG_COLOR[tcgSlug] ?? "#6b7280";
 
   useEffect(() => {
     async function load() {
@@ -63,27 +148,18 @@ export default function TcgSetsPage() {
     );
   }, [sets, search]);
 
-  const setsWithCards = filteredSets.filter(
-    (s) => (s._count?.cards ?? 0) > 0,
-  );
+  const setsWithCards = filteredSets.filter((s) => (s._count?.cards ?? 0) > 0);
   const setsWithoutCards = filteredSets.filter(
     (s) => (s._count?.cards ?? 0) === 0,
   );
 
-  function formatDate(dateStr: string | null) {
-    if (!dateStr) return null;
-    try {
-      return new Date(dateStr).toLocaleDateString("pt-BR", {
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return null;
-    }
-  }
+  const spotlightItems = setsWithCards.map((s) =>
+    toSpotlightItem(s, tcgSlug, color),
+  );
 
   return (
     <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/sets" className="hover:text-foreground transition-colors">
           Sets
@@ -94,6 +170,7 @@ export default function TcgSetsPage() {
         </span>
       </div>
 
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <Link
@@ -124,48 +201,51 @@ export default function TcgSetsPage() {
         </div>
       </div>
 
+      {/* Content */}
       {loading ? (
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <SetRowSkeleton key={i} />
           ))}
         </div>
+      ) : filteredSets.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <Search className="size-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            Nenhum set encontrado
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {search
+              ? `Nenhum resultado para "${search}".`
+              : "Nenhum set disponível para este TCG."}
+          </p>
+        </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
+          {/* Sets with cards — SpotlightCards grid */}
           {setsWithCards.length > 0 && (
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Layers className="size-3.5" />
                 Sets com cartas ({setsWithCards.length})
               </h2>
-              <div className="space-y-1.5">
-                {setsWithCards.map((set) => (
-                  <SetRow
-                    key={set.id}
-                    set={set}
-                    tcgSlug={tcgSlug}
-                    formatDate={formatDate}
-                  />
-                ))}
-              </div>
+              <SpotlightCards
+                items={spotlightItems}
+                className="dark:bg-transparent p-0"
+              />
             </section>
           )}
 
+          {/* Sets without cards — compact list */}
           {setsWithoutCards.length > 0 && (
             <section className="space-y-2">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Layers className="size-3.5 opacity-50" />
                 Aguardando sync ({setsWithoutCards.length})
               </h2>
-              <div className="space-y-1.5 opacity-60">
+              <div className="space-y-1.5">
                 {setsWithoutCards.slice(0, 20).map((set) => (
-                  <SetRow
-                    key={set.id}
-                    set={set}
-                    tcgSlug={tcgSlug}
-                    formatDate={formatDate}
-                    disabled
-                  />
+                  <SetRow key={set.id} set={set} tcgSlug={tcgSlug} />
                 ))}
                 {setsWithoutCards.length > 20 && (
                   <p className="text-xs text-muted-foreground text-center py-2">
@@ -175,91 +255,8 @@ export default function TcgSetsPage() {
               </div>
             </section>
           )}
-
-          {filteredSets.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Search className="size-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                Nenhum set encontrado
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {search
-                  ? `Nenhum resultado para "${search}".`
-                  : "Nenhum set disponível para este TCG."}
-              </p>
-            </div>
-          )}
         </div>
       )}
     </main>
-  );
-}
-
-function SetRow({
-  set,
-  tcgSlug,
-  formatDate,
-  disabled,
-}: {
-  set: CardSet;
-  tcgSlug: string;
-  formatDate: (d: string | null) => string | null;
-  disabled?: boolean;
-}) {
-  const cardCount = set._count?.cards ?? 0;
-  const date = formatDate(set.releaseDate);
-  const href = disabled ? "#" : `/sets/${tcgSlug}/${set.slug}`;
-
-  const Component = disabled ? "div" : Link;
-
-  return (
-    <Component
-      href={href}
-      className={`flex items-center gap-4 p-4 rounded-xl border border-border bg-card transition-all ${
-        disabled
-          ? "cursor-default"
-          : "hover:bg-background/50 hover:-translate-y-0.5 hover:shadow-md group"
-      }`}
-    >
-      <div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-        {set.imageUrl ? (
-          <img
-            src={set.imageUrl}
-            alt={set.name}
-            className="size-full object-cover"
-          />
-        ) : (
-          <Layers className="size-5 text-muted-foreground" />
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-semibold text-foreground truncate">
-          {set.name}
-        </h3>
-        <div className="flex items-center gap-3 mt-0.5">
-          <span className="text-xs text-muted-foreground font-mono">
-            {set.code}
-          </span>
-          {date && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className="size-3" />
-              {date}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 shrink-0">
-        {cardCount > 0 && (
-          <Badge variant="secondary" className="text-xs">
-            {cardCount} cartas
-          </Badge>
-        )}
-        {!disabled && (
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-        )}
-      </div>
-    </Component>
   );
 }

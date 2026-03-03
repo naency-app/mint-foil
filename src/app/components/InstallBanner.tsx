@@ -31,7 +31,7 @@ export function InstallBanner() {
 
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold text-foreground">
-              Instalar Card Vault
+              Instalar Minty Foil
             </h3>
 
             {isIos ? (

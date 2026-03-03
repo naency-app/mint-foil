@@ -13,10 +13,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
-import { IconX } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
+import { IconCards, IconX } from "@tabler/icons-react";
 import { Download, Menu, Moon, Search, Share, Sun } from "lucide-react";
+import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CommandK } from "./CommandK";
 
@@ -26,9 +29,12 @@ const navLinks = [
   { label: "Sets", href: "/sets" },
 ];
 
-const mobileOnlyLinks = [
-  { label: "Scan", href: "/scan" },
-];
+const mobileOnlyLinks = [{ label: "Scan", href: "/scan" }];
+
+function isLinkActive(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -63,6 +69,7 @@ function ThemeToggle() {
 }
 
 export function Navbar() {
+  const pathname = usePathname();
   const [commandOpen, setCommandOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { canInstall, isIos, isInstalled, isStandalone, install } =
@@ -70,8 +77,8 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="sticky top-0 z-10 backdrop-blur-xl border-b border-border/50">
+        <div className="max-w-370 mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 gap-4">
             {/* ── Left: Hamburger + Logo ── */}
             <div className="flex items-center gap-3 shrink-0">
@@ -94,7 +101,7 @@ export function Navbar() {
                     <div className="flex items-center justify-between">
                       <SheetTitle>
                         <span className="text-lg font-extrabold tracking-[0.2em] text-foreground uppercase select-none">
-                          Minty
+                          Minty Foil
                         </span>
                       </SheetTitle>
                       <SheetClose asChild>
@@ -109,16 +116,35 @@ export function Navbar() {
                   </SheetHeader>
 
                   <div className="flex flex-col py-3">
-                    {[...navLinks, ...mobileOnlyLinks].map((link) => (
-                      <SheetClose key={link.label} asChild>
-                        <Link
-                          href={link.href}
-                          className="px-5 py-3 text-sm text-muted-foreground font-medium transition-colors hover:text-foreground hover:bg-muted"
-                        >
-                          {link.label}
-                        </Link>
-                      </SheetClose>
-                    ))}
+                    {[...navLinks, ...mobileOnlyLinks].map((link) => {
+                      const active = isLinkActive(pathname, link.href);
+                      return (
+                        <SheetClose key={link.label} asChild>
+                          <Link
+                            href={link.href}
+                            className={cn(
+                              "relative flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors",
+                              active
+                                ? "text-primary bg-primary/5"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                            )}
+                          >
+                            {active && (
+                              <motion.span
+                                layoutId="mobile-nav-indicator"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-primary"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 400,
+                                  damping: 30,
+                                }}
+                              />
+                            )}
+                            {link.label}
+                          </Link>
+                        </SheetClose>
+                      );
+                    })}
                   </div>
 
                   {/* Install PWA */}
@@ -151,8 +177,8 @@ export function Navbar() {
                               Instalar App
                             </p>
                             <p className="text-[10px] text-blue-400/70 leading-relaxed">
-                              Toque em Compartilhar e depois &quot;Adicionar
-                              à Tela de Início&quot;
+                              Toque em Compartilhar e depois &quot;Adicionar à
+                              Tela de Início&quot;
                             </p>
                           </div>
                         </div>
@@ -171,39 +197,62 @@ export function Navbar() {
                 </SheetContent>
               </Sheet>
 
-              <Link href="/" className="flex items-center">
-                <span className="text-[20px] font-extrabold tracking-[0.25em] text-foreground uppercase select-none">
-                  Minty
+              <Link
+                href="/"
+                className="text-center flex items-center justify-center gap-2"
+              >
+                <IconCards stroke={2} />
+                <span className="text-xl font-extrabold  text-foreground uppercase select-none">
+                  Minty Foil
                 </span>
               </Link>
             </div>
 
             {/* ── Center: Navigation Links (desktop) ── */}
             <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="px-3 py-1.5 text-[13px] text-muted-foreground font-medium rounded-md transition-colors hover:text-foreground hover:bg-muted"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const active = isLinkActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className={cn(
+                      "relative px-3 py-1.5 text-[13px] font-medium rounded-md transition-colors",
+                      active
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="desktop-nav-pill"
+                        className="absolute inset-0 rounded-md bg-primary/10"
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 30,
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10">{link.label}</span>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* ── Right: Actions ── */}
             <div className="flex items-center gap-2 shrink-0">
-              <button
+              <Button
                 type="button"
                 id="search-button"
                 onClick={() => setCommandOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-muted border border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-ring transition-all cursor-pointer"
+                variant="secondary"
               >
                 <Search className="size-3.5" />
                 <Kbd className="hidden sm:inline-flex bg-accent text-muted-foreground text-[10px] h-4 min-w-4 px-1">
                   ⌘K
                 </Kbd>
-              </button>
+              </Button>
 
               <div className="hidden md:block">
                 <ThemeToggle />
@@ -213,14 +262,6 @@ export function Navbar() {
                 orientation="vertical"
                 className="hidden sm:block h-5"
               />
-
-              <button
-                type="button"
-                className="hidden sm:flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-muted border border-border text-foreground text-xs font-medium hover:bg-accent transition-colors cursor-pointer"
-              >
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-                BRL
-              </button>
 
               <UserMenu />
             </div>

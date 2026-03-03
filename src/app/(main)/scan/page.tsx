@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useCamera, type CameraError } from "@/hooks/use-camera";
+import { useSession } from "@/lib/auth-client";
 import { api } from "@/lib/api";
 import type { Card as CardType } from "@/lib/api";
 import {
@@ -308,6 +309,7 @@ function StepItem({
 
 export default function ScanPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const isMobile = useIsMobile();
   const { videoRef, canvasRef, isActive, error: cameraError, start, stop, capture } = useCamera();
   const [state, setState] = useState<ScanState>("idle");
@@ -318,6 +320,7 @@ export default function ScanPage() {
   const [results, setResults] = useState<CardType[]>([]);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [remainingScans, setRemainingScans] = useState<number | null>(null);
   const workerRef = useRef<import("tesseract.js").Worker | null>(null);
 
   const initOcr = useCallback(async () => {
@@ -335,6 +338,24 @@ export default function ScanPage() {
     setState("processing");
     setProcessing(true);
     try {
+      if (session?.user) {
+        const result = await api.scan.identify(dataUrl);
+        if (result.ok) {
+          setRecognizedText(result.cardName);
+          setRemainingScans((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+          await searchCards(result.cardName, [result.cardName]);
+          setProcessing(false);
+          return;
+        }
+        if (result.status === 403) {
+          setRemainingScans(0);
+          toast.error(result.message);
+          setState("camera");
+          setProcessing(false);
+          return;
+        }
+      }
+
       const worker = await initOcr();
       const { data } = await worker.recognize(dataUrl);
       const text = data.text.trim();
@@ -436,6 +457,13 @@ export default function ScanPage() {
     }
   }, [isMobile]);
 
+  useEffect(() => {
+    api.scan
+      .remaining()
+      .then((r) => setRemainingScans(r.remaining))
+      .catch(() => setRemainingScans(null));
+  }, [session?.user, drawerOpen]);
+
   if (!isMobile) return <DesktopScanFallback />;
 
   return (
@@ -494,6 +522,11 @@ export default function ScanPage() {
             <p className="text-center text-white/80 text-sm mt-3">
               Tire a foto da carta inteira
             </p>
+            {session?.user && remainingScans !== null && remainingScans < 999_999 && (
+              <p className="text-center text-white/60 text-xs mt-1">
+                {remainingScans} scan{remainingScans !== 1 ? "s" : ""} com IA hoje
+              </p>
+            )}
           </div>
         </div>
       )}
