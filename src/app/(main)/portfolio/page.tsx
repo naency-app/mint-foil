@@ -26,6 +26,8 @@ import {
   ArrowUpDown,
   DollarSign,
   FolderPlus,
+  LayoutGrid,
+  List,
   Loader2,
   Minus,
   Package,
@@ -262,10 +264,167 @@ function PortfolioItemRow({
   );
 }
 
+function PortfolioItemCard({
+  item,
+  onUpdate,
+  onRemove,
+}: {
+  item: CollectionItem;
+  onUpdate: (id: string, data: { quantity: number }) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
+}) {
+  const currentPrice = item.card.prices[0]?.value ?? 0;
+  const totalValue = currentPrice * item.quantity;
+  const invested = (item.buyPrice ?? 0) * item.quantity;
+  const profit = totalValue - invested;
+  const isPositive = profit >= 0;
+  const [removing, setRemoving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  async function handleRemove() {
+    setRemoving(true);
+    try {
+      await onRemove(item.id);
+      toast.success(`${item.card.name} removido da coleção`);
+    } catch {
+      toast.error("Erro ao remover item");
+    } finally {
+      setRemoving(false);
+      setConfirmDelete(false);
+    }
+  }
+
+  async function handleQuantityChange(delta: number) {
+    const newQty = item.quantity + delta;
+    if (newQty < 1) {
+      setConfirmDelete(true);
+      return;
+    }
+    try {
+      await onUpdate(item.id, { quantity: newQty });
+    } catch {
+      toast.error("Erro ao atualizar quantidade");
+    }
+  }
+
+  return (
+    <>
+      <Card className="group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0">
+        <CardContent className="p-0 flex-1 relative">
+          <Link href={`/card/${item.card.id}`} className="block overflow-hidden p-2">
+            <Image
+              src={item.card.imageUrl}
+              alt={item.card.name}
+              className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              width={200}
+              height={200}
+            />
+          </Link>
+          {/* Quantity badge */}
+          <div className="absolute top-3 right-3 bg-black/70 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center">
+            {item.quantity}
+          </div>
+        </CardContent>
+
+        <div className="p-3 space-y-1.5">
+          <Link href={`/card/${item.card.id}`}>
+            <h3 className="text-sm font-bold text-foreground truncate leading-tight hover:text-emerald-400 transition-colors">
+              {item.card.name}
+            </h3>
+          </Link>
+          <p className="text-xs text-tertiary leading-tight truncate">
+            {item.card.setName ?? item.card.setCode}
+          </p>
+          <div className="pt-1 border-t border-border space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-bold text-foreground font-mono">
+                R$ {formatPrice(currentPrice)}
+              </span>
+              <div className="flex items-center gap-1">
+                {isPositive ? (
+                  <TrendingUp className="size-3 text-emerald-400 shrink-0" />
+                ) : (
+                  <TrendingDown className="size-3 text-red-400 shrink-0" />
+                )}
+                <span
+                  className={`text-[10px] font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                >
+                  {isPositive ? "+" : ""}R$ {formatPrice(profit)}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center gap-0">
+                <button
+                  type="button"
+                  onClick={() => handleQuantityChange(-1)}
+                  className="size-6 rounded-l-md border border-border bg-muted hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <Minus className="size-2.5" />
+                </button>
+                <div className="h-6 px-2 border-y border-border bg-muted/50 flex items-center justify-center min-w-[28px]">
+                  <span className="text-[11px] font-mono text-foreground font-bold">
+                    {item.quantity}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleQuantityChange(1)}
+                  className="size-6 rounded-r-md border border-border bg-muted hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <Plus className="size-2.5" />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                className="size-6 rounded-md text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-all cursor-pointer"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover da coleção?</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja remover{" "}
+              <strong>{item.card.name}</strong> da sua coleção? Esta ação não
+              pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRemove}
+              disabled={removing}
+            >
+              {removing ? (
+                <Loader2 className="size-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="size-4 mr-2" />
+              )}
+              Remover
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 export default function PortfolioPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
 
+  const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState<string | null>(
     null,
@@ -457,11 +616,23 @@ export default function PortfolioPage() {
 
           {/* Collection Items */}
           {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-20 rounded-lg" />
-              ))}
-            </div>
+            viewType === "grid" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="w-full rounded-lg aspect-2/3" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 rounded-lg" />
+                ))}
+              </div>
+            )
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Package className="size-16 text-muted-foreground mb-4" />
@@ -483,20 +654,51 @@ export default function PortfolioPage() {
             </div>
           ) : (
             <>
-              <p className="text-xs text-muted-foreground">
-                {totalCards} {totalCards === 1 ? "carta" : "cartas"} em &quot;
-                {activePortfolio.name}&quot;
-              </p>
-              <div className="space-y-2">
-                {items.map((item) => (
-                  <PortfolioItemRow
-                    key={item.id}
-                    item={item}
-                    onUpdate={updateItem}
-                    onRemove={removeItem}
-                  />
-                ))}
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {totalCards} {totalCards === 1 ? "carta" : "cartas"} em &quot;
+                  {activePortfolio.name}&quot;
+                </p>
+                <div className="flex items-center gap-1 border border-border rounded-lg p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setViewType("grid")}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${viewType === "grid" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <LayoutGrid className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewType("list")}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${viewType === "list" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <List className="size-3.5" />
+                  </button>
+                </div>
               </div>
+              {viewType === "grid" ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {items.map((item) => (
+                    <PortfolioItemCard
+                      key={item.id}
+                      item={item}
+                      onUpdate={updateItem}
+                      onRemove={removeItem}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <PortfolioItemRow
+                      key={item.id}
+                      item={item}
+                      onUpdate={updateItem}
+                      onRemove={removeItem}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           )}
         </>

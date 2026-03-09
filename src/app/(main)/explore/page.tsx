@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TcgCard } from "@/app/components/TcgCard";
 import { useCards } from "@/hooks/use-cards";
 import { api, type Card as CardType, type Portfolio } from "@/lib/api";
+type CollectionMap = Record<string, number>;
 import {
   IconFolder,
   IconLayoutGrid,
@@ -46,6 +47,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sileo } from "sileo";
 
@@ -135,11 +137,16 @@ function ListRow({
 }) {
   const price = getLatestPrice(card);
   const [adding, setAdding] = useState(false);
+  const router = useRouter();
 
   async function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (!activePortfolioId || adding) return;
+    if (adding) return;
+    if (!activePortfolioId) {
+      router.push("/login");
+      return;
+    }
     setAdding(true);
     try {
       await api.collection.add({
@@ -176,7 +183,7 @@ function ListRow({
         </div>
 
         <div className="hidden md:block flex-1 min-w-0">
-          <p className="text-xs text-blue-400 truncate">
+          <p className="text-xs text-tertiary truncate">
             {card.setName ?? card.setCode}
           </p>
           <p className="text-xs text-muted-foreground">
@@ -201,7 +208,7 @@ function ListRow({
           size="icon"
           className="shrink-0 size-8 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-200 duration-300"
           onClick={handleAdd}
-          disabled={adding || !activePortfolioId}
+          disabled={adding}
         >
           {adding ? (
             <IconLoader2 className="size-4 animate-spin" />
@@ -221,6 +228,7 @@ export default function ExplorePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
+  const [collectionMap, setCollectionMap] = useState<CollectionMap>({});
 
   const { cards, loading, error, search, setSearch } = useCards();
 
@@ -233,6 +241,20 @@ export default function ExplorePage() {
       })
       .catch(() => {}); // user may not be logged in
   }, []);
+
+  useEffect(() => {
+    if (!activePortfolioId) return;
+    api.collection
+      .getPortfolio(activePortfolioId)
+      .then((data) => {
+        const map: CollectionMap = {};
+        for (const item of data.items) {
+          map[item.cardId] = (map[item.cardId] ?? 0) + item.quantity;
+        }
+        setCollectionMap(map);
+      })
+      .catch(() => {});
+  }, [activePortfolioId]);
 
   function handleSearch() {
     setSearch(searchInput);
@@ -562,17 +584,27 @@ export default function ExplorePage() {
           ) : viewType === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {sortedCards.map((card) => (
-                <Link key={card.id} href={`/card/${card.id}`} className="block">
-                  <TcgCard
-                    name={card.name}
-                    price={formatPrice(getLatestPrice(card))}
-                    imageUrl={card.imageUrl}
-                    setCode={card.setCode}
-                    change={getPriceChange(card)}
-                    cardId={card.id}
-                    defaultPortfolioId={activePortfolioId}
-                  />
-                </Link>
+                <TcgCard
+                  key={card.id}
+                  name={card.name}
+                  price={formatPrice(getLatestPrice(card))}
+                  priceChange={
+                    card.prices.length >= 2
+                      ? card.prices[0].value - card.prices[1].value
+                      : 0
+                  }
+                  imageUrl={card.imageUrl}
+                  setCode={card.setCode}
+                  setName={card.setName}
+                  tcgSlug={card.tcg?.slug}
+                  setSlug={card.set?.slug}
+                  rarity={card.rarity}
+                  change={getPriceChange(card)}
+                  cardId={card.id}
+                  cardHref={`/card/${card.id}`}
+                  quantity={collectionMap[card.id] ?? 0}
+                  defaultPortfolioId={activePortfolioId}
+                />
               ))}
             </div>
           ) : (

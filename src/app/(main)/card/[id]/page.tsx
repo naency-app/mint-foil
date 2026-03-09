@@ -27,22 +27,51 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { toast } from "sonner";
 
-const storeConfig: Record<string, { color: string; label: string }> = {
-  LigaMagic: { color: "text-blue-400", label: "Ver no LigaMagic" },
-  LigaPokemon: { color: "text-yellow-400", label: "Ver no LigaPokemon" },
-  LigaYugioh: { color: "text-purple-400", label: "Ver no LigaYugioh" },
-  LigaOnePiece: { color: "text-red-400", label: "Ver no LigaOnePiece" },
+const storeConfig: Record<
+  string,
+  { color: string; label: string; logo?: string }
+> = {
+  LigaMagic: {
+    color: "text-blue-400",
+    label: "Ver no LigaMagic",
+    logo: "/logos/sites/logo-ligamagic.png",
+  },
+  LigaPokemon: {
+    color: "text-yellow-400",
+    label: "Ver no LigaPokemon",
+    logo: "/logos/sites/logo_ligapokemon.png",
+  },
+  LigaYugioh: {
+    color: "text-purple-400",
+    label: "Ver no LigaYugioh",
+    logo: "/logos/sites/logo_ligayugioh.png",
+  },
+  LigaOnePiece: {
+    color: "text-red-400",
+    label: "Ver no LigaOnePiece",
+    logo: "/logos/sites/logo_ligaonepiece.png",
+  },
   EpicGame: { color: "text-emerald-400", label: "Ver na EpicGame" },
-  MyPCards: { color: "text-orange-400", label: "Ver no MyPCards" },
+  MyPCards: {
+    color: "text-orange-400",
+    label: "Ver no MyPCards",
+    logo: "/logos/sites/logo-mypcards.png",
+  },
 };
 
 function getSearchUrls(cardName: string, tcgSlug?: string) {
   const encoded = encodeURIComponent(cardName);
-  const urls: { name: string; url: string; color: string; label: string }[] =
-    [];
+  const urls: {
+    name: string;
+    url: string;
+    color: string;
+    label: string;
+    logo?: string;
+  }[] = [];
 
   if (!tcgSlug || tcgSlug === "magic") {
     urls.push({
@@ -50,6 +79,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       url: `https://www.ligamagic.com.br/?view=cards/card&card=${encoded}`,
       color: "text-blue-400",
       label: "Buscar no LigaMagic",
+      logo: "/logos/sites/logo-ligamagic.png",
     });
   }
   if (!tcgSlug || tcgSlug === "pokemon") {
@@ -58,6 +88,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       url: `https://www.ligapokemon.com.br/?view=cards/card&card=${encoded}`,
       color: "text-yellow-400",
       label: "Buscar no LigaPokemon",
+      logo: "/logos/sites/logo_ligapokemon.png",
     });
   }
   if (!tcgSlug || tcgSlug === "yugioh") {
@@ -66,6 +97,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       url: `https://www.ligayugioh.com.br/?view=cards/card&card=${encoded}`,
       color: "text-purple-400",
       label: "Buscar no LigaYugioh",
+      logo: "/logos/sites/logo_ligayugioh.png",
     });
   }
   if (!tcgSlug || tcgSlug === "onepiece") {
@@ -74,6 +106,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       url: `https://www.ligaonepiece.com.br/?view=cards/card&card=${encoded}`,
       color: "text-red-400",
       label: "Buscar no LigaOnePiece",
+      logo: "/logos/sites/logo_ligaonepiece.png",
     });
   }
   // MyPCards: URL de busca com parâmetros ProdutoSearch
@@ -87,6 +120,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
     url: `https://mypcards.com/${myPTcg}?${myPParams.toString()}`,
     color: "text-orange-400",
     label: "Buscar no MyPCards",
+    logo: "/logos/sites/logo-mypcards.png",
   });
 
   return urls;
@@ -135,6 +169,7 @@ export default function CardDetailPage({
   const { id } = use(params);
   const { card, loading, error } = useCard(id);
   const { data: session } = useSession();
+  const router = useRouter();
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
@@ -175,7 +210,7 @@ export default function CardDetailPage({
 
   async function handleAddToCollection() {
     if (!session?.user) {
-      toast.error("Faça login para adicionar à coleção");
+      router.push("/login");
       return;
     }
 
@@ -244,7 +279,7 @@ export default function CardDetailPage({
                   ? `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`
                   : `/sets/${card.tcg?.slug ?? ""}`
               }
-              className="text-sm text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+              className="text-sm text-tertiary hover:text-tertiary-hover underline underline-offset-2 transition-colors"
             >
               {card.set?.name ?? card.setName ?? card.setCode}
             </Link>
@@ -561,12 +596,22 @@ export default function CardDetailPage({
                       className="flex items-center justify-between w-full py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
                     >
                       <div className="flex items-center gap-3">
-                        <Badge
-                          variant="outline"
-                          className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                        >
-                          {link.storeName}
-                        </Badge>
+                        {config?.logo ? (
+                          <Image
+                            src={config.logo}
+                            alt={link.storeName}
+                            width={60}
+                            height={20}
+                            className="h-5 w-auto object-contain"
+                          />
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
+                          >
+                            {link.storeName}
+                          </Badge>
+                        )}
                         <span className="text-xs text-muted-foreground group-hover:text-foreground">
                           {config?.label ?? "Ver loja"}
                         </span>
@@ -609,12 +654,22 @@ export default function CardDetailPage({
                 className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
-                  <Badge
-                    variant="outline"
-                    className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                  >
-                    {link.name}
-                  </Badge>
+                  {link.logo ? (
+                    <Image
+                      src={link.logo}
+                      alt={link.name}
+                      width={60}
+                      height={20}
+                      className="h-5 w-auto object-contain"
+                    />
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
+                    >
+                      {link.name}
+                    </Badge>
+                  )}
                   <span className="text-xs text-muted-foreground group-hover:text-foreground">
                     {link.label}
                   </span>
