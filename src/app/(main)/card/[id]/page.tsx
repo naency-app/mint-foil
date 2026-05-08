@@ -71,6 +71,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
     color: string;
     label: string;
     logo?: string;
+    backgroundColor?: string;
   }[] = [];
 
   if (!tcgSlug || tcgSlug === "magic") {
@@ -78,6 +79,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       name: "LigaMagic",
       url: `https://www.ligamagic.com.br/?view=cards/card&card=${encoded}`,
       color: "text-blue-400",
+      backgroundColor: "bg-[#FF5A00]",
       label: "Buscar no LigaMagic",
       logo: "/logos/sites/logo-ligamagic.png",
     });
@@ -87,6 +89,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       name: "LigaPokemon",
       url: `https://www.ligapokemon.com.br/?view=cards/card&card=${encoded}`,
       color: "text-yellow-400",
+      backgroundColor: "bg-[#FFFF]",
       label: "Buscar no LigaPokemon",
       logo: "/logos/sites/logo_ligapokemon.png",
     });
@@ -96,6 +99,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       name: "LigaYugioh",
       url: `https://www.ligayugioh.com.br/?view=cards/card&card=${encoded}`,
       color: "text-purple-400",
+      backgroundColor: "bg-[#7C3AED]",
       label: "Buscar no LigaYugioh",
       logo: "/logos/sites/logo_ligayugioh.png",
     });
@@ -105,6 +109,7 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       name: "LigaOnePiece",
       url: `https://www.ligaonepiece.com.br/?view=cards/card&card=${encoded}`,
       color: "text-red-400",
+      backgroundColor: "bg-[#EBA40F]",
       label: "Buscar no LigaOnePiece",
       logo: "/logos/sites/logo_ligaonepiece.png",
     });
@@ -660,7 +665,7 @@ export default function CardDetailPage({
                       alt={link.name}
                       width={60}
                       height={20}
-                      className="h-5 w-auto object-contain"
+                      className={`h-5 w-auto object-contain ${link.backgroundColor} p-0.5 rounded-xs`}
                     />
                   ) : (
                     <Badge
