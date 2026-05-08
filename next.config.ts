@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
       react: path.resolve(__dirname, "node_modules/react"),
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
     };
+    // Impede webpack de traversar para a raiz do monorepo ao resolver módulos
+    config.resolve.modules = [
+      path.resolve(__dirname, "node_modules"),
+      "node_modules",
+    ];
     return config;
   },
   turbopack: {
@@ -53,6 +58,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "placehold.co",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "tcgplayer-cdn.tcgplayer.com",
         pathname: "/**",
       },
     ],
