@@ -1,5 +1,7 @@
 "use client";
 
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -23,10 +25,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TcgCard } from "@/app/components/TcgCard";
 import { useCards } from "@/hooks/use-cards";
 import { api, type Card as CardType, type Portfolio } from "@/lib/api";
+
 type CollectionMap = Record<string, number>;
+
 import {
   IconFolder,
   IconLayoutGrid,
@@ -229,6 +232,7 @@ export default function ExplorePage() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
   const [collectionMap, setCollectionMap] = useState<CollectionMap>({});
+  const [proModalOpen, setProModalOpen] = useState(false);
 
   const { cards, loading, error, search, setSearch } = useCards();
 
@@ -526,17 +530,25 @@ export default function ExplorePage() {
               <p className="text-xs text-muted-foreground -mt-1">
                 Mostrar produtos dentro de uma faixa de preço (inclusive).
               </p>
-              <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setProModalOpen(true)}
+                className="flex items-center gap-2 w-full cursor-pointer"
+              >
                 <Input
                   placeholder="Min."
-                  className="h-8 bg-muted border-border text-foreground text-xs placeholder:text-muted-foreground"
+                  readOnly
+                  className="h-8 bg-muted border-border text-foreground text-xs placeholder:text-muted-foreground pointer-events-none"
                 />
-                <span className="text-xs text-muted-foreground">a</span>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  a
+                </span>
                 <Input
                   placeholder="Max."
-                  className="h-8 bg-muted border-border text-foreground text-xs placeholder:text-muted-foreground"
+                  readOnly
+                  className="h-8 bg-muted border-border text-foreground text-xs placeholder:text-muted-foreground pointer-events-none"
                 />
-              </div>
+              </button>
             </FilterSection>
 
             <Separator />
@@ -620,6 +632,10 @@ export default function ExplorePage() {
           )}
         </div>
       </div>
+      <ProUpgradeModal
+        open={proModalOpen}
+        onClose={() => setProModalOpen(false)}
+      />
     </main>
   );
 }

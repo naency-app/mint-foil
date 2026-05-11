@@ -16,7 +16,7 @@ export default function PrivacyPage() {
             1. Informações que Coletamos
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Coletamos as seguintes informações ao usar o Minty Foil:
+            Coletamos as seguintes informações ao usar o Mint Foil:
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
             <li>

@@ -130,7 +130,7 @@ function LoginContent() {
           <div className="mb-8 text-center flex items-center justify-center gap-2">
             <IconCards stroke={2} />
             <span className="text-xl font-extrabold  text-foreground uppercase select-none">
-              Minty Foil
+              Mint Foil
             </span>
           </div>
 
@@ -193,7 +193,7 @@ function LoginContent() {
         <div className="mb-8 text-center flex items-center justify-center gap-2">
           <IconCards stroke={2} />
           <span className="text-xl font-extrabold  text-foreground uppercase select-none">
-            Minty Foil
+            Mint Foil
           </span>
         </div>
 

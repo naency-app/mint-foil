@@ -1,13 +1,14 @@
 "use client";
 
-import { signOut, useSession } from "@/lib/auth-client";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { LogOut, Moon, Sun, User } from "lucide-react";
-import { useTheme } from "next-themes";
+import { LogOut, Moon, Smartphone, Sparkles, Sun, User } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { signOut, useSession } from "@/lib/auth-client";
 
 function ThemeSelector() {
   const { theme, setTheme } = useTheme();
@@ -50,6 +51,7 @@ function ThemeSelector() {
 export default function SettingsPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [proModalOpen, setProModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -133,6 +135,33 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Mint Foil PRO */}
+      <section className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-900/20 to-slate-900/20 backdrop-blur-sm p-6 space-y-4">
+        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="size-4" />
+          Mint Foil PRO
+        </h2>
+        <Separator className="bg-emerald-500/20" />
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Scans ilimitados, portfólios ilimitados e mais
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Assinaturas disponíveis somente pelo app
+            </p>
+          </div>
+          <Button
+            onClick={() => setProModalOpen(true)}
+            className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2 shrink-0 cursor-pointer"
+            size="sm"
+          >
+            <Smartphone className="size-4" />
+            Baixar App
+          </Button>
+        </div>
+      </section>
+
       {/* Danger Zone */}
       <section className="rounded-xl border border-destructive/30 bg-destructive/5 backdrop-blur-sm p-6 space-y-4">
         <h2 className="text-sm font-bold text-destructive uppercase tracking-wider flex items-center gap-2">
@@ -162,6 +191,10 @@ export default function SettingsPage() {
           </Button>
         </div>
       </section>
+      <ProUpgradeModal
+        open={proModalOpen}
+        onClose={() => setProModalOpen(false)}
+      />
     </main>
   );
 }

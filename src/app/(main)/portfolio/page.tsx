@@ -1,5 +1,26 @@
 "use client";
 
+import {
+  ArrowUpDown,
+  DollarSign,
+  FolderPlus,
+  LayoutGrid,
+  List,
+  Loader2,
+  Minus,
+  Package,
+  Plus,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +35,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSession } from "@/lib/auth-client";
 import {
   api,
   type CollectionItem,
@@ -22,26 +42,7 @@ import {
   type Portfolio,
   type PortfolioMetrics,
 } from "@/lib/api";
-import {
-  ArrowUpDown,
-  DollarSign,
-  FolderPlus,
-  LayoutGrid,
-  List,
-  Loader2,
-  Minus,
-  Package,
-  Plus,
-  TrendingDown,
-  TrendingUp,
-  Trash2,
-  Wallet,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -233,16 +234,12 @@ function PortfolioItemRow({
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover{" "}
-              <strong>{item.card.name}</strong> da sua coleção? Esta ação não
-              pode ser desfeita.
+              Tem certeza que deseja remover <strong>{item.card.name}</strong>{" "}
+              da sua coleção? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDelete(false)}
-            >
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
               Cancelar
             </Button>
             <Button
@@ -311,7 +308,10 @@ function PortfolioItemCard({
     <>
       <Card className="group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0">
         <CardContent className="p-0 flex-1 relative">
-          <Link href={`/card/${item.card.id}`} className="block overflow-hidden p-2">
+          <Link
+            href={`/card/${item.card.id}`}
+            className="block overflow-hidden p-2"
+          >
             <Image
               src={item.card.imageUrl}
               alt={item.card.name}
@@ -392,9 +392,8 @@ function PortfolioItemCard({
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover{" "}
-              <strong>{item.card.name}</strong> da sua coleção? Esta ação não
-              pode ser desfeita.
+              Tem certeza que deseja remover <strong>{item.card.name}</strong>{" "}
+              da sua coleção? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -435,6 +434,15 @@ export default function PortfolioPage() {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [proModalOpen, setProModalOpen] = useState(false);
+
+  function openNewPortfolioOrPaywall() {
+    if (portfolios.length >= 5) {
+      setProModalOpen(true);
+    } else {
+      setShowNewDialog(true);
+    }
+  }
 
   const fetchPortfolios = useCallback(async () => {
     try {
@@ -537,13 +545,15 @@ export default function PortfolioPage() {
     <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Meus Portfólios</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Meus Portfólios
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {portfolios.length} portfólio{portfolios.length !== 1 ? "s" : ""}
           </p>
         </div>
         <Button
-          onClick={() => setShowNewDialog(true)}
+          onClick={openNewPortfolioOrPaywall}
           className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
         >
           <FolderPlus className="size-4" />
@@ -715,7 +725,7 @@ export default function PortfolioPage() {
             cartas.
           </p>
           <Button
-            onClick={() => setShowNewDialog(true)}
+            onClick={openNewPortfolioOrPaywall}
             className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
           >
             <FolderPlus className="size-4" />
@@ -743,10 +753,7 @@ export default function PortfolioPage() {
             }}
           />
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowNewDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
               Cancelar
             </Button>
             <Button
@@ -764,6 +771,11 @@ export default function PortfolioPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ProUpgradeModal
+        open={proModalOpen}
+        onClose={() => setProModalOpen(false)}
+      />
     </main>
   );
 }

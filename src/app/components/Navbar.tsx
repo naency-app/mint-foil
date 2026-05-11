@@ -12,10 +12,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { cn } from "@/lib/utils";
 import { IconCards, IconX } from "@tabler/icons-react";
-import { Download, Menu, Moon, Search, Share, Sun } from "lucide-react";
+import { Menu, Moon, Search, Sun } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -72,9 +71,6 @@ export function Navbar() {
   const pathname = usePathname();
   const [commandOpen, setCommandOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { canInstall, isIos, isInstalled, isStandalone, install } =
-    usePwaInstall();
-
   return (
     <>
       <nav className="sticky top-0 z-10 backdrop-blur-xl border-b border-border/50">
@@ -101,7 +97,7 @@ export function Navbar() {
                     <div className="flex items-center justify-between">
                       <SheetTitle>
                         <span className="text-lg font-extrabold tracking-[0.2em] text-foreground uppercase select-none">
-                          Minty Foil
+                          Mint Foil
                         </span>
                       </SheetTitle>
                       <SheetClose asChild>
@@ -147,45 +143,6 @@ export function Navbar() {
                     })}
                   </div>
 
-                  {/* Install PWA */}
-                  {!isStandalone && !isInstalled && (
-                    <div className="mx-5 mt-2 mb-1">
-                      {canInstall ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            install();
-                            setMobileOpen(false);
-                          }}
-                          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
-                        >
-                          <Download className="size-5" />
-                          <div className="text-left">
-                            <p className="text-sm font-semibold">
-                              Instalar App
-                            </p>
-                            <p className="text-[10px] text-emerald-400/70">
-                              Scan de cartas e acesso offline
-                            </p>
-                          </div>
-                        </button>
-                      ) : isIos ? (
-                        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                          <Share className="size-5 text-blue-400 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-semibold text-blue-400">
-                              Instalar App
-                            </p>
-                            <p className="text-[10px] text-blue-400/70 leading-relaxed">
-                              Toque em Compartilhar e depois &quot;Adicionar à
-                              Tela de Início&quot;
-                            </p>
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-
                   <div className="px-5 pt-3 border-t border-border">
                     <div className="flex items-center justify-between py-3">
                       <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
@@ -203,7 +160,7 @@ export function Navbar() {
               >
                 <IconCards stroke={2} />
                 <span className="text-xl font-extrabold  text-foreground uppercase select-none">
-                  Minty Foil
+                  Mint Foil
                 </span>
               </Link>
             </div>

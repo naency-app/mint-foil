@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useCamera, type CameraError } from "@/hooks/use-camera";
 import { useSession } from "@/lib/auth-client";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { api } from "@/lib/api";
 import type { Card as CardType } from "@/lib/api";
 import {
@@ -38,14 +39,7 @@ import { toast } from "sonner";
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(true);
   useEffect(() => {
-    const check = () => {
-      const isStandalone =
-        typeof window !== "undefined" &&
-        (window.matchMedia("(display-mode: standalone)").matches ||
-          (navigator as { standalone?: boolean }).standalone === true);
-      const isNarrow = window.innerWidth < 768;
-      setIsMobile(isNarrow || !!isStandalone);
-    };
+    const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
@@ -321,6 +315,7 @@ export default function ScanPage() {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [processing, setProcessing] = useState(false);
   const [remainingScans, setRemainingScans] = useState<number | null>(null);
+  const [proModalOpen, setProModalOpen] = useState(false);
   const workerRef = useRef<import("tesseract.js").Worker | null>(null);
 
   const initOcr = useCallback(async () => {
@@ -349,9 +344,9 @@ export default function ScanPage() {
         }
         if (result.status === 403) {
           setRemainingScans(0);
-          toast.error(result.message);
           setState("camera");
           setProcessing(false);
+          setProModalOpen(true);
           return;
         }
       }
@@ -639,6 +634,8 @@ export default function ScanPage() {
             </p>
         </div>
       )}
+
+      <ProUpgradeModal open={proModalOpen} onClose={() => setProModalOpen(false)} />
 
       {/* Results Drawer */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>

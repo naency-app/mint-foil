@@ -14,7 +14,7 @@ export default function TermsPage() {
             1. Aceitação dos Termos
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Ao acessar ou usar o Minty Foil, você concorda em cumprir estes
+            Ao acessar ou usar o Mint Foil, você concorda em cumprir estes
             Termos de Uso. Se não concordar com qualquer parte destes termos,
             não utilize o serviço.
           </p>
@@ -25,7 +25,7 @@ export default function TermsPage() {
             2. Descrição do Serviço
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            O Minty Foil é uma plataforma SaaS para colecionadores de TCG
+            O Mint Foil é uma plataforma SaaS para colecionadores de TCG
             (Trading Card Games) que permite rastrear, gerenciar e avaliar
             coleções de cartas. Os preços exibidos são coletados automaticamente
             de fontes públicas e têm caráter informativo, podendo não refletir
@@ -50,7 +50,7 @@ export default function TermsPage() {
             4. Uso Permitido
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Você concorda em usar o Minty Foil apenas para fins lícitos e de
+            Você concorda em usar o Mint Foil apenas para fins lícitos e de
             acordo com estes termos. É proibido:
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export default function TermsPage() {
             5. Propriedade Intelectual
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Todo o conteúdo, design e código do Minty Foil são propriedade da
+            Todo o conteúdo, design e código do Mint Foil são propriedade da
             plataforma ou de seus licenciadores. As imagens de cartas e
             informações de jogos pertencem aos seus respectivos detentores de
             direitos (Pokémon Company, Wizards of the Coast, Konami, Bandai,
@@ -87,7 +87,7 @@ export default function TermsPage() {
             6. Limitação de Responsabilidade
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            O Minty Foil é fornecido "como está", sem garantias de qualquer
+            O Mint Foil é fornecido "como está", sem garantias de qualquer
             tipo. Não nos responsabilizamos por decisões financeiras baseadas
             nas informações de preço exibidas na plataforma.
           </p>
