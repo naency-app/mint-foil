@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   api,
   type CollectionItem,
-  type CollectionResponse,
   type Portfolio,
   type PortfolioMetrics,
 } from "@/lib/api";
@@ -220,13 +220,19 @@ function PortfolioItemRow({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setConfirmDelete(true)}
-          className="shrink-0 size-8 rounded-full text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 className="size-4" />
-        </button>
+        <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+          <AddToPortfolioButton
+            cardId={item.card.id}
+            triggerClassName="size-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center transition-all cursor-pointer"
+          />
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="size-8 rounded-full text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-all cursor-pointer"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
       </div>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
@@ -324,6 +330,7 @@ function PortfolioItemCard({
           <div className="absolute top-3 right-3 bg-black/70 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center">
             {item.quantity}
           </div>
+          <AddToPortfolioButton cardId={item.card.id} />
         </CardContent>
 
         <div className="p-3 space-y-1.5">

@@ -1,6 +1,24 @@
 "use client";
 
+import {
+  IconCheck,
+  IconFolderPlus,
+  IconLoader2,
+  IconMinus,
+  IconPlus,
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { sileo } from "sileo";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -14,14 +32,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
-import {
-  IconCheck,
-  IconLoader2,
-  IconMinus,
-  IconPlus,
-} from "@tabler/icons-react";
-import { useEffect, useState } from "react";
-import { sileo } from "sileo";
 
 const CONDITIONS = [
   { value: "NM", label: "Near Mint (NM)" },
@@ -52,6 +62,9 @@ export function AddToPortfolioButton({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [portfoliosLoading, setPortfoliosLoading] = useState(false);
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newPortfolioName, setNewPortfolioName] = useState("");
+  const [creatingPortfolio, setCreatingPortfolio] = useState(false);
 
   useEffect(() => {
     if (defaultPortfolioId) setSelectedPortfolioId(defaultPortfolioId);
@@ -71,6 +84,23 @@ export function AddToPortfolioButton({
       .catch(() => sileo.error({ title: "Erro ao carregar portfólios" }))
       .finally(() => setPortfoliosLoading(false));
   }, [open]);
+
+  async function handleCreatePortfolio() {
+    if (!newPortfolioName.trim() || creatingPortfolio) return;
+    setCreatingPortfolio(true);
+    try {
+      const p = await api.collection.createPortfolio(newPortfolioName.trim());
+      setPortfolios((prev) => [...prev, p]);
+      setSelectedPortfolioId(p.id);
+      setShowNewDialog(false);
+      setNewPortfolioName("");
+      sileo.success({ title: `Portfólio "${p.name}" criado!` });
+    } catch {
+      sileo.error({ title: "Erro ao criar portfólio" });
+    } finally {
+      setCreatingPortfolio(false);
+    }
+  }
 
   async function handleAdd() {
     if (!selectedPortfolioId || loading) return;
@@ -101,124 +131,171 @@ export function AddToPortfolioButton({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          className={
-            triggerClassName ??
-            "absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-          }
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          {success ? (
-            <IconCheck className="size-3.5" />
-          ) : (
-            <IconPlus className="size-3.5" />
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-3 space-y-3" side="top" align="end">
-        <p className="text-xs font-semibold text-foreground">
-          Adicionar ao Portfólio
-        </p>
-
-        {portfoliosLoading ? (
-          <div className="flex items-center justify-center py-4">
-            <IconLoader2 className="size-4 animate-spin text-muted-foreground" />
-          </div>
-        ) : portfolios.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-2">
-            Nenhum portfólio encontrado.
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            className={
+              triggerClassName ??
+              "absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {success ? (
+              <IconCheck className="size-3.5" />
+            ) : (
+              <IconPlus className="size-3.5" />
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-60 p-3 space-y-3" side="top" align="end">
+          <p className="text-xs font-semibold text-foreground">
+            Adicionar ao Portfólio
           </p>
-        ) : (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                Portfólio
-              </label>
-              <Select
-                value={selectedPortfolioId}
-                onValueChange={setSelectedPortfolioId}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Selecionar portfólio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {portfolios.map((p) => (
-                    <SelectItem key={p.id} value={p.id} className="text-xs">
-                      {p.name}
-                      {p._count != null ? ` (${p._count.items})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                Condição
-              </label>
-              <Select value={condition} onValueChange={setCondition}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITIONS.map((c) => (
-                    <SelectItem
-                      key={c.value}
-                      value={c.value}
-                      className="text-xs"
-                    >
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {portfoliosLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <IconLoader2 className="size-4 animate-spin text-muted-foreground" />
             </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                Quantidade
-              </label>
-              <div className="flex items-center gap-2">
+          ) : portfolios.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-2">
+              Nenhum portfólio encontrado.
+            </p>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Portfólio
+                </label>
+                <Select
+                  value={selectedPortfolioId}
+                  onValueChange={setSelectedPortfolioId}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Selecionar portfólio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portfolios.map((p) => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs">
+                        {p.name}
+                        {p._count != null ? ` (${p._count.items})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="size-7 rounded-md border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                  onClick={() => setShowNewDialog(true)}
+                  className="flex items-center gap-1 text-[10px] text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer mt-1"
                 >
-                  <IconMinus className="size-3" />
-                </button>
-                <span className="flex-1 text-center text-sm font-mono font-semibold tabular-nums">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="size-7 rounded-md border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
-                >
-                  <IconPlus className="size-3" />
+                  <IconFolderPlus className="size-3" />
+                  Novo portfólio
                 </button>
               </div>
-            </div>
 
-            <Button
-              size="sm"
-              className="w-full h-8 text-xs bg-emerald-500 hover:bg-emerald-400 text-black font-semibold cursor-pointer"
-              onClick={handleAdd}
-              disabled={loading || success || !selectedPortfolioId}
-            >
-              {loading && (
-                <IconLoader2 className="size-3.5 animate-spin mr-1" />
-              )}
-              {success && <IconCheck className="size-3.5 mr-1" />}
-              {success ? "Adicionado!" : "Adicionar"}
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Condição
+                </label>
+                <Select value={condition} onValueChange={setCondition}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONDITIONS.map((c) => (
+                      <SelectItem
+                        key={c.value}
+                        value={c.value}
+                        className="text-xs"
+                      >
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Quantidade
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="size-7 rounded-md border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <IconMinus className="size-3" />
+                  </button>
+                  <span className="flex-1 text-center text-sm font-mono font-semibold tabular-nums">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="size-7 rounded-md border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <IconPlus className="size-3" />
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                size="sm"
+                className="w-full h-8 text-xs bg-emerald-500 hover:bg-emerald-400 text-black font-semibold cursor-pointer"
+                onClick={handleAdd}
+                disabled={loading || success || !selectedPortfolioId}
+              >
+                {loading && (
+                  <IconLoader2 className="size-3.5 animate-spin mr-1" />
+                )}
+                {success && <IconCheck className="size-3.5 mr-1" />}
+                {success ? "Adicionado!" : "Adicionar"}
+              </Button>
+            </>
+          )}
+        </PopoverContent>
+      </Popover>
+
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Portfólio</DialogTitle>
+            <DialogDescription>
+              Dê um nome para seu portfólio. Contas gratuitas podem ter até 5
+              portfólios.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newPortfolioName}
+            onChange={(e) => setNewPortfolioName(e.target.value)}
+            placeholder="Ex: Minha coleção Pokémon"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreatePortfolio();
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
+              Cancelar
             </Button>
-          </>
-        )}
-      </PopoverContent>
-    </Popover>
+            <Button
+              onClick={handleCreatePortfolio}
+              disabled={creatingPortfolio || !newPortfolioName.trim()}
+              className="bg-emerald-500 hover:bg-emerald-400 text-black"
+            >
+              {creatingPortfolio ? (
+                <IconLoader2 className="size-4 animate-spin mr-2" />
+              ) : (
+                <IconFolderPlus className="size-4 mr-2" />
+              )}
+              Criar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

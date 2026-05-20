@@ -360,11 +360,12 @@ export default function CardDetailPage({
                 animationDuration={1200}
                 aspectRatio="2.2 / 1"
               >
+
                 <Grid
                   horizontal
                   vertical={false}
                   numTicksRows={4}
-                  stroke="#1e293b"
+                  stroke="var(--chart-grid)"
                   strokeDasharray="4,4"
                 />
                 <Area

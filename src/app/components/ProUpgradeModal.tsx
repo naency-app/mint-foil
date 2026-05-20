@@ -1,5 +1,7 @@
 "use client";
 
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { QRCode } from "@/components/ui/qrcode";
 import { DialogClose } from "@radix-ui/react-dialog";
 import {
   Camera,
@@ -9,8 +11,6 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { QRCode } from "@/components/ui/qrcode";
 
 const APP_STORE_URL = "https://apps.apple.com/app/mint-foil";
 const PLAY_STORE_URL =

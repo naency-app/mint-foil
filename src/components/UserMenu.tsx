@@ -2,10 +2,12 @@
 
 import { signOut, useSession } from "@/lib/auth-client";
 
+import { IconLogin, IconLogout, IconSettings } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { IconLogout, IconLogout2, IconSettings } from "@tabler/icons-react";
 
 export function UserMenu() {
   const { data: session, isPending } = useSession();
@@ -32,12 +33,12 @@ export function UserMenu() {
   if (!session) {
     return (
       <Link href="/login">
-        <button
-          type="button"
-          className="h-8 px-4 text-xs font-medium rounded-lg border border-border text-muted-foreground bg-transparent hover:bg-muted hover:text-foreground hover:border-ring transition-colors cursor-pointer"
+        <Button
+          size="sm"
         >
-          Login
-        </button>
+          <IconLogin className="size-4" />
+          Entrar
+        </Button>
       </Link>
     );
   }

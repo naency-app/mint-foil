@@ -13,8 +13,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { IconCards, IconX } from "@tabler/icons-react";
-import { Menu, Moon, Search, Sun } from "lucide-react";
+import { IconCards, IconMenu, IconMoon, IconSearch, IconSun, IconX } from "@tabler/icons-react";
+
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -48,7 +48,7 @@ function ThemeToggle() {
         variant="ghost"
         className="text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
       >
-        <Moon className="size-4" />
+        <IconMoon className="size-4" />
       </Button>
     );
   }
@@ -62,7 +62,7 @@ function ThemeToggle() {
       className="text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {isDark ? <IconSun className="size-4" /> : <IconMoon className="size-4" />}
     </Button>
   );
 }
@@ -84,7 +84,7 @@ export function Navbar() {
                     type="button"
                     className="md:hidden flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                   >
-                    <Menu className="size-5" />
+                    <IconMenu className="size-5" />
                   </button>
                 </SheetTrigger>
 
@@ -205,7 +205,7 @@ export function Navbar() {
                 onClick={() => setCommandOpen(true)}
                 variant="secondary"
               >
-                <Search className="size-3.5" />
+                <IconSearch className="size-3.5" />
                 <Kbd className="hidden sm:inline-flex bg-accent text-muted-foreground text-[10px] h-4 min-w-4 px-1">
                   ⌘K
                 </Kbd>
