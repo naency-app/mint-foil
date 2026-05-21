@@ -205,6 +205,19 @@ export default function CardDetailPage({
     previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;
   const isPositive = changePercent >= 0;
 
+  const LIGA_STORE_NAMES = ["LigaYugioh", "LigaMagic", "LigaPokemon", "LigaOnePiece"];
+  const brPrice = (() => {
+    const liga = card.storeLinks?.find(
+      (l) => LIGA_STORE_NAMES.includes(l.storeName) && l.price != null,
+    );
+    if (liga?.price != null) return liga.price;
+    return (
+      card.storeLinks
+        ?.filter((l) => l.storeName === "EpicGame" && l.price != null && l.inStock)
+        .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))[0]?.price ?? null
+    );
+  })();
+
   const priceHistory = card.prices
     .slice()
     .reverse()
@@ -298,23 +311,44 @@ export default function CardDetailPage({
         </div>
 
         <div className="flex flex-col items-end gap-0.5">
-          <div className="flex items-center gap-2">
-            {isPositive ? (
-              <TrendingUp className="size-4 text-emerald-400" />
-            ) : (
-              <TrendingDown className="size-4 text-red-400" />
-            )}
-            <span className="text-3xl font-bold text-foreground font-mono">
-              R$ {formatPrice(latestPrice)}
-            </span>
-          </div>
-          <span
-            className={`text-sm font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-          >
-            {isPositive ? "+" : ""}R$ {formatPrice(priceChange)} (
-            {isPositive ? "+" : ""}
-            {changePercent.toFixed(2)}%)
-          </span>
+          {brPrice != null ? (
+            <>
+              <span className="text-3xl font-bold text-foreground font-mono">
+                R$ {formatPrice(brPrice)}
+              </span>
+              <span className="text-[11px] text-emerald-400 font-medium">
+                melhor preço em lojas BR (NM)
+              </span>
+              {latestPrice > 0 && (
+                <span className="text-xs text-muted-foreground font-mono mt-0.5">
+                  ref. TCGPlayer: R$ {formatPrice(latestPrice)}
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                {isPositive ? (
+                  <TrendingUp className="size-4 text-emerald-400" />
+                ) : (
+                  <TrendingDown className="size-4 text-red-400" />
+                )}
+                <span className="text-3xl font-bold text-foreground font-mono">
+                  R$ {formatPrice(latestPrice)}
+                </span>
+              </div>
+              <span
+                className={`text-sm font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+              >
+                {isPositive ? "+" : ""}R$ {formatPrice(priceChange)} (
+                {isPositive ? "+" : ""}
+                {changePercent.toFixed(2)}%)
+              </span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">
+                ref. TCGPlayer (mercado EUA)
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -360,7 +394,6 @@ export default function CardDetailPage({
                 animationDuration={1200}
                 aspectRatio="2.2 / 1"
               >
-
                 <Grid
                   horizontal
                   vertical={false}

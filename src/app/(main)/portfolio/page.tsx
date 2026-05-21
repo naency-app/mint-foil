@@ -321,7 +321,7 @@ function PortfolioItemCard({
             <Image
               src={item.card.imageUrl}
               alt={item.card.name}
-              className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
             />

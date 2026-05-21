@@ -19,6 +19,7 @@ export interface TcgCardProps {
   name: string;
   price: string;
   priceChange?: number;
+  brPrice?: number | null;
   imageUrl: string;
   setCode: string;
   setName?: string | null;
@@ -43,6 +44,7 @@ export function TcgCard({
   name,
   price,
   priceChange,
+  brPrice,
   imageUrl,
   setCode,
   setName,
@@ -100,7 +102,7 @@ export function TcgCard({
             <Image
               src={imageUrl}
               alt={name}
-              className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
             />
@@ -110,7 +112,7 @@ export function TcgCard({
             <Image
               src={imageUrl}
               alt={name}
-              className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
             />
@@ -121,12 +123,12 @@ export function TcgCard({
       <div className="p-3 space-y-1">
         {cardHref ? (
           <Link href={cardHref}>
-            <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-2 hover:text-primary transition-colors">
+            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
               {name}
             </h3>
           </Link>
         ) : (
-          <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-2">
+          <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem]">
             {name}
           </h3>
         )}
@@ -153,9 +155,20 @@ export function TcgCard({
         </p>
         <div className="pt-1.5 border-t border-border space-y-0.5 flex justify-between">
           <div className="flex flex-col items-start justify-between gap-2">
-            <span className="text-sm font-bold text-foreground font-mono">
-              R$ {price}
-            </span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-bold text-foreground font-mono">
+                R$ {brPrice != null ? formatPrice(brPrice) : price}
+              </span>
+              {brPrice != null ? (
+                <span className="text-[9px] font-medium text-emerald-400 leading-tight">
+                  lojas BR
+                </span>
+              ) : (
+                <span className="text-[9px] text-muted-foreground leading-tight">
+                  ref. TCGPlayer
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               {isPositive ? (
                 <IconTrendingUp className="size-3 text-emerald-400 shrink-0" />

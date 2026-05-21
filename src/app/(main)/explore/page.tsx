@@ -105,6 +105,19 @@ function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
 }
 
+const LIGA_STORE_NAMES = ['LigaYugioh', 'LigaMagic', 'LigaPokemon', 'LigaOnePiece'];
+
+function getBrPrice(card: CardType): number | null {
+  const liga = card.storeLinks?.find(
+    (l) => LIGA_STORE_NAMES.includes(l.storeName) && l.price != null,
+  );
+  if (liga?.price != null) return liga.price;
+  return (
+    card.storeLinks?.find((l) => l.storeName === "EpicGame" && l.price != null && l.inStock)
+      ?.price ?? null
+  );
+}
+
 function getPriceChange(card: CardType) {
   if (card.prices.length < 2) return 0;
   const current = card.prices[0].value;
@@ -138,7 +151,9 @@ function ListRow({
   card: CardType;
   activePortfolioId: string;
 }) {
-  const price = getLatestPrice(card);
+  const tcgPrice = getLatestPrice(card);
+  const brPrice = getBrPrice(card);
+  const displayPrice = brPrice ?? tcgPrice;
   const [adding, setAdding] = useState(false);
   const router = useRouter();
 
@@ -201,9 +216,19 @@ function ListRow({
           <div className="flex items-center justify-end gap-1">
             <TrendingUp className="size-3 text-emerald-400" />
             <span className="text-sm font-bold text-foreground font-mono">
-              R$ {formatPrice(price)}
+              R$ {formatPrice(displayPrice)}
             </span>
           </div>
+          {brPrice == null && tcgPrice > 0 && (
+            <span className="text-[9px] text-muted-foreground">
+              ref. TCGPlayer
+            </span>
+          )}
+          {brPrice != null && (
+            <span className="text-[9px] text-emerald-400 font-medium">
+              lojas BR
+            </span>
+          )}
         </div>
 
         <Button
@@ -274,8 +299,8 @@ export default function ExplorePage() {
   }
 
   const sortedCards = [...cards].sort((a, b) => {
-    const priceA = getLatestPrice(a);
-    const priceB = getLatestPrice(b);
+    const priceA = getBrPrice(a) ?? getLatestPrice(a);
+    const priceB = getBrPrice(b) ?? getLatestPrice(b);
     switch (sortBy) {
       case "price-asc":
         return priceA - priceB;
@@ -605,6 +630,7 @@ export default function ExplorePage() {
                       ? card.prices[0].value - card.prices[1].value
                       : 0
                   }
+                  brPrice={getBrPrice(card)}
                   imageUrl={card.imageUrl}
                   setCode={card.setCode}
                   setName={card.setName}
