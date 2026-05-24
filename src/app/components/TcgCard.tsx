@@ -31,6 +31,7 @@ export interface TcgCardProps {
   cardId?: string;
   cardHref?: string;
   defaultPortfolioId?: string;
+  onAdd?: () => void;
 }
 
 function formatPrice(value: number) {
@@ -56,6 +57,7 @@ export function TcgCard({
   cardId,
   cardHref,
   defaultPortfolioId,
+  onAdd,
 }: TcgCardProps) {
   const isPositive = change >= 0;
   const [adding, setAdding] = useState(false);
@@ -83,6 +85,7 @@ export function TcgCard({
         portfolioId: defaultPortfolioId,
       });
       setLocalQty((prev) => prev + 1);
+      if (onAdd) onAdd();
       sileo.success({ title: "Adicionado ao portfólio!" });
     } catch {
       sileo.error({ title: "Erro ao adicionar carta" });
