@@ -1,12 +1,12 @@
 "use client";
 
+import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type Card as CardType, type CardSet, type Portfolio, type CollectionItem } from "@/lib/api";
+import { api, type CardSet, type Card as CardType, type CollectionItem, type Portfolio } from "@/lib/api";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { IconFolder, IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
   ArrowLeft,
@@ -29,9 +30,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState, useCallback, Suspense } from "react";
 import { useQueryState } from "nuqs";
-import { sileo } from "sileo";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 type CollectionMap = Record<string, number>;
 
@@ -186,15 +186,54 @@ function SetCardsPageContent() {
     load();
   }, [tcgSlug, setSlug]);
 
-  useEffect(() => {
+  const fetchPortfolios = useCallback(() => {
     api.collection
       .portfolios()
       .then((data) => {
-        setPortfolios(data);
-        if (data.length > 0) setActivePortfolioId(data[0].id);
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          const nextActive = foundFav 
+            ? foundFav.id 
+            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+
+          setActivePortfolioId((prev) => {
+            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+              return prev;
+            }
+            return nextActive;
+          });
+        }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
+
+  useEffect(() => {
+    fetchPortfolios();
+  }, [fetchPortfolios]);
 
   const refreshPortfolio = useCallback(() => {
     if (!activePortfolioId) {
@@ -303,11 +342,13 @@ function SetCardsPageContent() {
           <div className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border border-border bg-card/45 gap-4">
             <div className="flex items-center gap-4">
               {setInfo.imageUrl && (
-                <div className="size-16 rounded-lg bg-muted flex items-center justify-center p-2 border border-border overflow-hidden shrink-0">
-                  <img
+                <div className="relative w-[100px] h-[64px] rounded-lg bg-muted border border-border overflow-hidden shrink-0">
+                  <Image
                     src={setInfo.imageUrl}
                     alt={setInfo.name}
-                    className="max-h-full max-w-full object-contain"
+                    fill
+                    sizes="150px"
+                    className="object-cover "
                   />
                 </div>
               )}
@@ -377,22 +418,13 @@ function SetCardsPageContent() {
           {portfolios.length > 0 && (
             <>
               <Separator orientation="vertical" className="h-5 hidden sm:block" />
-              <div className="hidden sm:flex items-center gap-1.5">
-                <IconFolder className="size-3.5 text-muted-foreground shrink-0" />
-                <Select value={activePortfolioId} onValueChange={setActivePortfolioId}>
-                  <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[130px] max-w-[180px]">
-                    <SelectValue placeholder="Portfólio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {portfolios.map((p) => (
-                      <SelectItem key={p.id} value={p.id} className="text-xs">
-                        {p.name}
-                        {p._count != null ? ` (${p._count.items})` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <PortfolioSelector
+                portfolios={portfolios}
+                activePortfolioId={activePortfolioId}
+                onSelect={setActivePortfolioId}
+                onRefresh={fetchPortfolios}
+                labelPrefix="Adicionando a:"
+              />
             </>
           )}
         </div>

@@ -1,18 +1,10 @@
 "use client";
 
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { api, type CardSet, type Tcg, type Portfolio, type CollectionItem } from "@/lib/api";
-import { IconFolder } from "@tabler/icons-react";
+import { api, type CardSet, type CollectionItem, type Portfolio, type Tcg } from "@/lib/api";
 import {
   ArrowLeft,
   Calendar,
@@ -23,8 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, Suspense } from "react";
 import { useQueryState } from "nuqs";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
@@ -136,16 +128,55 @@ function TcgSetsPageContent() {
     load();
   }, [tcgSlug]);
 
-  // Load portfolios
-  useEffect(() => {
+  const fetchPortfolios = useCallback(() => {
     api.collection
       .portfolios()
       .then((data) => {
-        setPortfolios(data);
-        if (data.length > 0) setActivePortfolioId(data[0].id);
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          const nextActive = foundFav 
+            ? foundFav.id 
+            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+
+          setActivePortfolioId((prev) => {
+            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+              return prev;
+            }
+            return nextActive;
+          });
+        }
       })
-      .catch(() => {}); // user may not be logged in
+      .catch(() => { }); // user may not be logged in
   }, []);
+
+  // Load portfolios
+  useEffect(() => {
+    fetchPortfolios();
+  }, [fetchPortfolios]);
 
   // Fetch portfolio details to compute set progress
   useEffect(() => {
@@ -229,22 +260,13 @@ function TcgSetsPageContent() {
         {/* Portfolio selector & Search filter */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {portfolios.length > 0 && (
-            <div className="flex items-center gap-1.5 self-start sm:self-auto">
-              <IconFolder className="size-3.5 text-muted-foreground shrink-0" />
-              <Select value={activePortfolioId} onValueChange={setActivePortfolioId}>
-                <SelectTrigger className="h-9 border-border bg-muted text-foreground text-xs min-w-[140px] max-w-[180px]">
-                  <SelectValue placeholder="Portfólio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {portfolios.map((p) => (
-                    <SelectItem key={p.id} value={p.id} className="text-xs">
-                      {p.name}
-                      {p._count != null ? ` (${p._count.items})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={fetchPortfolios}
+              labelPrefix="Adicionando a:"
+            />
           )}
 
           <div className="relative w-full sm:w-72">
@@ -253,7 +275,7 @@ function TcgSetsPageContent() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filtrar sets..."
-              className="pl-10"
+              className="pl-10 h-9"
             />
           </div>
         </div>

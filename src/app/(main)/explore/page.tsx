@@ -1,5 +1,6 @@
 "use client";
 
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
@@ -17,14 +18,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type Card as CardType, type Portfolio, type CollectionItem } from "@/lib/api";
+import { api, type Card as CardType, type Portfolio } from "@/lib/api";
 
 import {
-  IconFolder,
   IconLayoutGrid,
   IconListDetails,
   IconLoader2,
-  IconPlus,
+  IconPlus
 } from "@tabler/icons-react";
 import {
   ArrowUpDown,
@@ -36,8 +36,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useQueryState } from "nuqs";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { sileo } from "sileo";
 
 type CollectionMap = Record<string, number>;
@@ -257,7 +257,7 @@ function ExplorePageContent() {
     if (stored) {
       try {
         setRecentSearches(JSON.parse(stored));
-      } catch {}
+      } catch { }
     }
   }, []);
 
@@ -272,16 +272,55 @@ function ExplorePageContent() {
     });
   };
 
-  // Fetch portfolios
-  useEffect(() => {
+  const fetchPortfolios = useCallback(() => {
     api.collection
       .portfolios()
       .then((data) => {
-        setPortfolios(data);
-        if (data.length > 0) setActivePortfolioId(data[0].id);
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          const nextActive = foundFav 
+            ? foundFav.id 
+            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+
+          setActivePortfolioId((prev) => {
+            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+              return prev;
+            }
+            return nextActive;
+          });
+        }
       })
-      .catch(() => {}); // user may not be logged in
+      .catch(() => { }); // user may not be logged in
   }, []);
+
+  // Fetch portfolios
+  useEffect(() => {
+    fetchPortfolios();
+  }, [fetchPortfolios]);
 
   // Fetch portfolio details to compute collection map
   const refreshPortfolio = useCallback(() => {
@@ -433,22 +472,13 @@ function ExplorePageContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
         <div className="flex items-center gap-2">
           {portfolios.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <IconFolder className="size-3.5 text-muted-foreground shrink-0" />
-              <Select value={activePortfolioId} onValueChange={setActivePortfolioId}>
-                <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[130px] max-w-[180px]">
-                  <SelectValue placeholder="Portfólio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {portfolios.map((p) => (
-                    <SelectItem key={p.id} value={p.id} className="text-xs">
-                      {p.name}
-                      {p._count != null ? ` (${p._count.items})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={fetchPortfolios}
+              labelPrefix="Adicionando a:"
+            />
           )}
 
           <Separator orientation="vertical" className="h-5 hidden sm:block mx-1" />
@@ -532,10 +562,17 @@ function ExplorePageContent() {
               <p className="text-xs text-muted-foreground -mt-1">
                 Filtrar por faixa de preço.
               </p>
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setProModalOpen(true)}
-                className="flex items-center gap-2 w-full pt-1 cursor-pointer text-left"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setProModalOpen(true);
+                  }
+                }}
+                className="flex items-center gap-2 w-full pt-1 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
               >
                 <Input
                   placeholder="Min."
@@ -548,7 +585,7 @@ function ExplorePageContent() {
                   readOnly
                   className="h-8 bg-muted/40 border-border text-foreground text-xs pointer-events-none"
                 />
-              </button>
+              </div>
             </FilterSection>
 
             <Separator />
@@ -557,10 +594,17 @@ function ExplorePageContent() {
               <p className="text-xs text-muted-foreground -mt-1">
                 Filtrar por idioma.
               </p>
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setProModalOpen(true)}
-                className="space-y-2 pt-2 text-left block w-full cursor-pointer"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setProModalOpen(true);
+                  }
+                }}
+                className="space-y-2 pt-2 text-left block w-full cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
               >
                 {[
                   { code: "en", name: "Inglês" },
@@ -574,7 +618,7 @@ function ExplorePageContent() {
                     </span>
                   </div>
                 ))}
-              </button>
+              </div>
             </FilterSection>
 
             <Separator />

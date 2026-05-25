@@ -164,6 +164,15 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ name }),
       }),
+    updatePortfolio: (id: string, name: string) =>
+      apiFetch<Portfolio>(`/collection/portfolios/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name }),
+      }),
+    deletePortfolio: (id: string) =>
+      apiFetch<void>(`/collection/portfolios/${id}`, {
+        method: "DELETE",
+      }),
     getPortfolio: (id: string) =>
       apiFetch<CollectionResponse & { portfolio: Portfolio }>(
         `/collection/portfolios/${id}`,
@@ -191,9 +200,9 @@ export const api = {
     remove: (id: string) =>
       apiFetch<CollectionItem>(`/collection/${id}`, { method: "DELETE" }),
     stats: () => apiFetch<UserStats>("/collection/stats"),
-    history: (range: "7d" | "1m" | "3m" | "6m") =>
+    history: (range: "7d" | "1m" | "3m" | "6m", portfolioId?: string) =>
       apiFetch<{ date: string; value: number }[]>(
-        `/collection/history?range=${range}`
+        `/collection/history?range=${range}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`
       ),
   },
   scan: {

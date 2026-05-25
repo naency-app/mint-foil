@@ -82,9 +82,37 @@ export function AddToPortfolioButton({
     api.collection
       .portfolios()
       .then((data) => {
-        setPortfolios(data);
-        if (!selectedPortfolioId && data.length > 0) {
-          setSelectedPortfolioId(data[0].id);
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (!selectedPortfolioId && sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          setSelectedPortfolioId(
+            foundFav 
+              ? foundFav.id 
+              : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id)
+          );
         }
       })
       .catch(() => sileo.error({ title: "Erro ao carregar portfólios" }))

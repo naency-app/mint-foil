@@ -57,7 +57,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
               alt={set.name}
               fill
               sizes="(max-w-768px) 100vw, 300px"
-              className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
           ) : (

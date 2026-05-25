@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import {
+  IconCheck,
   IconLoader2,
   IconPlus,
   IconTrendingDown,
@@ -14,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sileo } from "sileo";
+import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
   name: string;
@@ -62,6 +64,7 @@ export function TcgCard({
   const isPositive = change >= 0;
   const [adding, setAdding] = useState(false);
   const [localQty, setLocalQty] = useState(quantity);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -85,6 +88,8 @@ export function TcgCard({
         portfolioId: defaultPortfolioId,
       });
       setLocalQty((prev) => prev + 1);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 1200);
       if (onAdd) onAdd();
       sileo.success({ title: "Adicionado ao portfólio!" });
     } catch {
@@ -196,12 +201,19 @@ export function TcgCard({
               <Button
                 variant="outline"
                 size="icon"
-                className="shrink-0 size-7 rounded-full border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent duration-200"
+                className={cn(
+                  "shrink-0 size-7 rounded-full duration-200 transition-all cursor-pointer",
+                  success
+                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
+                    : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent"
+                )}
                 onClick={handleAdd}
-                disabled={adding}
+                disabled={adding || success}
               >
                 {adding ? (
                   <IconLoader2 className="size-3.5 animate-spin" />
+                ) : success ? (
+                  <IconCheck className="size-3.5 animate-in zoom-in-50 duration-200" />
                 ) : (
                   <IconPlus className="size-3.5" />
                 )}

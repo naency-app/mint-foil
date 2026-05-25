@@ -19,17 +19,21 @@ import {
   ExternalLink,
   Loader2,
   Minus,
+  Package,
   Plus,
   ShoppingCart,
-  Star,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { use, useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { type Portfolio, type CollectionItem } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const storeConfig: Record<
   string,
@@ -168,16 +172,111 @@ function CardDetailSkeleton() {
 
 export default function CardDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ portfolioId?: string }>;
 }) {
   const { id } = use(params);
+  const sParams = use(searchParams);
+  const queryPortfolioId = sParams?.portfolioId;
+
   const { card, loading, error } = useCard(id);
   const { data: session } = useSession();
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [activePortfolioId, setActivePortfolioId] = useState<string>("");
+  const [ownedItems, setOwnedItems] = useState<CollectionItem[]>([]);
+  const lastDelta = useRef(1);
+
+  const fetchPortfolios = useCallback(() => {
+    api.collection
+      .portfolios()
+      .then((data) => {
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          const nextActive = queryPortfolioId && sortedPortfolios.some((p) => p.id === queryPortfolioId)
+            ? queryPortfolioId
+            : (foundFav ? foundFav.id : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id));
+
+          setActivePortfolioId((prev) => {
+            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+              return prev;
+            }
+            return nextActive;
+          });
+        }
+      })
+      .catch(() => {});
+  }, [queryPortfolioId]);
+
+  const fetchOwnedItems = useCallback(async () => {
+    try {
+      const portfs = await api.collection.portfolios();
+      const results = await Promise.all(
+        portfs.map(async (p) => {
+          try {
+            const res = await api.collection.getPortfolio(p.id);
+            return {
+              items: (res.items || []).map((item) => ({
+                ...item,
+                portfolioId: p.id,
+              })),
+            };
+          } catch {
+            return { items: [] };
+          }
+        })
+      );
+      const allItems = results.flatMap((r) => r.items);
+      const filtered = allItems.filter((item) => item.cardId === id);
+      setOwnedItems(filtered);
+    } catch {}
+  }, [id]);
+
+  const handleRefresh = useCallback(() => {
+    fetchPortfolios();
+    fetchOwnedItems();
+  }, [fetchPortfolios, fetchOwnedItems]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchPortfolios();
+      fetchOwnedItems();
+    }
+  }, [session, fetchPortfolios, fetchOwnedItems]);
+
+  const handleQtyChange = (delta: number) => {
+    lastDelta.current = delta;
+    setQty((prev) => Math.max(1, prev + delta));
+  };
 
   if (loading) return <CardDetailSkeleton />;
 
@@ -204,6 +303,11 @@ export default function CardDetailPage({
   const changePercent =
     previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;
   const isPositive = changePercent >= 0;
+
+  const currentPortfolioQuantity = ownedItems
+    .filter((item) => item.portfolioId === activePortfolioId)
+    .reduce((acc, item) => acc + item.quantity, 0);
+  const currentPortfolioValue = currentPortfolioQuantity * latestPrice;
 
   const LIGA_STORE_NAMES = ["LigaYugioh", "LigaMagic", "LigaPokemon", "LigaOnePiece"];
   const brPrice = (() => {
@@ -239,9 +343,12 @@ export default function CardDetailPage({
         quantity: qty,
         condition: "NM",
         buyPrice: latestPrice,
+        portfolioId: activePortfolioId || undefined,
       });
       setAdded(true);
       toast.success(`${card!.name} adicionado à coleção!`);
+      fetchOwnedItems();
+      fetchPortfolios();
       setTimeout(() => setAdded(false), 3000);
     } catch (err) {
       toast.error(
@@ -256,13 +363,13 @@ export default function CardDetailPage({
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link href="/sets" className="hover:text-emerald-400 transition-colors">
+        <Link href="/sets" className="hover:text-primary transition-colors">
           Sets
         </Link>
         <ChevronRight className="size-3" />
         <Link
           href={`/sets/${card.tcg?.slug ?? ""}`}
-          className="hover:text-emerald-400 transition-colors"
+          className="hover:text-primary transition-colors"
         >
           {card.tcg?.name ?? "TCG"}
         </Link>
@@ -271,7 +378,7 @@ export default function CardDetailPage({
             <ChevronRight className="size-3" />
             <Link
               href={`/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`}
-              className="hover:text-emerald-400 transition-colors"
+              className="hover:text-primary transition-colors"
             >
               {card.set.name ?? card.setName ?? card.setCode}
             </Link>
@@ -282,11 +389,11 @@ export default function CardDetailPage({
       </nav>
 
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
             {card.name}{" "}
-            <span className="text-muted-foreground font-normal">
+            <span className="text-muted-foreground font-normal text-lg">
               ({card.rarity})
             </span>
           </h1>
@@ -297,7 +404,7 @@ export default function CardDetailPage({
                   ? `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`
                   : `/sets/${card.tcg?.slug ?? ""}`
               }
-              className="text-sm text-tertiary hover:text-tertiary-hover underline underline-offset-2 transition-colors"
+              className="text-sm text-tertiary hover:text-tertiary-hover underline underline-offset-2 transition-colors font-medium"
             >
               {card.set?.name ?? card.setName ?? card.setCode}
             </Link>
@@ -310,58 +417,45 @@ export default function CardDetailPage({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-0.5">
-          {brPrice != null ? (
-            <>
-              <span className="text-3xl font-bold text-foreground font-mono">
+        {/* Pricing Cards */}
+        <div className="flex flex-wrap items-center gap-3">
+          {brPrice != null && (
+            <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                Menor Preço BR
+              </span>
+              <span className="text-2xl font-black text-foreground font-mono">
                 R$ {formatPrice(brPrice)}
               </span>
-              <span className="text-[11px] text-emerald-400 font-medium">
-                melhor preço em lojas BR (NM)
+              <span className="text-[10px] text-emerald-400 font-medium">
+                Média de lojas (NM)
+              </span>
+            </div>
+          )}
+
+          <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+              Ref. TCGPlayer
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-2xl font-black text-foreground font-mono">
+                R$ {formatPrice(latestPrice)}
               </span>
               {latestPrice > 0 && (
-                <span className="text-xs text-muted-foreground font-mono mt-0.5">
-                  ref. TCGPlayer: R$ {formatPrice(latestPrice)}
-                </span>
+                <div className={cn(
+                  "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                  isPositive ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                )}>
+                  {isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+                  <span>{isPositive ? "+" : ""}{changePercent.toFixed(1)}%</span>
+                </div>
               )}
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-2">
-                {isPositive ? (
-                  <TrendingUp className="size-4 text-emerald-400" />
-                ) : (
-                  <TrendingDown className="size-4 text-red-400" />
-                )}
-                <span className="text-3xl font-bold text-foreground font-mono">
-                  R$ {formatPrice(latestPrice)}
-                </span>
-              </div>
-              <span
-                className={`text-sm font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-              >
-                {isPositive ? "+" : ""}R$ {formatPrice(priceChange)} (
-                {isPositive ? "+" : ""}
-                {changePercent.toFixed(2)}%)
-              </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5">
-                ref. TCGPlayer (mercado EUA)
-              </span>
-            </>
-          )}
+            </div>
+            <span className="text-[10px] text-muted-foreground">
+              Mercado EUA (Ungraded)
+            </span>
+          </div>
         </div>
-      </div>
-
-      {/* Watchlist */}
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-border text-muted-foreground hover:text-yellow-400 hover:border-yellow-500/40 h-8 text-xs gap-1.5 cursor-pointer"
-        >
-          <Star className="size-3.5" />
-          Adicionar à Watchlist
-        </Button>
       </div>
 
       {/* 3-Column Layout */}
@@ -383,7 +477,7 @@ export default function CardDetailPage({
         <div className="lg:col-span-5 space-y-5">
           <div className="rounded-xl border border-border bg-card backdrop-blur-sm p-4">
             <h2 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-              <TrendingUp className="size-4 text-emerald-400" />
+              <TrendingUp className="size-4 text-primary" />
               Histórico de Preço (Ungraded)
             </h2>
             {priceHistory.length > 1 ? (
@@ -403,16 +497,16 @@ export default function CardDetailPage({
                 />
                 <Area
                   dataKey="price"
-                  fill="#10b981"
-                  fillOpacity={0.35}
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  gradientToOpacity={0.02}
+                  fill="#EF1556"
+                  fillOpacity={0.15}
+                  stroke="#EF1556"
+                  strokeWidth={2.5}
+                  gradientToOpacity={0.01}
                 />
                 <ChartTooltip
                   rows={(point) => [
                     {
-                      color: "#10b981",
+                      color: "#EF1556",
                       label: "Preço",
                       value: `R$ ${formatPrice(Number(point.price))}`,
                     },
@@ -518,18 +612,31 @@ export default function CardDetailPage({
         {/* Right: Collection + Shop */}
         <div className="lg:col-span-4 space-y-5">
           <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  Adicionando à:
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                {portfolios.length > 0 ? (
+                  <PortfolioSelector
+                    portfolios={portfolios}
+                    activePortfolioId={activePortfolioId}
+                    onSelect={setActivePortfolioId}
+                    onRefresh={handleRefresh}
+                    labelPrefix="Adicionar a:"
+                  />
+                ) : (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span>Adicionar a:</span>
+                    <span className="font-semibold text-primary">Coleção Principal</span>
+                  </div>
+                )}
+              </div>
+              <div className="text-right shrink-0 flex flex-col items-end">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  Possui: {currentPortfolioQuantity}
                 </span>
-                <span className="text-xs text-emerald-400 font-medium">
-                  Coleção Principal
+                <span className="text-xs text-muted-foreground font-mono font-bold">
+                  Total: R$ {formatPrice(currentPortfolioValue)}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground font-mono">
-                Total: R$ {formatPrice(latestPrice * qty)}
-              </span>
             </div>
 
             <Separator />
@@ -541,47 +648,65 @@ export default function CardDetailPage({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <Badge className="text-[10px]">NM</Badge>
+                <Badge variant="outline" className="text-[10px] font-bold h-6 px-2 border-border/80 bg-muted/30">
+                  NM
+                </Badge>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-0">
-                    <button
+                  <div className="flex items-center gap-1.5">
+                    <motion.button
                       type="button"
-                      onClick={() => setQty(Math.max(1, qty - 1))}
-                      className="size-8 rounded-l-md border border-border bg-muted hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      whileTap={{ scale: 0.78 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      onClick={() => handleQtyChange(-1)}
+                      className="size-8 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
-                      <Minus className="size-3" />
-                    </button>
-                    <div className="h-8 px-3 border-y border-border bg-muted/50 flex items-center justify-center min-w-[40px]">
-                      <span className="text-sm font-mono text-foreground font-bold">
-                        {qty}
-                      </span>
+                      <Minus className="size-3.5" strokeWidth={2.5} />
+                    </motion.button>
+                    
+                    <div className="w-8 flex items-center justify-center overflow-hidden">
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.span
+                          key={qty}
+                          initial={{ y: lastDelta.current > 0 ? 10 : -10, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: lastDelta.current > 0 ? -10 : 10, opacity: 0 }}
+                          transition={{ duration: 0.13 }}
+                          className="text-sm font-bold text-foreground font-mono"
+                        >
+                          {qty}
+                        </motion.span>
+                      </AnimatePresence>
                     </div>
-                    <button
+
+                    <motion.button
                       type="button"
-                      onClick={() => setQty(qty + 1)}
-                      className="size-8 rounded-r-md border border-border bg-muted hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      whileTap={{ scale: 0.78 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      onClick={() => handleQtyChange(1)}
+                      className="size-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
-                      <Plus className="size-3" />
-                    </button>
+                      <Plus className="size-3.5" strokeWidth={2.5} />
+                    </motion.button>
                   </div>
 
-                  <div className="text-right">
-                    <div className="flex items-center gap-1">
+                  <div className="text-right shrink-0">
+                    <div className="flex items-center justify-end gap-1">
                       {isPositive ? (
                         <TrendingUp className="size-2.5 text-emerald-400" />
                       ) : (
-                        <TrendingDown className="size-2.5 text-red-400" />
+                        <TrendingDown className="size-2.5 text-rose-400" />
                       )}
                       <span className="text-sm font-bold text-foreground font-mono">
                         R$ {formatPrice(latestPrice)}
                       </span>
                     </div>
                     <span
-                      className={`text-[10px] font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                      className={cn(
+                        "text-[10px] font-mono",
+                        isPositive ? "text-emerald-400" : "text-rose-400"
+                      )}
                     >
-                      {isPositive ? "+" : ""}R$ {formatPrice(priceChange)} (
-                      {isPositive ? "+" : ""}
-                      {changePercent.toFixed(2)}%)
+                      {isPositive ? "+" : ""}BRL {changePercent.toFixed(1)}%
                     </span>
                   </div>
                 </div>
@@ -591,7 +716,7 @@ export default function CardDetailPage({
             <Separator />
 
             <Button
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold h-10 text-sm gap-2 cursor-pointer"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-10 text-sm gap-2 cursor-pointer shadow-sm active:scale-98 transition-transform"
               onClick={handleAddToCollection}
               disabled={adding}
             >
@@ -608,11 +733,53 @@ export default function CardDetailPage({
               ) : (
                 <>
                   <Plus className="size-4" />
-                  Adicionar à Coleção ({qty})
+                  Adicionar ao Portfólio ({qty})
                 </>
               )}
             </Button>
           </div>
+
+          {/* User Holdings (Inventory) */}
+          {session?.user && ownedItems.length > 0 && (
+            <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                <Package className="size-3.5 text-primary animate-in zoom-in duration-200" />
+                Suas Cópias ({ownedItems.reduce((acc, item) => acc + item.quantity, 0)})
+              </h3>
+              <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar">
+                {ownedItems.map((item) => {
+                  const portfolioName =
+                    portfolios.find((p) => p.id === item.portfolioId)?.name ??
+                    "Coleção Principal";
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between text-xs py-1.5 border-b border-border/40 last:border-0"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <p className="font-semibold text-foreground truncate">
+                          {portfolioName}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Condição: {item.condition}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-mono font-bold text-foreground">
+                          {item.quantity} {item.quantity === 1 ? "unidade" : "unidades"}
+                        </p>
+                        {item.buyPrice != null && (
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            Pago: R$ {formatPrice(item.buyPrice)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Store Links - Onde Comprar */}
           <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-1">

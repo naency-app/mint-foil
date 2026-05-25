@@ -117,6 +117,7 @@ function PortfolioItemRow({
   onUpdate,
   onRemove,
   isSelectionMode,
+  portfolioId,
 }: {
   item: CollectionItem;
   isSelected: boolean;
@@ -124,6 +125,7 @@ function PortfolioItemRow({
   onUpdate: (id: string, data: { quantity: number }) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   isSelectionMode: boolean;
+  portfolioId: string | null;
 }) {
   const [optimisticQty, setOptimisticQty] = useState(item.quantity);
   const lastDelta = useRef(0);
@@ -199,7 +201,7 @@ function PortfolioItemRow({
           </div>
         )}
         <Link
-          href={`/card/${item.card.id}`}
+          href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
           onClick={(e) => {
             if (isSelectionMode) {
               e.preventDefault();
@@ -217,10 +219,9 @@ function PortfolioItemRow({
             className="w-full h-full object-cover"
           />
         </Link>
-
         <div className="flex-1 min-w-0">
           <Link
-            href={`/card/${item.card.id}`}
+            href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
@@ -361,6 +362,7 @@ function PortfolioItemCard({
   onUpdate,
   onRemove,
   isSelectionMode,
+  portfolioId,
 }: {
   item: CollectionItem;
   isSelected: boolean;
@@ -368,6 +370,7 @@ function PortfolioItemCard({
   onUpdate: (id: string, data: { quantity: number }) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   isSelectionMode: boolean;
+  portfolioId: string | null;
 }) {
   const currentPrice = item.card.prices[0]?.value ?? 0;
   const totalValue = currentPrice * item.quantity;
@@ -443,7 +446,7 @@ function PortfolioItemCard({
         )}
         <CardContent className="p-0 flex-1 relative">
           <Link
-            href={`/card/${item.card.id}`}
+            href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
@@ -472,7 +475,7 @@ function PortfolioItemCard({
 
         <div className="p-3 space-y-1">
           <Link
-            href={`/card/${item.card.id}`}
+            href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
@@ -697,17 +700,18 @@ export default function PortfolioPage() {
     return { chartDiffValue: diffVal, chartDiffPercent: diffPct };
   }, [historyData]);
 
-  const fetchHistory = useCallback(async (range: "7d" | "1m" | "3m" | "6m", forceRefresh = false) => {
-    const cached = historyCache.current[range];
+  const fetchHistory = useCallback(async (range: "7d" | "1m" | "3m" | "6m", portfolioId: string, forceRefresh = false) => {
+    const cacheKey = `${portfolioId}:${range}`;
+    const cached = historyCache.current[cacheKey];
     if (cached && !forceRefresh) {
       setHistoryData(cached);
       // Silent background update to keep data fresh without blocking UI
-      api.collection.history(range).then((data) => {
+      api.collection.history(range, portfolioId).then((data) => {
         const mapped = data.map((d) => ({
           date: new Date(d.date),
           value: d.value,
         }));
-        historyCache.current[range] = mapped;
+        historyCache.current[cacheKey] = mapped;
         setHistoryData(mapped);
       }).catch(() => { });
       return;
@@ -715,12 +719,12 @@ export default function PortfolioPage() {
 
     setHistoryLoading(true);
     try {
-      const data = await api.collection.history(range);
+      const data = await api.collection.history(range, portfolioId);
       const mapped = data.map((d) => ({
         date: new Date(d.date),
         value: d.value,
       }));
-      historyCache.current[range] = mapped;
+      historyCache.current[cacheKey] = mapped;
       setHistoryData(mapped);
     } catch {
       setHistoryData([]);
@@ -730,10 +734,10 @@ export default function PortfolioPage() {
   }, []);
 
   useEffect(() => {
-    if (session?.user) {
-      fetchHistory(historyRange);
+    if (session?.user && activePortfolioId) {
+      fetchHistory(historyRange, activePortfolioId);
     }
-  }, [session, historyRange, fetchHistory]);
+  }, [session, historyRange, activePortfolioId, fetchHistory]);
 
   function openNewPortfolioOrPaywall() {
     if (portfolios.length >= 5) {
@@ -746,11 +750,39 @@ export default function PortfolioPage() {
   const fetchPortfolios = useCallback(async () => {
     try {
       const data = await api.collection.portfolios();
-      setPortfolios(data);
-      if (data.length > 0 && !activePortfolioId) {
-        setActivePortfolioId(data[0].id);
+      
+      const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+      let favs: string[] = [];
+      if (favsStr) {
+        try {
+          favs = JSON.parse(favsStr) as string[];
+        } catch {}
+      } else {
+        const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+        if (oldDefault) favs = [oldDefault];
       }
-      if (data.length === 0) setLoading(false);
+
+      const sortedPortfolios = [...data].sort((a, b) => {
+        const aFav = favs.includes(a.id);
+        const bFav = favs.includes(b.id);
+        if (aFav && !bFav) return -1;
+        if (!aFav && bFav) return 1;
+        return 0;
+      });
+
+      setPortfolios(sortedPortfolios);
+
+      if (sortedPortfolios.length > 0 && !activePortfolioId) {
+        const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+        if (foundFav) {
+          setActivePortfolioId(foundFav.id);
+        } else {
+          const stored = localStorage.getItem("minty_default_portfolio_id");
+          const hasStored = sortedPortfolios.some((p) => p.id === stored);
+          setActivePortfolioId(hasStored && stored ? stored : sortedPortfolios[0].id);
+        }
+      }
+      if (sortedPortfolios.length === 0) setLoading(false);
     } catch {
       /* ignore for now */
     } finally {
@@ -822,7 +854,7 @@ export default function PortfolioPage() {
             .getPortfolio(activePortfolioId)
             .then((d) => setMetrics(d.metrics))
             .catch(() => { });
-          fetchHistory(historyRange, true);
+          fetchHistory(historyRange, activePortfolioId, true);
         }
       } catch (err) {
         if (activePortfolioId) fetchPortfolioItems(activePortfolioId);
@@ -842,7 +874,7 @@ export default function PortfolioPage() {
             .getPortfolio(activePortfolioId)
             .then((d) => setMetrics(d.metrics))
             .catch(() => { });
-          fetchHistory(historyRange, true);
+          fetchHistory(historyRange, activePortfolioId, true);
         }
       } catch {
         if (activePortfolioId) fetchPortfolioItems(activePortfolioId);
@@ -932,7 +964,7 @@ export default function PortfolioPage() {
     setSelectedIds(new Set());
     if (activePortfolioId) {
       fetchPortfolioItems(activePortfolioId);
-      fetchHistory(historyRange);
+      fetchHistory(historyRange, activePortfolioId);
     }
   };
 
@@ -1349,6 +1381,7 @@ export default function PortfolioPage() {
                       onUpdate={updateItem}
                       onRemove={removeItem}
                       isSelectionMode={isSelectionMode}
+                      portfolioId={activePortfolioId}
                     />
                   ))}
                 </div>
@@ -1363,6 +1396,7 @@ export default function PortfolioPage() {
                       onUpdate={updateItem}
                       onRemove={removeItem}
                       isSelectionMode={isSelectionMode}
+                      portfolioId={activePortfolioId}
                     />
                   ))}
                 </div>
