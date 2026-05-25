@@ -1,14 +1,5 @@
 "use client";
 
-import {
-  IconCheck,
-  IconFolderPlus,
-  IconLoader2,
-  IconMinus,
-  IconPlus,
-} from "@tabler/icons-react";
-import { useEffect, useState } from "react";
-import { sileo } from "sileo";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,25 +23,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import {
+  IconCheck,
+  IconFolderPlus,
+  IconLoader2,
+  IconMinus,
+  IconPlus,
+  IconX,
+} from "@tabler/icons-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { sileo } from "sileo";
 
 const CONDITIONS = [
-  { value: "NM", label: "Near Mint (NM)" },
-  { value: "LP", label: "Light Play (LP)" },
-  { value: "MP", label: "Moderately Played (MP)" },
-  { value: "HP", label: "Heavily Played (HP)" },
-  { value: "DMG", label: "Damaged (DMG)" },
+  { value: "NM", label: "Near Mint" },
+  { value: "LP", label: "Light Play" },
+  { value: "MP", label: "Mod. Played" },
+  { value: "HP", label: "Heavily Played" },
+  { value: "DMG", label: "Damaged" },
 ];
 
 interface AddToPortfolioButtonProps {
   cardId: string;
   defaultPortfolioId?: string;
   triggerClassName?: string;
+  onSuccess?: () => void;
 }
 
 export function AddToPortfolioButton({
   cardId,
   defaultPortfolioId,
   triggerClassName,
+  onSuccess,
 }: AddToPortfolioButtonProps) {
   const [open, setOpen] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -65,6 +70,7 @@ export function AddToPortfolioButton({
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState("");
   const [creatingPortfolio, setCreatingPortfolio] = useState(false);
+  const qtyDelta = useRef(0);
 
   useEffect(() => {
     if (defaultPortfolioId) setSelectedPortfolioId(defaultPortfolioId);
@@ -84,6 +90,17 @@ export function AddToPortfolioButton({
       .catch(() => sileo.error({ title: "Erro ao carregar portfólios" }))
       .finally(() => setPortfoliosLoading(false));
   }, [open]);
+
+  function decQty() {
+    if (quantity <= 1) return;
+    qtyDelta.current = -1;
+    setQuantity((q) => Math.max(1, q - 1));
+  }
+
+  function incQty() {
+    qtyDelta.current = 1;
+    setQuantity((q) => q + 1);
+  }
 
   async function handleCreatePortfolio() {
     if (!newPortfolioName.trim() || creatingPortfolio) return;
@@ -113,7 +130,7 @@ export function AddToPortfolioButton({
         portfolioId: selectedPortfolioId,
       });
       setSuccess(true);
-      ("");
+      if (onSuccess) onSuccess();
       const portfolio = portfolios.find((p) => p.id === selectedPortfolioId);
       sileo.success({
         title: `Adicionado ao portfólio "${portfolio?.name ?? ""}"`,
@@ -140,9 +157,7 @@ export function AddToPortfolioButton({
               triggerClassName ??
               "absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
             }
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
+            onClick={(e) => e.stopPropagation()}
           >
             {success ? (
               <IconCheck className="size-3.5" />
@@ -151,23 +166,41 @@ export function AddToPortfolioButton({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-60 p-3 space-y-3" side="top" align="end">
-          <p className="text-xs font-semibold text-foreground">
-            Adicionar ao Portfólio
-          </p>
+
+        <PopoverContent className="w-72 p-4 space-y-4" side="top" align="end">
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            <div className="size-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+              <IconFolderPlus className="size-3.5 text-primary" />
+            </div>
+            <p className="text-xs font-semibold text-foreground">
+              Adicionar ao Portfólio
+            </p>
+          </div>
 
           {portfoliosLoading ? (
-            <div className="flex items-center justify-center py-4">
-              <IconLoader2 className="size-4 animate-spin text-muted-foreground" />
+            <div className="flex items-center justify-center py-6">
+              <IconLoader2 className="size-5 animate-spin text-muted-foreground" />
             </div>
           ) : portfolios.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-2">
-              Nenhum portfólio encontrado.
-            </p>
+            <div className="text-center py-4 space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Nenhum portfólio encontrado.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowNewDialog(true)}
+                className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer mx-auto"
+              >
+                <IconFolderPlus className="size-3.5" />
+                Criar portfólio
+              </button>
+            </div>
           ) : (
             <>
-              <div className="space-y-1">
-                <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+              {/* Portfolio */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Portfólio
                 </label>
                 <Select
@@ -189,71 +222,99 @@ export function AddToPortfolioButton({
                 <button
                   type="button"
                   onClick={() => setShowNewDialog(true)}
-                  className="flex items-center gap-1 text-[10px] text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer mt-1"
+                  className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer"
                 >
                   <IconFolderPlus className="size-3" />
                   Novo portfólio
                 </button>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+              {/* Condition chips */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Condição
                 </label>
-                <Select value={condition} onValueChange={setCondition}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CONDITIONS.map((c) => (
-                      <SelectItem
-                        key={c.value}
-                        value={c.value}
-                        className="text-xs"
-                      >
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-1.5">
+                  {CONDITIONS.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setCondition(c.value)}
+                      className={cn(
+                        "px-2 py-1 text-[10px] font-bold rounded-md border transition-all cursor-pointer",
+                        condition === c.value
+                          ? "bg-primary/10 border-primary/50 text-primary"
+                          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                      )}
+                    >
+                      {c.value}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground/70">
+                  {CONDITIONS.find((c) => c.value === condition)?.label}
+                </p>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+              {/* Quantity */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Quantidade
                 </label>
                 <div className="flex items-center gap-2">
-                  <button
+                  <motion.button
                     type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="size-7 rounded-md border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                    whileTap={{ scale: 0.78 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                    onClick={decQty}
+                    disabled={quantity <= 1}
+                    className="size-7 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    <IconMinus className="size-3" />
-                  </button>
-                  <span className="flex-1 text-center text-sm font-mono font-semibold tabular-nums">
-                    {quantity}
-                  </span>
-                  <button
+                    <IconMinus className="size-3" strokeWidth={2.5} />
+                  </motion.button>
+
+                  <div className="flex-1 flex items-center justify-center overflow-hidden h-7">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      <motion.span
+                        key={quantity}
+                        initial={{ y: qtyDelta.current > 0 ? 10 : -10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: qtyDelta.current > 0 ? -10 : 10, opacity: 0 }}
+                        transition={{ duration: 0.13 }}
+                        className="text-sm font-bold text-foreground font-mono tabular-nums"
+                      >
+                        {quantity}
+                      </motion.span>
+                    </AnimatePresence>
+                  </div>
+
+                  <motion.button
                     type="button"
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="size-7 rounded-md border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                    whileTap={{ scale: 0.78 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                    onClick={incQty}
+                    className="size-7 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <IconPlus className="size-3" />
-                  </button>
+                    <IconPlus className="size-3" strokeWidth={2.5} />
+                  </motion.button>
                 </div>
               </div>
 
+              {/* Add button */}
               <Button
                 size="sm"
-                className="w-full h-8 text-xs bg-emerald-500 hover:bg-emerald-400 text-black font-semibold cursor-pointer"
+                className="w-full gap-1.5 font-semibold"
                 onClick={handleAdd}
                 disabled={loading || success || !selectedPortfolioId}
               >
-                {loading && (
-                  <IconLoader2 className="size-3.5 animate-spin mr-1" />
+                {loading ? (
+                  <IconLoader2 className="size-3.5 animate-spin" />
+                ) : success ? (
+                  <IconCheck className="size-3.5" />
+                ) : (
+                  <IconPlus className="size-3.5" />
                 )}
-                {success && <IconCheck className="size-3.5 mr-1" />}
-                {success ? "Adicionado!" : "Adicionar"}
+                {success ? "Adicionado!" : "Adicionar à coleção"}
               </Button>
             </>
           )}
@@ -261,7 +322,7 @@ export function AddToPortfolioButton({
       </Popover>
 
       <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Novo Portfólio</DialogTitle>
             <DialogDescription>
@@ -279,19 +340,19 @@ export function AddToPortfolioButton({
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewDialog(false)}>
+              <IconX className="size-4" />
               Cancelar
             </Button>
             <Button
               onClick={handleCreatePortfolio}
               disabled={creatingPortfolio || !newPortfolioName.trim()}
-              className="bg-emerald-500 hover:bg-emerald-400 text-black"
             >
               {creatingPortfolio ? (
-                <IconLoader2 className="size-4 animate-spin mr-2" />
+                <IconLoader2 className="size-4 animate-spin" />
               ) : (
-                <IconFolderPlus className="size-4 mr-2" />
+                <IconFolderPlus className="size-4" />
               )}
-              Criar
+              Criar portfólio
             </Button>
           </DialogFooter>
         </DialogContent>

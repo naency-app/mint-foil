@@ -97,6 +97,28 @@ export interface CollectionResponse {
   items: CollectionItem[];
 }
 
+export interface UserStats {
+  memberSince: string | null;
+  isPro: boolean;
+  portfolioCount: number;
+  totalCards: number;
+  uniqueCards: number;
+  totalValue: number;
+  totalInvested: number;
+  profitLoss: number;
+  lifetimeScans: number;
+  tcgBreakdown: { name: string; slug: string; value: number; count: number }[];
+  topCards: {
+    id: string;
+    name: string;
+    imageUrl: string;
+    setCode: string;
+    quantity: number;
+    unitValue: number;
+    totalValue: number;
+  }[];
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -168,6 +190,11 @@ export const api = {
       }),
     remove: (id: string) =>
       apiFetch<CollectionItem>(`/collection/${id}`, { method: "DELETE" }),
+    stats: () => apiFetch<UserStats>("/collection/stats"),
+    history: (range: "7d" | "1m" | "3m" | "6m") =>
+      apiFetch<{ date: string; value: number }[]>(
+        `/collection/history?range=${range}`
+      ),
   },
   scan: {
     remaining: () =>

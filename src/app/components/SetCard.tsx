@@ -2,6 +2,7 @@
 
 import { type CardSet } from "@/lib/api";
 import { Layers } from "lucide-react";
+import Image from "next/image";
 import { useMemo } from "react";
 
 export interface SetProgress {
@@ -49,13 +50,14 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
       className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm shadow-sm hover:shadow-md hover:border-slate-400 dark:hover:border-slate-700 hover:-translate-y-0.5 hover:bg-background/50 transition-all duration-300 cursor-pointer w-full h-full"
     >
       <div>
-        {/* Set Image Container */}
         <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3 border-b border-border">
           {cdnUrl ? (
-            <img
+            <Image
               src={cdnUrl}
               alt={set.name}
-              className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+              fill
+              sizes="(max-w-768px) 100vw, 300px"
+              className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
           ) : (
