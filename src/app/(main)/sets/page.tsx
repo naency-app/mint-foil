@@ -27,11 +27,8 @@ export default function SetsPage() {
                   className="w-full h-full object-cover grayscale"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-transparent flex flex-col justify-end p-4">
-                  <span className="text-sm sm:text-base font-bold text-white leading-tight">
-                    {item.name}
-                  </span>
-                  <span className="absolute bottom-4 right-4 bg-muted border border-border/80 px-2 py-0.5 rounded text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                <div className="absolute inset-0 flex items-end justify-end p-3">
+                  <span className="bg-muted border border-border/80 px-2 py-0.5 rounded text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                     Em breve
                   </span>
                 </div>
@@ -51,11 +48,6 @@ export default function SetsPage() {
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end items-start p-4 text-left">
-                <span className="text-sm sm:text-base font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight">
-                  {item.name}
-                </span>
-              </div>
             </Link>
           );
         })}
