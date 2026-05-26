@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -29,8 +30,10 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import Link from "next/link";
+
 
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
@@ -249,13 +252,90 @@ function SidebarButton({
   );
 }
 
-export default function SettingsPage() {
+function StatsSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* 2 Big Cards Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-border bg-card/50 p-6 space-y-3">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-9 w-40" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="rounded-xl border border-border bg-card/50 p-6 space-y-3">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-9 w-40" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+
+      {/* 4 Mini Cards Skeleton */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-xl border border-border bg-card/50 p-4 space-y-2">
+            <Skeleton className="h-3 w-20 mx-auto sm:mx-0" />
+            <Skeleton className="h-7 w-12 mx-auto sm:mx-0" />
+          </div>
+        ))}
+      </div>
+
+      {/* TCG Breakdown Skeleton */}
+      <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+        <Skeleton className="h-4 w-32" />
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top Cards Skeleton */}
+      <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="size-10 rounded shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3.5 w-24" />
+              </div>
+              <div className="text-right space-y-1.5">
+                <Skeleton className="h-4 w-20 ml-auto" />
+                <Skeleton className="h-3 w-16 ml-auto" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsContent() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [proModalOpen, setProModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"stats" | "account" | "support" | "admin">("stats");
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "stats" || tab === "account" || tab === "support" || tab === "admin") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -356,10 +436,7 @@ export default function SettingsPage() {
           {activeTab === "stats" && (
             <div className="space-y-6 animate-in fade-in duration-300">
               {statsLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-3">
-                  <RefreshCw className="size-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Carregando estatísticas...</p>
-                </div>
+                <StatsSkeleton />
               ) : !stats ? (
                 <div className="text-center py-10 rounded-xl border border-border bg-card/45 p-6">
                   <p className="text-sm text-muted-foreground">Não foi possível carregar as estatísticas.</p>
@@ -633,16 +710,26 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <ShieldCheck className="size-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Termos & Privacidade</span>
+                      <span className="text-sm font-medium text-foreground">Termos de Uso</span>
                     </div>
-                    <a
-                      href="https://mintfoil.app/privacy"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href="/terms"
                       className="text-xs font-semibold text-primary hover:underline"
                     >
                       Ver Documento
-                    </a>
+                    </Link>
+                  </div>
+                  <div className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-3">
+                      <ShieldCheck className="size-4 text-primary" />
+                      <span className="text-sm font-medium text-foreground">Política de Privacidade</span>
+                    </div>
+                    <Link
+                      href="/privacy"
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      Ver Documento
+                    </Link>
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
@@ -669,5 +756,31 @@ export default function SettingsPage() {
         onClose={() => setProModalOpen(false)}
       />
     </main>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="space-y-2">
+          <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
+          <div className="h-4 w-96 animate-pulse rounded-lg bg-muted/60" />
+        </div>
+        <Separator className="my-6" />
+        <div className="flex flex-col md:flex-row gap-8">
+          <aside className="w-full md:w-64 shrink-0 space-y-2">
+            <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+            <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+            <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+          </aside>
+          <div className="flex-1 space-y-4">
+            <StatsSkeleton />
+          </div>
+        </div>
+      </main>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }

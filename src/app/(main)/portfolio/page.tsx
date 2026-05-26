@@ -1137,7 +1137,7 @@ export default function PortfolioPage() {
                         />
                         <XAxis numTicks={6} />
                       </AreaChart>
-                    ) : !historyLoading ? (
+                    ) : (
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
                         <TrendingUp className="size-10 text-muted-foreground/30 mb-2" />
                         <p className="text-sm text-muted-foreground font-medium">
@@ -1147,7 +1147,7 @@ export default function PortfolioPage() {
                           O gráfico de evolução histórica será desenhado à medida que sua coleção for atualizada nos próximos dias.
                         </p>
                       </div>
-                    ) : null}
+                    )}
                   </>
                 )}
               </div>

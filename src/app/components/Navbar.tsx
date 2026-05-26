@@ -19,7 +19,7 @@ import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CommandK } from "./CommandK";
 
 const navLinks = [
@@ -36,33 +36,18 @@ function isLinkActive(pathname: string, href: string) {
 }
 
 function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) {
-    return (
-      <Button
-        size="icon-sm"
-        variant="ghost"
-        className="text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-      >
-        <IconMoon className="size-4" />
-      </Button>
-    );
-  }
-
-  const isDark = theme === "dark";
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <Button
       size="icon-sm"
       variant="ghost"
       className="text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      suppressHydrationWarning
     >
-      {isDark ? <IconSun className="size-4" /> : <IconMoon className="size-4" />}
+      <IconSun className="size-4 hidden dark:block" suppressHydrationWarning />
+      <IconMoon className="size-4 dark:hidden" suppressHydrationWarning />
     </Button>
   );
 }
