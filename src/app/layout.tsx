@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { DM_Mono } from "next/font/google";
+import { Outfit, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./provider";
 
@@ -32,6 +32,13 @@ const dmMono = DM_Mono({
   display: "swap",
 });
 
+const outfit = Outfit({
+  weight: ["700", "800", "900"],
+  variable: "--font-heading",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Mint Foil — Gerencie sua Coleção de TCG",
   description:
@@ -53,7 +60,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${circularStd.variable} ${dmMono.variable} antialiased font-sans`}
+        className={`${circularStd.variable} ${dmMono.variable} ${outfit.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>

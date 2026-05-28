@@ -6,6 +6,8 @@ import {
   BarChart3,
   Camera,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   DollarSign,
   Gamepad2,
@@ -61,6 +63,29 @@ const fadeItem: Variants = {
     transition: { duration: 0.52, ease: "easeOut" as const },
   },
 };
+
+// ── Responsive hook ──────────────────────────────────────────────────────────
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+// ── Partner / integration logos ───────────────────────────────────────────────
+
+const LEAGUE_LOGOS_SHARED = [
+  { id: "liga-pokemon", name: "Liga Pokémon", logo: "/logos/sites/logo_ligapokemon.png" },
+  { id: "liga-magic", name: "Liga Magic", logo: "/logos/sites/logo-ligamagic.png" },
+  { id: "liga-yugioh", name: "Liga Yu-Gi-Oh!", logo: "/logos/sites/logo_ligayugioh.png" },
+  { id: "liga-onepiece", name: "Liga One Piece", logo: "/logos/sites/logo_ligaonepiece.png" },
+  { id: "myp", name: "myP Cards", logo: "/logos/sites/logo-mypcards.png" },
+];
 
 // ── Full 30-card marquee (mixed TCGs — no repeats) ────────────────────────────
 
@@ -127,47 +152,62 @@ const FOOTER_MARQUEE_ITEMS = [
   { text, id: `fb${i}` },
 ]);
 
+// Card back URLs per TCG
+const BACKS = {
+  pokemon:
+    "https://limitlesstcg.nyc3.digitaloceanspaces.com/tpci/XY_EN_card_back.jpg",
+  yugioh: "https://images.ygoprodeck.com/images/cards/back.jpg",
+  magic:
+    "https://limitlesstcg.nyc3.digitaloceanspaces.com/tpci/XY_EN_card_back.jpg",
+  onepiece:
+    "https://limitlesstcg.nyc3.digitaloceanspaces.com/opcg/OP_EN_card_back.jpg",
+  dragonball: "https://images.ygoprodeck.com/images/cards/back.jpg",
+  digimon:
+    "https://limitlesstcg.nyc3.digitaloceanspaces.com/dcg/DCG_EN_card_back.jpg",
+};
+
 // Reveal section — 6 TCGs
+// imgs[0] = card back (shown rotated behind) | imgs[1] = full-art front (shown on top)
 const REVEAL_ITEMS = [
   {
     text: "Pokémon",
     imgs: [
+      BACKS.pokemon,
       "https://images.pokemontcg.io/swsh7/215_hires.png",
-      "https://images.pokemontcg.io/sv3/234_hires.png",
     ],
   },
   {
     text: "Yu-Gi-Oh!",
     imgs: [
+      BACKS.yugioh,
       "https://images.ygoprodeck.com/images/cards/89631139.jpg",
-      "https://images.ygoprodeck.com/images/cards/46986414.jpg",
     ],
   },
   {
     text: "Magic",
     imgs: [
+      BACKS.magic,
       "https://cards.scryfall.io/large/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7571.jpg",
-      "https://cards.scryfall.io/large/front/4/c/4cbc6901-6a4a-4d0a-83ea-7eefa3b35021.jpg",
     ],
   },
   {
     text: "One Piece",
     imgs: [
+      BACKS.onepiece,
       "https://images.pokemontcg.io/sv3pt5/230_hires.png",
-      "https://images.pokemontcg.io/sv4pt5/234_hires.png",
     ],
   },
   {
     text: "Dragon Ball",
     imgs: [
+      BACKS.dragonball,
       "https://images.ygoprodeck.com/images/cards/44508094.jpg",
-      "https://images.ygoprodeck.com/images/cards/23995346.jpg",
     ],
   },
   {
     text: "Digimon",
     imgs: [
-      "https://images.pokemontcg.io/swsh8/269_hires.png",
+      BACKS.digimon,
       "https://images.pokemontcg.io/swsh8/271_hires.png",
     ],
   },
@@ -267,40 +307,68 @@ function PhoneMockup({ children }: { children?: React.ReactNode }) {
   return (
     <div
       style={{
-        width: "240px",
-        padding: "10px",
-        borderRadius: "36px",
-        background: "linear-gradient(145deg, #e8e8ef 0%, #d0d0db 100%)",
-        border: `1px solid ${BORDER}`,
         position: "relative",
+        width: "290px",
+        flexShrink: 0,
+        background: "#1c1c1e",
+        borderRadius: "52px",
+        padding: "13px",
+        boxShadow:
+          "0 40px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.06) inset, 0 0 0 2px rgba(0,0,0,0.35)",
       }}
     >
+      {/* Dynamic island */}
       <div
         style={{
           position: "absolute",
-          top: "10px",
+          top: "20px",
           left: "50%",
           transform: "translateX(-50%)",
-          width: "90px",
-          height: "24px",
-          borderRadius: "16px",
-          background: "#c8c8d2",
+          width: "82px",
+          height: "26px",
+          borderRadius: "20px",
+          background: "#000",
           zIndex: 5,
         }}
       />
+      {/* Volume buttons (left) */}
+      {[68, 108].map((top) => (
+        <div
+          key={top}
+          style={{
+            position: "absolute",
+            left: "-3px",
+            top: `${top}px`,
+            width: "3px",
+            height: "30px",
+            background: "#3a3a3c",
+            borderRadius: "2px 0 0 2px",
+          }}
+        />
+      ))}
+      {/* Power button (right) */}
       <div
         style={{
-          borderRadius: "26px",
+          position: "absolute",
+          right: "-3px",
+          top: "96px",
+          width: "3px",
+          height: "60px",
+          background: "#3a3a3c",
+          borderRadius: "0 2px 2px 0",
+        }}
+      />
+      {/* Screen */}
+      <div
+        style={{
+          borderRadius: "40px",
           overflow: "hidden",
           background: WHITE,
           aspectRatio: "9/19.5",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
         }}
       >
         {children ?? (
-          <div className="flex flex-col items-center gap-2 p-5">
+          <div className="flex flex-col items-center gap-2 p-5" style={{ paddingTop: "56px" }}>
             <ScanLine size={28} color={PINK} />
             <p style={{ fontSize: "11px", color: MUTED }}>
               Screenshot real aqui
@@ -322,20 +390,32 @@ function STitle({
   sub?: string;
 }) {
   return (
-    <div style={{ textAlign: "center", marginBottom: "52px" }}>
+    <div style={{ textAlign: "left", marginBottom: "48px" }}>
       {badge && (
         <FadeIn>
-          <PinkBadge>{badge}</PinkBadge>
+          <p
+            style={{
+              fontSize: "18px",
+              lineHeight: "20px",
+              fontWeight: 500,
+              color: PINK,
+              letterSpacing: "0.5px",
+              margin: "0 0 12px",
+            }}
+          >
+            {badge}
+          </p>
         </FadeIn>
       )}
       <FadeIn delay={0.1}>
         <h2
           style={{
-            fontSize: "clamp(26px, 4.5vw, 40px)",
+            fontSize: "clamp(24px, 4vw, 34px)",
+            lineHeight: "clamp(32px, 5.5vw, 44px)",
             fontWeight: 700,
             color: DARK,
-            margin: badge ? "14px 0 0" : 0,
-            lineHeight: 1.15,
+            margin: 0,
+            maxWidth: "640px",
           }}
         >
           {title}
@@ -345,11 +425,11 @@ function STitle({
         <FadeIn delay={0.18}>
           <p
             style={{
-              fontSize: "16px",
+              fontSize: "clamp(15px, 2.5vw, 18px)",
+              lineHeight: "28px",
               color: MUTED,
-              maxWidth: "560px",
-              margin: "14px auto 0",
-              lineHeight: 1.7,
+              maxWidth: "520px",
+              margin: "14px 0 0",
             }}
           >
             {sub}
@@ -362,10 +442,18 @@ function STitle({
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 
+const NAV_LINKS = [
+  { label: "Coleções", href: "#colecoes" },
+  { label: "Como Funciona", href: "#como-funciona" },
+  { label: "Planos", href: "#planos" },
+  { label: "FAQ", href: "#faq" },
+];
+
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const isMobile = useIsMobile();
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
+    const fn = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", fn);
     return () => window.removeEventListener("scroll", fn);
   }, []);
@@ -378,42 +466,160 @@ function Nav() {
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "14px 24px",
+        height: "60px",
+        padding: isMobile ? "0 16px" : "0 32px",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        background: scrolled ? "rgba(255,255,255,0.92)" : "transparent",
-        backdropFilter: scrolled ? "blur(14px)" : "none",
+        background: scrolled ? "rgba(255,255,255,0.96)" : "transparent",
+        backdropFilter: scrolled ? "blur(20px)" : "none",
+        WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
         borderBottom: scrolled
-          ? `1px solid ${BORDER}`
+          ? `1px solid rgba(0,0,0,0.06)`
           : "1px solid transparent",
-        transition: "all 0.3s ease",
+        boxShadow: scrolled
+          ? "0 1px 0 rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.04)"
+          : "none",
+        transition:
+          "background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      {/* ── Logo ── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexShrink: 0,
+        }}
+      >
         <div
           style={{
-            width: "28px",
-            height: "28px",
-            borderRadius: "7px",
+            width: "30px",
+            height: "30px",
+            borderRadius: "8px",
             background: GRAD,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "14px",
+            fontSize: "15px",
             fontWeight: 800,
             color: WHITE,
+            letterSpacing: "-0.5px",
           }}
         >
           M
         </div>
-        <span style={{ fontSize: "15px", fontWeight: 700, color: DARK }}>
+        <span
+          style={{ fontSize: "15px", fontWeight: 700, color: DARK, letterSpacing: "-0.2px" }}
+        >
           Mint Foil
         </span>
       </div>
-      <GradBtn small>
-        <ArrowRight size={13} /> Baixar Grátis
-      </GradBtn>
+
+      {/* ── Center nav links — desktop only ── */}
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: "2px",
+        }}
+        className="hidden md:flex"
+      >
+        {NAV_LINKS.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            style={{
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "rgba(2,6,23,0.55)",
+              textDecoration: "none",
+              padding: "8px 16px",
+              borderRadius: "8px",
+              transition: "color 0.18s ease",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = DARK;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "rgba(2,6,23,0.55)";
+            }}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+
+      {/* ── Right CTAs ── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexShrink: 0,
+        }}
+      >
+        {/* Ghost — Entrar (hidden on mobile) */}
+        <button
+          type="button"
+          className="hidden md:inline-flex"
+          style={{
+            padding: "9px 18px",
+            borderRadius: "8px",
+            border: `1px solid rgba(2,6,23,0.12)`,
+            background: "transparent",
+            color: TEXT_BODY,
+            fontSize: "13.5px",
+            fontWeight: 500,
+            cursor: "pointer",
+            transition: "border-color 0.18s, color 0.18s",
+            letterSpacing: "-0.1px",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "rgba(2,6,23,0.28)";
+            e.currentTarget.style.color = DARK;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "rgba(2,6,23,0.12)";
+            e.currentTarget.style.color = TEXT_BODY;
+          }}
+        >
+          Entrar
+        </button>
+
+        {/* Primary — Baixar Grátis (dark filled, like tryoption "Try Olwen") */}
+        <button
+          type="button"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "9px 18px",
+            borderRadius: "8px",
+            border: "none",
+            background: DARK,
+            color: WHITE,
+            fontSize: "13.5px",
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "opacity 0.18s",
+            letterSpacing: "-0.1px",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "0.8";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "1";
+          }}
+        >
+          Baixar Grátis
+          <ArrowRight size={13} />
+        </button>
+      </div>
     </nav>
   );
 }
@@ -421,16 +627,18 @@ function Nav() {
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 function Hero() {
+  const isMobile = useIsMobile();
   return (
     <section
       style={{
         position: "relative",
-        minHeight: "100vh",
+        minHeight: isMobile ? "auto" : "100vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        paddingTop: "120px",
+        paddingTop: isMobile ? "96px" : "120px",
+        paddingBottom: isMobile ? "60px" : "0",
         overflow: "hidden",
         background: WHITE,
       }}
@@ -471,10 +679,10 @@ function Hero() {
         <motion.h1
           variants={fadeItem}
           style={{
-            fontSize: "clamp(32px, 5.5vw, 60px)",
+            fontSize: isMobile ? "36px" : "60px",
+            lineHeight: isMobile ? "46px" : "75px",
             fontWeight: 700,
             color: DARK,
-            lineHeight: 1.08,
             margin: "20px 0 0",
             letterSpacing: "-0.5px",
           }}
@@ -496,16 +704,23 @@ function Hero() {
         <motion.p
           variants={fadeItem}
           style={{
-            fontSize: "clamp(15px, 2.2vw, 17px)",
-            color: TEXT_BODY,
+            fontSize: isMobile ? "15px" : "18px",
+            lineHeight: isMobile ? "24px" : "28px",
+            color: MUTED,
             maxWidth: "580px",
             margin: "20px auto 0",
-            lineHeight: 1.7,
           }}
         >
-          Escaneie suas cartas de Pokémon, Magic, Yu-Gi-Oh! e One Piece.
-          Organize num portfólio. Monitore o preço real das ligas brasileiras.
-          No celular ou na web.
+          {"Escaneie suas cartas de "}
+          {(["Pokémon", "Magic", "Yu-Gi-Oh!", "One Piece"] as string[]).map(
+            (name, i, arr) => (
+              <span key={name}>
+                <strong style={{ fontWeight: 700, color: DARK }}>{name}</strong>
+                {i < arr.length - 2 ? ", " : i === arr.length - 2 ? " e " : ""}
+              </span>
+            ),
+          )}
+          {". Organize num portfólio. Monitore o preço real das ligas brasileiras. No celular ou na web."}
         </motion.p>
 
         <motion.div variants={fadeItem}>
@@ -612,9 +827,10 @@ function Hero() {
 // ── Video ─────────────────────────────────────────────────────────────────────
 
 function VideoSection() {
+  const isMobile = useIsMobile();
   return (
-    <section style={{ background: BG_ALT, padding: "80px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+    <section style={{ background: BG_ALT, padding: isMobile ? "60px 0" : "80px 0" }}>
+      <div style={{ maxWidth: "1240px", margin: "0 auto", padding: isMobile ? "0 20px" : "0 24px" }}>
         <STitle
           badge="Veja em ação"
           title="Conheça a interface do Mint Foil"
@@ -623,13 +839,12 @@ function VideoSection() {
         <FadeIn>
           <div
             style={{
-              maxWidth: "800px",
-              margin: "0 auto",
+              width: "100%",
               borderRadius: "20px",
               overflow: "hidden",
               background: WHITE,
               border: `1px solid ${BORDER}`,
-              aspectRatio: "16/9",
+              aspectRatio: "1024 / 534.945",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -666,6 +881,50 @@ function VideoSection() {
             </div>
           </div>
         </FadeIn>
+
+        {/* ── "Monitoring across" strip ── */}
+        <div
+          style={{
+            marginTop: "40px",
+            paddingTop: "32px",
+            borderTop: `1px solid ${BORDER}`,
+          }}
+        >
+          <p
+            style={{
+              fontSize: "12px",
+              fontWeight: 500,
+              color: "rgba(0,0,0,0.3)",
+              marginBottom: "20px",
+              letterSpacing: "0.2px",
+            }}
+          >
+            Preços em tempo real de:
+          </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "40px",
+              flexWrap: "wrap",
+            }}
+          >
+            {LEAGUE_LOGOS_SHARED.map((l) => (
+              // biome-ignore lint/performance/noImgElement: partner logo
+              <img
+                key={l.id}
+                src={l.logo}
+                alt={l.name}
+                style={{
+                  height: "22px",
+                  maxWidth: "100px",
+                  objectFit: "contain",
+                  filter: "grayscale(1) opacity(0.4)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -695,8 +954,9 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
       >
         <h3
           style={{
-            fontSize: "clamp(42px, 8vw, 72px)",
-            fontWeight: 800,
+            fontSize: "clamp(52px, 9.5vw, 96px)",
+            fontWeight: 900,
+            fontFamily: "var(--font-heading)",
             color: DARK,
             textTransform: "uppercase",
             lineHeight: 1,
@@ -775,28 +1035,16 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
 }
 
 function RevealSection() {
+  const isMobile = useIsMobile();
   return (
     <section
-      style={{ padding: "100px 24px", maxWidth: "1100px", margin: "0 auto" }}
+      id="colecoes"
+      style={{ padding: isMobile ? "80px 20px" : "125px 24px", maxWidth: "1240px", margin: "0 auto" }}
     >
       <STitle badge="Coleções" title="Explore seus jogos favoritos" />
-      <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-        <p
-          style={{
-            fontSize: "11px",
-            fontWeight: 700,
-            letterSpacing: "2px",
-            textTransform: "uppercase",
-            color: MUTED,
-            marginBottom: "12px",
-          }}
-        >
-          Coleções Mintfoil
-        </p>
-        {REVEAL_ITEMS.map(({ text, imgs }) => (
-          <RevealItem key={text} text={text} imgs={imgs} />
-        ))}
-      </div>
+      {REVEAL_ITEMS.map(({ text, imgs }) => (
+        <RevealItem key={text} text={text} imgs={imgs} />
+      ))}
     </section>
   );
 }
@@ -843,9 +1091,10 @@ const PAINS = [
 ];
 
 function Pain() {
+  const isMobile = useIsMobile();
   return (
-    <section style={{ background: BG_ALT, padding: "100px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+    <section style={{ background: BG_ALT, padding: isMobile ? "80px 20px" : "125px 24px" }}>
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
         <STitle
           badge="O Problema"
           title="Colecionar é fácil. Saber o valor real, não."
@@ -854,7 +1103,7 @@ function Pain() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
             gap: "16px",
           }}
         >
@@ -882,9 +1131,10 @@ function Pain() {
                 </div>
                 <h4
                   style={{
-                    fontSize: "15px",
-                    fontWeight: 700,
-                    color: DARK,
+                    fontSize: "20px",
+                    lineHeight: "28px",
+                    fontWeight: 500,
+                    color: "#374151",
                     marginBottom: "6px",
                   }}
                 >
@@ -892,9 +1142,9 @@ function Pain() {
                 </h4>
                 <p
                   style={{
-                    fontSize: "13.5px",
+                    fontSize: "16px",
+                    lineHeight: "24px",
                     color: MUTED,
-                    lineHeight: 1.65,
                     margin: 0,
                   }}
                 >
@@ -933,40 +1183,143 @@ const STEPS = [
 ];
 
 function Solution() {
+  const isMobile = useIsMobile();
   return (
     <section
-      style={{ padding: "100px 24px", maxWidth: "1100px", margin: "0 auto" }}
+      id="como-funciona"
+      style={{ padding: isMobile ? "80px 20px" : "125px 24px" }}
     >
-      <STitle
-        badge="A Solução"
-        title="3 passos. Toda a coleção sob controle."
-      />
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
+      {/* ── Header row: badge + title left / Watch Demo right ── */}
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
+          flexDirection: isMobile ? "column" : "row",
+          justifyContent: "space-between",
+          alignItems: isMobile ? "flex-start" : "flex-end",
+          marginBottom: "48px",
+          gap: isMobile ? "16px" : "24px",
+        }}
+      >
+        <div>
+          <FadeIn>
+            <p
+              style={{
+                fontSize: "18px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                color: PINK,
+                letterSpacing: "0.5px",
+                margin: "0 0 12px",
+              }}
+            >
+              A Solução
+            </p>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <h2
+              style={{
+                fontSize: "34px",
+                lineHeight: "44px",
+                fontWeight: 700,
+                color: DARK,
+                margin: 0,
+                maxWidth: "480px",
+              }}
+            >
+              3 passos. Toda a coleção sob controle.
+            </h2>
+          </FadeIn>
+        </div>
+
+        {/* Watch Demo — top right, igual tryoption */}
+        <FadeIn delay={0.12}>
+          <button
+            type="button"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "11px 20px",
+              borderRadius: "8px",
+              border: `1px solid rgba(2,6,23,0.12)`,
+              background: DARK,
+              color: WHITE,
+              fontSize: "13.5px",
+              fontWeight: 600,
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "opacity 0.18s",
+              letterSpacing: "-0.1px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "0.82";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+            }}
+          >
+            <div
+              style={{
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Play size={9} color={WHITE} fill={WHITE} />
+            </div>
+            Watch Demo
+          </button>
+        </FadeIn>
+      </div>
+
+      {/* ── 3 cards lado a lado — layout tryoption ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
           gap: "16px",
-          maxWidth: "600px",
-          margin: "0 auto",
         }}
       >
         {STEPS.map((s, i) => (
-          <FadeIn key={s.id} delay={i * 0.12}>
+          <FadeIn key={s.id} delay={i * 0.1}>
             <div
               style={{
-                display: "flex",
-                gap: "20px",
-                alignItems: "flex-start",
-                padding: "24px",
+                position: "relative",
+                padding: "28px 24px",
                 borderRadius: "14px",
                 background: WHITE,
                 border: `1px solid ${BORDER}`,
+                height: "100%",
               }}
             >
+              {/* Step number — top right, cinza bem sutil */}
+              <span
+                style={{
+                  position: "absolute",
+                  top: "20px",
+                  right: "22px",
+                  fontSize: "32px",
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  color: "rgba(0,0,0,0.06)",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                }}
+              >
+                #{i + 1}
+              </span>
+
+              {/* Icon */}
               <div
                 style={{
-                  minWidth: "46px",
-                  height: "46px",
+                  width: "42px",
+                  height: "42px",
                   borderRadius: "12px",
                   background: PINK_BG,
                   border: `1px solid ${PINK_BORDER}`,
@@ -974,35 +1327,38 @@ function Solution() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: PINK,
+                  marginBottom: "20px",
                 }}
               >
                 {s.icon}
               </div>
-              <div>
-                <h4
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: DARK,
-                    margin: "0 0 4px",
-                  }}
-                >
-                  {s.title}
-                </h4>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: MUTED,
-                    lineHeight: 1.65,
-                    margin: 0,
-                  }}
-                >
-                  {s.desc}
-                </p>
-              </div>
+
+              <h4
+                style={{
+                  fontSize: "20px",
+                  lineHeight: "28px",
+                  fontWeight: 500,
+                  color: "#374151",
+                  margin: "0 0 8px",
+                  paddingRight: "32px",
+                }}
+              >
+                {s.title}
+              </h4>
+              <p
+                style={{
+                  fontSize: "16px",
+                  lineHeight: "24px",
+                  color: MUTED,
+                  margin: 0,
+                }}
+              >
+                {s.desc}
+              </p>
             </div>
           </FadeIn>
         ))}
+      </div>
       </div>
     </section>
   );
@@ -1095,174 +1451,259 @@ const BENEFIT_TABS = [
 ];
 
 function BenefitsTabs() {
-  const [activeTab, setActiveTab] = useState("colecionadores");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const isMobile = useIsMobile();
+  const t = BENEFIT_TABS[activeIdx];
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(
+      () => setActiveIdx((i) => (i + 1) % BENEFIT_TABS.length),
+      CAROUSEL_INTERVAL
+    );
+    return () => clearInterval(timer);
+  }, [paused]);
 
   return (
-    <section style={{ background: BG_ALT, padding: "100px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <STitle badge="Benefícios" title="O Mint Foil se adapta a você" />
+    <section
+      style={{ background: BG_ALT, padding: isMobile ? "80px 20px" : "125px 24px" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
         <FadeIn>
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+              gap: isMobile ? "0" : "96px",
+              alignItems: "start",
+            }}
           >
-            {/* Custom tab trigger bar */}
-            <div className="flex justify-center mb-10">
+            {/* ── LEFT: title + tab rows ── */}
+            <div>
+              <STitle badge="Benefícios" title="O Mint Foil se adapta a você" />
               <div
-                style={{
-                  display: "inline-flex",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                  justifyContent: "center",
-                }}
+                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
               >
-                {BENEFIT_TABS.map((t) => (
+                {BENEFIT_TABS.map((tab, i) => (
                   <button
-                    key={t.value}
+                    key={tab.value}
                     type="button"
-                    onClick={() => setActiveTab(t.value)}
+                    onClick={() => setActiveIdx(i)}
                     style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "10px 22px",
-                      borderRadius: "10px",
+                      position: "relative",
+                      textAlign: "left",
+                      padding: "18px 20px",
+                      borderRadius: "12px",
                       border: "none",
+                      background: activeIdx === i ? PINK_BG : "transparent",
                       cursor: "pointer",
-                      background:
-                        activeTab === t.value ? PINK_BG : "transparent",
-                      color: activeTab === t.value ? PINK : MUTED,
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      transition: "all 0.25s",
-                      outline:
-                        activeTab === t.value
-                          ? `1px solid ${PINK_BORDER}`
-                          : "1px solid transparent",
+                      overflow: "hidden",
+                      transition: "background 0.25s",
+                      width: "100%",
                     }}
                   >
-                    {t.icon}
-                    {t.label}
+                    {/* Left accent bar */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: "3px",
+                        borderRadius: "0 2px 2px 0",
+                        background: activeIdx === i ? GRAD : "transparent",
+                        transition: "background 0.25s",
+                      }}
+                    />
+                    {/* Progress bar */}
+                    {activeIdx === i && !paused && (
+                      <span
+                        key={`${tab.value}-prog`}
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          height: "2px",
+                          background: GRAD,
+                          borderRadius: "0 2px 2px 0",
+                          animation: `featureProgress ${CAROUSEL_INTERVAL}ms linear forwards`,
+                        }}
+                      />
+                    )}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "14px",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: activeIdx === i ? PINK : MUTED,
+                          marginTop: "2px",
+                          flexShrink: 0,
+                          transition: "color 0.25s",
+                        }}
+                      >
+                        {tab.icon}
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "15px",
+                            fontWeight: 700,
+                            color: activeIdx === i ? DARK : TEXT_BODY,
+                            margin: "0 0 4px",
+                            transition: "color 0.25s",
+                          }}
+                        >
+                          {tab.label}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            color: MUTED,
+                            lineHeight: "20px",
+                            margin: 0,
+                          }}
+                        >
+                          {tab.points.map((p) => p.title).join(" · ")}
+                        </p>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {BENEFIT_TABS.map((t) => (
-              <TabsContent key={t.value} value={t.value}>
-                <AnimatePresence mode="wait">
-                  {activeTab === t.value && (
-                    <motion.div
-                      key={t.value}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -12 }}
-                      transition={{ duration: 0.22, ease: "easeOut" }}
+            {/* ── RIGHT: phone mockup — hidden on mobile ── */}
+            {!isMobile && (
+            <div
+              style={{
+                position: "sticky",
+                top: "88px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "40px 20px",
+                background: "#eef0f5",
+                borderRadius: "24px",
+                minHeight: "500px",
+              }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={t.value}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -14 }}
+                  transition={{ duration: 0.26, ease: "easeOut" }}
+                >
+                  <PhoneMockup>
+                    {/* App-like screen content */}
+                    <div
+                      style={{
+                        height: "100%",
+                        background: `linear-gradient(180deg, rgba(248,86,167,0.09) 0%, ${WHITE} 38%)`,
+                        overflowY: "auto",
+                      }}
                     >
-                      <div
-                        style={{
-                          background: WHITE,
-                          border: `1px solid ${BORDER}`,
-                          borderRadius: "20px",
-                          padding: "clamp(28px, 5vw, 48px)",
-                          display: "grid",
-                          gridTemplateColumns:
-                            "repeat(auto-fit, minmax(280px, 1fr))",
-                          gap: "40px",
-                          alignItems: "center",
-                          maxWidth: "900px",
-                          margin: "0 auto",
-                        }}
-                      >
-                        <div>
-                          <h3
+                      {/* Status bar space (dynamic island) */}
+                      <div style={{ height: "52px" }} />
+
+                      {/* App header */}
+                      <div style={{ padding: "0 18px 20px" }}>
+                        <p
+                          style={{
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            color: PINK,
+                            letterSpacing: "0.8px",
+                            textTransform: "uppercase",
+                            margin: "0 0 4px",
+                          }}
+                        >
+                          Mint Foil
+                        </p>
+                        <h2
+                          style={{
+                            fontSize: "17px",
+                            fontWeight: 700,
+                            color: DARK,
+                            margin: 0,
+                            lineHeight: "22px",
+                          }}
+                        >
+                          {t.title}
+                        </h2>
+                      </div>
+
+                      {/* Feature points as app rows */}
+                      <div style={{ padding: "0 18px" }}>
+                        {t.points.map((p, pi) => (
+                          <div
+                            key={p.id}
                             style={{
-                              fontSize: "clamp(22px, 3vw, 28px)",
-                              fontWeight: 700,
-                              color: DARK,
-                              lineHeight: 1.2,
-                              marginBottom: "24px",
+                              display: "flex",
+                              gap: "12px",
+                              alignItems: "flex-start",
+                              padding: "12px 0",
+                              borderTop:
+                                pi === 0
+                                  ? `1px solid ${BORDER}`
+                                  : `1px solid ${BORDER}`,
                             }}
                           >
-                            {t.title}
-                          </h3>
-                          {t.points.map((p) => (
-                            <div
-                              key={p.id}
-                              style={{
-                                display: "flex",
-                                gap: "12px",
-                                alignItems: "flex-start",
-                                marginBottom: "18px",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  color: PINK,
-                                  minWidth: "22px",
-                                  marginTop: "2px",
-                                }}
-                              >
-                                {p.icon}
-                              </div>
-                              <div>
-                                <p
-                                  style={{
-                                    fontSize: "14px",
-                                    fontWeight: 700,
-                                    color: DARK,
-                                    margin: "0 0 2px",
-                                  }}
-                                >
-                                  {p.title}
-                                </p>
-                                <p
-                                  style={{
-                                    fontSize: "13px",
-                                    color: MUTED,
-                                    lineHeight: 1.6,
-                                    margin: 0,
-                                  }}
-                                >
-                                  {p.desc}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div
-                          style={{ display: "flex", justifyContent: "center" }}
-                        >
-                          <PhoneMockup>
                             <div
                               style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "8px",
+                                background: PINK_BG,
                                 display: "flex",
-                                flexDirection: "column",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                height: "100%",
-                                padding: "20px",
+                                color: PINK,
+                                flexShrink: 0,
                               }}
                             >
-                              <div
-                                style={{ color: PINK, marginBottom: "12px" }}
+                              {p.icon}
+                            </div>
+                            <div>
+                              <p
+                                style={{
+                                  fontSize: "12px",
+                                  fontWeight: 700,
+                                  color: DARK,
+                                  margin: "0 0 2px",
+                                }}
                               >
-                                {t.mockupIcon}
-                              </div>
-                              <p style={{ fontSize: "11px", color: MUTED }}>
-                                Screenshot real aqui
+                                {p.title}
+                              </p>
+                              <p
+                                style={{
+                                  fontSize: "10px",
+                                  color: MUTED,
+                                  lineHeight: "15px",
+                                  margin: 0,
+                                }}
+                              >
+                                {p.desc}
                               </p>
                             </div>
-                          </PhoneMockup>
-                        </div>
+                          </div>
+                        ))}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </TabsContent>
-            ))}
-          </Tabs>
+                    </div>
+                  </PhoneMockup>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            )}
+          </div>
         </FadeIn>
       </div>
     </section>
@@ -1274,277 +1715,536 @@ function BenefitsTabs() {
 const FEATURE_TABS = [
   {
     value: "scan",
-    icon: <Zap size={15} />,
+    icon: <Camera size={15} />,
     label: "Scan Inteligente",
-    badge: "IA Avançada",
-    title: "Escaneie qualquer carta em segundos",
     desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
-    btn: "Testar Grátis",
     mockupIcon: <ScanLine size={40} />,
   },
   {
     value: "precos",
     icon: <DollarSign size={15} />,
     label: "Preços Reais BR",
-    badge: "Exclusivo Brasil",
-    title: "Preços das ligas brasileiras",
     desc: "Puxa preços da Liga Pokémon, myP Cards e outros marketplaces BR. O preço real.",
-    btn: "Ver Preços",
     mockupIcon: <TrendingUp size={40} />,
   },
   {
     value: "portfolio",
     icon: <BarChart3 size={15} />,
     label: "Portfólio Inteligente",
-    badge: "Controle Total",
-    title: "Organize e decida com dados",
     desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
-    btn: "Criar Portfólio",
     mockupIcon: <BarChart3 size={40} />,
+  },
+  {
+    value: "historico",
+    icon: <TrendingUp size={15} />,
+    label: "Histórico de Preços",
+    desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
+    mockupIcon: <TrendingUp size={40} />,
+  },
+  {
+    value: "alertas",
+    icon: <Star size={15} />,
+    label: "Alertas de Valorização",
+    desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
+    mockupIcon: <Star size={40} />,
+  },
+  {
+    value: "multi-tcg",
+    icon: <Gamepad2 size={15} />,
+    label: "4 Jogos, 1 App",
+    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
+    mockupIcon: <Gamepad2 size={40} />,
   },
 ];
 
+const CAROUSEL_INTERVAL = 5000;
+
+const CARD_W = 600;
+const CARD_GAP = 24;
+const CARD_LEFT_PAD = 64;
+
 function KeyFeatures() {
-  const [activeTab, setActiveTab] = useState("scan");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const isMobile = useIsMobile();
+  const [winW, setWinW] = useState(typeof window !== "undefined" ? window.innerWidth : 1280);
+  useEffect(() => {
+    const onResize = () => setWinW(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const cardW = isMobile ? winW - 40 : CARD_W;
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(
+      () => setActiveIdx((i) => (i + 1) % FEATURE_TABS.length),
+      CAROUSEL_INTERVAL
+    );
+    return () => clearInterval(timer);
+  }, [paused]);
+
+  const prev = () =>
+    setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
+  const next = () =>
+    setActiveIdx((i) => (i + 1) % FEATURE_TABS.length);
 
   return (
     <section
-      style={{ padding: "100px 24px", maxWidth: "1100px", margin: "0 auto" }}
+      style={{ padding: isMobile ? "80px 0" : "125px 0" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
     >
-      <STitle
-        badge="Key Features"
-        title="Ferramentas que nenhum outro app tem"
-      />
+      {/* ── Header ── */}
       <FadeIn>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex justify-center mb-8">
-            <div
-              style={{
-                display: "inline-flex",
-                gap: "12px",
-                flexWrap: "wrap",
-                justifyContent: "center",
-              }}
-            >
-              {FEATURE_TABS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  onClick={() => setActiveTab(f.value)}
+        <div
+          style={{
+            maxWidth: "1240px",
+            margin: "0 auto",
+            padding: isMobile ? "0 20px 36px" : "0 24px 52px",
+          }}
+        >
+          <STitle
+            badge="Key Features"
+            title="Ferramentas que nenhum outro app tem"
+            sub="Escaneie cartas com IA, veja preços das ligas brasileiras e organize seu portfólio."
+          />
+        </div>
+      </FadeIn>
+
+      {/* ── Carousel — full viewport width ── */}
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+        }}
+      >
+        {/* Left arrow */}
+        <button
+          type="button"
+          onClick={prev}
+          aria-label="Feature anterior"
+          style={{
+            position: "absolute",
+            left: isMobile ? "8px" : "16px",
+            top: isMobile ? "120px" : "162px",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            background: WHITE,
+            border: `1px solid ${BORDER}`,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            padding: 0,
+          }}
+        >
+          <ChevronLeft size={18} color={DARK} />
+        </button>
+
+        {/* Cards strip */}
+        <div style={{ overflow: "hidden" }}>
+          <motion.div
+            style={{ display: "flex", gap: `${CARD_GAP}px`, paddingLeft: isMobile ? "20px" : `${CARD_LEFT_PAD}px` }}
+            animate={{ x: -activeIdx * (cardW + CARD_GAP) }}
+            transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            drag={isMobile ? "x" : false}
+            dragConstraints={{ left: -(FEATURE_TABS.length - 1) * (cardW + CARD_GAP), right: 0 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -50) next();
+              else if (info.offset.x > 50) prev();
+            }}
+          >
+            {FEATURE_TABS.map((ft) => (
+              <div
+                key={ft.value}
+                style={{
+                  width: `${cardW}px`,
+                  flexShrink: 0,
+                  background: WHITE,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: "16px",
+                  overflow: "hidden",
+                  cursor: "default",
+                }}
+              >
+                {/* ── Video / preview area ── */}
+                <div
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "12px 20px",
-                    borderRadius: "14px",
-                    border: "none",
-                    cursor: "pointer",
-                    background: activeTab === f.value ? PINK_BG : "transparent",
-                    color: activeTab === f.value ? PINK : MUTED,
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    transition: "all 0.25s",
-                    outline:
-                      activeTab === f.value
-                        ? `1px solid ${PINK_BORDER}`
-                        : "1px solid transparent",
+                    height: isMobile ? "200px" : "325px",
+                    position: "relative",
+                    background: `linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)`,
+                    overflow: "hidden",
                   }}
                 >
-                  {f.icon}
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {FEATURE_TABS.map((f) => (
-            <TabsContent key={f.value} value={f.value}>
-              <AnimatePresence mode="wait">
-                {activeTab === f.value && (
-                  <motion.div
-                    key={f.value}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  {/* Radial glow */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "radial-gradient(ellipse at 50% 110%, rgba(248,86,167,0.22) 0%, transparent 65%)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Phone mockup clipped at bottom */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "-18px",
+                      left: "50%",
+                      transform: "translateX(-50%) scale(0.65)",
+                      transformOrigin: "bottom center",
+                      opacity: 0.72,
+                    }}
                   >
-                    <div
-                      style={{
-                        background: BG_ALT,
-                        border: `1px solid ${BORDER}`,
-                        borderRadius: "20px",
-                        padding: "clamp(28px, 5vw, 48px)",
-                        display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fit, minmax(280px, 1fr))",
-                        gap: "48px",
-                        alignItems: "center",
-                        maxWidth: "920px",
-                        margin: "0 auto",
-                      }}
-                    >
-                      <div>
-                        <PinkBadge>{f.badge}</PinkBadge>
-                        <h3
-                          style={{
-                            fontSize: "clamp(22px, 3vw, 30px)",
-                            fontWeight: 700,
-                            color: DARK,
-                            lineHeight: 1.15,
-                            margin: "16px 0 14px",
-                          }}
-                        >
-                          {f.title}
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: "15px",
-                            color: MUTED,
-                            lineHeight: 1.7,
-                            margin: "0 0 24px",
-                          }}
-                        >
-                          {f.desc}
-                        </p>
-                        <GradBtn>
-                          <ArrowRight size={14} /> {f.btn}
-                        </GradBtn>
-                      </div>
+                    <PhoneMockup>
                       <div
-                        style={{ display: "flex", justifyContent: "center" }}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                          padding: "20px",
+                        }}
                       >
-                        <PhoneMockup>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "100%",
-                              padding: "20px",
-                            }}
-                          >
-                            <div style={{ color: PINK, marginBottom: "12px" }}>
-                              {f.mockupIcon}
-                            </div>
-                            <p style={{ fontSize: "11px", color: MUTED }}>
-                              Screenshot real aqui
-                            </p>
-                          </div>
-                        </PhoneMockup>
+                        <div style={{ color: PINK }}>{ft.mockupIcon}</div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </FadeIn>
-    </section>
-  );
-}
+                    </PhoneMockup>
+                  </div>
+                  {/* Play button — top-left */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "14px",
+                      left: "14px",
+                      width: "34px",
+                      height: "34px",
+                      borderRadius: "50%",
+                      background: "rgba(255,255,255,0.9)",
+                      boxShadow: "0 2px 10px rgba(248,86,167,0.22)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Play
+                      size={13}
+                      fill={PINK}
+                      color={PINK}
+                      style={{ marginLeft: "2px" }}
+                    />
+                  </div>
+                </div>
 
-// ── Partners ──────────────────────────────────────────────────────────────────
-
-const PARTNER_CATS = [
-  {
-    id: "ligas",
-    label: "Ligas & Marketplaces",
-    items: [
-      { id: "liga", name: "Liga Pokémon", color: "#FFCB05" },
-      { id: "myp", name: "myP Cards", color: "#7C3AED" },
-      { id: "mp3", name: "Marketplace 3", color: "#3B82F6" },
-      { id: "mp4", name: "Marketplace 4", color: "#10B981" },
-    ],
-  },
-  {
-    id: "tcgs",
-    label: "TCGs Suportados",
-    items: [
-      { id: "pokemon", name: "Pokémon TCG", color: "#FFCB05" },
-      { id: "magic", name: "Magic: The Gathering", color: "#A855F7" },
-      { id: "yugioh", name: "Yu-Gi-Oh!", color: "#EF4444" },
-      { id: "onepiece", name: "One Piece TCG", color: "#F97316" },
-    ],
-  },
-];
-
-function Partners() {
-  return (
-    <section style={{ background: BG_ALT, padding: "100px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <STitle
-          badge="Parceiros"
-          title="Integrado com o ecossistema brasileiro"
-        />
-        {PARTNER_CATS.map((cat, ci) => (
-          <FadeIn key={cat.id} delay={ci * 0.1}>
-            <p
-              style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                color: MUTED,
-                marginBottom: "16px",
-                textAlign: "center",
-              }}
-            >
-              {cat.label}
-            </p>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "12px",
-                flexWrap: "wrap",
-                marginBottom: "36px",
-              }}
-            >
-              {cat.items.map((p) => (
-                // biome-ignore lint/a11y/noStaticElementInteractions: decorative border hover on partner pill
+                {/* ── Info area — icon + label + desc ── */}
                 <div
-                  key={p.id}
                   style={{
-                    padding: "12px 22px",
-                    borderRadius: "10px",
-                    background: WHITE,
-                    border: `1px solid ${BORDER}`,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "border-color 0.25s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${p.color}44`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = BORDER;
+                    padding: "18px 20px 22px",
+                    borderTop: `1px solid ${BORDER}`,
                   }}
                 >
                   <div
                     style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      background: p.color,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      color: TEXT_BODY,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      marginBottom: "6px",
                     }}
                   >
-                    {p.name}
-                  </span>
+                    <span style={{ color: MUTED, display: "flex" }}>
+                      {ft.icon}
+                    </span>
+                    <p
+                      style={{
+                        fontSize: "20px",
+                        lineHeight: "28px",
+                        fontWeight: 500,
+                        color: "#374151",
+                        margin: 0,
+                      }}
+                    >
+                      {ft.label}
+                    </p>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      lineHeight: "24px",
+                      color: MUTED,
+                      margin: 0,
+                    }}
+                  >
+                    {ft.desc}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </FadeIn>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Right arrow */}
+        <button
+          type="button"
+          onClick={next}
+          aria-label="Próxima feature"
+          style={{
+            position: "absolute",
+            right: isMobile ? "8px" : "16px",
+            top: isMobile ? "120px" : "162px",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            background: WHITE,
+            border: `1px solid ${BORDER}`,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            padding: 0,
+          }}
+        >
+          <ChevronRight size={18} color={DARK} />
+        </button>
+      </div>
+
+      {/* ── Dots ── */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "8px",
+          marginTop: "32px",
+        }}
+      >
+        {FEATURE_TABS.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setActiveIdx(i)}
+            style={{
+              width: activeIdx === i ? "24px" : "8px",
+              height: "8px",
+              borderRadius: "4px",
+              background: activeIdx === i ? PINK : BORDER,
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              transition: "all 0.3s ease",
+            }}
+          />
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Integrations ──────────────────────────────────────────────────────────────
+
+const TCG_LOGOS = [
+  { id: "pokemon", name: "Pokémon TCG", logo: "/logos/pokemon.webp" },
+  { id: "magic", name: "Magic: The Gathering", logo: "/logos/magic.webp" },
+  { id: "yugioh", name: "Yu-Gi-Oh!", logo: "/logos/yugioh.webp" },
+  { id: "onepiece", name: "One Piece TCG", logo: "/logos/one-piece.webp" },
+];
+
+const LEAGUE_LOGOS = LEAGUE_LOGOS_SHARED;
+
+const COMING_SOON = [
+  { id: "facebook", name: "Facebook", color: "#1877F2", initial: "f" },
+  { id: "mercadolivre", name: "Mercado Livre", color: "#FFE600", initial: "ML", dark: true },
+];
+
+function CatLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      style={{
+        fontSize: "11px",
+        fontWeight: 600,
+        letterSpacing: "1.5px",
+        textTransform: "uppercase",
+        color: MUTED,
+        margin: "0 0 16px",
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function Partners() {
+  const isMobile = useIsMobile();
+  return (
+    <section style={{ background: BG_ALT, padding: isMobile ? "80px 20px" : "125px 24px" }}>
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
+        <STitle
+          badge="Integração"
+          title="Conectado ao ecossistema TCG brasileiro"
+          sub="Preços das principais ligas e marketplaces do Brasil, direto na sua coleção."
+        />
+
+        {/* ── TCGs Suportados ── */}
+        <FadeIn>
+          <CatLabel>TCGs Suportados</CatLabel>
+          <div
+            style={{
+              display: "flex",
+              gap: "24px",
+              flexWrap: "wrap",
+              alignItems: "center",
+              marginBottom: "48px",
+              padding: "24px 28px",
+              background: WHITE,
+              borderRadius: "16px",
+              border: `1px solid ${BORDER}`,
+            }}
+          >
+            {TCG_LOGOS.map((t) => (
+              // biome-ignore lint/performance/noImgElement: local logo assets
+              // biome-ignore lint/a11y/noStaticElementInteractions: decorative hover
+              <img
+                key={t.id}
+                src={t.logo}
+                alt={t.name}
+                title={t.name}
+                style={{
+                  height: "32px",
+                  width: "auto",
+                  objectFit: "contain",
+                  opacity: 0.85,
+                  transition: "opacity 0.2s",
+                  cursor: "default",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.85"; }}
+              />
+            ))}
+          </div>
+        </FadeIn>
+
+        {/* ── Ligas & Marketplaces ── */}
+        <FadeIn delay={0.08}>
+          <CatLabel>Ligas & Marketplaces</CatLabel>
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
+              marginBottom: "48px",
+            }}
+          >
+            {LEAGUE_LOGOS.map((l) => (
+              // biome-ignore lint/a11y/noStaticElementInteractions: decorative hover
+              <div
+                key={l.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "12px 20px",
+                  height: "60px",
+                  background: WHITE,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: "12px",
+                  transition: "border-color 0.2s, box-shadow 0.2s",
+                  cursor: "default",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = PINK_BORDER;
+                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(248,86,167,0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = BORDER;
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                {/* biome-ignore lint/performance/noImgElement: local logo assets */}
+                <img
+                  src={l.logo}
+                  alt={l.name}
+                  style={{
+                    maxHeight: "30px",
+                    maxWidth: "110px",
+                    objectFit: "contain",
+                    display: "block",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </FadeIn>
+
+        {/* ── Em breve ── */}
+        <FadeIn delay={0.16}>
+          <CatLabel>Em breve</CatLabel>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            {COMING_SOON.map((c) => (
+              <div
+                key={c.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 16px",
+                  background: WHITE,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: "12px",
+                  opacity: 0.55,
+                }}
+              >
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "7px",
+                    background: c.color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: c.initial.length > 1 ? "9px" : "15px",
+                    fontWeight: 800,
+                    color: c.dark ? "#333" : WHITE,
+                    flexShrink: 0,
+                    letterSpacing: "-0.5px",
+                  }}
+                >
+                  {c.initial}
+                </div>
+                <span
+                  style={{
+                    fontSize: "13.5px",
+                    fontWeight: 600,
+                    color: TEXT_BODY,
+                  }}
+                >
+                  {c.name}
+                </span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: MUTED,
+                    background: "rgba(0,0,0,0.06)",
+                    padding: "2px 7px",
+                    borderRadius: "100px",
+                    letterSpacing: "0.3px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Em breve
+                </span>
+              </div>
+            ))}
+          </div>
+        </FadeIn>
       </div>
     </section>
   );
@@ -1569,9 +2269,11 @@ const PRO_FEATURES = [
 ];
 
 function Pricing() {
+  const isMobile = useIsMobile();
   return (
     <section
-      style={{ padding: "100px 24px", maxWidth: "1100px", margin: "0 auto" }}
+      id="planos"
+      style={{ padding: isMobile ? "80px 20px" : "125px 24px", maxWidth: "1240px", margin: "0 auto" }}
     >
       <STitle
         badge="Planos"
@@ -1846,8 +2548,8 @@ function AccordionSection({
 
 function Objections() {
   return (
-    <section style={{ background: BG_ALT, padding: "100px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+    <section style={{ background: BG_ALT, padding: "125px 24px" }}>
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
         <STitle badge="Objeções" title="Talvez você esteja pensando..." />
         <AccordionSection items={OBJECTION_ITEMS} />
       </div>
@@ -1856,9 +2558,11 @@ function Objections() {
 }
 
 function FAQSection() {
+  const isMobile = useIsMobile();
   return (
     <section
-      style={{ padding: "100px 24px", maxWidth: "1100px", margin: "0 auto" }}
+      id="faq"
+      style={{ padding: isMobile ? "80px 20px" : "125px 24px", maxWidth: "1240px", margin: "0 auto" }}
     >
       <STitle badge="FAQ" title="Perguntas frequentes" />
       <AccordionSection items={FAQ_ITEMS} />
@@ -1869,8 +2573,9 @@ function FAQSection() {
 // ── Final CTA ─────────────────────────────────────────────────────────────────
 
 function FinalCTA() {
+  const isMobile = useIsMobile();
   return (
-    <section style={{ background: BG_ALT, padding: "100px 24px" }}>
+    <section style={{ background: BG_ALT, padding: isMobile ? "80px 20px" : "125px 24px" }}>
       <div
         style={{
           maxWidth: "600px",

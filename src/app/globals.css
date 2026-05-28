@@ -171,6 +171,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
 }
 
@@ -212,6 +213,29 @@
   100% {
     transform: translate(-50%, -50%) scale(1.1);
     opacity: 1;
+  }
+}
+
+@keyframes featureProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* ── Mobile responsive ───────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Ensure images don't overflow */
+  img {
+    max-width: 100%;
+  }
+
+  /* Fix carousel on touch devices */
+  .key-features-strip {
+    padding-left: 20px !important;
   }
 }
 
