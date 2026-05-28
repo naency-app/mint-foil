@@ -66,18 +66,18 @@
 }
 
 :root {
-  --background: #f6f6f6;
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.586 0.253 17.585);
-  --primary-foreground: oklch(0.969 0.015 12.422);
-  --tertiary: #887CFD;
-  --tertiary-hover: #5347CE;
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --background: #F6F6F6;
+  --foreground: #020617;
+  --card: #FFFFFF;
+  --card-foreground: #020617;
+  --popover: #FFFFFF;
+  --popover-foreground: #020617;
+  --primary: #B50D57;
+  --primary-foreground: #FFFFFF;
+  --tertiary: #F856A7;
+  --tertiary-hover: #B50D57;
+  --secondary: #021937;
+  --secondary-foreground: #FFFFFF;
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -118,18 +118,18 @@
 }
 
 .dark {
-  --background: oklch(12.9% 0.042 264.695);
-  --foreground: oklch(0.985 0 0);
-  --card: color-mix(in oklab, oklch(20.8% 0.042 265.755) 50%, transparent);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(69.73% 0.1998 348.45);
-  --primary-foreground: oklch(0.969 0.015 12.422);
-  --tertiary: #887CFD;
-  --tertiary-hover: #5347CE;
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
+  --background: #020617;
+  --foreground: #FFFFFF;
+  --card: #021937;
+  --card-foreground: #FFFFFF;
+  --popover: #021937;
+  --popover-foreground: #FFFFFF;
+  --primary: #F856A7;
+  --primary-foreground: #020617;
+  --tertiary: #F856A7;
+  --tertiary-hover: #B50D57;
+  --secondary: #B50D57;
+  --secondary-foreground: #FFFFFF;
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(70.4% 0.04 256.788);
   --accent: oklch(0.371 0 0);
@@ -170,4 +170,37 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ── Circular Std font ───────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Circular Std";
+  src: url("/fonts/FontsFree-Net-Circular-Std-Book.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Landing Page animations ─────────────────────────────────────────────── */
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes footerMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes breathe {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15%, 45% { transform: scale(1.2); }
+  30% { transform: scale(1); }
 }
