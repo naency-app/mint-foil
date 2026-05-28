@@ -77,12 +77,12 @@ export function Area({
   const uniqueId = useId();
   const gradientId = useMemo(
     () => `area-gradient-${dataKey}-${Math.random().toString(36).slice(2, 9)}`,
-    [dataKey]
+    [dataKey],
   );
   const strokeGradientId = useMemo(
     () =>
       `area-stroke-gradient-${dataKey}-${Math.random().toString(36).slice(2, 9)}`,
-    [dataKey]
+    [dataKey],
   );
   const edgeMaskId = `area-edge-mask-${dataKey}-${uniqueId}`;
   const edgeGradientId = `${edgeMaskId}-gradient`;
@@ -127,7 +127,7 @@ export function Area({
       }
       return (low + high) / 2;
     },
-    [pathLength]
+    [pathLength],
   );
 
   // Calculate segment bounds for highlight from either selection or hover
@@ -207,7 +207,7 @@ export function Area({
       const value = d[dataKey];
       return typeof value === "number" ? (yScale(value) ?? 0) : 0;
     },
-    [dataKey, yScale]
+    [dataKey, yScale],
   );
 
   const isHovering = tooltipData !== null || selection?.active === true;

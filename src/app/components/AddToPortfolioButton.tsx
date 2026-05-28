@@ -106,12 +106,16 @@ export function AddToPortfolioButton({
         if (!selectedPortfolioId && sortedPortfolios.length > 0) {
           const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
           const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+          const hasOldStored = sortedPortfolios.some(
+            (p) => p.id === oldDefault,
+          );
 
           setSelectedPortfolioId(
-            foundFav 
-              ? foundFav.id 
-              : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id)
+            foundFav
+              ? foundFav.id
+              : hasOldStored && oldDefault
+                ? oldDefault
+                : sortedPortfolios[0].id,
           );
         }
       })
@@ -272,7 +276,7 @@ export function AddToPortfolioButton({
                         "px-2 py-1 text-[10px] font-bold rounded-md border transition-all cursor-pointer",
                         condition === c.value
                           ? "bg-primary/10 border-primary/50 text-primary"
-                          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
                       )}
                     >
                       {c.value}
@@ -305,9 +309,15 @@ export function AddToPortfolioButton({
                     <AnimatePresence mode="popLayout" initial={false}>
                       <motion.span
                         key={quantity}
-                        initial={{ y: qtyDelta.current > 0 ? 10 : -10, opacity: 0 }}
+                        initial={{
+                          y: qtyDelta.current > 0 ? 10 : -10,
+                          opacity: 0,
+                        }}
                         animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: qtyDelta.current > 0 ? -10 : 10, opacity: 0 }}
+                        exit={{
+                          y: qtyDelta.current > 0 ? -10 : 10,
+                          opacity: 0,
+                        }}
                         transition={{ duration: 0.13 }}
                         className="text-sm font-bold text-foreground font-mono tabular-nums"
                       >

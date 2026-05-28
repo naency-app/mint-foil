@@ -44,14 +44,17 @@ export function useCard(id: string) {
         const data = await api.cards.get(id);
         if (!cancelled) setCard(data);
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Erro ao buscar carta");
+        if (!cancelled)
+          setError(err instanceof Error ? err.message : "Erro ao buscar carta");
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   return { card, loading, error };

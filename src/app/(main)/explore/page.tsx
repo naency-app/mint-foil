@@ -24,15 +24,9 @@ import {
   IconLayoutGrid,
   IconListDetails,
   IconLoader2,
-  IconPlus
+  IconPlus,
 } from "@tabler/icons-react";
-import {
-  ArrowUpDown,
-  Clock,
-  Loader2,
-  Search,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowUpDown, Clock, Loader2, Search, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -79,7 +73,12 @@ function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
 }
 
-const LIGA_STORE_NAMES = ['LigaYugioh', 'LigaMagic', 'LigaPokemon', 'LigaOnePiece'];
+const LIGA_STORE_NAMES = [
+  "LigaYugioh",
+  "LigaMagic",
+  "LigaPokemon",
+  "LigaOnePiece",
+];
 
 function getBrPrice(card: CardType): number | null {
   const liga = card.storeLinks?.find(
@@ -87,8 +86,9 @@ function getBrPrice(card: CardType): number | null {
   );
   if (liga?.price != null) return liga.price;
   return (
-    card.storeLinks?.find((l) => l.storeName === "EpicGame" && l.price != null && l.inStock)
-      ?.price ?? null
+    card.storeLinks?.find(
+      (l) => l.storeName === "EpicGame" && l.price != null && l.inStock,
+    )?.price ?? null
   );
 }
 
@@ -228,7 +228,9 @@ function ListRow({
 
 function ExplorePageContent() {
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useQueryState("sort", { defaultValue: "best-match" });
+  const [sortBy, setSortBy] = useQueryState("sort", {
+    defaultValue: "best-match",
+  });
   const [search, setSearch] = useQueryState("q", { defaultValue: "" });
   const [searchInput, setSearchInput] = useState("");
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -257,7 +259,7 @@ function ExplorePageContent() {
     if (stored) {
       try {
         setRecentSearches(JSON.parse(stored));
-      } catch { }
+      } catch {}
     }
   }, []);
 
@@ -266,7 +268,10 @@ function ExplorePageContent() {
     if (!term.trim()) return;
     const cleanTerm = term.trim();
     setRecentSearches((prev) => {
-      const next = [cleanTerm, ...prev.filter((x) => x !== cleanTerm)].slice(0, 5);
+      const next = [cleanTerm, ...prev.filter((x) => x !== cleanTerm)].slice(
+        0,
+        5,
+      );
       localStorage.setItem("recent_searches", JSON.stringify(next));
       return next;
     });
@@ -300,11 +305,15 @@ function ExplorePageContent() {
         if (sortedPortfolios.length > 0) {
           const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
           const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+          const hasOldStored = sortedPortfolios.some(
+            (p) => p.id === oldDefault,
+          );
 
-          const nextActive = foundFav 
-            ? foundFav.id 
-            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+          const nextActive = foundFav
+            ? foundFav.id
+            : hasOldStored && oldDefault
+              ? oldDefault
+              : sortedPortfolios[0].id;
 
           setActivePortfolioId((prev) => {
             if (prev && sortedPortfolios.some((p) => p.id === prev)) {
@@ -314,7 +323,7 @@ function ExplorePageContent() {
           });
         }
       })
-      .catch(() => { }); // user may not be logged in
+      .catch(() => {}); // user may not be logged in
   }, []);
 
   // Fetch portfolios
@@ -354,13 +363,18 @@ function ExplorePageContent() {
       setCardsLoading(true);
       setError(null);
       try {
-        const data = await api.cards.list(search || undefined, selectedTcg || undefined);
+        const data = await api.cards.list(
+          search || undefined,
+          selectedTcg || undefined,
+        );
         if (active) {
           setCards(data);
         }
       } catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : "Erro ao buscar cartas");
+          setError(
+            err instanceof Error ? err.message : "Erro ao buscar cartas",
+          );
           setCards([]);
         }
       } finally {
@@ -426,7 +440,9 @@ function ExplorePageContent() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Search Input Section */}
       <section className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
-        <h2 className="text-sm font-bold text-foreground">Buscar no Catálogo</h2>
+        <h2 className="text-sm font-bold text-foreground">
+          Buscar no Catálogo
+        </h2>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -481,7 +497,10 @@ function ExplorePageContent() {
             />
           )}
 
-          <Separator orientation="vertical" className="h-5 hidden sm:block mx-1" />
+          <Separator
+            orientation="vertical"
+            className="h-5 hidden sm:block mx-1"
+          />
 
           <p className="text-xs text-muted-foreground">
             {cardsLoading ? (
@@ -543,13 +562,19 @@ function ExplorePageContent() {
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center gap-2">
                   <Checkbox id="cards-only" checked />
-                  <label htmlFor="cards-only" className="text-xs text-foreground font-medium">
+                  <label
+                    htmlFor="cards-only"
+                    className="text-xs text-foreground font-medium"
+                  >
                     Apenas Cartas
                   </label>
                 </div>
                 <div className="flex items-center gap-2 opacity-50">
                   <Checkbox id="sealed-only" disabled />
-                  <label htmlFor="sealed-only" className="text-xs text-muted-foreground">
+                  <label
+                    htmlFor="sealed-only"
+                    className="text-xs text-muted-foreground"
+                  >
                     Apenas Selados
                   </label>
                 </div>
@@ -660,14 +685,23 @@ function ExplorePageContent() {
                   { name: "Weiß Schwarz" },
                   { name: "Union Arena" },
                 ].map((tcg) => (
-                  <div key={tcg.name} className="flex items-center justify-between gap-2 opacity-50 select-none">
+                  <div
+                    key={tcg.name}
+                    className="flex items-center justify-between gap-2 opacity-50 select-none"
+                  >
                     <div className="flex items-center gap-2">
-                      <Checkbox id={`tcg-coming-${tcg.name.toLowerCase().replace(/\s+/g, "")}`} disabled />
+                      <Checkbox
+                        id={`tcg-coming-${tcg.name.toLowerCase().replace(/\s+/g, "")}`}
+                        disabled
+                      />
                       <span className="text-xs text-muted-foreground font-medium">
                         {tcg.name}
                       </span>
                     </div>
-                    <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase tracking-wider font-mono opacity-80 leading-none">
+                    <Badge
+                      variant="outline"
+                      className="text-[8px] h-3.5 px-1 uppercase tracking-wider font-mono opacity-80 leading-none"
+                    >
                       Breve
                     </Badge>
                   </div>
@@ -756,11 +790,13 @@ function ExplorePageContent() {
 
 export default function ExplorePage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-primary size-8" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Loader2 className="animate-spin text-primary size-8" />
+        </div>
+      }
+    >
       <ExplorePageContent />
     </Suspense>
   );

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-
 const APP_STORE_URL = "https://apps.apple.com/app/mint-foil";
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=app.mintfoil";
@@ -80,8 +79,7 @@ export function ProUpgradeModal({
             </span>
           </div>
           <h2 className="text-2xl font-bold text-white">
-            Leve sua coleção a{" "}
-            <span className="text-primary">outro nível</span>
+            Leve sua coleção a <span className="text-primary">outro nível</span>
           </h2>
           <p className="text-pink-100/70 text-sm mt-2">
             Desbloqueie recursos exclusivos no app

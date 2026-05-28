@@ -113,10 +113,18 @@ const TABS = [
 // ── Dashboard data ─────────────────────────────────────────────────────────────
 
 const BARS = [
-  { h: 28, id: "b0" }, { h: 40, id: "b1" }, { h: 35, id: "b2" },
-  { h: 50, id: "b3" }, { h: 44, id: "b4" }, { h: 62, id: "b5" },
-  { h: 55, id: "b6" }, { h: 70, id: "b7" }, { h: 65, id: "b8" },
-  { h: 80, id: "b9" }, { h: 75, id: "b10" }, { h: 92, id: "b11" },
+  { h: 28, id: "b0" },
+  { h: 40, id: "b1" },
+  { h: 35, id: "b2" },
+  { h: 50, id: "b3" },
+  { h: 44, id: "b4" },
+  { h: 62, id: "b5" },
+  { h: 55, id: "b6" },
+  { h: 70, id: "b7" },
+  { h: 65, id: "b8" },
+  { h: 80, id: "b9" },
+  { h: 75, id: "b10" },
+  { h: 92, id: "b11" },
 ];
 
 const KPIS = [
@@ -156,7 +164,12 @@ function DashboardMockup() {
       <motion.div
         className="absolute -bottom-4 left-6 z-20 bg-card border border-border/50 rounded-xl px-3 py-2 shadow-xl"
         animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+        transition={{
+          duration: 4.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1.2,
+        }}
       >
         <p className="text-[9px] text-muted-foreground mb-0.5">Coleção total</p>
         <p className="text-[11px] font-bold text-green-500">R$ 4.280 ↑ 12.4%</p>
@@ -176,7 +189,9 @@ function DashboardMockup() {
           <div className="flex-1 flex justify-center mx-4">
             <div className="bg-muted/40 rounded-md px-3 py-1 flex items-center gap-1.5 max-w-[200px] w-full">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-              <span className="text-[9px] text-muted-foreground truncate">mintfoil.com/portfolio</span>
+              <span className="text-[9px] text-muted-foreground truncate">
+                mintfoil.com/portfolio
+              </span>
             </div>
           </div>
         </div>
@@ -188,14 +203,18 @@ function DashboardMockup() {
             <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center mb-2">
               <div className="w-2.5 h-1.5 rounded-[2px] bg-primary-foreground" />
             </div>
-            {(["portfolio", "scan", "explore", "settings"] as const).map((id, i) => (
-              <div
-                key={id}
-                className={`w-7 h-6 rounded-lg flex items-center justify-center ${i === 0 ? "bg-primary/15 border border-primary/25" : ""}`}
-              >
-                <div className={`rounded-[3px] ${i === 0 ? "w-3 h-2.5 bg-primary/60" : "w-2.5 h-2 bg-muted-foreground/20"}`} />
-              </div>
-            ))}
+            {(["portfolio", "scan", "explore", "settings"] as const).map(
+              (id, i) => (
+                <div
+                  key={id}
+                  className={`w-7 h-6 rounded-lg flex items-center justify-center ${i === 0 ? "bg-primary/15 border border-primary/25" : ""}`}
+                >
+                  <div
+                    className={`rounded-[3px] ${i === 0 ? "w-3 h-2.5 bg-primary/60" : "w-2.5 h-2 bg-muted-foreground/20"}`}
+                  />
+                </div>
+              ),
+            )}
           </div>
 
           {/* Main content */}
@@ -203,22 +222,39 @@ function DashboardMockup() {
             {/* Header */}
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[9px] text-muted-foreground mb-0.5">Portfólio</p>
-                <p className="text-[17px] font-bold tracking-tight text-foreground leading-none">R$ 4.280,00</p>
+                <p className="text-[9px] text-muted-foreground mb-0.5">
+                  Portfólio
+                </p>
+                <p className="text-[17px] font-bold tracking-tight text-foreground leading-none">
+                  R$ 4.280,00
+                </p>
               </div>
               <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-lg px-2 py-1 shrink-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">Live</span>
+                <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">
+                  Live
+                </span>
               </div>
             </div>
 
             {/* KPIs */}
             <div className="grid grid-cols-3 gap-2">
               {KPIS.map(({ label, value, sub, green }) => (
-                <div key={label} className="bg-muted/25 rounded-xl p-2.5 border border-border/25">
-                  <p className="text-[8px] text-muted-foreground mb-1">{label}</p>
-                  <p className="text-[11px] font-bold text-foreground leading-none mb-0.5">{value}</p>
-                  <p className={`text-[8px] ${green ? "text-green-500" : "text-muted-foreground"}`}>{sub}</p>
+                <div
+                  key={label}
+                  className="bg-muted/25 rounded-xl p-2.5 border border-border/25"
+                >
+                  <p className="text-[8px] text-muted-foreground mb-1">
+                    {label}
+                  </p>
+                  <p className="text-[11px] font-bold text-foreground leading-none mb-0.5">
+                    {value}
+                  </p>
+                  <p
+                    className={`text-[8px] ${green ? "text-green-500" : "text-muted-foreground"}`}
+                  >
+                    {sub}
+                  </p>
                 </div>
               ))}
             </div>
@@ -226,8 +262,12 @@ function DashboardMockup() {
             {/* Chart */}
             <div className="bg-muted/15 rounded-xl p-3 border border-border/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-medium text-foreground">Histórico de valor</span>
-                <span className="text-[8px] text-green-500 font-medium">+12.4% este mês</span>
+                <span className="text-[9px] font-medium text-foreground">
+                  Histórico de valor
+                </span>
+                <span className="text-[8px] text-green-500 font-medium">
+                  +12.4% este mês
+                </span>
               </div>
               <div className="flex items-end gap-0.5 h-12">
                 {BARS.map(({ h, id }, i) => (
@@ -238,10 +278,17 @@ function DashboardMockup() {
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 + i * 0.04, ease: "easeOut" }}
+                    transition={{
+                      duration: 0.6,
+                      delay: 0.2 + i * 0.04,
+                      ease: "easeOut",
+                    }}
                     custom={h}
                   >
-                    <div className="h-full w-full" style={{ height: `${h}%` }} />
+                    <div
+                      className="h-full w-full"
+                      style={{ height: `${h}%` }}
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -249,7 +296,9 @@ function DashboardMockup() {
 
             {/* Activity feed */}
             <div>
-              <p className="text-[9px] font-medium text-foreground mb-1.5">Scans recentes</p>
+              <p className="text-[9px] font-medium text-foreground mb-1.5">
+                Scans recentes
+              </p>
               <div className="flex flex-col gap-1">
                 {SCANS.map(({ name, status, time, ok }) => (
                   <div
@@ -257,12 +306,22 @@ function DashboardMockup() {
                     className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/20 border border-border/15"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${ok ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
-                      <span className="text-[9px] font-medium text-foreground truncate">{name}</span>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${ok ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`}
+                      />
+                      <span className="text-[9px] font-medium text-foreground truncate">
+                        {name}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[8px] ${ok ? "text-green-500" : "text-yellow-500"}`}>{status}</span>
-                      <span className="text-[8px] text-muted-foreground/50">{time}</span>
+                      <span
+                        className={`text-[8px] ${ok ? "text-green-500" : "text-yellow-500"}`}
+                      >
+                        {status}
+                      </span>
+                      <span className="text-[8px] text-muted-foreground/50">
+                        {time}
+                      </span>
                     </div>
                   </div>
                 ))}

@@ -133,7 +133,9 @@ function PortfolioItemRow({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Keep local qty in sync if parent changes from elsewhere (e.g. rollback)
-  useEffect(() => { setOptimisticQty(item.quantity); }, [item.quantity]);
+  useEffect(() => {
+    setOptimisticQty(item.quantity);
+  }, [item.quantity]);
 
   const currentPrice = item.card.prices[0]?.value ?? 0;
   const totalValue = currentPrice * optimisticQty;
@@ -182,13 +184,18 @@ function PortfolioItemRow({
         }}
         className={cn(
           "flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-card hover:bg-background/50 transition-all group",
-          isSelected && isSelectionMode && "ring-2 ring-primary border-transparent bg-primary/5",
-          isSelectionMode && "cursor-pointer select-none"
+          isSelected &&
+            isSelectionMode &&
+            "ring-2 ring-primary border-transparent bg-primary/5",
+          isSelectionMode && "cursor-pointer select-none",
         )}
       >
         {/* Selection Checkbox */}
         {isSelectionMode && (
-          <div className="shrink-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="shrink-0 flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <input
               type="checkbox"
               checked={isSelected}
@@ -201,7 +208,11 @@ function PortfolioItemRow({
           </div>
         )}
         <Link
-          href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
+          href={
+            portfolioId
+              ? `/card/${item.card.id}?portfolioId=${portfolioId}`
+              : `/card/${item.card.id}`
+          }
           onClick={(e) => {
             if (isSelectionMode) {
               e.preventDefault();
@@ -221,7 +232,11 @@ function PortfolioItemRow({
         </Link>
         <div className="flex-1 min-w-0">
           <Link
-            href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
+            href={
+              portfolioId
+                ? `/card/${item.card.id}?portfolioId=${portfolioId}`
+                : `/card/${item.card.id}`
+            }
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
@@ -249,12 +264,18 @@ function PortfolioItemRow({
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="hidden sm:flex items-center gap-1.5"
+          onClick={(e) => e.stopPropagation()}
+        >
           <motion.button
             type="button"
             whileTap={{ scale: 0.78 }}
             transition={{ type: "spring", stiffness: 500, damping: 18 }}
-            onClick={(e) => { e.stopPropagation(); handleQuantityChange(-1); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuantityChange(-1);
+            }}
             className="size-7 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <Minus className="size-3" strokeWidth={2.5} />
@@ -279,7 +300,10 @@ function PortfolioItemRow({
             type="button"
             whileTap={{ scale: 0.78 }}
             transition={{ type: "spring", stiffness: 500, damping: 18 }}
-            onClick={(e) => { e.stopPropagation(); handleQuantityChange(1); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuantityChange(1);
+            }}
             className="size-7 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <Plus className="size-3" strokeWidth={2.5} />
@@ -306,7 +330,10 @@ function PortfolioItemRow({
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all"
+          onClick={(e) => e.stopPropagation()}
+        >
           {!isSelectionMode && (
             <AddToPortfolioButton
               cardId={item.card.id}
@@ -327,7 +354,10 @@ function PortfolioItemRow({
       </div>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent className="max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <DialogContent
+          className="max-w-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
@@ -336,16 +366,29 @@ function PortfolioItemRow({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}>
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmDelete(false);
+              }}
+            >
               <X className="size-4" />
               Cancelar
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={(e) => { e.stopPropagation(); handleRemove(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemove();
+              }}
               disabled={removing}
             >
-              {removing ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+              {removing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
               Remover
             </Button>
           </DialogFooter>
@@ -418,8 +461,10 @@ function PortfolioItemCard({
         }}
         className={cn(
           "group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0 relative",
-          isSelected && isSelectionMode && "ring-2 ring-primary border-transparent bg-primary/5",
-          isSelectionMode && "cursor-pointer select-none"
+          isSelected &&
+            isSelectionMode &&
+            "ring-2 ring-primary border-transparent bg-primary/5",
+          isSelectionMode && "cursor-pointer select-none",
         )}
       >
         {/* Checkbox overlay */}
@@ -430,7 +475,7 @@ function PortfolioItemCard({
               e.stopPropagation();
             }}
             className={cn(
-              "absolute top-3 left-3 z-20 flex items-center justify-center p-1 bg-background/95 border border-border/80  rounded-md shadow-md"
+              "absolute top-3 left-3 z-20 flex items-center justify-center p-1 bg-background/95 border border-border/80  rounded-md shadow-md",
             )}
           >
             <input
@@ -446,7 +491,11 @@ function PortfolioItemCard({
         )}
         <CardContent className="p-0 flex-1 relative">
           <Link
-            href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
+            href={
+              portfolioId
+                ? `/card/${item.card.id}?portfolioId=${portfolioId}`
+                : `/card/${item.card.id}`
+            }
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
@@ -475,7 +524,11 @@ function PortfolioItemCard({
 
         <div className="p-3 space-y-1">
           <Link
-            href={portfolioId ? `/card/${item.card.id}?portfolioId=${portfolioId}` : `/card/${item.card.id}`}
+            href={
+              portfolioId
+                ? `/card/${item.card.id}?portfolioId=${portfolioId}`
+                : `/card/${item.card.id}`
+            }
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
@@ -494,7 +547,9 @@ function PortfolioItemCard({
             </p>
           )}
           <p className="text-[10px] text-muted-foreground leading-tight">
-            {item.card.rarity ? `${item.card.rarity} • ${item.card.setCode}` : item.card.setCode}
+            {item.card.rarity
+              ? `${item.card.rarity} • ${item.card.setCode}`
+              : item.card.setCode}
           </p>
 
           <div className="pt-1.5 border-t border-border space-y-2">
@@ -518,7 +573,9 @@ function PortfolioItemCard({
                   ) : (
                     <TrendingDown className="size-3 text-red-400 shrink-0" />
                   )}
-                  <span className={isPositive ? "text-emerald-400" : "text-red-400"}>
+                  <span
+                    className={isPositive ? "text-emerald-400" : "text-red-400"}
+                  >
                     {isPositive ? "+" : ""}R$ {formatPrice(profit)}
                   </span>
                 </div>
@@ -526,7 +583,10 @@ function PortfolioItemCard({
             </div>
 
             {/* Quantity control */}
-            <div className="flex items-center justify-between gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flex items-center justify-between gap-1 pt-1"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center gap-0">
                 <button
                   type="button"
@@ -570,7 +630,10 @@ function PortfolioItemCard({
       </Card>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent className="max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <DialogContent
+          className="max-w-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
@@ -579,16 +642,29 @@ function PortfolioItemCard({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}>
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmDelete(false);
+              }}
+            >
               <X className="size-4" />
               Cancelar
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={(e) => { e.stopPropagation(); handleRemove(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemove();
+              }}
               disabled={removing}
             >
-              {removing ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+              {removing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
               Remover
             </Button>
           </DialogFooter>
@@ -631,7 +707,10 @@ function PortfolioPageSkeleton() {
           <div className="flex flex-col gap-0">
             <Skeleton className="h-3 w-44 mb-4" />
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between py-3 border-b border-border/50">
+              <div
+                key={i}
+                className="flex items-center justify-between py-3 border-b border-border/50"
+              >
                 <div className="flex items-center gap-2">
                   <Skeleton className="size-8 rounded-lg" />
                   <Skeleton className="h-3 w-24" />
@@ -684,15 +763,22 @@ export default function PortfolioPage() {
   const [proModalOpen, setProModalOpen] = useState(false);
 
   const [portfoliosLoaded, setPortfoliosLoaded] = useState(false);
-  const [historyData, setHistoryData] = useState<{ date: Date; value: number }[]>([]);
-  const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "6m">("1m");
+  const [historyData, setHistoryData] = useState<
+    { date: Date; value: number }[]
+  >([]);
+  const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "6m">(
+    "1m",
+  );
   const [historyLoading, setHistoryLoading] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
-  const historyCache = useRef<Record<string, { date: Date; value: number }[]>>({});
+  const historyCache = useRef<Record<string, { date: Date; value: number }[]>>(
+    {},
+  );
 
   const { chartDiffValue, chartDiffPercent } = useMemo(() => {
-    if (historyData.length < 2) return { chartDiffValue: 0, chartDiffPercent: 0 };
+    if (historyData.length < 2)
+      return { chartDiffValue: 0, chartDiffPercent: 0 };
     const firstVal = historyData[0].value;
     const lastVal = historyData[historyData.length - 1].value;
     const diffVal = lastVal - firstVal;
@@ -700,38 +786,48 @@ export default function PortfolioPage() {
     return { chartDiffValue: diffVal, chartDiffPercent: diffPct };
   }, [historyData]);
 
-  const fetchHistory = useCallback(async (range: "7d" | "1m" | "3m" | "6m", portfolioId: string, forceRefresh = false) => {
-    const cacheKey = `${portfolioId}:${range}`;
-    const cached = historyCache.current[cacheKey];
-    if (cached && !forceRefresh) {
-      setHistoryData(cached);
-      // Silent background update to keep data fresh without blocking UI
-      api.collection.history(range, portfolioId).then((data) => {
+  const fetchHistory = useCallback(
+    async (
+      range: "7d" | "1m" | "3m" | "6m",
+      portfolioId: string,
+      forceRefresh = false,
+    ) => {
+      const cacheKey = `${portfolioId}:${range}`;
+      const cached = historyCache.current[cacheKey];
+      if (cached && !forceRefresh) {
+        setHistoryData(cached);
+        // Silent background update to keep data fresh without blocking UI
+        api.collection
+          .history(range, portfolioId)
+          .then((data) => {
+            const mapped = data.map((d) => ({
+              date: new Date(d.date),
+              value: d.value,
+            }));
+            historyCache.current[cacheKey] = mapped;
+            setHistoryData(mapped);
+          })
+          .catch(() => {});
+        return;
+      }
+
+      setHistoryLoading(true);
+      try {
+        const data = await api.collection.history(range, portfolioId);
         const mapped = data.map((d) => ({
           date: new Date(d.date),
           value: d.value,
         }));
         historyCache.current[cacheKey] = mapped;
         setHistoryData(mapped);
-      }).catch(() => { });
-      return;
-    }
-
-    setHistoryLoading(true);
-    try {
-      const data = await api.collection.history(range, portfolioId);
-      const mapped = data.map((d) => ({
-        date: new Date(d.date),
-        value: d.value,
-      }));
-      historyCache.current[cacheKey] = mapped;
-      setHistoryData(mapped);
-    } catch {
-      setHistoryData([]);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, []);
+      } catch {
+        setHistoryData([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (session?.user && activePortfolioId) {
@@ -750,7 +846,7 @@ export default function PortfolioPage() {
   const fetchPortfolios = useCallback(async () => {
     try {
       const data = await api.collection.portfolios();
-      
+
       const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
       let favs: string[] = [];
       if (favsStr) {
@@ -779,7 +875,9 @@ export default function PortfolioPage() {
         } else {
           const stored = localStorage.getItem("minty_default_portfolio_id");
           const hasStored = sortedPortfolios.some((p) => p.id === stored);
-          setActivePortfolioId(hasStored && stored ? stored : sortedPortfolios[0].id);
+          setActivePortfolioId(
+            hasStored && stored ? stored : sortedPortfolios[0].id,
+          );
         }
       }
       if (sortedPortfolios.length === 0) setLoading(false);
@@ -853,7 +951,7 @@ export default function PortfolioPage() {
           api.collection
             .getPortfolio(activePortfolioId)
             .then((d) => setMetrics(d.metrics))
-            .catch(() => { });
+            .catch(() => {});
           fetchHistory(historyRange, activePortfolioId, true);
         }
       } catch (err) {
@@ -873,7 +971,7 @@ export default function PortfolioPage() {
           api.collection
             .getPortfolio(activePortfolioId)
             .then((d) => setMetrics(d.metrics))
-            .catch(() => { });
+            .catch(() => {});
           fetchHistory(historyRange, activePortfolioId, true);
         }
       } catch {
@@ -884,10 +982,16 @@ export default function PortfolioPage() {
   );
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkAction, setBulkAction] = useState<"copy" | "move" | "delete" | null>(null);
+  const [bulkAction, setBulkAction] = useState<
+    "copy" | "move" | "delete" | null
+  >(null);
   const [bulkTargetId, setBulkTargetId] = useState<string>("");
-  const [bulkPhase, setBulkPhase] = useState<"select" | "confirm" | "progress" | "done">("select");
-  const [bulkStatus, setBulkStatus] = useState<Record<string, "pending" | "done" | "error">>({});
+  const [bulkPhase, setBulkPhase] = useState<
+    "select" | "confirm" | "progress" | "done"
+  >("select");
+  const [bulkStatus, setBulkStatus] = useState<
+    Record<string, "pending" | "done" | "error">
+  >({});
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -950,7 +1054,7 @@ export default function PortfolioPage() {
           if (bulkStatus[item.id] !== "error") {
             try {
               await api.collection.remove(item.id);
-            } catch { }
+            } catch {}
           }
         }
       }
@@ -988,9 +1092,7 @@ export default function PortfolioPage() {
             {portfolios.length} portfólio{portfolios.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button
-          onClick={openNewPortfolioOrPaywall}
-        >
+        <Button onClick={openNewPortfolioOrPaywall}>
           <FolderPlus className="size-4" />
           Novo Portfólio
         </Button>
@@ -1008,14 +1110,14 @@ export default function PortfolioPage() {
                 onClick={() => setActivePortfolioId(p.id)}
                 className={cn(
                   "relative py-2.5 text-sm font-semibold flex items-center gap-1.5 cursor-pointer transition-colors focus:outline-none shrink-0",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  active
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <span>{p.name}</span>
                 {p._count && (
-                  <span className="text-xs opacity-60">
-                    ({p._count.items})
-                  </span>
+                  <span className="text-xs opacity-60">({p._count.items})</span>
                 )}
                 {active && (
                   <motion.span
@@ -1061,7 +1163,7 @@ export default function PortfolioPage() {
                                 "text-xs font-bold font-mono",
                                 chartDiffPercent >= 0
                                   ? "text-emerald-400"
-                                  : "text-red-400"
+                                  : "text-red-400",
                               )}
                             >
                               {chartDiffPercent >= 0 ? "+" : ""}
@@ -1079,12 +1181,18 @@ export default function PortfolioPage() {
                 {/* Range Selector */}
                 <Tabs
                   value={historyRange}
-                  onValueChange={(v) => setHistoryRange(v as typeof historyRange)}
+                  onValueChange={(v) =>
+                    setHistoryRange(v as typeof historyRange)
+                  }
                   className="self-start sm:self-auto"
                 >
                   <TabsList>
                     {(["7d", "1m", "3m", "6m"] as const).map((r) => (
-                      <TabsTrigger key={r} value={r} className="text-xs font-bold px-2.5">
+                      <TabsTrigger
+                        key={r}
+                        value={r}
+                        className="text-xs font-bold px-2.5"
+                      >
                         {r.toUpperCase()}
                       </TabsTrigger>
                     ))}
@@ -1144,7 +1252,9 @@ export default function PortfolioPage() {
                           Histórico em construção
                         </p>
                         <p className="text-xs text-muted-foreground/60 max-w-xs mt-1">
-                          O gráfico de evolução histórica será desenhado à medida que sua coleção for atualizada nos próximos dias.
+                          O gráfico de evolução histórica será desenhado à
+                          medida que sua coleção for atualizada nos próximos
+                          dias.
                         </p>
                       </div>
                     )}
@@ -1170,7 +1280,9 @@ export default function PortfolioPage() {
                         Total Investido
                       </span>
                     </div>
-                    {loading ? <Skeleton className="h-4 w-20" /> : (
+                    {loading ? (
+                      <Skeleton className="h-4 w-20" />
+                    ) : (
                       <span className="text-sm font-bold text-foreground font-mono">
                         R$ {formatPrice(metrics.totalInvested)}
                       </span>
@@ -1185,7 +1297,7 @@ export default function PortfolioPage() {
                           "size-8 rounded-lg flex items-center justify-center",
                           metrics.profitOrLoss >= 0
                             ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-red-500/10 text-red-400"
+                            : "bg-red-500/10 text-red-400",
                         )}
                       >
                         {metrics.profitOrLoss >= 0 ? (
@@ -1198,13 +1310,15 @@ export default function PortfolioPage() {
                         Lucro / Prejuízo
                       </span>
                     </div>
-                    {loading ? <Skeleton className="h-4 w-20" /> : (
+                    {loading ? (
+                      <Skeleton className="h-4 w-20" />
+                    ) : (
                       <span
                         className={cn(
                           "text-sm font-bold font-mono",
                           metrics.profitOrLoss >= 0
                             ? "text-emerald-400"
-                            : "text-red-400"
+                            : "text-red-400",
                         )}
                       >
                         {metrics.profitOrLoss >= 0 ? "+" : ""}
@@ -1223,11 +1337,15 @@ export default function PortfolioPage() {
                         ROI (Retorno)
                       </span>
                     </div>
-                    {loading ? <Skeleton className="h-4 w-20" /> : (
+                    {loading ? (
+                      <Skeleton className="h-4 w-20" />
+                    ) : (
                       <span
                         className={cn(
                           "text-sm font-bold font-mono",
-                          metrics.roi >= 0 ? "text-emerald-400" : "text-red-400"
+                          metrics.roi >= 0
+                            ? "text-emerald-400"
+                            : "text-red-400",
                         )}
                       >
                         {metrics.roi >= 0 ? "+" : ""}
@@ -1246,7 +1364,9 @@ export default function PortfolioPage() {
                         Total de Cartas
                       </span>
                     </div>
-                    {loading ? <Skeleton className="h-4 w-16" /> : (
+                    {loading ? (
+                      <Skeleton className="h-4 w-16" />
+                    ) : (
                       <span className="text-sm font-bold text-foreground font-mono">
                         {totalCards}
                       </span>
@@ -1264,8 +1384,22 @@ export default function PortfolioPage() {
                   </>
                 ) : (
                   <>
-                    <span>Itens únicos: <strong className="text-foreground">{items.length}</strong></span>
-                    <span>Última atualização: <strong className="text-foreground">{activePortfolio?.updatedAt ? new Date(activePortfolio.updatedAt).toLocaleDateString("pt-BR") : "Hoje"}</strong></span>
+                    <span>
+                      Itens únicos:{" "}
+                      <strong className="text-foreground">
+                        {items.length}
+                      </strong>
+                    </span>
+                    <span>
+                      Última atualização:{" "}
+                      <strong className="text-foreground">
+                        {activePortfolio?.updatedAt
+                          ? new Date(
+                              activePortfolio.updatedAt,
+                            ).toLocaleDateString("pt-BR")
+                          : "Hoje"}
+                      </strong>
+                    </span>
                   </>
                 )}
               </div>
@@ -1342,7 +1476,7 @@ export default function PortfolioPage() {
                       "h-8 px-3 rounded-lg text-xs gap-1.5 cursor-pointer font-semibold transition-all",
                       isSelectionMode
                         ? "bg-primary text-primary-foreground hover:bg-primary/95"
-                        : "border-border text-muted-foreground hover:text-foreground"
+                        : "border-border text-muted-foreground hover:text-foreground",
                     )}
                   >
                     <Check className="size-3.5" />
@@ -1367,7 +1501,6 @@ export default function PortfolioPage() {
                       <IconListDetails className="size-4" />
                     </Button>
                   </ButtonGroup>
-
                 </div>
               </div>
               {viewType === "grid" ? (
@@ -1473,7 +1606,8 @@ export default function PortfolioPage() {
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-[#0F111A]/95 border border-primary/30 shadow-[0_0_30px_rgba(239,21,86,0.2)] rounded-full px-6 py-3.5 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
           <span className="text-xs font-bold text-white whitespace-nowrap">
-            {selectedIds.size} {selectedIds.size === 1 ? "item selecionado" : "itens selecionados"}
+            {selectedIds.size}{" "}
+            {selectedIds.size === 1 ? "item selecionado" : "itens selecionados"}
           </span>
           <Separator orientation="vertical" className="h-5 bg-slate-700/60" />
           <div className="flex items-center gap-2">
@@ -1511,7 +1645,10 @@ export default function PortfolioPage() {
       )}
 
       {/* Bulk Action Dialog */}
-      <Dialog open={bulkAction !== null} onOpenChange={(open) => !open && setBulkAction(null)}>
+      <Dialog
+        open={bulkAction !== null}
+        onOpenChange={(open) => !open && setBulkAction(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -1520,16 +1657,21 @@ export default function PortfolioPage() {
               {bulkAction === "move" && "Mover cartas em lote"}
             </DialogTitle>
             <DialogDescription>
-              {bulkAction === "delete" && `Você está prestes a excluir ${selectedIds.size} cartas. Essa ação não pode ser desfeita.`}
-              {bulkAction === "copy" && `Escolha o portfólio de destino para copiar as ${selectedIds.size} cartas selecionadas.`}
-              {bulkAction === "move" && `As ${selectedIds.size} cartas selecionadas serão movidas para o portfólio de destino e retiradas deste.`}
+              {bulkAction === "delete" &&
+                `Você está prestes a excluir ${selectedIds.size} cartas. Essa ação não pode ser desfeita.`}
+              {bulkAction === "copy" &&
+                `Escolha o portfólio de destino para copiar as ${selectedIds.size} cartas selecionadas.`}
+              {bulkAction === "move" &&
+                `As ${selectedIds.size} cartas selecionadas serão movidas para o portfólio de destino e retiradas deste.`}
             </DialogDescription>
           </DialogHeader>
 
           {/* Phase 1: Target Selection */}
           {bulkPhase === "select" && (
             <div className="space-y-4 py-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Selecionar Portfólio</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Selecionar Portfólio
+              </p>
               <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border">
                 {portfolios
                   .filter((p) => p.id !== activePortfolioId)
@@ -1539,18 +1681,25 @@ export default function PortfolioPage() {
                       onClick={() => setBulkTargetId(p.id)}
                       className={cn(
                         "w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-muted/40 transition-colors cursor-pointer",
-                        bulkTargetId === p.id && "bg-primary/5 text-primary"
+                        bulkTargetId === p.id && "bg-primary/5 text-primary",
                       )}
                     >
                       <div>
                         <p className="font-semibold">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p._count?.items ?? 0} cartas</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p._count?.items ?? 0} cartas
+                        </p>
                       </div>
-                      {bulkTargetId === p.id && <Check className="size-4 text-primary" />}
+                      {bulkTargetId === p.id && (
+                        <Check className="size-4 text-primary" />
+                      )}
                     </button>
                   ))}
-                {portfolios.filter((p) => p.id !== activePortfolioId).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-6">Nenhum outro portfólio disponível.</p>
+                {portfolios.filter((p) => p.id !== activePortfolioId).length ===
+                  0 && (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    Nenhum outro portfólio disponível.
+                  </p>
                 )}
               </div>
               <DialogFooter>
@@ -1574,20 +1723,34 @@ export default function PortfolioPage() {
           {bulkPhase === "confirm" && (
             <div className="space-y-4 py-2">
               <p className="text-sm text-muted-foreground">
-                {bulkAction === "delete" && `Tem certeza que deseja excluir permanentemente essas ${selectedIds.size} cartas?`}
-                {bulkAction === "copy" && `Confirmar a cópia de ${selectedIds.size} cartas para o portfólio "${portfolios.find(p => p.id === bulkTargetId)?.name}"?`}
-                {bulkAction === "move" && `Confirmar a transferência de ${selectedIds.size} cartas para o portfólio "${portfolios.find(p => p.id === bulkTargetId)?.name}"?`}
+                {bulkAction === "delete" &&
+                  `Tem certeza que deseja excluir permanentemente essas ${selectedIds.size} cartas?`}
+                {bulkAction === "copy" &&
+                  `Confirmar a cópia de ${selectedIds.size} cartas para o portfólio "${portfolios.find((p) => p.id === bulkTargetId)?.name}"?`}
+                {bulkAction === "move" &&
+                  `Confirmar a transferência de ${selectedIds.size} cartas para o portfólio "${portfolios.find((p) => p.id === bulkTargetId)?.name}"?`}
               </p>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setBulkPhase(bulkAction === "delete" ? "confirm" : "select")}>
-                  {bulkAction === "delete" ? <X className="size-4" /> : <ChevronLeft className="size-4" />}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setBulkPhase(bulkAction === "delete" ? "confirm" : "select")
+                  }
+                >
+                  {bulkAction === "delete" ? (
+                    <X className="size-4" />
+                  ) : (
+                    <ChevronLeft className="size-4" />
+                  )}
                   {bulkAction === "delete" ? "Cancelar" : "Voltar"}
                 </Button>
                 <Button
                   onClick={executeBulkAction}
                   className={cn(
                     "text-white",
-                    bulkAction === "delete" ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/95"
+                    bulkAction === "delete"
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-primary hover:bg-primary/95",
                   )}
                 >
                   {bulkAction === "delete" && <Trash2 className="size-4" />}
@@ -1606,17 +1769,23 @@ export default function PortfolioPage() {
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-semibold">
                   <span className="text-muted-foreground">
-                    {bulkPhase === "progress" ? "Processando cartas..." : "Concluído!"}
+                    {bulkPhase === "progress"
+                      ? "Processando cartas..."
+                      : "Concluído!"}
                   </span>
                   <span className="font-mono">
-                    {Object.values(bulkStatus).filter((s) => s !== "pending").length} / {selectedIds.size}
+                    {
+                      Object.values(bulkStatus).filter((s) => s !== "pending")
+                        .length
+                    }{" "}
+                    / {selectedIds.size}
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all duration-300"
                     style={{
-                      width: `${(Object.values(bulkStatus).filter((s) => s !== "pending").length / selectedIds.size) * 100}%`
+                      width: `${(Object.values(bulkStatus).filter((s) => s !== "pending").length / selectedIds.size) * 100}%`,
                     }}
                   />
                 </div>
@@ -1629,12 +1798,27 @@ export default function PortfolioPage() {
                   .map((item) => {
                     const status = bulkStatus[item.id] ?? "pending";
                     return (
-                      <div key={item.id} className="flex items-center justify-between py-2 text-xs">
-                        <span className="font-medium text-foreground truncate max-w-[70%]">{item.card.name}</span>
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between py-2 text-xs"
+                      >
+                        <span className="font-medium text-foreground truncate max-w-[70%]">
+                          {item.card.name}
+                        </span>
                         <div className="flex items-center gap-1.5">
-                          {status === "pending" && <Loader2 className="size-3.5 text-muted-foreground animate-spin" />}
-                          {status === "done" && <span className="text-emerald-500 font-bold">✓ Pronto</span>}
-                          {status === "error" && <span className="text-red-500 font-bold">✗ Erro</span>}
+                          {status === "pending" && (
+                            <Loader2 className="size-3.5 text-muted-foreground animate-spin" />
+                          )}
+                          {status === "done" && (
+                            <span className="text-emerald-500 font-bold">
+                              ✓ Pronto
+                            </span>
+                          )}
+                          {status === "error" && (
+                            <span className="text-red-500 font-bold">
+                              ✗ Erro
+                            </span>
+                          )}
                         </div>
                       </div>
                     );
@@ -1643,7 +1827,10 @@ export default function PortfolioPage() {
 
               {bulkPhase === "done" && (
                 <DialogFooter>
-                  <Button onClick={finishBulkAction} className="bg-primary hover:bg-primary/95 text-white w-full">
+                  <Button
+                    onClick={finishBulkAction}
+                    className="bg-primary hover:bg-primary/95 text-white w-full"
+                  >
                     <Check className="size-4" />
                     Concluído
                   </Button>

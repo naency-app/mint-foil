@@ -33,9 +33,7 @@ export function UserMenu() {
   if (!session) {
     return (
       <Link href="/login">
-        <Button
-          size="sm"
-        >
+        <Button size="sm">
           <IconLogin className="size-4" />
           Entrar
         </Button>

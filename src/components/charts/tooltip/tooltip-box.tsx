@@ -80,7 +80,7 @@ export function TooltipBox({
   // Vertical positioning with bounds clamping
   const targetY = Math.max(
     offset,
-    Math.min(y - tooltipHeight / 2, containerHeight - tooltipHeight - offset)
+    Math.min(y - tooltipHeight / 2, containerHeight - tooltipHeight - offset),
   );
 
   // Track flip state for animation
@@ -146,7 +146,7 @@ export function TooltipBox({
         {children}
       </motion.div>
     </motion.div>,
-    container
+    container,
   );
 }
 

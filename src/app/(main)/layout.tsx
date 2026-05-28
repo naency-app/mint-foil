@@ -24,7 +24,6 @@ export default function MainLayout({
           </p>
         </div>
       </footer>
-
     </div>
   );
 }

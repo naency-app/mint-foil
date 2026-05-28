@@ -34,7 +34,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 
-
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -47,20 +46,52 @@ interface ScraperJob {
 }
 
 const SCRAPER_JOBS: ScraperJob[] = [
-  { id: "epicgame-yugioh", label: "EpicGame — links YuGiOh", endpoint: "sync-epicgame?tcg=yugioh" },
-  { id: "epicgame-pokemon", label: "EpicGame — links Pokémon", endpoint: "sync-epicgame?tcg=pokemon" },
-  { id: "epicgame-magic", label: "EpicGame — links Magic", endpoint: "sync-epicgame?tcg=magic" },
-  { id: "store-prices", label: "Preços EpicGame (todos)", endpoint: "sync-store-prices" },
-  { id: "liga-yugioh", label: "Liga BR — YuGiOh", endpoint: "sync-liga-prices?tcg=yugioh" },
-  { id: "liga-pokemon", label: "Liga BR — Pokémon", endpoint: "sync-liga-prices?tcg=pokemon" },
-  { id: "liga-magic", label: "Liga BR — Magic", endpoint: "sync-liga-prices?tcg=magic" },
-  { id: "liga-onepiece", label: "Liga BR — One Piece", endpoint: "sync-liga-prices?tcg=onepiece" },
+  {
+    id: "epicgame-yugioh",
+    label: "EpicGame — links YuGiOh",
+    endpoint: "sync-epicgame?tcg=yugioh",
+  },
+  {
+    id: "epicgame-pokemon",
+    label: "EpicGame — links Pokémon",
+    endpoint: "sync-epicgame?tcg=pokemon",
+  },
+  {
+    id: "epicgame-magic",
+    label: "EpicGame — links Magic",
+    endpoint: "sync-epicgame?tcg=magic",
+  },
+  {
+    id: "store-prices",
+    label: "Preços EpicGame (todos)",
+    endpoint: "sync-store-prices",
+  },
+  {
+    id: "liga-yugioh",
+    label: "Liga BR — YuGiOh",
+    endpoint: "sync-liga-prices?tcg=yugioh",
+  },
+  {
+    id: "liga-pokemon",
+    label: "Liga BR — Pokémon",
+    endpoint: "sync-liga-prices?tcg=pokemon",
+  },
+  {
+    id: "liga-magic",
+    label: "Liga BR — Magic",
+    endpoint: "sync-liga-prices?tcg=magic",
+  },
+  {
+    id: "liga-onepiece",
+    label: "Liga BR — One Piece",
+    endpoint: "sync-liga-prices?tcg=onepiece",
+  },
   { id: "sync-sets", label: "Sincronizar Sets", endpoint: "sync-sets" },
 ];
 
 function AdminPanel() {
   const [scraperKey, setScraperKey] = useState(
-    process.env.NEXT_PUBLIC_SCRAPER_SECRET ?? ""
+    process.env.NEXT_PUBLIC_SCRAPER_SECRET ?? "",
   );
   const [statuses, setStatuses] = useState<Record<string, JobStatus>>({});
   const [messages, setMessages] = useState<Record<string, string>>({});
@@ -105,7 +136,10 @@ function AdminPanel() {
       <h2 className="text-sm font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2">
         <Settings2 className="size-4" />
         Admin
-        <Badge variant="outline" className="ml-1 text-[10px] border-violet-500/40 text-violet-400">
+        <Badge
+          variant="outline"
+          className="ml-1 text-[10px] border-violet-500/40 text-violet-400"
+        >
           internal
         </Badge>
       </h2>
@@ -124,7 +158,9 @@ function AdminPanel() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Scrapers</p>
+        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+          Scrapers
+        </p>
         {SCRAPER_JOBS.map((job) => {
           const status = statuses[job.id] ?? "idle";
           const msg = messages[job.id] ?? "";
@@ -134,9 +170,15 @@ function AdminPanel() {
               className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card/50 px-4 py-2.5"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{job.label}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {job.label}
+                </p>
                 {msg && (
-                  <p className={`text-xs mt-0.5 truncate ${statusColor[status]}`}>{msg}</p>
+                  <p
+                    className={`text-xs mt-0.5 truncate ${statusColor[status]}`}
+                  >
+                    {msg}
+                  </p>
                 )}
               </div>
               <Button
@@ -182,10 +224,11 @@ function ThemeSelector() {
             key={opt.value}
             type="button"
             onClick={() => setTheme(opt.value)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${active
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
+              active
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+            }`}
           >
             <opt.icon className="size-4" />
             {opt.label}
@@ -243,10 +286,15 @@ function SidebarButton({
         "justify-start h-auto w-full gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg",
         active
           ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary shadow-sm"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
-      <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "text-muted-foreground")} />
+      <Icon
+        className={cn(
+          "size-4 shrink-0",
+          active ? "text-primary" : "text-muted-foreground",
+        )}
+      />
       <span>{label}</span>
     </Button>
   );
@@ -272,7 +320,10 @@ function StatsSkeleton() {
       {/* 4 Mini Cards Skeleton */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card/50 p-4 space-y-2">
+          <div
+            key={i}
+            className="rounded-xl border border-border bg-card/50 p-4 space-y-2"
+          >
             <Skeleton className="h-3 w-20 mx-auto sm:mx-0" />
             <Skeleton className="h-7 w-12 mx-auto sm:mx-0" />
           </div>
@@ -302,7 +353,10 @@ function StatsSkeleton() {
         </div>
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background">
+            <div
+              key={i}
+              className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background"
+            >
               <Skeleton className="h-4 w-4" />
               <Skeleton className="size-10 rounded shrink-0" />
               <div className="flex-1 space-y-2">
@@ -326,13 +380,20 @@ function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [proModalOpen, setProModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"stats" | "account" | "support" | "admin">("stats");
+  const [activeTab, setActiveTab] = useState<
+    "stats" | "account" | "support" | "admin"
+  >("stats");
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "stats" || tab === "account" || tab === "support" || tab === "admin") {
+    if (
+      tab === "stats" ||
+      tab === "account" ||
+      tab === "support" ||
+      tab === "admin"
+    ) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -349,7 +410,7 @@ function SettingsContent() {
     api.collection
       .stats()
       .then(setStats)
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setStatsLoading(false));
   }, [session]);
 
@@ -369,7 +430,10 @@ function SettingsContent() {
         <div className="flex flex-col md:flex-row gap-8">
           <aside className="w-full md:w-64 shrink-0 space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+              <div
+                key={i}
+                className="h-9 w-full animate-pulse rounded-lg bg-muted/70"
+              />
             ))}
           </aside>
           <div className="flex-1 space-y-4">
@@ -393,7 +457,8 @@ function SettingsContent() {
           Configurações
         </h1>
         <p className="text-sm text-muted-foreground">
-          Gerencie suas preferências de conta, consulte estatísticas detalhadas e acesse suporte.
+          Gerencie suas preferências de conta, consulte estatísticas detalhadas
+          e acesse suporte.
         </p>
       </div>
       <Separator className="my-6" />
@@ -439,52 +504,71 @@ function SettingsContent() {
                 <StatsSkeleton />
               ) : !stats ? (
                 <div className="text-center py-10 rounded-xl border border-border bg-card/45 p-6">
-                  <p className="text-sm text-muted-foreground">Não foi possível carregar as estatísticas.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Não foi possível carregar as estatísticas.
+                  </p>
                 </div>
               ) : (
                 <>
                   {/* Profit / Loss card */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className={cn(
-                      "rounded-xl border p-6 space-y-2",
-                      stats.profitLoss >= 0
-                        ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5"
-                        : "border-red-500/20 bg-red-500/5 dark:bg-red-950/5"
-                    )}>
+                    <div
+                      className={cn(
+                        "rounded-xl border p-6 space-y-2",
+                        stats.profitLoss >= 0
+                          ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5"
+                          : "border-red-500/20 bg-red-500/5 dark:bg-red-950/5",
+                      )}
+                    >
                       <div className="flex items-center gap-2 text-muted-foreground">
                         {stats.profitLoss >= 0 ? (
                           <TrendingUp className="size-4 text-emerald-500" />
                         ) : (
                           <TrendingDown className="size-4 text-red-500" />
                         )}
-                        <span className="text-xs font-bold uppercase tracking-wider">Lucro / Prejuízo</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">
+                          Lucro / Prejuízo
+                        </span>
                       </div>
-                      <div className={cn(
-                        "text-3xl font-extrabold font-mono",
-                        stats.profitLoss >= 0 ? "text-emerald-500" : "text-red-500"
-                      )}>
+                      <div
+                        className={cn(
+                          "text-3xl font-extrabold font-mono",
+                          stats.profitLoss >= 0
+                            ? "text-emerald-500"
+                            : "text-red-500",
+                        )}
+                      >
                         {stats.profitLoss >= 0 ? "+" : ""}
                         {formatPrice(stats.profitLoss)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Total Investido: <span className="font-semibold text-foreground">{formatPrice(stats.totalInvested)}</span>
+                        Total Investido:{" "}
+                        <span className="font-semibold text-foreground">
+                          {formatPrice(stats.totalInvested)}
+                        </span>
                       </div>
                     </div>
 
                     <div className="rounded-xl border border-border bg-card/50 p-6 space-y-2">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Sparkles className="size-4 text-primary" />
-                        <span className="text-xs font-bold uppercase tracking-wider">Valor Estimado</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">
+                          Valor Estimado
+                        </span>
                       </div>
                       <div className="text-3xl font-extrabold text-foreground font-mono">
                         {formatPrice(stats.totalValue)}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Retorno sobre Investimento:{" "}
-                        <span className={cn(
-                          "font-bold",
-                          stats.profitLoss >= 0 ? "text-emerald-500" : "text-red-500"
-                        )}>
+                        <span
+                          className={cn(
+                            "font-bold",
+                            stats.profitLoss >= 0
+                              ? "text-emerald-500"
+                              : "text-red-500",
+                          )}
+                        >
                           {stats.totalInvested > 0
                             ? `${((stats.profitLoss / stats.totalInvested) * 100).toFixed(1)}%`
                             : "0.0%"}
@@ -496,17 +580,40 @@ function SettingsContent() {
                   {/* General metrics mini cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {[
-                      { label: "Scans Realizados", value: stats.lifetimeScans, icon: Scan },
-                      { label: "Cartas Únicas", value: stats.uniqueCards, icon: Sparkles },
-                      { label: "Total de Cartas", value: stats.totalCards, icon: User },
-                      { label: "Portfólios", value: stats.portfolioCount, icon: Settings2 },
+                      {
+                        label: "Scans Realizados",
+                        value: stats.lifetimeScans,
+                        icon: Scan,
+                      },
+                      {
+                        label: "Cartas Únicas",
+                        value: stats.uniqueCards,
+                        icon: Sparkles,
+                      },
+                      {
+                        label: "Total de Cartas",
+                        value: stats.totalCards,
+                        icon: User,
+                      },
+                      {
+                        label: "Portfólios",
+                        value: stats.portfolioCount,
+                        icon: Settings2,
+                      },
                     ].map((m) => (
-                      <div key={m.label} className="rounded-xl border border-border bg-card/50 p-4 space-y-1 text-center sm:text-left">
+                      <div
+                        key={m.label}
+                        className="rounded-xl border border-border bg-card/50 p-4 space-y-1 text-center sm:text-left"
+                      >
                         <div className="flex items-center justify-center sm:justify-start gap-1.5 text-muted-foreground">
                           <m.icon className="size-3.5 text-primary" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{m.label}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider">
+                            {m.label}
+                          </span>
                         </div>
-                        <p className="text-xl font-bold text-foreground font-mono">{m.value}</p>
+                        <p className="text-xl font-bold text-foreground font-mono">
+                          {m.value}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -514,16 +621,24 @@ function SettingsContent() {
                   {/* TCG Breakdown */}
                   {stats.tcgBreakdown.length > 0 && (
                     <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
-                      <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Distribuição por Jogo</h3>
+                      <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                        Distribuição por Jogo
+                      </h3>
                       <div className="space-y-4">
                         {stats.tcgBreakdown.map((tcg) => {
-                          const pct = stats.totalValue > 0 ? (tcg.value / stats.totalValue) * 100 : 0;
+                          const pct =
+                            stats.totalValue > 0
+                              ? (tcg.value / stats.totalValue) * 100
+                              : 0;
                           return (
                             <div key={tcg.slug} className="space-y-1.5">
                               <div className="flex justify-between text-xs">
-                                <span className="font-semibold text-foreground">{tcg.name}</span>
+                                <span className="font-semibold text-foreground">
+                                  {tcg.name}
+                                </span>
                                 <span className="text-muted-foreground font-mono">
-                                  {formatPrice(tcg.value)} ({tcg.count} cartas • {pct.toFixed(1)}%)
+                                  {formatPrice(tcg.value)} ({tcg.count} cartas •{" "}
+                                  {pct.toFixed(1)}%)
                                 </span>
                               </div>
                               <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -544,7 +659,9 @@ function SettingsContent() {
                     <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
                       <div className="flex items-center gap-2">
                         <Trophy className="size-4 text-primary" />
-                        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Top Cartas (Mais Valiosas)</h3>
+                        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                          Top Cartas (Mais Valiosas)
+                        </h3>
                       </div>
                       <div className="space-y-3">
                         {stats.topCards.map((card, i) => (
@@ -553,17 +670,32 @@ function SettingsContent() {
                             onClick={() => router.push(`/card/${card.id}`)}
                             className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background hover:bg-muted/40 transition-colors cursor-pointer"
                           >
-                            <span className="text-xs font-mono font-bold text-muted-foreground w-4 text-center">#{i + 1}</span>
+                            <span className="text-xs font-mono font-bold text-muted-foreground w-4 text-center">
+                              #{i + 1}
+                            </span>
                             <div className="relative size-10 rounded overflow-hidden shrink-0 border border-border bg-muted">
-                              <Image src={card.imageUrl} alt={card.name} fill className="object-cover" />
+                              <Image
+                                src={card.imageUrl}
+                                alt={card.name}
+                                fill
+                                className="object-cover"
+                              />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground truncate">{card.name}</p>
-                              <p className="text-xs text-muted-foreground">{card.setCode} • Qtd: {card.quantity}</p>
+                              <p className="text-sm font-semibold text-foreground truncate">
+                                {card.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {card.setCode} • Qtd: {card.quantity}
+                              </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-bold text-primary font-mono">{formatPrice(card.totalValue)}</p>
-                              <p className="text-[10px] text-muted-foreground font-mono">{formatPrice(card.unitValue)} / un</p>
+                              <p className="text-sm font-bold text-primary font-mono">
+                                {formatPrice(card.totalValue)}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono">
+                                {formatPrice(card.unitValue)} / un
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -593,7 +725,9 @@ function SettingsContent() {
                         />
                       ) : (
                         <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-muted text-2xl font-bold text-foreground shadow-md">
-                          {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}
+                          {(user.name ?? user.email ?? "?")
+                            .charAt(0)
+                            .toUpperCase()}
                         </div>
                       )}
                       <div className="space-y-0.5">
@@ -607,7 +741,9 @@ function SettingsContent() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
                     {stats?.memberSince && (
@@ -627,7 +763,9 @@ function SettingsContent() {
                 </h2>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground mb-3">Selecione o tema da interface visual.</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Selecione o tema da interface visual.
+                  </p>
                   <ThemeSelector />
                 </div>
               </section>
@@ -641,8 +779,12 @@ function SettingsContent() {
                 <Separator className="bg-destructive/20" />
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Encerrar sessão</p>
-                    <p className="text-xs text-muted-foreground">Você será redirecionado para a tela de login.</p>
+                    <p className="text-sm font-medium text-foreground">
+                      Encerrar sessão
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Você será redirecionado para a tela de login.
+                    </p>
                   </div>
                   <Button
                     variant="destructive"
@@ -667,10 +809,12 @@ function SettingsContent() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        Scans de IA ilimitados, portfólios ilimitados, análise de P&L e mais
+                        Scans de IA ilimitados, portfólios ilimitados, análise
+                        de P&L e mais
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Assinaturas e gerenciamento disponíveis exclusivamente pelo aplicativo móvel.
+                        Assinaturas e gerenciamento disponíveis exclusivamente
+                        pelo aplicativo móvel.
                       </p>
                     </div>
                     <Button
@@ -698,7 +842,9 @@ function SettingsContent() {
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <Mail className="size-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Contato / Suporte</span>
+                      <span className="text-sm font-medium text-foreground">
+                        Contato / Suporte
+                      </span>
                     </div>
                     <a
                       href="mailto:support@mintfoil.app"
@@ -710,7 +856,9 @@ function SettingsContent() {
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <ShieldCheck className="size-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Termos de Uso</span>
+                      <span className="text-sm font-medium text-foreground">
+                        Termos de Uso
+                      </span>
                     </div>
                     <Link
                       href="/terms"
@@ -722,7 +870,9 @@ function SettingsContent() {
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <ShieldCheck className="size-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Política de Privacidade</span>
+                      <span className="text-sm font-medium text-foreground">
+                        Política de Privacidade
+                      </span>
                     </div>
                     <Link
                       href="/privacy"
@@ -734,9 +884,13 @@ function SettingsContent() {
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <Info className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">Versão do Aplicativo</span>
+                      <span className="text-sm font-medium text-foreground">
+                        Versão do Aplicativo
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground font-mono font-medium">1.0.0 (Web)</span>
+                    <span className="text-xs text-muted-foreground font-mono font-medium">
+                      1.0.0 (Web)
+                    </span>
                   </div>
                 </div>
               </section>
@@ -761,25 +915,27 @@ function SettingsContent() {
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="space-y-2">
-          <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
-          <div className="h-4 w-96 animate-pulse rounded-lg bg-muted/60" />
-        </div>
-        <Separator className="my-6" />
-        <div className="flex flex-col md:flex-row gap-8">
-          <aside className="w-full md:w-64 shrink-0 space-y-2">
-            <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
-            <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
-            <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
-          </aside>
-          <div className="flex-1 space-y-4">
-            <StatsSkeleton />
+    <Suspense
+      fallback={
+        <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="space-y-2">
+            <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
+            <div className="h-4 w-96 animate-pulse rounded-lg bg-muted/60" />
           </div>
-        </div>
-      </main>
-    }>
+          <Separator className="my-6" />
+          <div className="flex flex-col md:flex-row gap-8">
+            <aside className="w-full md:w-64 shrink-0 space-y-2">
+              <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+              <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+              <div className="h-9 w-full animate-pulse rounded-lg bg-muted/70" />
+            </aside>
+            <div className="flex-1 space-y-4">
+              <StatsSkeleton />
+            </div>
+          </div>
+        </main>
+      }
+    >
       <SettingsContent />
     </Suspense>
   );

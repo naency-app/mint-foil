@@ -4,7 +4,13 @@ import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type CardSet, type CollectionItem, type Portfolio, type Tcg } from "@/lib/api";
+import {
+  api,
+  type CardSet,
+  type CollectionItem,
+  type Portfolio,
+  type Tcg,
+} from "@/lib/api";
 import {
   ArrowLeft,
   Calendar,
@@ -42,11 +48,7 @@ function SetRowSkeleton() {
   );
 }
 
-function SetRow({
-  set,
-}: {
-  set: CardSet;
-}) {
+function SetRow({ set }: { set: CardSet }) {
   const date = formatDate(set.releaseDate);
 
   return (
@@ -88,7 +90,10 @@ function TcgSetsPageContent() {
   const [tcg, setTcg] = useState<Tcg | null>(null);
   const [sets, setSets] = useState<CardSet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useQueryState("q", { defaultValue: "", throttleMs: 300 });
+  const [search, setSearch] = useQueryState("q", {
+    defaultValue: "",
+    throttleMs: 300,
+  });
 
   // Portfolio tracking for collection progress
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -156,11 +161,15 @@ function TcgSetsPageContent() {
         if (sortedPortfolios.length > 0) {
           const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
           const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+          const hasOldStored = sortedPortfolios.some(
+            (p) => p.id === oldDefault,
+          );
 
-          const nextActive = foundFav 
-            ? foundFav.id 
-            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+          const nextActive = foundFav
+            ? foundFav.id
+            : hasOldStored && oldDefault
+              ? oldDefault
+              : sortedPortfolios[0].id;
 
           setActivePortfolioId((prev) => {
             if (prev && sortedPortfolios.some((p) => p.id === prev)) {
@@ -170,7 +179,7 @@ function TcgSetsPageContent() {
           });
         }
       })
-      .catch(() => { }); // user may not be logged in
+      .catch(() => {}); // user may not be logged in
   }, []);
 
   // Load portfolios
@@ -204,7 +213,8 @@ function TcgSetsPageContent() {
         progressMap[setCode] = { count: 0, value: 0 };
       }
       progressMap[setCode].count += 1;
-      progressMap[setCode].value += (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+      progressMap[setCode].value +=
+        (item.card.prices?.[0]?.value ?? 0) * item.quantity;
     }
     return progressMap;
   }, [portfolioItems]);
@@ -232,9 +242,7 @@ function TcgSetsPageContent() {
           Sets
         </Link>
         <ChevronRight className="size-3" />
-        <span className="text-foreground">
-          {tcg?.name ?? tcgSlug}
-        </span>
+        <span className="text-foreground">{tcg?.name ?? tcgSlug}</span>
       </div>
 
       {/* Header */}
@@ -336,7 +344,8 @@ function TcgSetsPageContent() {
               </div>
               {setsWithoutCards.length > 40 && (
                 <p className="text-xs text-muted-foreground text-center py-2">
-                  + {setsWithoutCards.length - 40} sets restantes aguardando sincronização
+                  + {setsWithoutCards.length - 40} sets restantes aguardando
+                  sincronização
                 </p>
               )}
             </section>
@@ -349,11 +358,13 @@ function TcgSetsPageContent() {
 
 export default function TcgSetsPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-primary size-8" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Loader2 className="animate-spin text-primary size-8" />
+        </div>
+      }
+    >
       <TcgSetsPageContent />
     </Suspense>
   );

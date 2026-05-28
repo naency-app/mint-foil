@@ -25,7 +25,9 @@ export default function TermsPage() {
             <div className="p-2 rounded-lg bg-primary/10">
               <FileText className="size-6" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider">Documentos Legais</span>
+            <span className="text-xs font-bold uppercase tracking-wider">
+              Documentos Legais
+            </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
             Termos de Uso
@@ -39,7 +41,9 @@ export default function TermsPage() {
         <div className="space-y-8 relative">
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">01</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                01
+              </span>
               Aceitação dos Termos
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -51,21 +55,25 @@ export default function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">02</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                02
+              </span>
               Descrição do Serviço
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               O Mint Foil é uma plataforma SaaS para colecionadores de TCG
               (Trading Card Games) que permite rastrear, gerenciar e avaliar
-              coleções de cartas. Os preços exibidos são coletados automaticamente
-              de fontes públicas e têm caráter informativo, podendo não refletir
-              os valores reais de mercado em tempo real.
+              coleções de cartas. Os preços exibidos são coletados
+              automaticamente de fontes públicas e têm caráter informativo,
+              podendo não refletir os valores reais de mercado em tempo real.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">03</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                03
+              </span>
               Conta de Usuário
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -78,7 +86,9 @@ export default function TermsPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">04</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                04
+              </span>
               Uso Permitido
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -90,10 +100,15 @@ export default function TermsPage() {
                 "Usar o serviço para fins ilegais ou fraudulentos;",
                 "Tentar acessar sistemas ou dados não autorizados;",
                 "Reproduzir, redistribuir ou revender o conteúdo da plataforma sem autorização;",
-                "Realizar engenharia reversa ou descompilar qualquer parte do software."
+                "Realizar engenharia reversa ou descompilar qualquer parte do software.",
               ].map((item, idx) => (
-                <div key={idx} className="flex gap-2.5 items-start p-3 rounded-lg border border-border bg-card/20 text-sm text-muted-foreground">
-                  <span className="text-xs font-semibold text-primary mt-0.5">•</span>
+                <div
+                  key={idx}
+                  className="flex gap-2.5 items-start p-3 rounded-lg border border-border bg-card/20 text-sm text-muted-foreground"
+                >
+                  <span className="text-xs font-semibold text-primary mt-0.5">
+                    •
+                  </span>
                   <span>{item}</span>
                 </div>
               ))}
@@ -102,7 +117,9 @@ export default function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">05</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                05
+              </span>
               Propriedade Intelectual
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -116,7 +133,9 @@ export default function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">06</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                06
+              </span>
               Limitação de Responsabilidade
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -128,7 +147,9 @@ export default function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">07</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                07
+              </span>
               Alterações nos Termos
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -141,15 +162,21 @@ export default function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">08</span>
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                08
+              </span>
               Contato
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               Para dúvidas sobre estes termos, entre em contato pelo email
               disponível na plataforma:{" "}
-              <a href="mailto:support@mintfoil.app" className="text-primary hover:underline font-semibold">
+              <a
+                href="mailto:support@mintfoil.app"
+                className="text-primary hover:underline font-semibold"
+              >
                 support@mintfoil.app
-              </a>.
+              </a>
+              .
             </p>
           </section>
         </div>

@@ -220,11 +220,19 @@ export default function CardDetailPage({
         if (sortedPortfolios.length > 0) {
           const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
           const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+          const hasOldStored = sortedPortfolios.some(
+            (p) => p.id === oldDefault,
+          );
 
-          const nextActive = queryPortfolioId && sortedPortfolios.some((p) => p.id === queryPortfolioId)
-            ? queryPortfolioId
-            : (foundFav ? foundFav.id : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id));
+          const nextActive =
+            queryPortfolioId &&
+            sortedPortfolios.some((p) => p.id === queryPortfolioId)
+              ? queryPortfolioId
+              : foundFav
+                ? foundFav.id
+                : hasOldStored && oldDefault
+                  ? oldDefault
+                  : sortedPortfolios[0].id;
 
           setActivePortfolioId((prev) => {
             if (prev && sortedPortfolios.some((p) => p.id === prev)) {
@@ -253,7 +261,7 @@ export default function CardDetailPage({
           } catch {
             return { items: [] };
           }
-        })
+        }),
       );
       const allItems = results.flatMap((r) => r.items);
       const filtered = allItems.filter((item) => item.cardId === id);
@@ -309,7 +317,12 @@ export default function CardDetailPage({
     .reduce((acc, item) => acc + item.quantity, 0);
   const currentPortfolioValue = currentPortfolioQuantity * latestPrice;
 
-  const LIGA_STORE_NAMES = ["LigaYugioh", "LigaMagic", "LigaPokemon", "LigaOnePiece"];
+  const LIGA_STORE_NAMES = [
+    "LigaYugioh",
+    "LigaMagic",
+    "LigaPokemon",
+    "LigaOnePiece",
+  ];
   const brPrice = (() => {
     const liga = card.storeLinks?.find(
       (l) => LIGA_STORE_NAMES.includes(l.storeName) && l.price != null,
@@ -317,7 +330,9 @@ export default function CardDetailPage({
     if (liga?.price != null) return liga.price;
     return (
       card.storeLinks
-        ?.filter((l) => l.storeName === "EpicGame" && l.price != null && l.inStock)
+        ?.filter(
+          (l) => l.storeName === "EpicGame" && l.price != null && l.inStock,
+        )
         .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))[0]?.price ?? null
     );
   })();
@@ -442,12 +457,23 @@ export default function CardDetailPage({
                 R$ {formatPrice(latestPrice)}
               </span>
               {latestPrice > 0 && (
-                <div className={cn(
-                  "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
-                  isPositive ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
-                )}>
-                  {isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-                  <span>{isPositive ? "+" : ""}{changePercent.toFixed(1)}%</span>
+                <div
+                  className={cn(
+                    "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                    isPositive
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "bg-rose-500/10 text-rose-400",
+                  )}
+                >
+                  {isPositive ? (
+                    <TrendingUp className="size-3" />
+                  ) : (
+                    <TrendingDown className="size-3" />
+                  )}
+                  <span>
+                    {isPositive ? "+" : ""}
+                    {changePercent.toFixed(1)}%
+                  </span>
                 </div>
               )}
             </div>
@@ -625,7 +651,9 @@ export default function CardDetailPage({
                 ) : (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <span>Adicionar a:</span>
-                    <span className="font-semibold text-primary">Coleção Principal</span>
+                    <span className="font-semibold text-primary">
+                      Coleção Principal
+                    </span>
                   </div>
                 )}
               </div>
@@ -648,7 +676,10 @@ export default function CardDetailPage({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <Badge variant="outline" className="text-[10px] font-bold h-6 px-2 border-border/80 bg-muted/30">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-bold h-6 px-2 border-border/80 bg-muted/30"
+                >
                   NM
                 </Badge>
                 <div className="flex items-center gap-3">
@@ -656,20 +687,30 @@ export default function CardDetailPage({
                     <motion.button
                       type="button"
                       whileTap={{ scale: 0.78 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 18,
+                      }}
                       onClick={() => handleQtyChange(-1)}
                       className="size-8 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <Minus className="size-3.5" strokeWidth={2.5} />
                     </motion.button>
-                    
+
                     <div className="w-8 flex items-center justify-center overflow-hidden">
                       <AnimatePresence mode="popLayout" initial={false}>
                         <motion.span
                           key={qty}
-                          initial={{ y: lastDelta.current > 0 ? 10 : -10, opacity: 0 }}
+                          initial={{
+                            y: lastDelta.current > 0 ? 10 : -10,
+                            opacity: 0,
+                          }}
                           animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: lastDelta.current > 0 ? -10 : 10, opacity: 0 }}
+                          exit={{
+                            y: lastDelta.current > 0 ? -10 : 10,
+                            opacity: 0,
+                          }}
                           transition={{ duration: 0.13 }}
                           className="text-sm font-bold text-foreground font-mono"
                         >
@@ -681,7 +722,11 @@ export default function CardDetailPage({
                     <motion.button
                       type="button"
                       whileTap={{ scale: 0.78 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 18,
+                      }}
                       onClick={() => handleQtyChange(1)}
                       className="size-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
@@ -703,7 +748,7 @@ export default function CardDetailPage({
                     <span
                       className={cn(
                         "text-[10px] font-mono",
-                        isPositive ? "text-emerald-400" : "text-rose-400"
+                        isPositive ? "text-emerald-400" : "text-rose-400",
                       )}
                     >
                       {isPositive ? "+" : ""}BRL {changePercent.toFixed(1)}%
@@ -744,7 +789,8 @@ export default function CardDetailPage({
             <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                 <Package className="size-3.5 text-primary animate-in zoom-in duration-200" />
-                Suas Cópias ({ownedItems.reduce((acc, item) => acc + item.quantity, 0)})
+                Suas Cópias (
+                {ownedItems.reduce((acc, item) => acc + item.quantity, 0)})
               </h3>
               <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar">
                 {ownedItems.map((item) => {
@@ -766,7 +812,8 @@ export default function CardDetailPage({
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-mono font-bold text-foreground">
-                          {item.quantity} {item.quantity === 1 ? "unidade" : "unidades"}
+                          {item.quantity}{" "}
+                          {item.quantity === 1 ? "unidade" : "unidades"}
                         </p>
                         {item.buyPrice != null && (
                           <p className="text-[10px] text-muted-foreground font-mono">

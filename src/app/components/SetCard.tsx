@@ -22,7 +22,8 @@ export function getSetImageUrl(set: CardSet): string | null {
   const tcg = set.tcg?.slug;
   if (tcg === "pokemon") return `https://images.pokemontcg.io/${code}/logo.png`;
   if (tcg === "magic") return `https://svgs.scryfall.io/sets/${code}.svg`;
-  if (tcg === "yugioh") return `https://images.ygoprodeck.com/images/sets/${set.code.toUpperCase()}.jpg`;
+  if (tcg === "yugioh")
+    return `https://images.ygoprodeck.com/images/sets/${set.code.toUpperCase()}.jpg`;
   return null;
 }
 

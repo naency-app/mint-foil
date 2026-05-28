@@ -9,7 +9,8 @@ export default function SetsPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Coleções / Sets</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Escolha um TCG para explorar seus sets, expansões e acompanhar o progresso de sua coleção.
+          Escolha um TCG para explorar seus sets, expansões e acompanhar o
+          progresso de sua coleção.
         </p>
       </div>
 

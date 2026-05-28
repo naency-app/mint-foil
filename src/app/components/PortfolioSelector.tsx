@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { api, type Portfolio } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {
@@ -15,7 +19,7 @@ import {
   Search,
   Star,
   Trash2,
-  X
+  X,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -82,11 +86,12 @@ export function PortfolioSelector({
     }
   }, [isAddingMode]);
 
-  const activePortfolio = portfolios.find((p) => p.id === activePortfolioId) ?? portfolios[0];
+  const activePortfolio =
+    portfolios.find((p) => p.id === activePortfolioId) ?? portfolios[0];
 
   const filteredPortfolios = React.useMemo(() => {
     const list = portfolios.filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase())
+      p.name.toLowerCase().includes(search.toLowerCase()),
     );
     return [...list].sort((a, b) => {
       const aFav = favoriteIds.includes(a.id);
@@ -112,7 +117,10 @@ export function PortfolioSelector({
       }
     }
     setFavoriteIds(nextFavorites);
-    localStorage.setItem("minty_favorite_portfolio_ids", JSON.stringify(nextFavorites));
+    localStorage.setItem(
+      "minty_favorite_portfolio_ids",
+      JSON.stringify(nextFavorites),
+    );
   };
 
   const handleCreatePortfolio = async (e: React.FormEvent) => {
@@ -121,7 +129,9 @@ export function PortfolioSelector({
 
     setIsCreating(true);
     try {
-      const created = await api.collection.createPortfolio(newPortfolioName.trim());
+      const created = await api.collection.createPortfolio(
+        newPortfolioName.trim(),
+      );
       toast.success(`Portfólio "${created.name}" criado!`);
       setNewPortfolioName("");
       setIsAddingMode(false);
@@ -207,7 +217,6 @@ export function PortfolioSelector({
           {labelPrefix}
           <span className="text-primary font-extrabold hover:underline flex items-center gap-1.5 ml-1 select-none">
             {activePortfolio?.name ?? "Carregando..."}
-
           </span>
         </Button>
       </PopoverTrigger>
@@ -260,7 +269,11 @@ export function PortfolioSelector({
                         className="size-6 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 cursor-pointer"
                         disabled={isUpdating}
                       >
-                        {isUpdating ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+                        {isUpdating ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Check className="size-3.5" />
+                        )}
                       </Button>
                       <Button
                         size="icon"
@@ -284,7 +297,9 @@ export function PortfolioSelector({
                     className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <span className="font-semibold text-destructive truncate flex-1">Confirmar exclusão?</span>
+                    <span className="font-semibold text-destructive truncate flex-1">
+                      Confirmar exclusão?
+                    </span>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button
                         size="xs"
@@ -293,7 +308,11 @@ export function PortfolioSelector({
                         className="h-6 px-2 text-[10px] font-bold bg-destructive text-destructive-foreground hover:bg-destructive/95 cursor-pointer"
                         disabled={isDeleting}
                       >
-                        {isDeleting ? <Loader2 className="size-3 animate-spin" /> : "Excluir"}
+                        {isDeleting ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          "Excluir"
+                        )}
                       </Button>
                       <Button
                         size="xs"
@@ -320,11 +339,16 @@ export function PortfolioSelector({
                     "group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all border border-transparent",
                     isActive
                       ? "bg-primary/10 border-primary/20 text-primary"
-                      : "hover:bg-muted/70 text-foreground"
+                      : "hover:bg-muted/70 text-foreground",
                   )}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Folder className={cn("size-3.5 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                    <Folder
+                      className={cn(
+                        "size-3.5 shrink-0",
+                        isActive ? "text-primary" : "text-muted-foreground",
+                      )}
+                    />
                     <span className="text-xs font-semibold truncate">
                       {p.name}
                     </span>
@@ -336,14 +360,24 @@ export function PortfolioSelector({
                   </div>
 
                   {/* Actions on Hover / Active */}
-                  <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
                       type="button"
                       onClick={(e) => handleToggleDefault(e, p.id)}
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-yellow-500 transition-colors"
                       title="Favoritar"
                     >
-                      <Star className={cn("size-3.5", isFavorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/60")} />
+                      <Star
+                        className={cn(
+                          "size-3.5",
+                          isFavorite
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground/60",
+                        )}
+                      />
                     </button>
                     <button
                       type="button"
@@ -371,7 +405,10 @@ export function PortfolioSelector({
         {/* Footer selector creator */}
         <div className="border-t border-border bg-muted/20">
           {isAddingMode ? (
-            <form onSubmit={handleCreatePortfolio} className="p-2 flex gap-1.5 items-center">
+            <form
+              onSubmit={handleCreatePortfolio}
+              className="p-2 flex gap-1.5 items-center"
+            >
               <Input
                 ref={addInputRef}
                 value={newPortfolioName}
@@ -386,7 +423,11 @@ export function PortfolioSelector({
                 className="h-8 text-xs shrink-0 cursor-pointer"
                 disabled={isCreating}
               >
-                {isCreating ? <Loader2 className="size-3 animate-spin" /> : "Criar"}
+                {isCreating ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  "Criar"
+                )}
               </Button>
               <Button
                 size="icon"

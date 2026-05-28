@@ -137,7 +137,7 @@ function Card({ item, dimmed, onHoverStart, onHoverEnd }: CardProps) {
         "dark:border-white/6 dark:bg-white/3 dark:shadow-none",
         "transition-[border-color] duration-300",
         "hover:border-zinc-300 dark:hover:border-white/14",
-        item.href && "cursor-pointer"
+        item.href && "cursor-pointer",
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -253,7 +253,7 @@ export default function SpotlightCards({
       className={cn(
         "relative w-full overflow-hidden rounded-2xl px-8 pt-9 pb-10",
         "bg-white dark:bg-[#06060f]",
-        className
+        className,
       )}
     >
       {/* Dot grid — light mode only */}

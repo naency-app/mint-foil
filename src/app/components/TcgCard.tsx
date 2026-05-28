@@ -205,7 +205,7 @@ export function TcgCard({
                   "shrink-0 size-7 rounded-full duration-200 transition-all cursor-pointer",
                   success
                     ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                    : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent"
+                    : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent",
                 )}
                 onClick={handleAdd}
                 disabled={adding || success}

@@ -16,9 +16,19 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type CardSet, type Card as CardType, type CollectionItem, type Portfolio } from "@/lib/api";
+import {
+  api,
+  type CardSet,
+  type Card as CardType,
+  type CollectionItem,
+  type Portfolio,
+} from "@/lib/api";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
-import { IconFolder, IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
+import {
+  IconFolder,
+  IconLayoutGrid,
+  IconListDetails,
+} from "@tabler/icons-react";
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -46,7 +56,12 @@ function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
 }
 
-const LIGA_STORE_NAMES = ['LigaYugioh', 'LigaMagic', 'LigaPokemon', 'LigaOnePiece'];
+const LIGA_STORE_NAMES = [
+  "LigaYugioh",
+  "LigaMagic",
+  "LigaPokemon",
+  "LigaOnePiece",
+];
 
 function getBrPrice(card: CardType): number | null {
   const liga = card.storeLinks?.find(
@@ -54,8 +69,9 @@ function getBrPrice(card: CardType): number | null {
   );
   if (liga?.price != null) return liga.price;
   return (
-    card.storeLinks?.find((l) => l.storeName === "EpicGame" && l.price != null && l.inStock)
-      ?.price ?? null
+    card.storeLinks?.find(
+      (l) => l.storeName === "EpicGame" && l.price != null && l.inStock,
+    )?.price ?? null
   );
 }
 
@@ -159,7 +175,10 @@ function SetCardsPageContent() {
   const [setInfo, setSetInfo] = useState<CardSet | null>(null);
   const [cards, setCards] = useState<CardType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useQueryState("q", { defaultValue: "", throttleMs: 300 });
+  const [search, setSearch] = useQueryState("q", {
+    defaultValue: "",
+    throttleMs: 300,
+  });
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useQueryState("sort", { defaultValue: "number" });
 
@@ -214,11 +233,15 @@ function SetCardsPageContent() {
         if (sortedPortfolios.length > 0) {
           const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
           const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+          const hasOldStored = sortedPortfolios.some(
+            (p) => p.id === oldDefault,
+          );
 
-          const nextActive = foundFav 
-            ? foundFav.id 
-            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+          const nextActive = foundFav
+            ? foundFav.id
+            : hasOldStored && oldDefault
+              ? oldDefault
+              : sortedPortfolios[0].id;
 
           setActivePortfolioId((prev) => {
             if (prev && sortedPortfolios.some((p) => p.id === prev)) {
@@ -228,7 +251,7 @@ function SetCardsPageContent() {
           });
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -271,7 +294,8 @@ function SetCardsPageContent() {
         progressMap[setCode] = { count: 0, value: 0 };
       }
       progressMap[setCode].count += 1;
-      progressMap[setCode].value += (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+      progressMap[setCode].value +=
+        (item.card.prices?.[0]?.value ?? 0) * item.quantity;
     }
     return progressMap;
   }, [portfolioItems]);
@@ -292,12 +316,18 @@ function SetCardsPageContent() {
       const priceA = getBrPrice(a) ?? getLatestPrice(a);
       const priceB = getBrPrice(b) ?? getLatestPrice(b);
       switch (sortBy) {
-        case "price-asc": return priceA - priceB;
-        case "price-desc": return priceB - priceA;
-        case "name-asc": return a.name.localeCompare(b.name);
-        case "name-desc": return b.name.localeCompare(a.name);
-        case "rarity": return b.rarity ? b.rarity.localeCompare(a.rarity ?? "") : 1;
-        default: return a.setCode.localeCompare(b.setCode);
+        case "price-asc":
+          return priceA - priceB;
+        case "price-desc":
+          return priceB - priceA;
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "rarity":
+          return b.rarity ? b.rarity.localeCompare(a.rarity ?? "") : 1;
+        default:
+          return a.setCode.localeCompare(b.setCode);
       }
     });
   }, [cards, search, sortBy]);
@@ -319,9 +349,7 @@ function SetCardsPageContent() {
           {tcgName}
         </Link>
         <ChevronRight className="size-3" />
-        <span className="text-foreground">
-          {setInfo?.name ?? setSlug}
-        </span>
+        <span className="text-foreground">{setInfo?.name ?? setSlug}</span>
       </div>
 
       {/* Set Header with Info and Progress Bar */}
@@ -357,16 +385,22 @@ function SetCardsPageContent() {
                   {setInfo.name}
                 </h1>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <Badge variant="outline" className="font-mono text-[10px] py-0 px-1.5 font-bold">
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-[10px] py-0 px-1.5 font-bold"
+                  >
                     {setInfo.code}
                   </Badge>
                   <span>{cards.length} cartas catalogadas</span>
                   {setInfo.releaseDate && (
                     <span>
-                      {new Date(setInfo.releaseDate).toLocaleDateString("pt-BR", {
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(setInfo.releaseDate).toLocaleDateString(
+                        "pt-BR",
+                        {
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
                     </span>
                   )}
                 </div>
@@ -383,7 +417,9 @@ function SetCardsPageContent() {
                 <div className="flex flex-col gap-1 w-full md:w-56 shrink-0 pt-2 md:pt-0 border-t border-border/40 md:border-0">
                   <div className="flex justify-between text-[10px] font-bold text-muted-foreground font-mono">
                     <span>Progresso da Coleção</span>
-                    <span>{collected}/{total} ({Math.round(pct * 100)}%)</span>
+                    <span>
+                      {collected}/{total} ({Math.round(pct * 100)}%)
+                    </span>
                   </div>
                   <div className="bg-muted rounded-full h-1.5 overflow-hidden w-full">
                     <div
@@ -417,7 +453,10 @@ function SetCardsPageContent() {
 
           {portfolios.length > 0 && (
             <>
-              <Separator orientation="vertical" className="h-5 hidden sm:block" />
+              <Separator
+                orientation="vertical"
+                className="h-5 hidden sm:block"
+              />
               <PortfolioSelector
                 portfolios={portfolios}
                 activePortfolioId={activePortfolioId}
@@ -543,11 +582,13 @@ function SetCardsPageContent() {
 
 export default function SetCardsPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-primary size-8" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Loader2 className="animate-spin text-primary size-8" />
+        </div>
+      }
+    >
       <SetCardsPageContent />
     </Suspense>
   );

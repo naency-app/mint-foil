@@ -1,6 +1,11 @@
 "use client";
 
-import { api, type CollectionItem, type CollectionResponse, type PortfolioMetrics } from "@/lib/api";
+import {
+  api,
+  type CollectionItem,
+  type CollectionResponse,
+  type PortfolioMetrics,
+} from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 
 const defaultMetrics: PortfolioMetrics = {
@@ -35,7 +40,12 @@ export function useCollection() {
   }, [fetchCollection]);
 
   const addItem = useCallback(
-    async (data: { cardId: string; quantity: number; condition: string; buyPrice?: number }) => {
+    async (data: {
+      cardId: string;
+      quantity: number;
+      condition: string;
+      buyPrice?: number;
+    }) => {
       await api.collection.add(data);
       await fetchCollection();
     },
@@ -43,7 +53,10 @@ export function useCollection() {
   );
 
   const updateItem = useCallback(
-    async (id: string, data: { quantity?: number; buyPrice?: number; notes?: string }) => {
+    async (
+      id: string,
+      data: { quantity?: number; buyPrice?: number; notes?: string },
+    ) => {
       await api.collection.update(id, data);
       await fetchCollection();
     },
@@ -58,5 +71,14 @@ export function useCollection() {
     [fetchCollection],
   );
 
-  return { items, metrics, loading, error, addItem, updateItem, removeItem, refetch: fetchCollection };
+  return {
+    items,
+    metrics,
+    loading,
+    error,
+    addItem,
+    updateItem,
+    removeItem,
+    refetch: fetchCollection,
+  };
 }

@@ -6,7 +6,9 @@
 
 @theme inline {
   --font-sans: var(--font-sans);
-  --font-mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -66,18 +68,18 @@
 }
 
 :root {
-  --background: #F6F6F6;
+  --background: #f6f6f6;
   --foreground: #020617;
-  --card: #FFFFFF;
+  --card: #ffffff;
   --card-foreground: #020617;
-  --popover: #FFFFFF;
+  --popover: #ffffff;
   --popover-foreground: #020617;
-  --primary: #B50D57;
-  --primary-foreground: #FFFFFF;
-  --tertiary: #F856A7;
-  --tertiary-hover: #B50D57;
+  --primary: #b50d57;
+  --primary-foreground: #ffffff;
+  --tertiary: #f856a7;
+  --tertiary-hover: #b50d57;
   --secondary: #021937;
-  --secondary-foreground: #FFFFFF;
+  --secondary-foreground: #ffffff;
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -94,8 +96,8 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #EF1556;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary: #ef1556;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
@@ -119,17 +121,17 @@
 
 .dark {
   --background: #020617;
-  --foreground: #FFFFFF;
+  --foreground: #ffffff;
   --card: #021937;
-  --card-foreground: #FFFFFF;
+  --card-foreground: #ffffff;
   --popover: #021937;
-  --popover-foreground: #FFFFFF;
-  --primary: #F856A7;
+  --popover-foreground: #ffffff;
+  --primary: #f856a7;
   --primary-foreground: #020617;
-  --tertiary: #F856A7;
-  --tertiary-hover: #B50D57;
-  --secondary: #B50D57;
-  --secondary-foreground: #FFFFFF;
+  --tertiary: #f856a7;
+  --tertiary-hover: #b50d57;
+  --secondary: #b50d57;
+  --secondary-foreground: #ffffff;
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(70.4% 0.04 256.788);
   --accent: oklch(0.371 0 0);
@@ -145,8 +147,8 @@
   --chart-5: oklch(0.455 0.188 13.697);
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #F25FB2;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary: #f25fb2;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
@@ -185,22 +187,44 @@
 /* ── Landing Page animations ─────────────────────────────────────────────── */
 
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes footerMarquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes breathe {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
 }
 
 @keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  15%, 45% { transform: scale(1.2); }
-  30% { transform: scale(1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15%,
+  45% {
+    transform: scale(1.2);
+  }
+  30% {
+    transform: scale(1);
+  }
 }

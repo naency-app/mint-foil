@@ -71,7 +71,13 @@ function pickBestSearchTerm(lines: string[]): string {
   return longest.length >= 4 ? longest : first;
 }
 
-function ResultCard({ card, onReset }: { card: CardType; onReset: () => void }) {
+function ResultCard({
+  card,
+  onReset,
+}: {
+  card: CardType;
+  onReset: () => void;
+}) {
   const latestPrice = card.prices[0]?.value ?? 0;
 
   return (
@@ -133,7 +139,10 @@ function ResultCard({ card, onReset }: { card: CardType; onReset: () => void }) 
       </Link>
 
       <div className="flex gap-2">
-        <Button asChild className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2">
+        <Button
+          asChild
+          className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
+        >
           <Link href={`/card/${card.id}`}>
             <Plus className="size-4" />
             Ver Detalhes / Adicionar
@@ -305,7 +314,15 @@ export default function ScanPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const isMobile = useIsMobile();
-  const { videoRef, canvasRef, isActive, error: cameraError, start, stop, capture } = useCamera();
+  const {
+    videoRef,
+    canvasRef,
+    isActive,
+    error: cameraError,
+    start,
+    stop,
+    capture,
+  } = useCamera();
   const [state, setState] = useState<ScanState>("idle");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState("");
@@ -337,7 +354,9 @@ export default function ScanPage() {
         const result = await api.scan.identify(dataUrl);
         if (result.ok) {
           setRecognizedText(result.cardName);
-          setRemainingScans((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+          setRemainingScans((prev) =>
+            prev !== null ? Math.max(0, prev - 1) : null,
+          );
           await searchCards(result.cardName, [result.cardName]);
           setProcessing(false);
           return;
@@ -363,7 +382,10 @@ export default function ScanPage() {
         return;
       }
 
-      const rawLines = text.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+      const rawLines = text
+        .split(/\n+/)
+        .map((l) => l.trim())
+        .filter(Boolean);
       const lines = rawLines.map(cleanOcrText).filter((l) => l.length > 2);
       const query = pickBestSearchTerm(lines);
       await searchCards(query, lines);
@@ -385,11 +407,7 @@ export default function ScanPage() {
         .split(/\s+/)
         .filter((w) => w.length >= 4)
         .slice(0, 3);
-      const termsToTry = [
-        primaryQuery,
-        ...extraLines,
-        ...words,
-      ];
+      const termsToTry = [primaryQuery, ...extraLines, ...words];
 
       for (const term of termsToTry) {
         if (!term.trim()) continue;
@@ -517,11 +535,14 @@ export default function ScanPage() {
             <p className="text-center text-white/80 text-sm mt-3">
               Tire a foto da carta inteira
             </p>
-            {session?.user && remainingScans !== null && remainingScans < 999_999 && (
-              <p className="text-center text-white/60 text-xs mt-1">
-                {remainingScans} scan{remainingScans !== 1 ? "s" : ""} com IA hoje
-              </p>
-            )}
+            {session?.user &&
+              remainingScans !== null &&
+              remainingScans < 999_999 && (
+                <p className="text-center text-white/60 text-xs mt-1">
+                  {remainingScans} scan{remainingScans !== 1 ? "s" : ""} com IA
+                  hoje
+                </p>
+              )}
           </div>
         </div>
       )}
@@ -553,89 +574,92 @@ export default function ScanPage() {
       {/* Error state */}
       {cameraError && state === "idle" && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
-            <div className="flex flex-col items-center text-center gap-3">
-              <div className="size-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
-                <CameraOff className="size-7 text-red-400" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-sm font-semibold text-red-400">
-                  {cameraError.type === "no-https"
-                    ? "Conexão não segura"
-                    : cameraError.type === "denied"
-                      ? "Permissão negada"
-                      : "Câmera indisponível"}
-                </p>
-                <p className="text-xs text-white/80 leading-relaxed max-w-xs mx-auto">
-                  {cameraError.message}
-                </p>
-              </div>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="size-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
+              <CameraOff className="size-7 text-red-400" />
             </div>
-
-            {cameraError.type === "no-https" && (
-              <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 space-y-1.5">
-                <p className="text-xs font-semibold text-amber-400">
-                  Como resolver:
-                </p>
-                <ul className="text-[11px] text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>
-                    Acesse via <code className="text-foreground">https://</code>{" "}
-                    (necessário em produção)
-                  </li>
-                  <li>
-                    Em desenvolvimento, use{" "}
-                    <code className="text-foreground">localhost</code> no
-                    próprio celular
-                  </li>
-                  <li>
-                    Ou use um túnel HTTPS como{" "}
-                    <code className="text-foreground">ngrok</code>
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            {cameraError.type === "denied" && (
-              <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3 space-y-1.5">
-                <p className="text-xs font-semibold text-blue-400">
-                  Como permitir:
-                </p>
-                <ul className="text-[11px] text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>
-                    <strong>Android:</strong> Configurações &gt; Apps &gt;
-                    Chrome &gt; Permissões &gt; Câmera
-                  </li>
-                  <li>
-                    <strong>iPhone:</strong> Ajustes &gt; Safari &gt; Câmera
-                    &gt; Permitir
-                  </li>
-                  <li>Ou toque no ícone de cadeado na barra de endereço</li>
-                </ul>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-              {cameraError.type !== "no-https" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStartCamera}
-                  className="w-full"
-                >
-                  <Camera className="size-4 mr-2" />
-                  Tentar Novamente
-                </Button>
-              )}
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold text-red-400">
+                {cameraError.type === "no-https"
+                  ? "Conexão não segura"
+                  : cameraError.type === "denied"
+                    ? "Permissão negada"
+                    : "Câmera indisponível"}
+              </p>
+              <p className="text-xs text-white/80 leading-relaxed max-w-xs mx-auto">
+                {cameraError.message}
+              </p>
             </div>
+          </div>
 
-            <Separator className="border-white/20" />
+          {cameraError.type === "no-https" && (
+            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-amber-400">
+                Como resolver:
+              </p>
+              <ul className="text-[11px] text-muted-foreground space-y-1 list-disc list-inside">
+                <li>
+                  Acesse via <code className="text-foreground">https://</code>{" "}
+                  (necessário em produção)
+                </li>
+                <li>
+                  Em desenvolvimento, use{" "}
+                  <code className="text-foreground">localhost</code> no próprio
+                  celular
+                </li>
+                <li>
+                  Ou use um túnel HTTPS como{" "}
+                  <code className="text-foreground">ngrok</code>
+                </li>
+              </ul>
+            </div>
+          )}
 
-            <p className="text-[10px] text-white/60 text-center">
-              Recarregue a página e tente novamente
-            </p>
+          {cameraError.type === "denied" && (
+            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-blue-400">
+                Como permitir:
+              </p>
+              <ul className="text-[11px] text-muted-foreground space-y-1 list-disc list-inside">
+                <li>
+                  <strong>Android:</strong> Configurações &gt; Apps &gt; Chrome
+                  &gt; Permissões &gt; Câmera
+                </li>
+                <li>
+                  <strong>iPhone:</strong> Ajustes &gt; Safari &gt; Câmera &gt;
+                  Permitir
+                </li>
+                <li>Ou toque no ícone de cadeado na barra de endereço</li>
+              </ul>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            {cameraError.type !== "no-https" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartCamera}
+                className="w-full"
+              >
+                <Camera className="size-4 mr-2" />
+                Tentar Novamente
+              </Button>
+            )}
+          </div>
+
+          <Separator className="border-white/20" />
+
+          <p className="text-[10px] text-white/60 text-center">
+            Recarregue a página e tente novamente
+          </p>
         </div>
       )}
 
-      <ProUpgradeModal open={proModalOpen} onClose={() => setProModalOpen(false)} />
+      <ProUpgradeModal
+        open={proModalOpen}
+        onClose={() => setProModalOpen(false)}
+      />
 
       {/* Results Drawer */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>

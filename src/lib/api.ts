@@ -203,12 +203,14 @@ export const api = {
     stats: () => apiFetch<UserStats>("/collection/stats"),
     history: (range: "7d" | "1m" | "3m" | "6m", portfolioId?: string) =>
       apiFetch<{ date: string; value: number }[]>(
-        `/collection/history?range=${range}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`
+        `/collection/history?range=${range}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`,
       ),
   },
   scan: {
     remaining: () =>
-      apiFetch<{ remaining: number; requiresAuth?: boolean }>("/scan/remaining"),
+      apiFetch<{ remaining: number; requiresAuth?: boolean }>(
+        "/scan/remaining",
+      ),
     identify: async (
       imageBase64: string,
     ): Promise<
