@@ -1,29 +1,22 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { SetCard } from "@/app/components/SetCard";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import SpotlightCards, {
-  type SpotlightItem,
-} from "@/components/kokonutui/spotlight-cards";
-import { api, type CardSet, type Tcg } from "@/lib/api";
+import { api, type CardSet, type CollectionItem, type Portfolio, type Tcg } from "@/lib/api";
 import {
   ArrowLeft,
   Calendar,
   ChevronRight,
   Layers,
+  Loader2,
   Search,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-
-const TCG_COLOR: Record<string, string> = {
-  pokemon: "#f59e0b",
-  magic: "#e05c2a",
-  yugioh: "#7c3aed",
-  onepiece: "#0ea5e9",
-};
+import { useParams, useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
@@ -35,26 +28,6 @@ function formatDate(dateStr: string | null) {
   } catch {
     return null;
   }
-}
-
-function toSpotlightItem(
-  set: CardSet,
-  tcgSlug: string,
-  color: string,
-): SpotlightItem {
-  const cardCount = set._count?.cards ?? 0;
-  const date = formatDate(set.releaseDate);
-  const descParts = [`${cardCount} cartas`];
-  if (date) descParts.push(date);
-  else descParts.push(set.code);
-
-  return {
-    image: set.imageUrl ?? undefined,
-    title: set.name,
-    description: descParts.join(" • "),
-    color,
-    href: `/sets/${tcgSlug}/${set.slug}`,
-  };
 }
 
 function SetRowSkeleton() {
@@ -71,10 +44,8 @@ function SetRowSkeleton() {
 
 function SetRow({
   set,
-  tcgSlug,
 }: {
   set: CardSet;
-  tcgSlug: string;
 }) {
   const date = formatDate(set.releaseDate);
 
@@ -111,15 +82,20 @@ function SetRow({
   );
 }
 
-export default function TcgSetsPage() {
+function TcgSetsPageContent() {
   const { tcg: tcgSlug } = useParams<{ tcg: string }>();
+  const router = useRouter();
   const [tcg, setTcg] = useState<Tcg | null>(null);
   const [sets, setSets] = useState<CardSet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useQueryState("q", { defaultValue: "", throttleMs: 300 });
 
-  const color = TCG_COLOR[tcgSlug] ?? "#6b7280";
+  // Portfolio tracking for collection progress
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [activePortfolioId, setActivePortfolioId] = useState("");
+  const [portfolioItems, setPortfolioItems] = useState<CollectionItem[]>([]);
 
+  // Load basic TCG info and sets
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -130,13 +106,108 @@ export default function TcgSetsPage() {
         ]);
         const found = tcgs.find((t) => t.slug === tcgSlug);
         setTcg(found ?? null);
-        setSets(setsData);
+
+        // Sort sets: getcollectr images first, then ygoprodeck, then others (stable sort)
+        const sorted = [...setsData].sort((a, b) => {
+          const rank = (s: any) =>
+            s.imageUrl?.includes("getcollectr")
+              ? 0
+              : s.imageUrl?.includes("ygoprodeck")
+                ? 1
+                : 2;
+          return rank(a) - rank(b);
+        });
+
+        setSets(sorted);
+      } catch (err) {
+        console.error("Error loading TCG sets", err);
       } finally {
         setLoading(false);
       }
     }
     load();
   }, [tcgSlug]);
+
+  const fetchPortfolios = useCallback(() => {
+    api.collection
+      .portfolios()
+      .then((data) => {
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          const nextActive = foundFav 
+            ? foundFav.id 
+            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+
+          setActivePortfolioId((prev) => {
+            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+              return prev;
+            }
+            return nextActive;
+          });
+        }
+      })
+      .catch(() => { }); // user may not be logged in
+  }, []);
+
+  // Load portfolios
+  useEffect(() => {
+    fetchPortfolios();
+  }, [fetchPortfolios]);
+
+  // Fetch portfolio details to compute set progress
+  useEffect(() => {
+    if (!activePortfolioId) {
+      setPortfolioItems([]);
+      return;
+    }
+    api.collection
+      .getPortfolio(activePortfolioId)
+      .then((data) => {
+        setPortfolioItems(data.items);
+      })
+      .catch(() => {
+        setPortfolioItems([]);
+      });
+  }, [activePortfolioId]);
+
+  // Compute set progress map: unique cards collected per set code
+  const setProgressMap = useMemo(() => {
+    const progressMap: Record<string, { count: number; value: number }> = {};
+    for (const item of portfolioItems) {
+      const setCode = item.card.set?.code ?? item.card.setCode;
+      if (!setCode) continue;
+      if (!progressMap[setCode]) {
+        progressMap[setCode] = { count: 0, value: 0 };
+      }
+      progressMap[setCode].count += 1;
+      progressMap[setCode].value += (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+    }
+    return progressMap;
+  }, [portfolioItems]);
 
   const filteredSets = useMemo(() => {
     if (!search) return sets;
@@ -153,19 +224,15 @@ export default function TcgSetsPage() {
     (s) => (s._count?.cards ?? 0) === 0,
   );
 
-  const spotlightItems = setsWithCards.map((s) =>
-    toSpotlightItem(s, tcgSlug, color),
-  );
-
   return (
     <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">
         <Link href="/sets" className="hover:text-foreground transition-colors">
           Sets
         </Link>
         <ChevronRight className="size-3" />
-        <span className="text-foreground font-medium">
+        <span className="text-foreground">
           {tcg?.name ?? tcgSlug}
         </span>
       </div>
@@ -175,7 +242,7 @@ export default function TcgSetsPage() {
         <div>
           <Link
             href="/sets"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2 font-mono uppercase"
           >
             <ArrowLeft className="size-3" />
             Voltar
@@ -190,21 +257,34 @@ export default function TcgSetsPage() {
           </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar sets..."
-            className="pl-10"
-          />
+        {/* Portfolio selector & Search filter */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {portfolios.length > 0 && (
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={fetchPortfolios}
+              labelPrefix="Adicionando a:"
+            />
+          )}
+
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filtrar sets..."
+              className="pl-10 h-9"
+            />
+          </div>
         </div>
       </div>
 
       {/* Content */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
             <SetRowSkeleton key={i} />
           ))}
         </div>
@@ -222,17 +302,23 @@ export default function TcgSetsPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Sets with cards — SpotlightCards grid */}
+          {/* Sets with cards — SetCard grid */}
           {setsWithCards.length > 0 && (
             <section className="space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Layers className="size-3.5" />
+                <Layers className="size-3.5 text-muted-foreground" />
                 Sets com cartas ({setsWithCards.length})
               </h2>
-              <SpotlightCards
-                items={spotlightItems}
-                className="dark:bg-transparent p-0"
-              />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {setsWithCards.map((set) => (
+                  <SetCard
+                    key={set.id}
+                    set={set}
+                    progress={setProgressMap[set.code]}
+                    onClick={() => router.push(`/sets/${tcgSlug}/${set.slug}`)}
+                  />
+                ))}
+              </div>
             </section>
           )}
 
@@ -243,20 +329,32 @@ export default function TcgSetsPage() {
                 <Layers className="size-3.5 opacity-50" />
                 Aguardando sync ({setsWithoutCards.length})
               </h2>
-              <div className="space-y-1.5">
-                {setsWithoutCards.slice(0, 20).map((set) => (
-                  <SetRow key={set.id} set={set} tcgSlug={tcgSlug} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {setsWithoutCards.slice(0, 40).map((set) => (
+                  <SetRow key={set.id} set={set} />
                 ))}
-                {setsWithoutCards.length > 20 && (
-                  <p className="text-xs text-muted-foreground text-center py-2">
-                    + {setsWithoutCards.length - 20} sets restantes
-                  </p>
-                )}
               </div>
+              {setsWithoutCards.length > 40 && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  + {setsWithoutCards.length - 40} sets restantes aguardando sincronização
+                </p>
+              )}
             </section>
           )}
         </div>
       )}
     </main>
+  );
+}
+
+export default function TcgSetsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="animate-spin text-primary size-8" />
+      </div>
+    }>
+      <TcgSetsPageContent />
+    </Suspense>
   );
 }

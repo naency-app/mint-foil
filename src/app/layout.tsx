@@ -1,13 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Mono, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
+import { DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./provider";
 
-const dmSans = DM_Sans({
+const circularStd = localFont({
+  src: [
+    {
+      path: "../../public/fonts/CircularStd-Book.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/CircularStd-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/CircularStd-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap",
 });
 
 const dmMono = DM_Mono({
@@ -38,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${dmSans.variable} ${dmMono.variable} antialiased font-sans`}
+        className={`${circularStd.variable} ${dmMono.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>

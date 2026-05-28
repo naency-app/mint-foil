@@ -6,7 +6,7 @@
 
 @theme inline {
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -94,8 +94,8 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.586 0.253 17.585);
-  --sidebar-primary-foreground: oklch(0.969 0.015 12.422);
+  --sidebar-primary: #EF1556;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
@@ -145,8 +145,8 @@
   --chart-5: oklch(0.455 0.188 13.697);
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.645 0.246 16.439);
-  --sidebar-primary-foreground: oklch(0.969 0.015 12.422);
+  --sidebar-primary: #F25FB2;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);

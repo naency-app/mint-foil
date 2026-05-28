@@ -13,13 +13,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { IconCards, IconX } from "@tabler/icons-react";
-import { Menu, Moon, Search, Sun } from "lucide-react";
+import { IconCards, IconMenu, IconMoon, IconSearch, IconSun, IconX } from "@tabler/icons-react";
+
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CommandK } from "./CommandK";
 
 const navLinks = [
@@ -36,33 +36,18 @@ function isLinkActive(pathname: string, href: string) {
 }
 
 function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) {
-    return (
-      <Button
-        size="icon-sm"
-        variant="ghost"
-        className="text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-      >
-        <Moon className="size-4" />
-      </Button>
-    );
-  }
-
-  const isDark = theme === "dark";
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <Button
       size="icon-sm"
       variant="ghost"
       className="text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      suppressHydrationWarning
     >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      <IconSun className="size-4 hidden dark:block" suppressHydrationWarning />
+      <IconMoon className="size-4 dark:hidden" suppressHydrationWarning />
     </Button>
   );
 }
@@ -73,7 +58,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <>
-      <nav className="sticky top-0 z-10 backdrop-blur-xl border-b border-border/50">
+      <nav className="sticky top-0 z-10 bg-background/85 backdrop-blur-md border-b border-border/40">
         <div className="max-w-370 mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 gap-4">
             {/* ── Left: Hamburger + Logo ── */}
@@ -84,7 +69,7 @@ export function Navbar() {
                     type="button"
                     className="md:hidden flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                   >
-                    <Menu className="size-5" />
+                    <IconMenu className="size-5" />
                   </button>
                 </SheetTrigger>
 
@@ -166,7 +151,7 @@ export function Navbar() {
             </div>
 
             {/* ── Center: Navigation Links (desktop) ── */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-1 h-full">
               {navLinks.map((link) => {
                 const active = isLinkActive(pathname, link.href);
                 return (
@@ -174,24 +159,24 @@ export function Navbar() {
                     key={link.label}
                     href={link.href}
                     className={cn(
-                      "relative px-3 py-1.5 text-[13px] font-medium rounded-md transition-colors",
+                      "relative h-full flex items-center px-4 text-[13px] font-semibold transition-colors",
                       active
                         ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {active && (
                       <motion.span
-                        layoutId="desktop-nav-pill"
-                        className="absolute inset-0 rounded-md bg-primary/10"
+                        layoutId="desktop-nav-indicator"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-t-full"
                         transition={{
                           type: "spring",
-                          stiffness: 400,
+                          stiffness: 380,
                           damping: 30,
                         }}
                       />
                     )}
-                    <span className="relative z-10">{link.label}</span>
+                    <span>{link.label}</span>
                   </Link>
                 );
               })}
@@ -205,7 +190,7 @@ export function Navbar() {
                 onClick={() => setCommandOpen(true)}
                 variant="secondary"
               >
-                <Search className="size-3.5" />
+                <IconSearch className="size-3.5" />
                 <Kbd className="hidden sm:inline-flex bg-accent text-muted-foreground text-[10px] h-4 min-w-4 px-1">
                   ⌘K
                 </Kbd>

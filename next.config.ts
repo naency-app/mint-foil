@@ -65,6 +65,11 @@ const nextConfig: NextConfig = {
         hostname: "tcgplayer-cdn.tcgplayer.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.pokemontcg.io",
+        pathname: "/**",
+      },
     ],
   },
 };

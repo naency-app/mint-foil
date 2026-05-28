@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import {
+  IconCheck,
   IconLoader2,
   IconPlus,
   IconTrendingDown,
@@ -14,11 +15,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sileo } from "sileo";
+import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
   name: string;
   price: string;
   priceChange?: number;
+  brPrice?: number | null;
   imageUrl: string;
   setCode: string;
   setName?: string | null;
@@ -30,6 +33,7 @@ export interface TcgCardProps {
   cardId?: string;
   cardHref?: string;
   defaultPortfolioId?: string;
+  onAdd?: () => void;
 }
 
 function formatPrice(value: number) {
@@ -43,6 +47,7 @@ export function TcgCard({
   name,
   price,
   priceChange,
+  brPrice,
   imageUrl,
   setCode,
   setName,
@@ -54,10 +59,12 @@ export function TcgCard({
   cardId,
   cardHref,
   defaultPortfolioId,
+  onAdd,
 }: TcgCardProps) {
   const isPositive = change >= 0;
   const [adding, setAdding] = useState(false);
   const [localQty, setLocalQty] = useState(quantity);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,6 +88,9 @@ export function TcgCard({
         portfolioId: defaultPortfolioId,
       });
       setLocalQty((prev) => prev + 1);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 1200);
+      if (onAdd) onAdd();
       sileo.success({ title: "Adicionado ao portfólio!" });
     } catch {
       sileo.error({ title: "Erro ao adicionar carta" });
@@ -100,7 +110,7 @@ export function TcgCard({
             <Image
               src={imageUrl}
               alt={name}
-              className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
             />
@@ -110,7 +120,7 @@ export function TcgCard({
             <Image
               src={imageUrl}
               alt={name}
-              className="w-full rounded-xl aspect-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
             />
@@ -121,12 +131,12 @@ export function TcgCard({
       <div className="p-3 space-y-1">
         {cardHref ? (
           <Link href={cardHref}>
-            <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-2 hover:text-primary transition-colors">
+            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
               {name}
             </h3>
           </Link>
         ) : (
-          <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-2">
+          <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem]">
             {name}
           </h3>
         )}
@@ -153,9 +163,20 @@ export function TcgCard({
         </p>
         <div className="pt-1.5 border-t border-border space-y-0.5 flex justify-between">
           <div className="flex flex-col items-start justify-between gap-2">
-            <span className="text-sm font-bold text-foreground font-mono">
-              R$ {price}
-            </span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-bold text-foreground font-mono">
+                R$ {brPrice != null ? formatPrice(brPrice) : price}
+              </span>
+              {brPrice != null ? (
+                <span className="text-[9px] font-medium text-emerald-400 leading-tight">
+                  lojas BR
+                </span>
+              ) : (
+                <span className="text-[9px] text-muted-foreground leading-tight">
+                  ref. TCGPlayer
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               {isPositive ? (
                 <IconTrendingUp className="size-3 text-emerald-400 shrink-0" />
@@ -180,12 +201,19 @@ export function TcgCard({
               <Button
                 variant="outline"
                 size="icon"
-                className="shrink-0 size-7 rounded-full border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent duration-200"
+                className={cn(
+                  "shrink-0 size-7 rounded-full duration-200 transition-all cursor-pointer",
+                  success
+                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
+                    : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent"
+                )}
                 onClick={handleAdd}
-                disabled={adding}
+                disabled={adding || success}
               >
                 {adding ? (
                   <IconLoader2 className="size-3.5 animate-spin" />
+                ) : success ? (
+                  <IconCheck className="size-3.5 animate-in zoom-in-50 duration-200" />
                 ) : (
                   <IconPlus className="size-3.5" />
                 )}

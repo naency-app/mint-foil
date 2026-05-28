@@ -1,5 +1,6 @@
 "use client";
 
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
@@ -7,14 +8,6 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -25,34 +18,29 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCards } from "@/hooks/use-cards";
 import { api, type Card as CardType, type Portfolio } from "@/lib/api";
 
-type CollectionMap = Record<string, number>;
-
 import {
-  IconFolder,
   IconLayoutGrid,
   IconListDetails,
   IconLoader2,
-  IconPlus,
+  IconPlus
 } from "@tabler/icons-react";
 import {
   ArrowUpDown,
-  ChevronRight,
-  LayoutGrid,
-  List,
+  Clock,
   Loader2,
   Search,
-  SlidersHorizontal,
   TrendingUp,
-  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useQueryState } from "nuqs";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { sileo } from "sileo";
+
+type CollectionMap = Record<string, number>;
 
 function FilterSection({
   title,
@@ -80,20 +68,6 @@ function FilterSection({
   );
 }
 
-function FilterCheckbox({ label, id }: { label: string; id: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Checkbox id={id} />
-      <label
-        htmlFor={id}
-        className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-      >
-        {label}
-      </label>
-    </div>
-  );
-}
-
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
@@ -103,6 +77,19 @@ function formatPrice(value: number) {
 
 function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
+}
+
+const LIGA_STORE_NAMES = ['LigaYugioh', 'LigaMagic', 'LigaPokemon', 'LigaOnePiece'];
+
+function getBrPrice(card: CardType): number | null {
+  const liga = card.storeLinks?.find(
+    (l) => LIGA_STORE_NAMES.includes(l.storeName) && l.price != null,
+  );
+  if (liga?.price != null) return liga.price;
+  return (
+    card.storeLinks?.find((l) => l.storeName === "EpicGame" && l.price != null && l.inStock)
+      ?.price ?? null
+  );
 }
 
 function getPriceChange(card: CardType) {
@@ -134,11 +121,15 @@ function GridCardSkeleton() {
 function ListRow({
   card,
   activePortfolioId,
+  onAdd,
 }: {
   card: CardType;
   activePortfolioId: string;
+  onAdd: () => void;
 }) {
-  const price = getLatestPrice(card);
+  const tcgPrice = getLatestPrice(card);
+  const brPrice = getBrPrice(card);
+  const displayPrice = brPrice ?? tcgPrice;
   const [adding, setAdding] = useState(false);
   const router = useRouter();
 
@@ -159,6 +150,7 @@ function ListRow({
         portfolioId: activePortfolioId,
       });
       sileo.success({ title: "Adicionado ao portfólio!" });
+      onAdd();
     } catch {
       sileo.error({ title: "Erro ao adicionar carta" });
     } finally {
@@ -201,9 +193,19 @@ function ListRow({
           <div className="flex items-center justify-end gap-1">
             <TrendingUp className="size-3 text-emerald-400" />
             <span className="text-sm font-bold text-foreground font-mono">
-              R$ {formatPrice(price)}
+              R$ {formatPrice(displayPrice)}
             </span>
           </div>
+          {brPrice == null && tcgPrice > 0 && (
+            <span className="text-[9px] text-muted-foreground">
+              ref. TCGPlayer
+            </span>
+          )}
+          {brPrice != null && (
+            <span className="text-[9px] text-emerald-400 font-medium">
+              lojas BR
+            </span>
+          )}
         </div>
 
         <Button
@@ -224,30 +226,108 @@ function ListRow({
   );
 }
 
-export default function ExplorePage() {
+function ExplorePageContent() {
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState("best-match");
+  const [sortBy, setSortBy] = useQueryState("sort", { defaultValue: "best-match" });
+  const [search, setSearch] = useQueryState("q", { defaultValue: "" });
   const [searchInput, setSearchInput] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
   const [collectionMap, setCollectionMap] = useState<CollectionMap>({});
   const [proModalOpen, setProModalOpen] = useState(false);
 
-  const { cards, loading, error, search, setSearch } = useCards();
+  // States from filter sidebar & searches
+  const [selectedTcg, setSelectedTcg] = useQueryState("tcg");
+  const activeTcgs = useMemo(() => {
+    return selectedTcg ? selectedTcg.split(",") : [];
+  }, [selectedTcg]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [cards, setCards] = useState<CardType[]>([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Synchronize searchInput when query parameter 'q' changes (e.g. initial load, recent chip click)
   useEffect(() => {
+    setSearchInput(search || "");
+  }, [search]);
+
+  // Load recent searches on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("recent_searches");
+    if (stored) {
+      try {
+        setRecentSearches(JSON.parse(stored));
+      } catch { }
+    }
+  }, []);
+
+  // Save recent searches
+  const saveRecentSearch = (term: string) => {
+    if (!term.trim()) return;
+    const cleanTerm = term.trim();
+    setRecentSearches((prev) => {
+      const next = [cleanTerm, ...prev.filter((x) => x !== cleanTerm)].slice(0, 5);
+      localStorage.setItem("recent_searches", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const fetchPortfolios = useCallback(() => {
     api.collection
       .portfolios()
       .then((data) => {
-        setPortfolios(data);
-        if (data.length > 0) setActivePortfolioId(data[0].id);
+        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+        let favs: string[] = [];
+        if (favsStr) {
+          try {
+            favs = JSON.parse(favsStr) as string[];
+          } catch {}
+        } else {
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          if (oldDefault) favs = [oldDefault];
+        }
+
+        const sortedPortfolios = [...data].sort((a, b) => {
+          const aFav = favs.includes(a.id);
+          const bFav = favs.includes(b.id);
+          if (aFav && !bFav) return -1;
+          if (!aFav && bFav) return 1;
+          return 0;
+        });
+
+        setPortfolios(sortedPortfolios);
+
+        if (sortedPortfolios.length > 0) {
+          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+          const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+          const nextActive = foundFav 
+            ? foundFav.id 
+            : (hasOldStored && oldDefault ? oldDefault : sortedPortfolios[0].id);
+
+          setActivePortfolioId((prev) => {
+            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+              return prev;
+            }
+            return nextActive;
+          });
+        }
       })
-      .catch(() => {}); // user may not be logged in
+      .catch(() => { }); // user may not be logged in
   }, []);
 
+  // Fetch portfolios
   useEffect(() => {
-    if (!activePortfolioId) return;
+    fetchPortfolios();
+  }, [fetchPortfolios]);
+
+  // Fetch portfolio details to compute collection map
+  const refreshPortfolio = useCallback(() => {
+    if (!activePortfolioId) {
+      setCollectionMap({});
+      return;
+    }
     api.collection
       .getPortfolio(activePortfolioId)
       .then((data) => {
@@ -257,11 +337,50 @@ export default function ExplorePage() {
         }
         setCollectionMap(map);
       })
-      .catch(() => {});
+      .catch(() => {
+        setCollectionMap({});
+      });
   }, [activePortfolioId]);
+
+  useEffect(() => {
+    refreshPortfolio();
+  }, [refreshPortfolio]);
+
+  // Load cards based on search query & selected TCG category
+  useEffect(() => {
+    let active = true;
+
+    async function loadCards() {
+      setCardsLoading(true);
+      setError(null);
+      try {
+        const data = await api.cards.list(search || undefined, selectedTcg || undefined);
+        if (active) {
+          setCards(data);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Erro ao buscar cartas");
+          setCards([]);
+        }
+      } finally {
+        if (active) {
+          setCardsLoading(false);
+        }
+      }
+    }
+
+    loadCards();
+    return () => {
+      active = false;
+    };
+  }, [search, selectedTcg]);
 
   function handleSearch() {
     setSearch(searchInput);
+    if (searchInput.trim()) {
+      saveRecentSearch(searchInput);
+    }
   }
 
   function handleClear() {
@@ -273,27 +392,41 @@ export default function ExplorePage() {
     if (e.key === "Enter") handleSearch();
   }
 
-  const sortedCards = [...cards].sort((a, b) => {
-    const priceA = getLatestPrice(a);
-    const priceB = getLatestPrice(b);
-    switch (sortBy) {
-      case "price-asc":
-        return priceA - priceB;
-      case "price-desc":
-        return priceB - priceA;
-      case "name-asc":
-        return a.name.localeCompare(b.name);
-      case "name-desc":
-        return b.name.localeCompare(a.name);
-      default:
-        return 0;
-    }
-  });
+  const sortedCards = useMemo(() => {
+    return [...cards].sort((a, b) => {
+      const priceA = getBrPrice(a) ?? getLatestPrice(a);
+      const priceB = getBrPrice(b) ?? getLatestPrice(b);
+      switch (sortBy) {
+        case "price-asc":
+          return priceA - priceB;
+        case "price-desc":
+          return priceB - priceA;
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        default:
+          return 0;
+      }
+    });
+  }, [cards, sortBy]);
+
+  // Helper to handle TCG sidebar filter toggle
+  const handleTcgToggle = (slug: string) => {
+    setSelectedTcg((prev) => {
+      const current = prev ? prev.split(",") : [];
+      const next = current.includes(slug)
+        ? current.filter((x) => x !== slug)
+        : [...current, slug];
+      return next.length > 0 ? next.join(",") : null;
+    });
+  };
 
   return (
-    <main className="max-w-370 mx-auto px-4 sm:px-6  py-6 space-y-5">
-      <section className="rounded-xl border border-border bg-card backdrop-blur-sm p-4 space-y-3">
-        <h2 className="text-sm font-bold text-foreground">Buscar um Produto</h2>
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* Search Input Section */}
+      <section className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
+        <h2 className="text-sm font-bold text-foreground">Buscar no Catálogo</h2>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -302,7 +435,7 @@ export default function ExplorePage() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Buscar qualquer carta, produto selado ou acessório..."
+              placeholder="Buscar cartas por nome, expansão, código ou raridade..."
               className="pl-10"
             />
           </div>
@@ -311,51 +444,47 @@ export default function ExplorePage() {
             Limpar
           </Button>
         </div>
+
+        {/* Recent Searches */}
+        {recentSearches.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/40">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <Clock className="size-3" /> Recentes:
+            </span>
+            {recentSearches.map((term) => (
+              <button
+                key={term}
+                onClick={() => {
+                  setSearchInput(term);
+                  setSearch(term);
+                  saveRecentSearch(term);
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-muted/30 text-[11px] font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
-      <div className="flex items-center justify-between">
+      {/* Toolbar: Portfolio, ResultsCount, Sorting & Layout */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setDrawerOpen(true)}
-            className="border-border text-muted-foreground hover:text-foreground hover:bg-muted h-8 text-xs gap-1.5 cursor-pointer lg:hidden"
-          >
-            <SlidersHorizontal className="size-3.5" />
-            Filtros
-          </Button>
-
           {portfolios.length > 0 && (
-            <>
-              <Separator
-                orientation="vertical"
-                className="h-5 hidden sm:block"
-              />
-              <div className="hidden sm:flex items-center gap-1.5">
-                <IconFolder className="size-3.5 text-muted-foreground shrink-0" />
-                <Select
-                  value={activePortfolioId}
-                  onValueChange={setActivePortfolioId}
-                >
-                  <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[130px] max-w-[180px]">
-                    <SelectValue placeholder="Portfólio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {portfolios.map((p) => (
-                      <SelectItem key={p.id} value={p.id} className="text-xs">
-                        {p.name}
-                        {p._count != null ? ` (${p._count.items})` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={fetchPortfolios}
+              labelPrefix="Adicionando a:"
+            />
           )}
 
-          <p className="text-xs text-muted-foreground hidden sm:block">
-            {loading ? (
+          <Separator orientation="vertical" className="h-5 hidden sm:block mx-1" />
+
+          <p className="text-xs text-muted-foreground">
+            {cardsLoading ? (
               <span className="flex items-center gap-1">
                 <Loader2 className="size-3 animate-spin" /> Buscando...
               </span>
@@ -364,28 +493,30 @@ export default function ExplorePage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[160px]">
-                <ArrowUpDown className="size-3.5 text-muted-foreground" />{" "}
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="best-match">Melhor Resultado</SelectItem>
-                <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
-                <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
-                <SelectItem value="name-asc">Nome: A → Z</SelectItem>
-                <SelectItem value="name-desc">Nome: Z → A</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+
+        <div className="flex items-center justify-end gap-3">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[160px]">
+              <ArrowUpDown className="size-3.5 text-muted-foreground" />{" "}
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="best-match">Melhor Resultado</SelectItem>
+              <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
+              <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
+              <SelectItem value="name-asc">Nome: A → Z</SelectItem>
+              <SelectItem value="name-desc">Nome: Z → A</SelectItem>
+            </SelectContent>
+          </Select>
 
           <Separator orientation="vertical" className="h-6" />
+
           <ButtonGroup>
             <Button
+              size="icon"
               variant={viewType === "grid" ? "default" : "outline"}
               onClick={() => setViewType("grid")}
+              className="h-8 w-8"
             >
               <IconLayoutGrid className="size-4" />
             </Button>
@@ -393,6 +524,7 @@ export default function ExplorePage() {
               size="icon"
               variant={viewType === "list" ? "default" : "outline"}
               onClick={() => setViewType("list")}
+              className="h-8 w-8"
             >
               <IconListDetails className="size-4" />
             </Button>
@@ -400,127 +532,27 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* Mobile Filters Drawer */}
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-background border-border max-h-[85vh]">
-          <DrawerHeader className="flex flex-row items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <DrawerClose asChild>
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <X className="size-5" />
-                </button>
-              </DrawerClose>
-              <DrawerTitle className="text-base font-bold text-foreground">
-                Filtros
-              </DrawerTitle>
-            </div>
-            <button
-              type="button"
-              className="text-xs text-emerald-400 hover:text-emerald-300 font-medium cursor-pointer"
-            >
-              Reset All
-            </button>
-          </DrawerHeader>
-
-          <div className="flex-1 overflow-y-auto px-5 pb-4">
-            <button
-              type="button"
-              className="flex items-center justify-between w-full py-3.5 border-b border-border cursor-pointer group"
-            >
-              <span className="text-sm text-foreground font-medium">Sort</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  Best Match
-                </span>
-                <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground" />
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="flex items-center justify-between w-full py-3.5 border-b border-border cursor-pointer group"
-            >
-              <div>
-                <span className="text-sm text-foreground font-medium block">
-                  Tipo de Produto
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Filtrar por tipo de produto.
-                </span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground shrink-0" />
-            </button>
-
-            <button
-              type="button"
-              className="flex items-center justify-between w-full py-3.5 border-b border-border cursor-pointer group"
-            >
-              <div>
-                <span className="text-sm text-foreground font-medium block">
-                  Categoria
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Selecione uma categoria abaixo.
-                </span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground shrink-0" />
-            </button>
-
-            <div className="flex items-center justify-between py-3.5">
-              <span className="text-sm text-foreground font-medium">
-                Formato de Visualização
-              </span>
-              <div className="flex items-center border border-border rounded-md overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setViewType("grid")}
-                  className={`flex items-center justify-center size-8 transition-colors cursor-pointer ${
-                    viewType === "grid"
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <LayoutGrid className="size-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewType("list")}
-                  className={`flex items-center justify-center size-8 transition-colors cursor-pointer ${
-                    viewType === "list"
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <List className="size-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <DrawerFooter className="px-5 pb-6">
-            <DrawerClose asChild>
-              <Button className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold h-11 text-sm cursor-pointer">
-                Mostrar Resultados
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
-      {/* Main Layout: Sidebar + Content */}
+      {/* Main Layout: Sidebar Filters + Cards List */}
       <div className="flex gap-6">
         <aside className="hidden lg:block w-60 shrink-0">
-          <div className="sticky top-20 rounded-xl border border-border bg-card backdrop-blur-sm p-4 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="sticky top-20 rounded-xl border border-border bg-card/30 backdrop-blur-sm p-4 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <FilterSection title="Tipo de Produto">
               <p className="text-xs text-muted-foreground -mt-1">
                 Filtrar por tipo de produto.
               </p>
-              <div className="space-y-1.5">
-                <FilterCheckbox label="Apenas Cartas" id="cards-only" />
-                <FilterCheckbox label="Apenas Selados" id="sealed-only" />
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="cards-only" checked />
+                  <label htmlFor="cards-only" className="text-xs text-foreground font-medium">
+                    Apenas Cartas
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 opacity-50">
+                  <Checkbox id="sealed-only" disabled />
+                  <label htmlFor="sealed-only" className="text-xs text-muted-foreground">
+                    Apenas Selados
+                  </label>
+                </div>
               </div>
             </FilterSection>
 
@@ -528,40 +560,118 @@ export default function ExplorePage() {
 
             <FilterSection title="Faixa de Preço" badge="PRO">
               <p className="text-xs text-muted-foreground -mt-1">
-                Mostrar produtos dentro de uma faixa de preço (inclusive).
+                Filtrar por faixa de preço.
               </p>
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setProModalOpen(true)}
-                className="flex items-center gap-2 w-full cursor-pointer"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setProModalOpen(true);
+                  }
+                }}
+                className="flex items-center gap-2 w-full pt-1 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
               >
                 <Input
                   placeholder="Min."
                   readOnly
-                  className="h-8 bg-muted border-border text-foreground text-xs placeholder:text-muted-foreground pointer-events-none"
+                  className="h-8 bg-muted/40 border-border text-foreground text-xs pointer-events-none"
                 />
-                <span className="text-xs text-muted-foreground shrink-0">
-                  a
-                </span>
+                <span className="text-xs text-muted-foreground">a</span>
                 <Input
                   placeholder="Max."
                   readOnly
-                  className="h-8 bg-muted border-border text-foreground text-xs placeholder:text-muted-foreground pointer-events-none"
+                  className="h-8 bg-muted/40 border-border text-foreground text-xs pointer-events-none"
                 />
-              </button>
+              </div>
             </FilterSection>
 
             <Separator />
 
-            <FilterSection title="Categoria">
+            <FilterSection title="Idioma" badge="PRO">
               <p className="text-xs text-muted-foreground -mt-1">
-                Selecione uma categoria abaixo.
+                Filtrar por idioma.
               </p>
-              <div className="space-y-1.5">
-                <FilterCheckbox label="Pokémon" id="cat-pokemon" />
-                <FilterCheckbox label="Magic: The Gathering" id="cat-magic" />
-                <FilterCheckbox label="Yu-Gi-Oh!" id="cat-yugioh" />
-                <FilterCheckbox label="One Piece" id="cat-onepiece" />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setProModalOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setProModalOpen(true);
+                  }
+                }}
+                className="space-y-2 pt-2 text-left block w-full cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+              >
+                {[
+                  { code: "en", name: "Inglês" },
+                  { code: "ja", name: "Japonês" },
+                  { code: "zh", name: "Chinês" },
+                ].map((lang) => (
+                  <div key={lang.code} className="flex items-center gap-2">
+                    <Checkbox id={`lang-${lang.code}`} disabled />
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {lang.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </FilterSection>
+
+            <Separator />
+
+            <FilterSection title="Jogo / Categoria">
+              <p className="text-xs text-muted-foreground -mt-1">
+                Filtrar por jogo.
+              </p>
+              <div className="space-y-2.5 pt-2">
+                {/* Supported TCGs */}
+                {[
+                  { slug: "pokemon", name: "Pokémon" },
+                  { slug: "magic", name: "Magic: The Gathering" },
+                  { slug: "yugioh", name: "Yu-Gi-Oh!" },
+                  { slug: "onepiece", name: "One Piece" },
+                ].map((tcg) => (
+                  <div key={tcg.slug} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`tcg-${tcg.slug}`}
+                      checked={activeTcgs.includes(tcg.slug)}
+                      onCheckedChange={() => handleTcgToggle(tcg.slug)}
+                    />
+                    <label
+                      htmlFor={`tcg-${tcg.slug}`}
+                      className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none font-medium"
+                    >
+                      {tcg.name}
+                    </label>
+                  </div>
+                ))}
+
+                {/* Coming Soon TCGs */}
+                {[
+                  { name: "Lorcana" },
+                  { name: "Flesh and Blood" },
+                  { name: "Dragon Ball Super" },
+                  { name: "Digimon" },
+                  { name: "Star Wars Unlimited" },
+                  { name: "Weiß Schwarz" },
+                  { name: "Union Arena" },
+                ].map((tcg) => (
+                  <div key={tcg.name} className="flex items-center justify-between gap-2 opacity-50 select-none">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id={`tcg-coming-${tcg.name.toLowerCase().replace(/\s+/g, "")}`} disabled />
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {tcg.name}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase tracking-wider font-mono opacity-80 leading-none">
+                      Breve
+                    </Badge>
+                  </div>
+                ))}
               </div>
             </FilterSection>
           </div>
@@ -575,9 +685,9 @@ export default function ExplorePage() {
             </div>
           )}
 
-          {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {Array.from({ length: 10 }).map((_, i) => (
+          {cardsLoading && cards.length === 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <GridCardSkeleton key={`skeleton-${i}`} />
               ))}
             </div>
@@ -590,11 +700,11 @@ export default function ExplorePage() {
               <p className="text-sm text-muted-foreground">
                 {search
                   ? `Nenhum resultado para "${search}". Tente outro termo.`
-                  : "O catálogo está vazio. Adicione cartas via seed."}
+                  : "O catálogo está vazio. Adicione cartas via banco de dados."}
               </p>
             </div>
           ) : viewType === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
               {sortedCards.map((card) => (
                 <TcgCard
                   key={card.id}
@@ -605,6 +715,7 @@ export default function ExplorePage() {
                       ? card.prices[0].value - card.prices[1].value
                       : 0
                   }
+                  brPrice={getBrPrice(card)}
                   imageUrl={card.imageUrl}
                   setCode={card.setCode}
                   setName={card.setName}
@@ -616,6 +727,7 @@ export default function ExplorePage() {
                   cardHref={`/card/${card.id}`}
                   quantity={collectionMap[card.id] ?? 0}
                   defaultPortfolioId={activePortfolioId}
+                  onAdd={refreshPortfolio}
                 />
               ))}
             </div>
@@ -626,16 +738,30 @@ export default function ExplorePage() {
                   key={card.id}
                   card={card}
                   activePortfolioId={activePortfolioId}
+                  onAdd={refreshPortfolio}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
+
       <ProUpgradeModal
         open={proModalOpen}
         onClose={() => setProModalOpen(false)}
       />
     </main>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="animate-spin text-primary size-8" />
+      </div>
+    }>
+      <ExplorePageContent />
+    </Suspense>
   );
 }

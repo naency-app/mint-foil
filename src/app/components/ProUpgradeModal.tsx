@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { QRCode } from "@/components/ui/qrcode";
+import {
   Camera,
   FolderOpen,
   SlidersHorizontal,
@@ -8,13 +15,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { QRCode } from "@/components/ui/qrcode";
+
 
 const APP_STORE_URL = "https://apps.apple.com/app/mint-foil";
 const PLAY_STORE_URL =
@@ -62,7 +63,7 @@ export function ProUpgradeModal({
         <DialogTitle className="sr-only">Mint Foil PRO</DialogTitle>
 
         {/* Header */}
-        <div className="bg-gradient-to-br from-emerald-900 via-emerald-800 to-slate-900 px-8 pt-8 pb-7 text-center relative">
+        <div className="bg-gradient-to-br from-pink-950 via-pink-900 to-slate-900 px-8 pt-8 pb-7 text-center relative">
           <DialogClose asChild>
             <button
               type="button"
@@ -73,16 +74,16 @@ export function ProUpgradeModal({
             </button>
           </DialogClose>
 
-          <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-4 py-1.5 mb-4">
-            <span className="text-emerald-400 font-bold text-sm tracking-wide">
+          <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 rounded-full px-4 py-1.5 mb-4">
+            <span className="text-primary font-bold text-sm tracking-wide">
               MINT FOIL PRO
             </span>
           </div>
           <h2 className="text-2xl font-bold text-white">
             Leve sua coleção a{" "}
-            <span className="text-emerald-400">outro nível</span>
+            <span className="text-primary">outro nível</span>
           </h2>
-          <p className="text-emerald-100/70 text-sm mt-2">
+          <p className="text-pink-100/70 text-sm mt-2">
             Desbloqueie recursos exclusivos no app
           </p>
         </div>
@@ -91,8 +92,8 @@ export function ProUpgradeModal({
         <div className="px-6 pt-5 pb-4 space-y-4">
           {features.map((feature) => (
             <div key={feature.title} className="flex items-start gap-3">
-              <div className="size-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                <feature.icon className="size-4 text-emerald-400" />
+              <div className="size-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                <feature.icon className="size-4 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">

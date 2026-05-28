@@ -97,12 +97,35 @@ export interface CollectionResponse {
   items: CollectionItem[];
 }
 
+export interface UserStats {
+  memberSince: string | null;
+  isPro: boolean;
+  portfolioCount: number;
+  totalCards: number;
+  uniqueCards: number;
+  totalValue: number;
+  totalInvested: number;
+  profitLoss: number;
+  lifetimeScans: number;
+  tcgBreakdown: { name: string; slug: string; value: number; count: number }[];
+  topCards: {
+    id: string;
+    name: string;
+    imageUrl: string;
+    setCode: string;
+    quantity: number;
+    unitValue: number;
+    totalValue: number;
+  }[];
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
       ...options?.headers,
     },
   });
@@ -142,6 +165,15 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ name }),
       }),
+    updatePortfolio: (id: string, name: string) =>
+      apiFetch<Portfolio>(`/collection/portfolios/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name }),
+      }),
+    deletePortfolio: (id: string) =>
+      apiFetch<void>(`/collection/portfolios/${id}`, {
+        method: "DELETE",
+      }),
     getPortfolio: (id: string) =>
       apiFetch<CollectionResponse & { portfolio: Portfolio }>(
         `/collection/portfolios/${id}`,
@@ -168,6 +200,11 @@ export const api = {
       }),
     remove: (id: string) =>
       apiFetch<CollectionItem>(`/collection/${id}`, { method: "DELETE" }),
+    stats: () => apiFetch<UserStats>("/collection/stats"),
+    history: (range: "7d" | "1m" | "3m" | "6m", portfolioId?: string) =>
+      apiFetch<{ date: string; value: number }[]>(
+        `/collection/history?range=${range}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`
+      ),
   },
   scan: {
     remaining: () =>
