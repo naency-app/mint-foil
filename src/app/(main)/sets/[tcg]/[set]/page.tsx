@@ -144,12 +144,7 @@ function ListRow({
               R$ {formatPrice(displayPrice)}
             </span>
           </div>
-          {brPrice == null && tcgPrice > 0 && (
-            <span className="text-[9px] text-muted-foreground">
-              ref. TCGPlayer
-            </span>
-          )}
-          {brPrice != null && (
+          {displayPrice > 0 && (
             <span className="text-[9px] text-emerald-400 font-medium">
               lojas BR
             </span>

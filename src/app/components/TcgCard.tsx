@@ -167,15 +167,9 @@ export function TcgCard({
               <span className="text-sm font-bold text-foreground font-mono">
                 R$ {brPrice != null ? formatPrice(brPrice) : price}
               </span>
-              {brPrice != null ? (
-                <span className="text-[9px] font-medium text-emerald-400 leading-tight">
-                  lojas BR
-                </span>
-              ) : (
-                <span className="text-[9px] text-muted-foreground leading-tight">
-                  ref. TCGPlayer
-                </span>
-              )}
+              <span className="text-[9px] font-medium text-emerald-400 leading-tight">
+                lojas BR
+              </span>
             </div>
             <div className="flex items-center gap-1">
               {isPositive ? (

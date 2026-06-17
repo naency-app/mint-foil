@@ -3,7 +3,7 @@
 import { type CardSet } from "@/lib/api";
 import { Layers } from "lucide-react";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export interface SetProgress {
   count: number;
@@ -32,6 +32,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
   const collected = progress?.count ?? 0;
   const pct = total > 0 ? Math.min(collected / total, 1) : 0;
   const cdnUrl = getSetImageUrl(set);
+  const [imgError, setImgError] = useState(false);
 
   const relDate = useMemo(() => {
     if (!set.releaseDate) return null;
@@ -52,7 +53,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
     >
       <div>
         <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3 border-b border-border">
-          {cdnUrl ? (
+          {cdnUrl && !imgError ? (
             <Image
               src={cdnUrl}
               alt={set.name}
@@ -60,6 +61,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
               sizes="(max-w-768px) 100vw, 300px"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
+              onError={() => setImgError(true)}
             />
           ) : (
             <Layers className="size-8 text-muted-foreground stroke-[1.5]" />

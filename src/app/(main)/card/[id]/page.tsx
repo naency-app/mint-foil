@@ -22,6 +22,7 @@ import {
   Package,
   Plus,
   ShoppingCart,
+  Tag,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -59,13 +60,48 @@ const storeConfig: Record<
     label: "Ver no LigaOnePiece",
     logo: "/logos/sites/logo_ligaonepiece.png",
   },
-  EpicGame: { color: "text-emerald-400", label: "Ver na EpicGame" },
+  EpicGame: {
+    color: "text-emerald-400",
+    label: "Ver na EpicGame",
+    logo: storeFavicon("epicgame.com.br"),
+  },
   MyPCards: {
     color: "text-orange-400",
     label: "Ver no MyPCards",
     logo: "/logos/sites/logo-mypcards.png",
   },
 };
+
+// Favicon de lojas sem logo embarcado (ex: EpicGame)
+function storeFavicon(domain: string): string {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+}
+
+// Ícone da loja num slot de largura fixa (nomes alinham). favicon → chip quadrado; wordmark → largo.
+function StoreLogo({ logo, name }: { logo?: string; name: string }) {
+  return (
+    <span className="flex w-16 shrink-0 items-center">
+      {!logo ? (
+        <span className="flex items-center justify-center size-7 rounded-md bg-muted">
+          <ShoppingCart className="size-3.5 text-muted-foreground" />
+        </span>
+      ) : logo.startsWith("http") ? (
+        <span className="flex items-center justify-center size-7 rounded-md bg-white overflow-hidden border border-border/40">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logo} alt={name} className="size-5 object-contain" />
+        </span>
+      ) : (
+        <Image
+          src={logo}
+          alt={name}
+          width={124}
+          height={48}
+          className="h-6 w-auto max-w-[60px] object-contain"
+        />
+      )}
+    </span>
+  );
+}
 
 function getSearchUrls(cardName: string, tcgSlug?: string) {
   const encoded = encodeURIComponent(cardName);
@@ -118,6 +154,14 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       logo: "/logos/sites/logo_ligaonepiece.png",
     });
   }
+  // EpicGame: busca por nome (encoding de formulário — espaços viram '+')
+  urls.push({
+    name: "EpicGame",
+    url: `https://www.epicgame.com.br/?view=ecom%2Fitens&id=461&searchExactMatch=&busca=${encodeURIComponent(cardName).replace(/%20/g, "+")}`,
+    color: "text-emerald-400",
+    label: "Buscar na EpicGame",
+    logo: storeFavicon("epicgame.com.br"),
+  });
   // MyPCards: URL de busca com parâmetros ProdutoSearch
   const myPTcg = tcgSlug ?? "yugioh";
   const myPParams = new URLSearchParams({
@@ -432,55 +476,48 @@ export default function CardDetailPage({
           </div>
         </div>
 
-        {/* Pricing Cards */}
+        {/* Pricing Card */}
         <div className="flex flex-wrap items-center gap-3">
-          {brPrice != null && (
-            <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                Menor Preço BR
-              </span>
-              <span className="text-2xl font-black text-foreground font-mono">
-                R$ {formatPrice(brPrice)}
-              </span>
-              <span className="text-[10px] text-emerald-400 font-medium">
-                Média de lojas (NM)
-              </span>
-            </div>
-          )}
-
-          <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-              Ref. TCGPlayer
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-black text-foreground font-mono">
-                R$ {formatPrice(latestPrice)}
-              </span>
-              {latestPrice > 0 && (
-                <div
-                  className={cn(
-                    "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
-                    isPositive
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "bg-rose-500/10 text-rose-400",
-                  )}
-                >
-                  {isPositive ? (
-                    <TrendingUp className="size-3" />
-                  ) : (
-                    <TrendingDown className="size-3" />
-                  )}
-                  <span>
-                    {isPositive ? "+" : ""}
-                    {changePercent.toFixed(1)}%
+          {(() => {
+            const displayPrice = brPrice ?? latestPrice;
+            return (
+              <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  Preço médio das lojas
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-2xl font-black text-foreground font-mono">
+                    {displayPrice > 0 ? `R$ ${formatPrice(displayPrice)}` : "Sem preço"}
                   </span>
+                  {latestPrice > 0 && changePercent !== 0 && (
+                    <div
+                      className={cn(
+                        "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                        isPositive
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : "bg-rose-500/10 text-rose-400",
+                      )}
+                    >
+                      {isPositive ? (
+                        <TrendingUp className="size-3" />
+                      ) : (
+                        <TrendingDown className="size-3" />
+                      )}
+                      <span>
+                        {isPositive ? "+" : ""}
+                        {changePercent.toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <span className="text-[10px] text-muted-foreground">
-              Mercado EUA (Ungraded)
-            </span>
-          </div>
+                {displayPrice > 0 && (
+                  <span className="text-[10px] text-emerald-400 font-medium">
+                    lojas BR (NM)
+                  </span>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -504,7 +541,7 @@ export default function CardDetailPage({
           <div className="rounded-xl border border-border bg-card backdrop-blur-sm p-4">
             <h2 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
               <TrendingUp className="size-4 text-primary" />
-              Histórico de Preço (Ungraded)
+              Histórico de Preço (lojas BR)
             </h2>
             {priceHistory.length > 1 ? (
               <AreaChart
@@ -672,7 +709,7 @@ export default function CardDetailPage({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                  Ungraded
+                  Condição
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -829,109 +866,104 @@ export default function CardDetailPage({
           )}
 
           {/* Store Links - Onde Comprar */}
-          <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-1">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+          <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
               <ShoppingCart className="size-3.5 text-emerald-400" />
               Onde Comprar
             </h3>
 
-            {/* Real store links from scraper */}
-            {card.storeLinks && card.storeLinks.length > 0 && (
-              <>
-                {card.storeLinks.map((link) => {
-                  const config = storeConfig[link.storeName];
-                  return (
-                    <a
-                      key={link.id}
-                      href={link.storeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between w-full py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3">
-                        {config?.logo ? (
-                          <Image
-                            src={config.logo}
-                            alt={link.storeName}
-                            width={60}
-                            height={20}
-                            className="h-5 w-auto object-contain"
-                          />
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                          >
-                            {link.storeName}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-muted-foreground group-hover:text-foreground">
-                          {config?.label ?? "Ver loja"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {link.price != null && (
-                          <span className="text-xs text-emerald-400 font-mono">
-                            R$ {formatPrice(link.price)}
-                          </span>
-                        )}
-                        {!link.inStock && (
-                          <Badge
-                            variant="outline"
-                            className="text-[8px] text-red-400 border-red-400/30"
-                          >
-                            Esgotado
-                          </Badge>
-                        )}
-                        <ExternalLink
-                          className={`size-3.5 ${config?.color ?? "text-muted-foreground"} opacity-50 group-hover:opacity-100 transition-opacity`}
-                        />
-                      </div>
-                    </a>
-                  );
-                })}
-                <Separator className="my-2" />
-              </>
-            )}
-
-            {/* Search links for stores */}
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider pt-1 pb-1">
-              Buscar nas lojas
-            </p>
-            {getSearchUrls(card.name, card.tcg?.slug).map((link) => (
-              <a
-                key={link.name}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-3">
-                  {link.logo ? (
-                    <Image
-                      src={link.logo}
-                      alt={link.name}
-                      width={60}
-                      height={20}
-                      className={`h-5 w-auto object-contain ${link.backgroundColor} p-0.5 rounded-xs`}
-                    />
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                    >
-                      {link.name}
-                    </Badge>
-                  )}
-                  <span className="text-xs text-muted-foreground group-hover:text-foreground">
-                    {link.label}
-                  </span>
+            {/* Disponível nas lojas (com preço) */}
+            {(() => {
+              const priced = (card.storeLinks ?? [])
+                .filter((l) => l.price != null)
+                .sort((a, b) => (a.price as number) - (b.price as number));
+              const cheapest = priced[0]?.price ?? null;
+              if (priced.length === 0) return null;
+              return (
+                <div className="space-y-2">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                    Disponível nas lojas
+                  </p>
+                  <div className="divide-y divide-border/60">
+                    {priced.map((link) => {
+                      const config = storeConfig[link.storeName];
+                      const best = link.price === cheapest;
+                      return (
+                        <a
+                          key={link.id}
+                          href={link.storeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <StoreLogo logo={config?.logo} name={link.storeName} />
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-foreground truncate">
+                                {link.storeName}
+                              </p>
+                              {link.inStock ? (
+                                <span className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium">
+                                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                                  em estoque
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-muted-foreground">
+                                  indisponível
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {best && (
+                              <Badge className="bg-primary/15 text-primary border-0 text-[9px] font-bold gap-0.5 h-5">
+                                <Tag className="size-2.5" /> menor preço
+                              </Badge>
+                            )}
+                            <span
+                              className={cn(
+                                "text-sm font-extrabold font-mono",
+                                best ? "text-primary" : "text-foreground",
+                              )}
+                            >
+                              R$ {formatPrice(link.price as number)}
+                            </span>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
-                <ExternalLink
-                  className={`size-3.5 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
-                />
-              </a>
-            ))}
+              );
+            })()}
+
+            {/* Buscar nas lojas */}
+            <div className="space-y-2">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                Buscar nas lojas
+              </p>
+              <div className="divide-y divide-border/60">
+                {getSearchUrls(card.name, card.tcg?.slug).map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <StoreLogo logo={link.logo} name={link.name} />
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {link.name}
+                      </span>
+                    </div>
+                    <ExternalLink
+                      className={`size-4 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity shrink-0`}
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

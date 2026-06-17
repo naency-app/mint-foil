@@ -11,11 +11,14 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
+  CheckCircle2,
+  Circle,
   Crown,
   Info,
   LogOut,
   Mail,
   Moon,
+  Play,
   RefreshCw,
   Scan,
   Settings2,
@@ -27,6 +30,7 @@ import {
   TrendingUp,
   Trophy,
   User,
+  XCircle,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -44,6 +48,24 @@ interface ScraperJob {
   label: string;
   endpoint: string;
 }
+
+const FULL_SYNC_STEPS: ScraperJob[] = [
+  { id: "full-sets", label: "Sets (todos os TCGs)", endpoint: "sync-sets" },
+  { id: "full-cards-yugioh", label: "Cards — YuGiOh", endpoint: "sync-cards?tcg=yugioh" },
+  { id: "full-cards-pokemon", label: "Cards — Pokémon", endpoint: "sync-cards?tcg=pokemon" },
+  { id: "full-cards-magic", label: "Cards — Magic", endpoint: "sync-cards?tcg=magic" },
+  { id: "full-cards-onepiece", label: "Cards — One Piece", endpoint: "sync-cards?tcg=onepiece" },
+  { id: "full-liga-snapshot", label: "Snapshot diário Liga (tracking)", endpoint: "snapshot-liga-prices" },
+  { id: "full-epicgame-yugioh", label: "EpicGame links — YuGiOh", endpoint: "sync-epicgame?tcg=yugioh" },
+  { id: "full-epicgame-pokemon", label: "EpicGame links — Pokémon", endpoint: "sync-epicgame?tcg=pokemon" },
+  { id: "full-epicgame-magic", label: "EpicGame links — Magic", endpoint: "sync-epicgame?tcg=magic" },
+  { id: "full-epicgame-onepiece", label: "EpicGame links — One Piece", endpoint: "sync-epicgame?tcg=onepiece" },
+  { id: "full-store-prices", label: "Preços EpicGame (refresh)", endpoint: "sync-store-prices" },
+  { id: "full-liga-yugioh", label: "Liga BR — YuGiOh", endpoint: "sync-liga-prices?tcg=yugioh" },
+  { id: "full-liga-pokemon", label: "Liga BR — Pokémon", endpoint: "sync-liga-prices?tcg=pokemon" },
+  { id: "full-liga-magic", label: "Liga BR — Magic", endpoint: "sync-liga-prices?tcg=magic" },
+  { id: "full-liga-onepiece", label: "Liga BR — One Piece", endpoint: "sync-liga-prices?tcg=onepiece" },
+];
 
 const SCRAPER_JOBS: ScraperJob[] = [
   {
@@ -95,10 +117,26 @@ function AdminPanel() {
   );
   const [statuses, setStatuses] = useState<Record<string, JobStatus>>({});
   const [messages, setMessages] = useState<Record<string, string>>({});
+  const [fullSyncRunning, setFullSyncRunning] = useState(false);
+  const [fullSyncStatuses, setFullSyncStatuses] = useState<Record<string, JobStatus>>({});
+  const [fullSyncMessages, setFullSyncMessages] = useState<Record<string, string>>({});
 
   function setJob(id: string, status: JobStatus, message = "") {
     setStatuses((prev) => ({ ...prev, [id]: status }));
     setMessages((prev) => ({ ...prev, [id]: message }));
+  }
+
+  async function fireRequest(endpoint: string): Promise<{ ok: boolean; message: string }> {
+    const res = await fetch(`${API_URL}/scraper/${endpoint}`, {
+      method: "POST",
+      headers: { "x-scraper-key": scraperKey.trim() },
+      credentials: "include",
+    });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { ok: true, message: data.message ?? "Iniciado" };
+    }
+    return { ok: false, message: `HTTP ${res.status}` };
   }
 
   async function runJob(job: ScraperJob) {
@@ -108,20 +146,33 @@ function AdminPanel() {
     }
     setJob(job.id, "running", "Iniciando em background…");
     try {
-      const res = await fetch(`${API_URL}/scraper/${job.endpoint}`, {
-        method: "POST",
-        headers: { "x-scraper-key": scraperKey.trim() },
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setJob(job.id, "done", data.message ?? "Iniciado com sucesso");
-      } else {
-        setJob(job.id, "error", `HTTP ${res.status}`);
-      }
+      const { ok, message } = await fireRequest(job.endpoint);
+      setJob(job.id, ok ? "done" : "error", message);
     } catch {
       setJob(job.id, "error", "Erro de rede");
     }
+  }
+
+  async function runFullSync() {
+    if (!scraperKey.trim()) return;
+    setFullSyncRunning(true);
+    setFullSyncStatuses({});
+    setFullSyncMessages({});
+
+    for (const step of FULL_SYNC_STEPS) {
+      setFullSyncStatuses((prev) => ({ ...prev, [step.id]: "running" }));
+      setFullSyncMessages((prev) => ({ ...prev, [step.id]: "Enviando…" }));
+      try {
+        const { ok, message } = await fireRequest(step.endpoint);
+        setFullSyncStatuses((prev) => ({ ...prev, [step.id]: ok ? "done" : "error" }));
+        setFullSyncMessages((prev) => ({ ...prev, [step.id]: message }));
+      } catch {
+        setFullSyncStatuses((prev) => ({ ...prev, [step.id]: "error" }));
+        setFullSyncMessages((prev) => ({ ...prev, [step.id]: "Erro de rede" }));
+      }
+    }
+
+    setFullSyncRunning(false);
   }
 
   const statusColor: Record<JobStatus, string> = {
@@ -130,6 +181,9 @@ function AdminPanel() {
     done: "text-emerald-400",
     error: "text-red-400",
   };
+
+  const fullSyncDone = !fullSyncRunning && Object.keys(fullSyncStatuses).length > 0;
+  const fullSyncErrors = Object.values(fullSyncStatuses).filter((s) => s === "error").length;
 
   return (
     <section className="rounded-xl border border-violet-500/30 bg-violet-900/10 backdrop-blur-sm p-6 space-y-5">
@@ -155,6 +209,75 @@ function AdminPanel() {
           onChange={(e) => setScraperKey(e.target.value)}
           className="font-mono text-sm"
         />
+      </div>
+
+      <Separator className="bg-violet-500/20" />
+
+      {/* Full Sync */}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Sincronização Completa</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+              Executa todos os jobs em sequência:<br />
+              sets → cards → EpicGame → Liga BR → snapshot diário
+            </p>
+          </div>
+          <Button
+            size="sm"
+            disabled={fullSyncRunning || !scraperKey.trim()}
+            onClick={runFullSync}
+            className="shrink-0 gap-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white cursor-pointer"
+          >
+            {fullSyncRunning ? (
+              <RefreshCw className="size-3.5 animate-spin" />
+            ) : (
+              <Play className="size-3.5" />
+            )}
+            {fullSyncRunning ? "Rodando…" : "Executar Tudo"}
+          </Button>
+        </div>
+
+        {Object.keys(fullSyncStatuses).length > 0 && (
+          <div className="rounded-lg border border-violet-500/20 bg-black/20 p-3 space-y-1.5 max-h-56 overflow-y-auto">
+            {fullSyncDone && (
+              <p className={cn(
+                "text-[10px] font-bold uppercase tracking-wider mb-2",
+                fullSyncErrors > 0 ? "text-red-400" : "text-emerald-400",
+              )}>
+                {fullSyncErrors > 0
+                  ? `Concluído com ${fullSyncErrors} erro(s)`
+                  : "Concluído com sucesso"}
+              </p>
+            )}
+            {FULL_SYNC_STEPS.map((step) => {
+              const status = fullSyncStatuses[step.id] as JobStatus | undefined;
+              const msg = fullSyncMessages[step.id];
+              return (
+                <div key={step.id} className="flex items-center gap-2 text-xs">
+                  {!status && <Circle className="size-3 shrink-0 text-muted-foreground/30" />}
+                  {status === "running" && <RefreshCw className="size-3 shrink-0 animate-spin text-yellow-400" />}
+                  {status === "done" && <CheckCircle2 className="size-3 shrink-0 text-emerald-400" />}
+                  {status === "error" && <XCircle className="size-3 shrink-0 text-red-400" />}
+                  <span className={cn(
+                    "flex-1 truncate",
+                    !status && "text-muted-foreground/40",
+                    status === "running" && "text-yellow-400",
+                    status === "done" && "text-emerald-400",
+                    status === "error" && "text-red-400",
+                  )}>
+                    {step.label}
+                  </span>
+                  {msg && status !== "running" && (
+                    <span className="text-muted-foreground/60 text-[10px] shrink-0 max-w-[140px] truncate">
+                      {msg}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

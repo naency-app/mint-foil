@@ -19,6 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type Card as CardType, type Portfolio } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 
 import {
   IconLayoutGrid,
@@ -196,12 +197,7 @@ function ListRow({
               R$ {formatPrice(displayPrice)}
             </span>
           </div>
-          {brPrice == null && tcgPrice > 0 && (
-            <span className="text-[9px] text-muted-foreground">
-              ref. TCGPlayer
-            </span>
-          )}
-          {brPrice != null && (
+          {displayPrice > 0 && (
             <span className="text-[9px] text-emerald-400 font-medium">
               lojas BR
             </span>
@@ -227,6 +223,7 @@ function ListRow({
 }
 
 function ExplorePageContent() {
+  const { data: session } = useSession();
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useQueryState("sort", {
     defaultValue: "best-match",
@@ -278,6 +275,7 @@ function ExplorePageContent() {
   };
 
   const fetchPortfolios = useCallback(() => {
+    if (!session?.user) return;
     api.collection
       .portfolios()
       .then((data) => {
@@ -323,8 +321,8 @@ function ExplorePageContent() {
           });
         }
       })
-      .catch(() => {}); // user may not be logged in
-  }, []);
+      .catch(() => {});
+  }, [session?.user?.id]);
 
   // Fetch portfolios
   useEffect(() => {
