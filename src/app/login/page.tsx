@@ -1,20 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth-client";
-import {
-  IconArrowLeft,
-  IconCards,
-  IconMail,
-  IconSend,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconCards } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
-
-type ViewState = "form" | "magic-link-sent" | "email-input";
 
 export default function LoginPage() {
   return (
@@ -26,13 +17,8 @@ export default function LoginPage() {
 
 function LoginContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? "/explore";
-  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loadingGoogle, setLoadingGoogle] = useState(false);
-  const [loadingMagicLink, setLoadingMagicLink] = useState(false);
-  const [view, setView] = useState<ViewState>("form");
 
   const frontendURL =
     typeof window !== "undefined" ? window.location.origin : "";
@@ -51,141 +37,6 @@ function LoginContent() {
     }
   }
 
-  async function handleMagicLink(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) {
-      setError("Digite seu email.");
-      return;
-    }
-    setError("");
-    setLoadingMagicLink(true);
-    try {
-      const { error: magicLinkError } = await signIn.magicLink({
-        email,
-        callbackURL: `${frontendURL}/explore`,
-      });
-      if (magicLinkError) {
-        setError(magicLinkError.message ?? "Erro ao enviar o magic link.");
-        setLoadingMagicLink(false);
-        return;
-      }
-      setView("magic-link-sent");
-    } catch {
-      setError("Erro ao enviar o magic link. Tente novamente.");
-    } finally {
-      setLoadingMagicLink(false);
-    }
-  }
-
-  if (view === "magic-link-sent") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-card p-8 text-center shadow-2xl backdrop-blur-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10">
-            <svg
-              className="h-7 w-7 text-emerald-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <title>Email enviado</title>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-              />
-            </svg>
-          </div>
-
-          <h1 className="text-xl font-bold text-foreground">
-            Verifique seu email
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Enviamos um link de acesso para{" "}
-            <span className="font-medium text-foreground">{email}</span>.
-            <br />
-            Clique no link do email para entrar.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => {
-              setView("form");
-              setEmail("");
-            }}
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            &larr; Voltar para o login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (view === "email-input") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl backdrop-blur-sm">
-          <div className="mb-8 text-center flex items-center justify-center gap-2">
-            <IconCards stroke={2} />
-            <span className="text-xl font-extrabold  text-foreground uppercase select-none">
-              Mint Foil
-            </span>
-          </div>
-
-          {error && (
-            <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleMagicLink} className="space-y-4">
-            <div>
-              <Label
-                htmlFor="email"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                // biome-ignore lint/a11y/noAutofocus: UX improvement for email input step
-                autoFocus
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={loadingMagicLink}
-              icon={<IconSend />}
-            >
-              Enviar magic link
-            </Button>
-          </form>
-
-          <Button
-            type="button"
-            onClick={() => {
-              setView("form");
-              setError("");
-            }}
-            size="sm"
-            variant="link"
-            className="w-full mt-4 text-secondary"
-          >
-            &larr; Voltar
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl backdrop-blur-sm">
@@ -202,33 +53,6 @@ function LoginContent() {
             {error}
           </div>
         )}
-
-        {/* Recommended */}
-        <div className="mb-5">
-          <p className="mb-2.5 text-xs font-semibold text-muted-foreground">
-            Recomendado
-          </p>
-          <Button
-            type="button"
-            className="w-full"
-            onClick={() => setView("email-input")}
-          >
-            <IconMail className="h-4 w-4" />
-            Continuar com email
-          </Button>
-
-          <p className="mt-2.5 text-[11px] leading-relaxed text-muted-foreground">
-            Recomendamos fortemente esta opção caso tenha problemas com login
-            social.
-          </p>
-        </div>
-
-        {/* Divider */}
-        <div className="mb-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">Ou continue com</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
 
         {/* OAuth Providers */}
         <div className="space-y-2.5">
