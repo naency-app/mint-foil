@@ -61,6 +61,28 @@ export interface Card {
   updatedAt: string;
   prices: PriceHistory[];
   storeLinks?: StoreLink[];
+  internationalPrice?: InternationalPrice | null;
+  storeBrowseLinks?: StoreBrowseLink[];
+  collectorNumber?: string | null;
+}
+
+/**
+ * Preço internacional (TCGplayer via TCGCSV) convertido USD→BRL.
+ * Estimativa de mercado internacional — a UI mostra fonte, USD e câmbio.
+ * Ver docs/adr/0002.
+ */
+export interface InternationalPrice {
+  usd: number | null;
+  brl: number;
+  rate: number | null;
+  source: string;
+  updatedAt?: string;
+}
+
+/** Link de conferência "ver preço na loja" (sem valor embutido). */
+export interface StoreBrowseLink {
+  storeName: string;
+  url: string;
 }
 
 export interface Portfolio {
@@ -149,6 +171,9 @@ export const api = {
       return apiFetch<Card[]>(`/cards${qs ? `?${qs}` : ""}`);
     },
     get: (id: string) => apiFetch<Card>(`/cards/${id}`),
+    /** Maiores variações do dia na série internacional (ver adr/0002) */
+    trending: (limit?: number) =>
+      apiFetch<Card[]>(`/cards/trending${limit ? `?limit=${limit}` : ""}`),
     tcgs: () => apiFetch<Tcg[]>("/cards/tcgs"),
     sets: (tcg?: string) => {
       const qs = tcg ? `?tcg=${encodeURIComponent(tcg)}` : "";

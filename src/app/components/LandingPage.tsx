@@ -881,26 +881,63 @@ function VideoSection() {
         }}
       />
       <div
-        style={{ maxWidth: "1100px", margin: "0 auto", position: "relative" }}
+        style={{ maxWidth: "1240px", margin: "0 auto", position: "relative" }}
       >
-        <STitle
-          badge="Veja em ação"
-          title="Conheça a interface do Mint Foil"
-          sub="Navegue pela versão web e veja como funciona na prática."
-        />
+        <div style={{ textAlign: "left", marginBottom: "48px" }}>
+          <FadeIn>
+            <p
+              style={{
+                fontSize: "18px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                color: t.primary,
+                letterSpacing: "0.5px",
+                margin: "0 0 12px",
+              }}
+            >
+              Veja em ação
+            </p>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <h2
+              style={{
+                fontSize: "clamp(24px, 4vw, 34px)",
+                lineHeight: "clamp(32px, 5.5vw, 44px)",
+                fontWeight: 700,
+                color: t.text,
+                margin: 0,
+                maxWidth: "640px",
+              }}
+            >
+              Conheça a interface do Mint Foil
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.18}>
+            <p
+              style={{
+                fontSize: "clamp(15px, 2.5vw, 18px)",
+                lineHeight: "28px",
+                color: t.muted,
+                maxWidth: "520px",
+                margin: "14px 0 0",
+              }}
+            >
+              Navegue pela versão web e veja como funciona na prática.
+            </p>
+          </FadeIn>
+        </div>
         <FadeIn>
           {/* biome-ignore lint/a11y/noStaticElementInteractions: hover shadow on video card */}
           <div
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
-              maxWidth: "800px",
-              margin: "0 auto",
+              width: "100%",
               borderRadius: "20px",
               overflow: "hidden",
               background: t.cardBg,
               border: `1px solid ${t.border}`,
-              aspectRatio: "16/9",
+              aspectRatio: "1024 / 534.945",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

@@ -1,6 +1,25 @@
 "use client";
 
+import {
+  IconFolder,
+  IconLayoutGrid,
+  IconListDetails,
+} from "@tabler/icons-react";
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  ChevronRight,
+  Loader2,
+  Search,
+  TrendingUp,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useQueryState } from "nuqs";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,25 +42,6 @@ import {
   type CollectionItem,
   type Portfolio,
 } from "@/lib/api";
-import { PortfolioSelector } from "@/app/components/PortfolioSelector";
-import {
-  IconFolder,
-  IconLayoutGrid,
-  IconListDetails,
-} from "@tabler/icons-react";
-import {
-  ArrowLeft,
-  ArrowUpDown,
-  ChevronRight,
-  Loader2,
-  Search,
-  TrendingUp,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useQueryState } from "nuqs";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 type CollectionMap = Record<string, number>;
 
@@ -54,25 +54,6 @@ function formatPrice(value: number) {
 
 function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
-}
-
-const LIGA_STORE_NAMES = [
-  "LigaYugioh",
-  "LigaMagic",
-  "LigaPokemon",
-  "LigaOnePiece",
-];
-
-function getBrPrice(card: CardType): number | null {
-  const liga = card.storeLinks?.find(
-    (l) => LIGA_STORE_NAMES.includes(l.storeName) && l.price != null,
-  );
-  if (liga?.price != null) return liga.price;
-  return (
-    card.storeLinks?.find(
-      (l) => l.storeName === "EpicGame" && l.price != null && l.inStock,
-    )?.price ?? null
-  );
 }
 
 function getPriceChange(card: CardType) {
@@ -112,8 +93,7 @@ function ListRow({
   onAdd: () => void;
 }) {
   const tcgPrice = getLatestPrice(card);
-  const brPrice = getBrPrice(card);
-  const displayPrice = brPrice ?? tcgPrice;
+  const displayPrice = tcgPrice;
 
   return (
     <Link href={`/card/${card.id}`} className="block">
@@ -144,14 +124,9 @@ function ListRow({
               R$ {formatPrice(displayPrice)}
             </span>
           </div>
-          {brPrice == null && tcgPrice > 0 && (
+          {tcgPrice > 0 && (
             <span className="text-[9px] text-muted-foreground">
-              ref. TCGPlayer
-            </span>
-          )}
-          {brPrice != null && (
-            <span className="text-[9px] text-emerald-400 font-medium">
-              lojas BR
+              internacional
             </span>
           )}
         </div>
@@ -313,8 +288,8 @@ function SetCardsPageContent() {
     }
 
     return [...result].sort((a, b) => {
-      const priceA = getBrPrice(a) ?? getLatestPrice(a);
-      const priceB = getBrPrice(b) ?? getLatestPrice(b);
+      const priceA = getLatestPrice(a);
+      const priceB = getLatestPrice(b);
       switch (sortBy) {
         case "price-asc":
           return priceA - priceB;
@@ -547,7 +522,6 @@ function SetCardsPageContent() {
                   ? card.prices[0].value - card.prices[1].value
                   : 0
               }
-              brPrice={getBrPrice(card)}
               imageUrl={card.imageUrl}
               setCode={card.setCode}
               setName={card.setName}

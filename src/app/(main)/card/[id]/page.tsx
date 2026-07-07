@@ -17,6 +17,7 @@ import {
   Check,
   ChevronRight,
   ExternalLink,
+  Globe,
   Loader2,
   Minus,
   Package,
@@ -35,39 +36,11 @@ import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { type Portfolio, type CollectionItem } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-const storeConfig: Record<
-  string,
-  { color: string; label: string; logo?: string }
-> = {
-  LigaMagic: {
-    color: "text-blue-400",
-    label: "Ver no LigaMagic",
-    logo: "/logos/sites/logo-ligamagic.png",
-  },
-  LigaPokemon: {
-    color: "text-yellow-400",
-    label: "Ver no LigaPokemon",
-    logo: "/logos/sites/logo_ligapokemon.png",
-  },
-  LigaYugioh: {
-    color: "text-purple-400",
-    label: "Ver no LigaYugioh",
-    logo: "/logos/sites/logo_ligayugioh.png",
-  },
-  LigaOnePiece: {
-    color: "text-red-400",
-    label: "Ver no LigaOnePiece",
-    logo: "/logos/sites/logo_ligaonepiece.png",
-  },
-  EpicGame: { color: "text-emerald-400", label: "Ver na EpicGame" },
-  MyPCards: {
-    color: "text-orange-400",
-    label: "Ver no MyPCards",
-    logo: "/logos/sites/logo-mypcards.png",
-  },
-};
-
-function getSearchUrls(cardName: string, tcgSlug?: string) {
+function getSearchUrls(
+  cardName: string,
+  tcgSlug?: string,
+  collectorNumber?: string | null,
+) {
   const encoded = encodeURIComponent(cardName);
   const urls: {
     name: string;
@@ -118,17 +91,20 @@ function getSearchUrls(cardName: string, tcgSlug?: string) {
       logo: "/logos/sites/logo_ligaonepiece.png",
     });
   }
-  // MyPCards: URL de busca com parâmetros ProdutoSearch
+  // MyPCards: deep link direto pela página da carta quando há código de
+  // colecionador (padrão /yugioh_bpro-en024); senão, busca por nome.
   const myPTcg = tcgSlug ?? "yugioh";
-  const myPParams = new URLSearchParams({
-    "ProdutoSearch[marca]": myPTcg,
-    "ProdutoSearch[query]": cardName,
-  });
+  const myPUrl = collectorNumber
+    ? `https://mypcards.com/${myPTcg}_${collectorNumber.toLowerCase()}`
+    : `https://mypcards.com/${myPTcg}?${new URLSearchParams({
+        "ProdutoSearch[marca]": myPTcg,
+        "ProdutoSearch[query]": cardName,
+      }).toString()}`;
   urls.push({
     name: "MyPCards",
-    url: `https://mypcards.com/${myPTcg}?${myPParams.toString()}`,
+    url: myPUrl,
     color: "text-orange-400",
-    label: "Buscar no MyPCards",
+    label: "Ver no MyPCards",
     logo: "/logos/sites/logo-mypcards.png",
   });
 
@@ -317,25 +293,9 @@ export default function CardDetailPage({
     .reduce((acc, item) => acc + item.quantity, 0);
   const currentPortfolioValue = currentPortfolioQuantity * latestPrice;
 
-  const LIGA_STORE_NAMES = [
-    "LigaYugioh",
-    "LigaMagic",
-    "LigaPokemon",
-    "LigaOnePiece",
-  ];
-  const brPrice = (() => {
-    const liga = card.storeLinks?.find(
-      (l) => LIGA_STORE_NAMES.includes(l.storeName) && l.price != null,
-    );
-    if (liga?.price != null) return liga.price;
-    return (
-      card.storeLinks
-        ?.filter(
-          (l) => l.storeName === "EpicGame" && l.price != null && l.inStock,
-        )
-        .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))[0]?.price ?? null
-    );
-  })();
+  // Preço internacional (ver adr/0002): headline em BRL convertido + USD/câmbio.
+  const intl = card.internationalPrice ?? null;
+  const headlineBrl = intl?.brl ?? latestPrice;
 
   const priceHistory = card.prices
     .slice()
@@ -432,55 +392,50 @@ export default function CardDetailPage({
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="flex flex-wrap items-center gap-3">
-          {brPrice != null && (
-            <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                Menor Preço BR
-              </span>
-              <span className="text-2xl font-black text-foreground font-mono">
-                R$ {formatPrice(brPrice)}
-              </span>
-              <span className="text-[10px] text-emerald-400 font-medium">
-                Média de lojas (NM)
-              </span>
-            </div>
-          )}
-
-          <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3 min-w-[160px] flex flex-col gap-0.5 shadow-xs">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-              Ref. TCGPlayer
+        {/* Preço internacional (estimado) — ver adr/0002 */}
+        <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3.5 min-w-[220px] flex flex-col gap-0.5 shadow-xs">
+          <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold flex items-center gap-1">
+            <Globe className="size-3" />
+            Preço internacional (estimado)
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-2xl font-black text-foreground font-mono">
+              R$ {formatPrice(headlineBrl)}
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-black text-foreground font-mono">
-                R$ {formatPrice(latestPrice)}
-              </span>
-              {latestPrice > 0 && (
-                <div
-                  className={cn(
-                    "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
-                    isPositive
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "bg-rose-500/10 text-rose-400",
-                  )}
-                >
-                  {isPositive ? (
-                    <TrendingUp className="size-3" />
-                  ) : (
-                    <TrendingDown className="size-3" />
-                  )}
-                  <span>
-                    {isPositive ? "+" : ""}
-                    {changePercent.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-            </div>
-            <span className="text-[10px] text-muted-foreground">
-              Mercado EUA (Ungraded)
-            </span>
+            {headlineBrl > 0 && latestPrice > 0 && (
+              <div
+                className={cn(
+                  "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                  isPositive
+                    ? "bg-emerald-500/10 text-emerald-400"
+                    : "bg-rose-500/10 text-rose-400",
+                )}
+              >
+                {isPositive ? (
+                  <TrendingUp className="size-3" />
+                ) : (
+                  <TrendingDown className="size-3" />
+                )}
+                <span>
+                  {isPositive ? "+" : ""}
+                  {changePercent.toFixed(1)}%
+                </span>
+              </div>
+            )}
           </div>
+          <span className="text-[10px] text-muted-foreground">
+            {[
+              intl?.usd != null ? `US$ ${intl.usd.toFixed(2)}` : null,
+              intl?.rate != null ? `câmbio ${intl.rate.toFixed(2)}` : null,
+              intl?.source ?? "TCGplayer",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </span>
+          <span className="text-[10px] text-muted-foreground/80 leading-snug mt-1 max-w-[280px]">
+            Valor de mercado internacional convertido. O preço nas lojas
+            brasileiras pode variar — confira nos links abaixo.
+          </span>
         </div>
       </div>
 
@@ -828,77 +783,18 @@ export default function CardDetailPage({
             </div>
           )}
 
-          {/* Store Links - Onde Comprar */}
+          {/* Preço real nas lojas BR — links de conferência (ver adr/0002) */}
           <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-1">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
               <ShoppingCart className="size-3.5 text-emerald-400" />
-              Onde Comprar
+              Preço real nas lojas BR
             </h3>
-
-            {/* Real store links from scraper */}
-            {card.storeLinks && card.storeLinks.length > 0 && (
-              <>
-                {card.storeLinks.map((link) => {
-                  const config = storeConfig[link.storeName];
-                  return (
-                    <a
-                      key={link.id}
-                      href={link.storeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between w-full py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3">
-                        {config?.logo ? (
-                          <Image
-                            src={config.logo}
-                            alt={link.storeName}
-                            width={60}
-                            height={20}
-                            className="h-5 w-auto object-contain"
-                          />
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                          >
-                            {link.storeName}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-muted-foreground group-hover:text-foreground">
-                          {config?.label ?? "Ver loja"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {link.price != null && (
-                          <span className="text-xs text-emerald-400 font-mono">
-                            R$ {formatPrice(link.price)}
-                          </span>
-                        )}
-                        {!link.inStock && (
-                          <Badge
-                            variant="outline"
-                            className="text-[8px] text-red-400 border-red-400/30"
-                          >
-                            Esgotado
-                          </Badge>
-                        )}
-                        <ExternalLink
-                          className={`size-3.5 ${config?.color ?? "text-muted-foreground"} opacity-50 group-hover:opacity-100 transition-opacity`}
-                        />
-                      </div>
-                    </a>
-                  );
-                })}
-                <Separator className="my-2" />
-              </>
-            )}
-
-            {/* Search links for stores */}
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider pt-1 pb-1">
-              Buscar nas lojas
+            <p className="text-[10px] text-muted-foreground leading-snug mb-3">
+              O preço do mercado brasileiro você confere direto na loja —
+              clique para abrir a página desta carta.
             </p>
-            {getSearchUrls(card.name, card.tcg?.slug).map((link) => (
+
+            {getSearchUrls(card.name, card.tcg?.slug, card.collectorNumber).map((link) => (
               <a
                 key={link.name}
                 href={link.url}

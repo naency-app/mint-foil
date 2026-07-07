@@ -1,8 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { api } from "@/lib/api";
 import {
   IconCheck,
   IconLoader2,
@@ -15,13 +12,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sileo } from "sileo";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
   name: string;
   price: string;
   priceChange?: number;
-  brPrice?: number | null;
   imageUrl: string;
   setCode: string;
   setName?: string | null;
@@ -47,7 +46,6 @@ export function TcgCard({
   name,
   price,
   priceChange,
-  brPrice,
   imageUrl,
   setCode,
   setName,
@@ -165,17 +163,11 @@ export function TcgCard({
           <div className="flex flex-col items-start justify-between gap-2">
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-bold text-foreground font-mono">
-                R$ {brPrice != null ? formatPrice(brPrice) : price}
+                R$ {price}
               </span>
-              {brPrice != null ? (
-                <span className="text-[9px] font-medium text-emerald-400 leading-tight">
-                  lojas BR
-                </span>
-              ) : (
-                <span className="text-[9px] text-muted-foreground leading-tight">
-                  ref. TCGPlayer
-                </span>
-              )}
+              <span className="text-[9px] text-muted-foreground leading-tight">
+                internacional
+              </span>
             </div>
             <div className="flex items-center gap-1">
               {isPositive ? (
