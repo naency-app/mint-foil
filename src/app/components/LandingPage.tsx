@@ -12,24 +12,17 @@ import {
   DollarSign,
   ExternalLink,
   Gamepad2,
-  Globe,
   Instagram,
-  LayoutDashboard,
   Moon,
   Play,
   ScanLine,
-  ShieldCheck,
-  Smartphone,
   Star,
-  Store,
   Sun,
   TrendingUp,
   Twitter,
-  Users,
   Youtube,
-  Zap,
 } from "lucide-react";
-import { AnimatePresence, motion, type Variants } from "motion/react";
+import { motion, type Variants } from "motion/react";
 import {
   createContext,
   type ReactNode,
@@ -40,6 +33,7 @@ import {
 } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
+import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 
@@ -1176,611 +1170,254 @@ function RevealSection() {
   );
 }
 
-// ── Pain ──────────────────────────────────────────────────────────────────────
+// ── Problema → Solução → Benefícios (condensado, com stacked cards) ───────────
 
-const PAINS = [
+function WatchDemoBtn() {
+  const t = useTheme();
+  return (
+    <button
+      type="button"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        padding: "11px 20px",
+        borderRadius: "8px",
+        border: `1px solid ${t.border}`,
+        background: t.isDark ? "#FFFFFF" : "#020617",
+        color: t.isDark ? "#020617" : "#FFFFFF",
+        fontSize: "13.5px",
+        fontWeight: 600,
+        cursor: "pointer",
+        flexShrink: 0,
+        transition: "opacity 0.18s",
+        letterSpacing: "-0.1px",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.opacity = "0.82";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.opacity = "1";
+      }}
+    >
+      <div
+        style={{
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          background: t.isDark ? "rgba(2,6,23,0.15)" : "rgba(255,255,255,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Play size={9} />
+      </div>
+      Watch Demo
+    </button>
+  );
+}
+
+const STACK_CARDS = [
   {
-    id: "valor",
-    icon: <ScanLine size={22} />,
-    title: "Não sabe o valor",
-    desc: "Cartas que podem valer R$ 5 ou R$ 500. Você não sabe qual é qual.",
+    image: "https://images.pokemontcg.io/swsh7/215_hires.png",
+    badge: "R$ 4.812",
   },
   {
-    id: "horas",
-    icon: <TrendingUp size={22} />,
-    title: "Perde horas pesquisando",
-    desc: "Abre a liga, pesquisa carta por carta. Consultou 10, cansou. Faltam 300.",
+    image: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
+    badge: "R$ 890",
   },
   {
-    id: "gringo",
-    icon: <Globe size={22} />,
-    title: "App gringo, preço errado",
-    desc: "Converte dólar pra real. O preço não tem nada a ver com o mercado BR.",
-  },
-  {
-    id: "barato",
-    icon: <DollarSign size={22} />,
-    title: "Já vendeu barato",
-    desc: "Vendeu carta por um valor que depois descobriu que estava errado.",
-  },
-  {
-    id: "catalogo",
-    icon: <LayoutDashboard size={22} />,
-    title: "Coleção sem catálogo",
-    desc: "Caixas cheias de cartas nunca catalogadas. Pode ter fortuna ali.",
-  },
-  {
-    id: "jogos",
-    icon: <Gamepad2 size={22} />,
-    title: "4 jogos, 4 problemas",
-    desc: "Pokémon, Magic, Yu-Gi-Oh!, One Piece. Precisaria de 4 sites.",
+    image: "https://images.pokemontcg.io/sv3/234_hires.png",
+    badge: "R$ 1.234",
   },
 ];
 
-// Card grid split out so useTheme picks up AltSection's inverted theme
-function PainCards({ isMobile }: { isMobile: boolean }) {
+const WHY_POINTS = [
+  {
+    id: "scan",
+    icon: <Camera size={17} />,
+    title: "Scan em segundos",
+    desc: "Apontou, identificou.",
+  },
+  {
+    id: "preco",
+    icon: <DollarSign size={17} />,
+    title: "Preço em reais",
+    desc: "Atualizado todos os dias.",
+  },
+  {
+    id: "valorizacao",
+    icon: <TrendingUp size={17} />,
+    title: "Valorização à vista",
+    desc: "Gráficos por carta e portfólio.",
+  },
+  {
+    id: "multi",
+    icon: <Gamepad2 size={17} />,
+    title: "4 jogos, 1 app",
+    desc: "Pokémon, Magic, Yu-Gi-Oh!, One Piece.",
+  },
+];
+
+function WhyInner({ isMobile }: { isMobile: boolean }) {
   const t = useTheme();
   return (
     <div
       style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
-        gap: "16px",
+        gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr",
+        gap: isMobile ? "56px" : "72px",
+        alignItems: "center",
       }}
     >
-      {PAINS.map((p, i) => (
-        <FadeIn key={p.id} delay={i * 0.07}>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: decorative border hover, not a clickable action */}
-          <div
+      {/* Texto — problema, solução e benefícios condensados */}
+      <div>
+        <FadeIn>
+          <PinkBadge>Problema? Resolvido.</PinkBadge>
+        </FadeIn>
+        <FadeIn delay={0.08}>
+          <h2
             style={{
-              background: t.cardBg,
-              border: `1px solid ${t.border}`,
-              borderRadius: "14px",
-              padding: "24px",
-              height: "100%",
-              transition: "border-color 0.3s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = t.primaryBorder;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = t.border;
+              fontSize: "clamp(30px, 4.8vw, 48px)",
+              fontWeight: 800,
+              color: t.text,
+              lineHeight: 1.08,
+              margin: "18px 0 0",
+              letterSpacing: "-1px",
             }}
           >
-            <div style={{ color: t.primary, marginBottom: "12px" }}>
-              {p.icon}
-            </div>
-            <h4
-              style={{
-                fontSize: "20px",
-                lineHeight: "28px",
-                fontWeight: 500,
-                color: t.text,
-                marginBottom: "6px",
-              }}
-            >
-              {p.title}
-            </h4>
-            <p
-              style={{
-                fontSize: "16px",
-                lineHeight: "24px",
-                color: t.muted,
-                margin: 0,
-              }}
-            >
-              {p.desc}
-            </p>
-          </div>
+            Você não sabe quanto suas cartas valem.{" "}
+            <span style={{ color: t.primary }}>A gente mostra.</span>
+          </h2>
         </FadeIn>
-      ))}
-    </div>
-  );
-}
+        <FadeIn delay={0.14}>
+          <p
+            style={{
+              fontSize: "16.5px",
+              lineHeight: 1.65,
+              color: t.muted,
+              margin: "18px 0 0",
+              maxWidth: "480px",
+            }}
+          >
+            Sem planilha, sem pesquisar carta por carta na Liga. Escaneie, veja
+            o preço e acompanhe a valorização — tudo num lugar só.
+          </p>
+        </FadeIn>
 
-function Pain() {
-  const isMobile = useIsMobile();
-  return (
-    <AltSection style={{ padding: isMobile ? "80px 20px" : "125px 24px" }}>
-      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
-        <STitle
-          badge="O Problema"
-          title="Colecionar é fácil. Saber o valor real, não."
-          sub="Se coleciona cards de mais de um jogo, já sentiu pelo menos três dessas:"
-        />
-        <PainCards isMobile={isMobile} />
-      </div>
-    </AltSection>
-  );
-}
-
-// ── Solution (from develop) ───────────────────────────────────────────────────
-
-const STEPS = [
-  {
-    id: "scan",
-    icon: <Camera size={20} />,
-    title: "Escaneie",
-    desc: "Aponte a câmera. O Mint Foil reconhece nome, edição, raridade e jogo.",
-  },
-  {
-    id: "preco",
-    icon: <DollarSign size={20} />,
-    title: "Veja o preço real",
-    desc: "Preço das ligas brasileiras na hora. Não conversão de dólar.",
-  },
-  {
-    id: "organize",
-    icon: <BarChart3 size={20} />,
-    title: "Organize e monitore",
-    desc: "A carta entra no portfólio. Acompanhe valorização com gráficos.",
-  },
-];
-
-function Solution() {
-  const t = useTheme();
-  const isMobile = useIsMobile();
-  return (
-    <section
-      id="como-funciona"
-      style={{ padding: isMobile ? "80px 20px" : "125px 24px" }}
-    >
-      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
-        {/* Header row: badge + title left / Watch Demo right */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            justifyContent: "space-between",
-            alignItems: isMobile ? "flex-start" : "flex-end",
-            marginBottom: "48px",
-            gap: isMobile ? "16px" : "24px",
-          }}
-        >
-          <div>
-            <FadeIn>
-              <p
-                style={{
-                  fontSize: "18px",
-                  lineHeight: "20px",
-                  fontWeight: 500,
-                  color: t.primary,
-                  letterSpacing: "0.5px",
-                  margin: "0 0 12px",
-                }}
-              >
-                A Solução
-              </p>
-            </FadeIn>
-            <FadeIn delay={0.1}>
-              <h2
-                style={{
-                  fontSize: "34px",
-                  lineHeight: "44px",
-                  fontWeight: 700,
-                  color: t.text,
-                  margin: 0,
-                  maxWidth: "480px",
-                }}
-              >
-                3 passos. Toda a coleção sob controle.
-              </h2>
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={0.12}>
-            <button
-              type="button"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "11px 20px",
-                borderRadius: "8px",
-                border: `1px solid ${t.border}`,
-                background: t.isDark ? "#FFFFFF" : "#020617",
-                color: t.isDark ? "#020617" : "#FFFFFF",
-                fontSize: "13.5px",
-                fontWeight: 600,
-                cursor: "pointer",
-                flexShrink: 0,
-                transition: "opacity 0.18s",
-                letterSpacing: "-0.1px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.82";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-              }}
-            >
-              <div
-                style={{
-                  width: "20px",
-                  height: "20px",
-                  borderRadius: "50%",
-                  background: t.isDark
-                    ? "rgba(2,6,23,0.15)"
-                    : "rgba(255,255,255,0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Play size={9} />
-              </div>
-              Watch Demo
-            </button>
-          </FadeIn>
-        </div>
-
-        {/* 3 cards lado a lado */}
+        {/* Benefícios 2×2 */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
-            gap: "16px",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: "14px",
+            marginTop: "30px",
           }}
         >
-          {STEPS.map((s, i) => (
-            <FadeIn key={s.id} delay={i * 0.1}>
+          {WHY_POINTS.map((pt, i) => (
+            <FadeIn key={pt.id} delay={0.18 + i * 0.06}>
               <div
                 style={{
-                  position: "relative",
-                  padding: "28px 24px",
-                  borderRadius: "14px",
-                  background: t.cardBg,
-                  border: `1px solid ${t.border}`,
-                  height: "100%",
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "flex-start",
                 }}
               >
-                {/* Step number — top right, bem sutil */}
-                <span
-                  style={{
-                    position: "absolute",
-                    top: "20px",
-                    right: "22px",
-                    fontSize: "32px",
-                    fontWeight: 800,
-                    lineHeight: 1,
-                    color: t.isDark
-                      ? "rgba(255,255,255,0.07)"
-                      : "rgba(0,0,0,0.06)",
-                    userSelect: "none",
-                    pointerEvents: "none",
-                  }}
-                >
-                  #{i + 1}
-                </span>
-
                 <div
                   style={{
-                    width: "42px",
-                    height: "42px",
-                    borderRadius: "12px",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "10px",
                     background: t.primaryBg,
                     border: `1px solid ${t.primaryBorder}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     color: t.primary,
-                    marginBottom: "20px",
+                    flexShrink: 0,
                   }}
                 >
-                  {s.icon}
+                  {pt.icon}
                 </div>
-
-                <h4
-                  style={{
-                    fontSize: "20px",
-                    lineHeight: "28px",
-                    fontWeight: 500,
-                    color: t.text,
-                    margin: "0 0 8px",
-                    paddingRight: "32px",
-                  }}
-                >
-                  {s.title}
-                </h4>
-                <p
-                  style={{
-                    fontSize: "16px",
-                    lineHeight: "24px",
-                    color: t.muted,
-                    margin: 0,
-                  }}
-                >
-                  {s.desc}
-                </p>
+                <div>
+                  <p
+                    style={{
+                      fontSize: "14.5px",
+                      fontWeight: 700,
+                      color: t.text,
+                      margin: 0,
+                    }}
+                  >
+                    {pt.title}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: t.muted,
+                      lineHeight: 1.5,
+                      margin: "2px 0 0",
+                    }}
+                  >
+                    {pt.desc}
+                  </p>
+                </div>
               </div>
             </FadeIn>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
 
-// ── Benefits — text outside card, mockup bleeding ─────────────────────────────
-
-const BENEFIT_TABS = [
-  {
-    value: "colecionadores",
-    label: "Colecionadores",
-    icon: <Users size={15} />,
-    title: "Descubra o valor real!",
-    points: [
-      {
-        id: "scan",
-        icon: <Camera size={16} />,
-        title: "Scan instantâneo",
-        desc: "Aponte, escaneie, veja o preço. Segundos.",
-      },
-      {
-        id: "valorizacao",
-        icon: <TrendingUp size={16} />,
-        title: "Monitore valorização",
-        desc: "Gráficos de preço. Saiba quando vender.",
-      },
-      {
-        id: "tesouros",
-        icon: <ScanLine size={16} />,
-        title: "Tesouros escondidos",
-        desc: "Carta de R$ 10 pode valer R$ 300.",
-      },
-    ],
-    mockupIcon: <ScanLine size={28} />,
-  },
-  {
-    value: "lojistas",
-    label: "Lojistas",
-    icon: <Store size={15} />,
-    title: "Cataloga em escala!",
-    points: [
-      {
-        id: "volume",
-        icon: <Zap size={16} />,
-        title: "Volume rápido",
-        desc: "Pack aberto → scan em sequência → catalogado.",
-      },
-      {
-        id: "preco",
-        icon: <DollarSign size={16} />,
-        title: "Preço BR real",
-        desc: "Preços das ligas brasileiras direto.",
-      },
-      {
-        id: "estoque",
-        icon: <LayoutDashboard size={16} />,
-        title: "Estoque digital",
-        desc: "Portfólio = controle de inventário.",
-      },
-    ],
-    mockupIcon: <Store size={28} />,
-  },
-  {
-    value: "jogadores",
-    label: "Jogadores",
-    icon: <Gamepad2 size={15} />,
-    title: "Deck inteligente!",
-    points: [
-      {
-        id: "troca",
-        icon: <ShieldCheck size={16} />,
-        title: "Valor antes da troca",
-        desc: "Confira preço real antes de trocar.",
-      },
-      {
-        id: "app",
-        icon: <Gamepad2 size={16} />,
-        title: "Tudo num app",
-        desc: "Pokémon, Magic, Yu-Gi-Oh!, One Piece.",
-      },
-      {
-        id: "torneio",
-        icon: <Smartphone size={16} />,
-        title: "Leve pra torneio",
-        desc: "Portfólio no celular, sempre.",
-      },
-    ],
-    mockupIcon: <Gamepad2 size={28} />,
-  },
-];
-
-function Benefits() {
-  const t = useTheme();
-  const [active, setActive] = useState("colecionadores");
-  const cur = BENEFIT_TABS.find((tb) => tb.value === active) ?? BENEFIT_TABS[0];
-
-  return (
-    <section style={{ padding: "100px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <STitle badge="Benefícios" title="O Mint Foil se adapta a você" />
-        <FadeIn>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "60px",
-              alignItems: "center",
-              maxWidth: "940px",
-              margin: "0 auto",
-            }}
-          >
-            {/* Left: text area */}
-            <div>
-              {/* Tab triggers */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  marginBottom: "36px",
-                  flexWrap: "wrap",
-                }}
-              >
-                {BENEFIT_TABS.map((tb) => (
-                  <button
-                    key={tb.value}
-                    type="button"
-                    onClick={() => setActive(tb.value)}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "9px 18px",
-                      borderRadius: "10px",
-                      border: "none",
-                      cursor: "pointer",
-                      background:
-                        active === tb.value ? t.primaryBg : "transparent",
-                      color: active === tb.value ? t.primary : t.muted,
-                      fontWeight: 600,
-                      fontSize: "13px",
-                      transition: "all 0.22s",
-                      outline:
-                        active === tb.value
-                          ? `1px solid ${t.primaryBorder}`
-                          : "1px solid transparent",
-                    }}
-                  >
-                    {tb.icon}
-                    {tb.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Animated content */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active}
-                  initial={{ opacity: 0, x: -14 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 14 }}
-                  transition={{ duration: 0.22, ease: "easeOut" }}
-                >
-                  <h3
-                    style={{
-                      fontSize: "clamp(22px, 3vw, 28px)",
-                      fontWeight: 700,
-                      color: t.text,
-                      lineHeight: 1.15,
-                      marginBottom: "28px",
-                    }}
-                  >
-                    {cur.title}
-                  </h3>
-                  {cur.points.map((p) => (
-                    <div
-                      key={p.id}
-                      style={{
-                        display: "flex",
-                        gap: "14px",
-                        alignItems: "flex-start",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "10px",
-                          background: t.primaryBg,
-                          border: `1px solid ${t.primaryBorder}`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: t.primary,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {p.icon}
-                      </div>
-                      <div>
-                        <p
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: 700,
-                            color: t.text,
-                            margin: "0 0 3px",
-                          }}
-                        >
-                          {p.title}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: "13px",
-                            color: t.muted,
-                            lineHeight: 1.6,
-                            margin: 0,
-                          }}
-                        >
-                          {p.desc}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Right: card with bleeding mockup */}
-            <div style={{ position: "relative" }}>
-              <div
-                style={{
-                  background: t.cardBg,
-                  border: `1px solid ${t.border}`,
-                  borderRadius: "24px",
-                  paddingTop: "100px",
-                  paddingBottom: "36px",
-                  paddingLeft: "28px",
-                  paddingRight: "28px",
-                  minHeight: "320px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "flex-end",
-                }}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={active}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    style={{
-                      position: "absolute",
-                      top: "-60px",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                    }}
-                  >
-                    <PhoneMockup>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                          padding: "20px",
-                          gap: "10px",
-                        }}
-                      >
-                        <div style={{ color: t.primary }}>{cur.mockupIcon}</div>
-                        <p style={{ fontSize: "11px", color: t.muted }}>
-                          Screenshot real aqui
-                        </p>
-                      </div>
-                    </PhoneMockup>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
+        <FadeIn delay={0.4}>
+          <div style={{ marginTop: "34px" }}>
+            <WatchDemoBtn />
           </div>
         </FadeIn>
       </div>
-    </section>
+
+      {/* Stacked cards interativas */}
+      <FadeIn delay={0.2}>
+        <div style={{ position: "relative" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: "-30px",
+              borderRadius: "50%",
+              background: `radial-gradient(circle, ${t.primaryBg} 0%, transparent 70%)`,
+              pointerEvents: "none",
+            }}
+          />
+          <div style={{ position: "relative" }}>
+            <StackedCardsInteraction
+              cards={STACK_CARDS}
+              spreadDistance={isMobile ? 64 : 120}
+              rotationAngle={10}
+            />
+            <p
+              style={{
+                textAlign: "center",
+                fontSize: "12px",
+                color: t.muted,
+                marginTop: "22px",
+              }}
+            >
+              ✦ {isMobile ? "toque nas cartas" : "passe o mouse nas cartas"}
+            </p>
+          </div>
+        </div>
+      </FadeIn>
+    </div>
+  );
+}
+
+function WhyMintFoil() {
+  const isMobile = useIsMobile();
+  return (
+    <AltSection style={{ padding: isMobile ? "80px 20px" : "120px 24px" }}>
+      <WhyInner isMobile={isMobile} />
+    </AltSection>
   );
 }
 
@@ -3132,9 +2769,7 @@ export function LandingPage() {
         <CinematicHero isDark={isDark} />
         <VideoSection />
         <RevealSection />
-        <Pain />
-        <Solution />
-        <Benefits />
+        <WhyMintFoil />
         <KeyFeatures />
         <Integrations />
         <Pricing />
