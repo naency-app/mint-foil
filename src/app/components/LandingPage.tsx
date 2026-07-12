@@ -57,13 +57,13 @@ type Theme = {
 const LIGHT: Theme = {
   bg: "#FFFFFF",
   bgAlt: "#F6F6F6",
-  primary: "#B50D57",
+  primary: "#F856A7",
   text: "#020617",
   textBody: "#4a4a68",
   muted: "rgba(0,0,0,0.45)",
   border: "rgba(0,0,0,0.08)",
-  primaryBorder: "rgba(181,13,87,0.2)",
-  primaryBg: "rgba(181,13,87,0.07)",
+  primaryBorder: "rgba(248,86,167,0.2)",
+  primaryBg: "rgba(248,86,167,0.07)",
   cardBg: "#FFFFFF",
   isDark: false,
 };
@@ -71,13 +71,13 @@ const LIGHT: Theme = {
 const DARK: Theme = {
   bg: "#020617",
   bgAlt: "#021937",
-  primary: "#F856A7",
+  primary: "#B50D57",
   text: "#FFFFFF",
   textBody: "rgba(255,255,255,0.82)",
   muted: "rgba(255,255,255,0.48)",
   border: "rgba(255,255,255,0.1)",
-  primaryBorder: "rgba(248,86,167,0.22)",
-  primaryBg: "rgba(248,86,167,0.07)",
+  primaryBorder: "rgba(181,13,87,0.22)",
+  primaryBg: "rgba(181,13,87,0.07)",
   cardBg: "#021937",
   isDark: true,
 };
@@ -790,7 +790,7 @@ function Hero() {
         }}
       >
         <motion.div variants={fadeUp}>
-          <PinkBadge>Lançamento 2025</PinkBadge>
+          <PinkBadge>Lançamento 2026</PinkBadge>
         </motion.div>
 
         <motion.h1
@@ -804,10 +804,9 @@ function Hero() {
             letterSpacing: "-1px",
           }}
         >
-          Você tem centenas de cartas e{" "}
-          <span style={{ color: t.primary }}>não sabe quanto valem.</span>
+          Escaneie. Descubra.
           <br />
-          Agora vai saber.
+          <span style={{ color: t.primary }}>Saiba o valor real.</span>
         </motion.h1>
 
         <motion.p
@@ -820,9 +819,8 @@ function Hero() {
             lineHeight: 1.7,
           }}
         >
-          Escaneie suas cartas de Pokémon, Magic, Yu-Gi-Oh! e One Piece.
-          Organize num portfólio. Monitore o preço real das ligas brasileiras.
-          No celular ou na web.
+          Identifique suas cartas de Pokémon, Magic e Yu-Gi-Oh! e monitore o
+          valor real do seu portfólio. Grátis para começar.
         </motion.p>
 
         {/* CTAs */}
@@ -836,8 +834,12 @@ function Hero() {
               flexWrap: "wrap",
             }}
           >
-            <PrimaryBtn>
-              <ArrowRight size={16} /> Explorar Agora
+            <PrimaryBtn
+              onClick={() => {
+                window.location.href = "/scan";
+              }}
+            >
+              <Camera size={16} /> Comece a escanear
             </PrimaryBtn>
             <PrimaryBtn ghost>
               <Play size={14} /> Ver como funciona
