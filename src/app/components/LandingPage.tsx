@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CardSummon } from "@/components/ui/card-summon";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
+import ScrollMorphSection from "@/components/ui/scroll-morph-section";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -2979,6 +2980,7 @@ export function LandingPage() {
         </div>
         <VideoSection />
         <RevealSection />
+        <ScrollMorphSection isDark={isDark} />
         <WhyMintFoil />
         <SolutionSection />
         <KeyFeatures />
