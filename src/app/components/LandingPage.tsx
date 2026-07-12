@@ -1019,100 +1019,100 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <div
-      style={{ position: "relative", padding: "16px 0", overflow: "visible" }}
-    >
-      <button
-        type="button"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onFocus={() => setHovered(true)}
-        onBlur={() => setHovered(false)}
-        style={{
-          background: "none",
-          border: "none",
-          padding: 0,
-          cursor: "default",
-          textAlign: "left",
-          width: "100%",
-        }}
-      >
-        <h3
+    <div style={{ padding: "16px 0" }}>
+      {/* Wrapper inline: as cartas ancoram no fim da palavra */}
+      <div style={{ position: "relative", display: "inline-block" }}>
+        <button
+          type="button"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onFocus={() => setHovered(true)}
+          onBlur={() => setHovered(false)}
           style={{
-            fontSize: "clamp(52px, 9.5vw, 96px)",
-            fontWeight: 900,
-            color: t.text,
-            textTransform: "uppercase",
-            lineHeight: 1,
-            transition: "opacity 0.4s",
-            opacity: hovered ? 0.2 : 1,
-            letterSpacing: "-1px",
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "default",
+            textAlign: "left",
           }}
         >
-          {text}
-        </h3>
-      </button>
+          <h3
+            style={{
+              fontSize: "clamp(52px, 9.5vw, 96px)",
+              fontWeight: 900,
+              color: t.text,
+              textTransform: "uppercase",
+              lineHeight: 1,
+              transition: "opacity 0.4s",
+              opacity: hovered ? 0.2 : 1,
+              letterSpacing: "-1px",
+            }}
+          >
+            {text}
+          </h3>
+        </button>
 
-      {/* Card 1 (frente) */}
-      <div
-        style={{
-          position: "absolute",
-          right: "40px",
-          top: "-10px",
-          zIndex: 40,
-          width: "100px",
-          height: "140px",
-          transform: hovered ? "scale(1)" : "scale(0)",
-          opacity: hovered ? 1 : 0,
-          transition: "all 0.45s cubic-bezier(0.34,1.56,0.64,1)",
-          pointerEvents: "none",
-        }}
-      >
-        {/* biome-ignore lint/performance/noImgElement: external TCG card URLs require referrerPolicy */}
-        <img
-          src={imgs[1]}
-          alt=""
+        {/* Card 1 (frente) — em cima da última letra */}
+        <div
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            borderRadius: "8px",
-            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.2))",
+            position: "absolute",
+            right: "-16px",
+            top: "-18px",
+            zIndex: 40,
+            width: "100px",
+            height: "140px",
+            transform: hovered ? "scale(1) rotate(-4deg)" : "scale(0)",
+            opacity: hovered ? 1 : 0,
+            transition: "all 0.45s cubic-bezier(0.34,1.56,0.64,1)",
+            pointerEvents: "none",
           }}
-          referrerPolicy="no-referrer"
-        />
-      </div>
+        >
+          {/* biome-ignore lint/performance/noImgElement: external TCG card URLs require referrerPolicy */}
+          <img
+            src={imgs[1]}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              borderRadius: "8px",
+              filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.2))",
+            }}
+            referrerPolicy="no-referrer"
+          />
+        </div>
 
-      {/* Card 2 (verso, atrás, rotacionado) */}
-      <div
-        style={{
-          position: "absolute",
-          right: "40px",
-          top: "-10px",
-          zIndex: 39,
-          width: "100px",
-          height: "140px",
-          transform: hovered
-            ? "scale(1) translateX(55px) translateY(30px) rotate(12deg)"
-            : "scale(0)",
-          opacity: hovered ? 1 : 0,
-          transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.08s",
-          pointerEvents: "none",
-        }}
-      >
-        {/* biome-ignore lint/performance/noImgElement: external TCG card URLs require referrerPolicy */}
-        <img
-          src={imgs[0]}
-          alt=""
+        {/* Card 2 (verso, atrás, rotacionado) */}
+        <div
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            borderRadius: "8px",
-            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.2))",
+            position: "absolute",
+            right: "-16px",
+            top: "-18px",
+            zIndex: 39,
+            width: "100px",
+            height: "140px",
+            transform: hovered
+              ? "scale(1) translateX(50px) translateY(28px) rotate(12deg)"
+              : "scale(0)",
+            opacity: hovered ? 1 : 0,
+            transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.08s",
+            pointerEvents: "none",
           }}
-          referrerPolicy="no-referrer"
-        />
+        >
+          {/* biome-ignore lint/performance/noImgElement: external TCG card URLs require referrerPolicy */}
+          <img
+            src={imgs[0]}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              borderRadius: "8px",
+              filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.2))",
+            }}
+            referrerPolicy="no-referrer"
+          />
+        </div>
       </div>
     </div>
   );
@@ -1130,9 +1130,12 @@ function RevealSection() {
       }}
     >
       <STitle badge="Coleções" title="Explore seus jogos favoritos" />
-      {REVEAL_ITEMS.map(({ text, imgs }) => (
-        <RevealItem key={text} text={text} imgs={imgs} />
-      ))}
+      {/* Bloco recuado pro centro, texto alinhado à esquerda */}
+      <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+        {REVEAL_ITEMS.map(({ text, imgs }) => (
+          <RevealItem key={text} text={text} imgs={imgs} />
+        ))}
+      </div>
     </section>
   );
 }
