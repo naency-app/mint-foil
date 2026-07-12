@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-type SummonGlow = "cyan" | "orange" | "pink";
+type SummonGlow = "cyan" | "orange" | "pink" | "red";
 
 // Literal classes per glow so Tailwind can see them
 const GLOWS: Record<
@@ -28,6 +28,12 @@ const GLOWS: Record<
     chip: "ring-pink-300/30",
     strongChip: "text-pink-300",
   },
+  red: {
+    character: "drop-shadow-[0_0_44px_rgba(239,68,68,0.85)]",
+    aura: "bg-red-500/25",
+    chip: "ring-red-300/30",
+    strongChip: "text-red-300",
+  },
 };
 
 export interface SummonChip {
@@ -46,6 +52,7 @@ export const CardSummon = ({
   back,
   front,
   character,
+  characterShape = "cutout",
   alt,
   glow = "cyan",
   chips = [],
@@ -57,6 +64,8 @@ export const CardSummon = ({
   front: string;
   /** Arte do personagem com fundo transparente */
   character: string;
+  /** "cutout" para PNG transparente; "orb" aplica máscara esfumada (arte sem recorte) */
+  characterShape?: "cutout" | "orb";
   alt: string;
   glow?: SummonGlow;
   chips?: SummonChip[];
@@ -99,20 +108,25 @@ export const CardSummon = ({
           <img
             src={character}
             alt=""
-            className={cn("h-56 w-auto object-contain", g.character)}
+            className={cn(
+              characterShape === "orb"
+                ? "h-44 w-60 max-w-none object-cover [mask-image:radial-gradient(ellipse_at_center,black_52%,transparent_74%)]"
+                : "h-56 w-auto object-contain",
+              g.character,
+            )}
           />
         </div>
       </div>
 
-      {/* Carta — flipa de virada pra baixo → revelada, deitando em 3D */}
+      {/* Carta — deitada na mesa; no hover flipa revelando a frente */}
       <div
         className={cn(
-          "relative h-[330px] w-[236px] transition-transform duration-700 [transform-style:preserve-3d]",
+          "relative h-[330px] w-[236px] transition-transform duration-700 [transform:rotateX(38deg)] [transform-style:preserve-3d]",
           revealed
-            ? "[transform:rotateX(28deg)_rotateY(180deg)]"
-            : "group-hover:[transform:rotateX(28deg)_rotateY(180deg)]",
+            ? "[transform:rotateX(38deg)_rotateY(180deg)]"
+            : "group-hover:[transform:rotateX(38deg)_rotateY(180deg)]",
         )}
-        style={{ transformOrigin: "50% 80%" }}
+        style={{ transformOrigin: "50% 65%" }}
       >
         {/* Verso */}
         <div className="absolute inset-0 overflow-hidden rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.35)] [backface-visibility:hidden]">

@@ -1485,6 +1485,35 @@ function SolutionShowcase({ isMobile }: { isMobile: boolean }) {
           { id: "liga", label: "Ver na Liga →" },
         ]}
       />
+
+      <CardSummon
+        back="/landing/mtg-card-back.jpg"
+        front="/landing/shivan-card.jpg"
+        character="/landing/shivan-art.jpg"
+        characterShape="orb"
+        alt="Shivan Dragon"
+        glow="red"
+        chips={[
+          { id: "preco", label: "R$ 6.400", strong: true },
+          { id: "delta", label: "▲ 9% em 90 dias" },
+          { id: "set", label: "Alpha · 1993" },
+          { id: "liga", label: "Ver na Liga →" },
+        ]}
+      />
+
+      <CardSummon
+        back="/landing/op-card-back.jpg"
+        front="/landing/luffy-card.png"
+        character="/landing/luffy-artwork.png"
+        alt="Monkey D. Luffy — Gear 5"
+        glow="pink"
+        chips={[
+          { id: "preco", label: "R$ 3.800", strong: true },
+          { id: "delta", label: "▲ 41% em 90 dias" },
+          { id: "set", label: "OP05-119 · SEC Alt Art" },
+          { id: "liga", label: "Ver na Liga →" },
+        ]}
+      />
     </div>
   );
 }
