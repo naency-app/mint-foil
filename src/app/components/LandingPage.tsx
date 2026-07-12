@@ -35,6 +35,7 @@ import {
 } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CardSummon } from "@/components/ui/card-summon";
+import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -786,10 +787,10 @@ function Hero() {
         <motion.h1
           variants={fadeUp}
           style={{
-            fontSize: "clamp(30px, 4.8vw, 48px)",
+            fontSize: "clamp(38px, 6.5vw, 72px)",
             fontWeight: 800,
             color: t.text,
-            lineHeight: 1.08,
+            lineHeight: 1.04,
             margin: "22px 0 0",
             letterSpacing: "-1px",
           }}
@@ -2941,6 +2942,7 @@ export function LandingPage() {
       >
         <Nav isDark={isDark} onToggle={handleThemeToggle} />
         <Hero />
+        <CinematicHero isDark={isDark} />
         <VideoSection />
         <RevealSection />
         <WhyMintFoil />
