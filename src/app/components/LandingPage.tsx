@@ -35,7 +35,6 @@ import {
 } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CardSummon } from "@/components/ui/card-summon";
-import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -184,42 +183,33 @@ const REVEAL_ITEMS = [
   {
     text: "Pokémon",
     imgs: [
+      "/landing/pkm-card-back.jpg",
       "https://images.pokemontcg.io/swsh7/215_hires.png",
-      "https://images.pokemontcg.io/sv3/234_hires.png",
     ],
   },
   {
     text: "Yu-Gi-Oh!",
-    imgs: [
-      "https://images.ygoprodeck.com/images/cards/89631139.jpg",
-      "https://images.ygoprodeck.com/images/cards/46986414.jpg",
-    ],
+    imgs: ["/landing/ygo-card-back.jpg", "/landing/blue-eyes-card.jpg"],
   },
   {
     text: "Magic",
-    imgs: [
-      "https://cards.scryfall.io/large/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7571.jpg",
-      "https://cards.scryfall.io/large/front/4/c/4cbc6901-6a4a-4d0a-83ea-7eefa3b35021.jpg",
-    ],
+    imgs: ["/landing/mtg-card-back.jpg", "/landing/shivan-card.jpg"],
   },
   {
     text: "One Piece",
-    imgs: [
-      "https://images.pokemontcg.io/sv3pt5/230_hires.png",
-      "https://images.pokemontcg.io/sv4pt5/234_hires.png",
-    ],
+    imgs: ["/landing/op-card-back.jpg", "/landing/luffy-card.png"],
   },
   {
     text: "Dragon Ball",
     imgs: [
+      "/landing/ygo-card-back.jpg",
       "https://images.ygoprodeck.com/images/cards/44508094.jpg",
-      "https://images.ygoprodeck.com/images/cards/23995346.jpg",
     ],
   },
   {
     text: "Digimon",
     imgs: [
-      "https://images.pokemontcg.io/swsh8/269_hires.png",
+      "/landing/pkm-card-back.jpg",
       "https://images.pokemontcg.io/swsh8/271_hires.png",
     ],
   },
@@ -796,10 +786,10 @@ function Hero() {
         <motion.h1
           variants={fadeUp}
           style={{
-            fontSize: "clamp(38px, 6.5vw, 72px)",
+            fontSize: "clamp(30px, 4.8vw, 48px)",
             fontWeight: 800,
             color: t.text,
-            lineHeight: 1.04,
+            lineHeight: 1.08,
             margin: "22px 0 0",
             letterSpacing: "-1px",
           }}
@@ -845,25 +835,6 @@ function Hero() {
               <Play size={14} /> Ver como funciona
             </PrimaryBtn>
           </div>
-        </motion.div>
-
-        {/* Download badges */}
-        <motion.div variants={fadeUp}>
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "center",
-              marginTop: "20px",
-              flexWrap: "wrap",
-            }}
-          >
-            <StoreBadge store="ios" />
-            <StoreBadge store="android" />
-          </div>
-          <p style={{ fontSize: "11px", color: t.muted, marginTop: "12px" }}>
-            Disponível para iOS, Android e Web
-          </p>
         </motion.div>
       </motion.div>
 
@@ -1049,12 +1020,14 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
 
   return (
     <div
-      style={{ position: "relative", padding: "12px 0", overflow: "visible" }}
+      style={{ position: "relative", padding: "16px 0", overflow: "visible" }}
     >
       <button
         type="button"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
         style={{
           background: "none",
           border: "none",
@@ -1066,66 +1039,32 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
       >
         <h3
           style={{
-            fontSize: "clamp(52px, 9vw, 88px)",
-            fontWeight: 800,
+            fontSize: "clamp(52px, 9.5vw, 96px)",
+            fontWeight: 900,
             color: t.text,
             textTransform: "uppercase",
             lineHeight: 1,
-            transition: "opacity 0.38s ease",
-            opacity: hovered ? 0.15 : 1,
-            letterSpacing: "-1.5px",
+            transition: "opacity 0.4s",
+            opacity: hovered ? 0.2 : 1,
+            letterSpacing: "-1px",
           }}
         >
           {text}
         </h3>
       </button>
 
-      {/* Back card (left, behind) */}
+      {/* Card 1 (frente) */}
       <div
         style={{
           position: "absolute",
-          left: "38%",
-          top: "50%",
-          zIndex: 39,
-          width: "108px",
-          height: "152px",
-          transform: hovered
-            ? "translateX(-48px) translateY(-50%) rotate(-10deg) scale(1)"
-            : "translateX(-20px) translateY(-50%) rotate(-5deg) scale(0.85)",
-          opacity: hovered ? 1 : 0,
-          transition: "all 0.42s ease-out 0.06s",
-          pointerEvents: "none",
-        }}
-      >
-        {/* biome-ignore lint/performance/noImgElement: external TCG card URLs require referrerPolicy */}
-        <img
-          src={imgs[0]}
-          alt=""
-          referrerPolicy="no-referrer"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            borderRadius: "8px",
-            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.22))",
-          }}
-        />
-      </div>
-
-      {/* Front card (right, in front) */}
-      <div
-        style={{
-          position: "absolute",
-          left: "45%",
-          top: "50%",
+          right: "40px",
+          top: "-10px",
           zIndex: 40,
-          width: "108px",
-          height: "152px",
-          transform: hovered
-            ? "translateX(0) translateY(-50%) rotate(4deg) scale(1)"
-            : "translateX(14px) translateY(-50%) rotate(4deg) scale(0.85)",
+          width: "100px",
+          height: "140px",
+          transform: hovered ? "scale(1)" : "scale(0)",
           opacity: hovered ? 1 : 0,
-          transition: "all 0.36s ease-out",
+          transition: "all 0.45s cubic-bezier(0.34,1.56,0.64,1)",
           pointerEvents: "none",
         }}
       >
@@ -1133,14 +1072,46 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
         <img
           src={imgs[1]}
           alt=""
-          referrerPolicy="no-referrer"
           style={{
             width: "100%",
             height: "100%",
             objectFit: "contain",
             borderRadius: "8px",
-            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.22))",
+            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.2))",
           }}
+          referrerPolicy="no-referrer"
+        />
+      </div>
+
+      {/* Card 2 (verso, atrás, rotacionado) */}
+      <div
+        style={{
+          position: "absolute",
+          right: "40px",
+          top: "-10px",
+          zIndex: 39,
+          width: "100px",
+          height: "140px",
+          transform: hovered
+            ? "scale(1) translateX(55px) translateY(30px) rotate(12deg)"
+            : "scale(0)",
+          opacity: hovered ? 1 : 0,
+          transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.08s",
+          pointerEvents: "none",
+        }}
+      >
+        {/* biome-ignore lint/performance/noImgElement: external TCG card URLs require referrerPolicy */}
+        <img
+          src={imgs[0]}
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            borderRadius: "8px",
+            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.2))",
+          }}
+          referrerPolicy="no-referrer"
         />
       </div>
     </div>
@@ -1148,29 +1119,20 @@ function RevealItem({ text, imgs }: { text: string; imgs: string[] }) {
 }
 
 function RevealSection() {
-  const t = useTheme();
+  const isMobile = useIsMobile();
   return (
-    <section id="colecoes" style={{ padding: "100px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <STitle badge="Coleções" title="Explore seus jogos favoritos" />
-        <div style={{ maxWidth: "580px", margin: "0 auto" }}>
-          <p
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              color: t.muted,
-              marginBottom: "8px",
-            }}
-          >
-            Coleções Mintfoil
-          </p>
-          {REVEAL_ITEMS.map(({ text, imgs }) => (
-            <RevealItem key={text} text={text} imgs={imgs} />
-          ))}
-        </div>
-      </div>
+    <section
+      id="colecoes"
+      style={{
+        padding: isMobile ? "80px 20px" : "125px 24px",
+        maxWidth: "1240px",
+        margin: "0 auto",
+      }}
+    >
+      <STitle badge="Coleções" title="Explore seus jogos favoritos" />
+      {REVEAL_ITEMS.map(({ text, imgs }) => (
+        <RevealItem key={text} text={text} imgs={imgs} />
+      ))}
     </section>
   );
 }
@@ -1295,10 +1257,9 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
               letterSpacing: "-1px",
             }}
           >
-            Tem muitas cartas e{" "}
-            <span style={{ color: t.primary }}>
-              não sabe quanto elas valem?
-            </span>
+            Você tem centenas de cartas e{" "}
+            <span style={{ color: t.primary }}>não sabe quanto valem.</span>{" "}
+            Agora vai saber.
           </h2>
         </FadeIn>
 
@@ -2977,7 +2938,6 @@ export function LandingPage() {
       >
         <Nav isDark={isDark} onToggle={handleThemeToggle} />
         <Hero />
-        <CinematicHero isDark={isDark} />
         <VideoSection />
         <RevealSection />
         <WhyMintFoil />
