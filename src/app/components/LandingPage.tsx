@@ -33,8 +33,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { PinContainer } from "@/components/ui/3d-pin";
 import { Badge } from "@/components/ui/badge";
+import { CardSummon } from "@/components/ui/card-summon";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 
@@ -1441,67 +1441,7 @@ const SOLUTION_STEPS = [
   },
 ];
 
-const SPARK_BLUE = [30, 38, 34, 44, 52, 47, 58, 66, 61, 74, 82, 90];
-const SPARK_FIRE = [50, 44, 58, 52, 66, 61, 70, 64, 76, 82, 78, 92];
-
-// Painel dentro do pin: carta + preço + variação + mini gráfico (dark, Tailwind)
-function PinCardPanel({
-  img,
-  name,
-  setInfo,
-  price,
-  delta,
-  bars,
-  accent,
-}: {
-  img: string;
-  name: string;
-  setInfo: string;
-  price: string;
-  delta: string;
-  bars: number[];
-  accent: "sky" | "orange";
-}) {
-  const acc =
-    accent === "sky"
-      ? { text: "text-sky-400", bar: "from-sky-500/20 to-sky-400" }
-      : { text: "text-orange-400", bar: "from-orange-500/20 to-orange-400" };
-  return (
-    <div className="flex w-[17rem] flex-col gap-3 p-1 text-slate-100">
-      <div className="flex gap-3">
-        {/* biome-ignore lint/performance/noImgElement: external TCG card URL requires referrerPolicy */}
-        <img
-          src={img}
-          alt=""
-          referrerPolicy="no-referrer"
-          className="h-28 w-auto rounded-md object-contain drop-shadow-lg"
-        />
-        <div className="flex flex-col justify-center gap-0.5">
-          <p className="text-sm font-bold text-white">{name}</p>
-          <p className="text-[10px] text-slate-400">{setInfo}</p>
-          <p className={`mt-1 text-xl font-extrabold ${acc.text}`}>{price}</p>
-          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-            ▲ {delta}
-          </span>
-        </div>
-      </div>
-      <div className="flex h-12 items-end gap-1">
-        {bars.map((h, i) => (
-          <div
-            key={`${h}-${String(i)}`}
-            className={`flex-1 rounded-t-sm bg-gradient-to-t ${acc.bar}`}
-            style={{ height: `${h}%` }}
-          />
-        ))}
-      </div>
-      <div className="flex items-center justify-between text-[10px] text-slate-400">
-        <span>Preço de referência · hoje</span>
-        <span className={`font-semibold ${acc.text}`}>Ver na Liga →</span>
-      </div>
-    </div>
-  );
-}
-
+// Invocação: carta virada pra baixo → flip + personagem 3D + valores flutuando
 function SolutionShowcase({ isMobile }: { isMobile: boolean }) {
   return (
     <div
@@ -1509,66 +1449,40 @@ function SolutionShowcase({ isMobile }: { isMobile: boolean }) {
         display: "flex",
         flexWrap: "wrap",
         justifyContent: "center",
-        columnGap: "48px",
-        rowGap: "150px",
-        paddingTop: "110px",
-        paddingBottom: "40px",
+        columnGap: isMobile ? "40px" : "170px",
+        rowGap: "190px",
+        paddingTop: "180px",
+        paddingBottom: "60px",
+        paddingRight: isMobile ? "0" : "60px",
       }}
     >
-      {/* Blue-Eyes — o dragão sai da carta no hover */}
-      <PinContainer
-        href="/explore"
+      <CardSummon
+        back="/landing/ygo-card-back.jpg"
+        front="/landing/blue-eyes-card.jpg"
+        character="/landing/blue-eyes-artwork.png"
+        alt="Blue-Eyes White Dragon"
         glow="cyan"
-        hologram={
-          // biome-ignore lint/performance/noImgElement: external TCG art URL requires referrerPolicy
-          <img
-            src="https://images.ygoprodeck.com/images/cards_cropped/89631139.jpg"
-            alt="Blue-Eyes White Dragon"
-            referrerPolicy="no-referrer"
-            className="h-28 w-28 rounded-xl object-cover shadow-[0_0_34px_rgba(56,189,248,0.7)] ring-1 ring-sky-300/60"
-          />
-        }
-      >
-        <PinCardPanel
-          img="https://images.ygoprodeck.com/images/cards/89631139.jpg"
-          name="Blue-Eyes White Dragon"
-          setInfo="LOB-001 · Ultra Rare"
-          price="R$ 890"
-          delta="18% em 30 dias"
-          bars={SPARK_BLUE}
-          accent="sky"
-        />
-      </PinContainer>
+        chips={[
+          { id: "preco", label: "R$ 890", strong: true },
+          { id: "delta", label: "▲ 18% em 30 dias" },
+          { id: "set", label: "LOB-001 · Ultra Rare" },
+          { id: "liga", label: "Ver na Liga →" },
+        ]}
+      />
 
-      {/* Charizard Base Set */}
-      {!isMobile && (
-        <PinContainer
-          href="/explore"
-          glow="orange"
-          hologram={
-            <div className="h-24 w-40 overflow-hidden rounded-xl shadow-[0_0_34px_rgba(251,146,60,0.7)] ring-1 ring-orange-300/60">
-              {/* biome-ignore lint/performance/noImgElement: external TCG art URL requires referrerPolicy */}
-              <img
-                src="https://images.pokemontcg.io/base1/4_hires.png"
-                alt="Charizard"
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover"
-                style={{ objectPosition: "50% 16%", transform: "scale(1.6)" }}
-              />
-            </div>
-          }
-        >
-          <PinCardPanel
-            img="https://images.pokemontcg.io/base1/4_hires.png"
-            name="Charizard"
-            setInfo="Base Set · 4/102 · Holo"
-            price="R$ 15.900"
-            delta="32% em 90 dias"
-            bars={SPARK_FIRE}
-            accent="orange"
-          />
-        </PinContainer>
-      )}
+      <CardSummon
+        back="/landing/pkm-card-back.jpg"
+        front="/landing/charizard-card.png"
+        character="/landing/charizard-artwork.png"
+        alt="Charizard"
+        glow="orange"
+        chips={[
+          { id: "preco", label: "R$ 15.900", strong: true },
+          { id: "delta", label: "▲ 32% em 90 dias" },
+          { id: "set", label: "Base Set · 4/102 · Holo" },
+          { id: "liga", label: "Ver na Liga →" },
+        ]}
+      />
     </div>
   );
 }
@@ -1672,18 +1586,16 @@ function SolutionSection() {
         <FadeIn delay={0.15}>
           <SolutionShowcase isMobile={isMobile} />
         </FadeIn>
-        {!isMobile && (
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "12px",
-              color: t.muted,
-              margin: 0,
-            }}
-          >
-            ✦ passe o mouse na carta
-          </p>
-        )}
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "12px",
+            color: t.muted,
+            margin: 0,
+          }}
+        >
+          ✦ {isMobile ? "toque na carta pra revelar" : "passe o mouse na carta"}
+        </p>
       </div>
     </section>
   );

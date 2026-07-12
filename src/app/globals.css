@@ -228,3 +228,13 @@
     transform: scale(1);
   }
 }
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
