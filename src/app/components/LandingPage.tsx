@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CardSummon } from "@/components/ui/card-summon";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
+import ScrollMorphHero from "@/components/ui/scroll-morph-hero";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -2962,6 +2963,11 @@ export function LandingPage() {
         }}
       >
         <Nav isDark={isDark} onToggle={handleThemeToggle} />
+        {/* TESTE: abertura scroll-morph — cartas se espalham, viram círculo e
+            arco; ao terminar, o scroll libera e cai no hero atual */}
+        <div style={{ height: "100svh" }}>
+          <ScrollMorphHero isDark={isDark} />
+        </div>
         <Hero />
         {/* Margem negativa: a "Veja em ação" já espera atrás da animação,
             que dá fade no final — sem tela vazia entre as duas */}
