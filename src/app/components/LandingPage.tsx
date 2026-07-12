@@ -6,6 +6,8 @@ import {
   BarChart3,
   Camera,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   DollarSign,
   ExternalLink,
@@ -18,6 +20,7 @@ import {
   ScanLine,
   ShieldCheck,
   Smartphone,
+  Star,
   Store,
   Sun,
   TrendingUp,
@@ -100,6 +103,19 @@ const fadeUp: Variants = {
     transition: { duration: 0.5, ease: "easeOut" as const },
   },
 };
+
+// ── Responsive hook (from develop's landing) ──────────────────────────────────
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 // ── Card data — 30-card marquee (no repeats, mixed TCGs) ──────────────────────
 
@@ -320,6 +336,56 @@ function PrimaryBtn({
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.opacity = "0.80";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.opacity = "1";
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Gradient CTA (from develop's landing) — theme-aware ghost variant
+const GRAD = "linear-gradient(135deg, #F856A7 0%, #B50D57 100%)";
+
+function GradBtn({
+  children,
+  ghost = false,
+  full = false,
+  small = false,
+  onClick,
+}: {
+  children: ReactNode;
+  ghost?: boolean;
+  full?: boolean;
+  small?: boolean;
+  onClick?: () => void;
+}) {
+  const t = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        padding: small ? "10px 24px" : "14px 32px",
+        borderRadius: "10px",
+        border: ghost ? `1px solid ${t.primaryBorder}` : "none",
+        background: ghost ? "transparent" : GRAD,
+        color: ghost ? t.primary : "#FFFFFF",
+        fontSize: small ? "13px" : "14px",
+        fontWeight: 600,
+        cursor: "pointer",
+        width: full ? "100%" : "auto",
+        transition: "opacity 0.2s ease",
+        letterSpacing: "0.2px",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.opacity = "0.82";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.opacity = "1";
@@ -1115,134 +1181,324 @@ function RevealSection() {
 const PAINS = [
   {
     id: "valor",
-    icon: <ScanLine size={24} />,
+    icon: <ScanLine size={22} />,
     title: "Não sabe o valor",
     desc: "Cartas que podem valer R$ 5 ou R$ 500. Você não sabe qual é qual.",
   },
   {
     id: "horas",
-    icon: <TrendingUp size={24} />,
+    icon: <TrendingUp size={22} />,
     title: "Perde horas pesquisando",
     desc: "Abre a liga, pesquisa carta por carta. Consultou 10, cansou. Faltam 300.",
   },
   {
     id: "gringo",
-    icon: <Globe size={24} />,
+    icon: <Globe size={22} />,
     title: "App gringo, preço errado",
     desc: "Converte dólar pra real. O preço não tem nada a ver com o mercado BR.",
   },
   {
     id: "barato",
-    icon: <DollarSign size={24} />,
+    icon: <DollarSign size={22} />,
     title: "Já vendeu barato",
     desc: "Vendeu carta por um valor que depois descobriu que estava errado.",
   },
   {
     id: "catalogo",
-    icon: <LayoutDashboard size={24} />,
+    icon: <LayoutDashboard size={22} />,
     title: "Coleção sem catálogo",
     desc: "Caixas cheias de cartas nunca catalogadas. Pode ter fortuna ali.",
   },
   {
     id: "jogos",
-    icon: <Gamepad2 size={24} />,
+    icon: <Gamepad2 size={22} />,
     title: "4 jogos, 4 problemas",
     desc: "Pokémon, Magic, Yu-Gi-Oh!, One Piece. Precisaria de 4 sites.",
   },
 ];
 
-function Pain() {
+// Card grid split out so useTheme picks up AltSection's inverted theme
+function PainCards({ isMobile }: { isMobile: boolean }) {
   const t = useTheme();
   return (
-    <AltSection>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+        gap: "16px",
+      }}
+    >
+      {PAINS.map((p, i) => (
+        <FadeIn key={p.id} delay={i * 0.07}>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: decorative border hover, not a clickable action */}
+          <div
+            style={{
+              background: t.cardBg,
+              border: `1px solid ${t.border}`,
+              borderRadius: "14px",
+              padding: "24px",
+              height: "100%",
+              transition: "border-color 0.3s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = t.primaryBorder;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = t.border;
+            }}
+          >
+            <div style={{ color: t.primary, marginBottom: "12px" }}>
+              {p.icon}
+            </div>
+            <h4
+              style={{
+                fontSize: "20px",
+                lineHeight: "28px",
+                fontWeight: 500,
+                color: t.text,
+                marginBottom: "6px",
+              }}
+            >
+              {p.title}
+            </h4>
+            <p
+              style={{
+                fontSize: "16px",
+                lineHeight: "24px",
+                color: t.muted,
+                margin: 0,
+              }}
+            >
+              {p.desc}
+            </p>
+          </div>
+        </FadeIn>
+      ))}
+    </div>
+  );
+}
+
+function Pain() {
+  const isMobile = useIsMobile();
+  return (
+    <AltSection style={{ padding: isMobile ? "80px 20px" : "125px 24px" }}>
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
         <STitle
           badge="O Problema"
           title="Colecionar é fácil. Saber o valor real, não."
           sub="Se coleciona cards de mais de um jogo, já sentiu pelo menos três dessas:"
         />
+        <PainCards isMobile={isMobile} />
+      </div>
+    </AltSection>
+  );
+}
+
+// ── Solution (from develop) ───────────────────────────────────────────────────
+
+const STEPS = [
+  {
+    id: "scan",
+    icon: <Camera size={20} />,
+    title: "Escaneie",
+    desc: "Aponte a câmera. O Mint Foil reconhece nome, edição, raridade e jogo.",
+  },
+  {
+    id: "preco",
+    icon: <DollarSign size={20} />,
+    title: "Veja o preço real",
+    desc: "Preço das ligas brasileiras na hora. Não conversão de dólar.",
+  },
+  {
+    id: "organize",
+    icon: <BarChart3 size={20} />,
+    title: "Organize e monitore",
+    desc: "A carta entra no portfólio. Acompanhe valorização com gráficos.",
+  },
+];
+
+function Solution() {
+  const t = useTheme();
+  const isMobile = useIsMobile();
+  return (
+    <section
+      id="como-funciona"
+      style={{ padding: isMobile ? "80px 20px" : "125px 24px" }}
+    >
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
+        {/* Header row: badge + title left / Watch Demo right */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            justifyContent: "space-between",
+            alignItems: isMobile ? "flex-start" : "flex-end",
+            marginBottom: "48px",
+            gap: isMobile ? "16px" : "24px",
+          }}
+        >
+          <div>
+            <FadeIn>
+              <p
+                style={{
+                  fontSize: "18px",
+                  lineHeight: "20px",
+                  fontWeight: 500,
+                  color: t.primary,
+                  letterSpacing: "0.5px",
+                  margin: "0 0 12px",
+                }}
+              >
+                A Solução
+              </p>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <h2
+                style={{
+                  fontSize: "34px",
+                  lineHeight: "44px",
+                  fontWeight: 700,
+                  color: t.text,
+                  margin: 0,
+                  maxWidth: "480px",
+                }}
+              >
+                3 passos. Toda a coleção sob controle.
+              </h2>
+            </FadeIn>
+          </div>
+
+          <FadeIn delay={0.12}>
+            <button
+              type="button"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "11px 20px",
+                borderRadius: "8px",
+                border: `1px solid ${t.border}`,
+                background: t.isDark ? "#FFFFFF" : "#020617",
+                color: t.isDark ? "#020617" : "#FFFFFF",
+                fontSize: "13.5px",
+                fontWeight: 600,
+                cursor: "pointer",
+                flexShrink: 0,
+                transition: "opacity 0.18s",
+                letterSpacing: "-0.1px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "0.82";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "1";
+              }}
+            >
+              <div
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  background: t.isDark
+                    ? "rgba(2,6,23,0.15)"
+                    : "rgba(255,255,255,0.15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Play size={9} />
+              </div>
+              Watch Demo
+            </button>
+          </FadeIn>
+        </div>
+
+        {/* 3 cards lado a lado */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
             gap: "16px",
           }}
         >
-          {PAINS.map((p, i) => (
-            <FadeIn key={p.id} delay={i * 0.07}>
-              <div style={{ position: "relative" }}>
-                {/* Radial glow behind card */}
-                <div
+          {STEPS.map((s, i) => (
+            <FadeIn key={s.id} delay={i * 0.1}>
+              <div
+                style={{
+                  position: "relative",
+                  padding: "28px 24px",
+                  borderRadius: "14px",
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  height: "100%",
+                }}
+              >
+                {/* Step number — top right, bem sutil */}
+                <span
                   style={{
                     position: "absolute",
-                    inset: 0,
-                    background: `radial-gradient(circle at 50% 0%, ${t.primaryBg} 0%, transparent 70%)`,
-                    borderRadius: "16px",
+                    top: "20px",
+                    right: "22px",
+                    fontSize: "32px",
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    color: t.isDark
+                      ? "rgba(255,255,255,0.07)"
+                      : "rgba(0,0,0,0.06)",
+                    userSelect: "none",
                     pointerEvents: "none",
                   }}
-                />
-                {/* biome-ignore lint/a11y/noStaticElementInteractions: decorative border hover */}
+                >
+                  #{i + 1}
+                </span>
+
                 <div
                   style={{
-                    background: t.cardBg,
-                    border: `1px solid ${t.border}`,
-                    borderRadius: "16px",
-                    padding: "28px 24px",
-                    height: "100%",
-                    transition: "border-color 0.3s",
-                    position: "relative",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = t.primaryBorder;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = t.border;
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "12px",
+                    background: t.primaryBg,
+                    border: `1px solid ${t.primaryBorder}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: t.primary,
+                    marginBottom: "20px",
                   }}
                 >
-                  {/* Icon circle */}
-                  <div
-                    style={{
-                      width: "52px",
-                      height: "52px",
-                      borderRadius: "14px",
-                      background: t.primaryBg,
-                      border: `1px solid ${t.primaryBorder}`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: t.primary,
-                      marginBottom: "16px",
-                    }}
-                  >
-                    {p.icon}
-                  </div>
-                  <h4
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: 700,
-                      color: t.text,
-                      marginBottom: "8px",
-                    }}
-                  >
-                    {p.title}
-                  </h4>
-                  <p
-                    style={{
-                      fontSize: "13.5px",
-                      color: t.muted,
-                      lineHeight: 1.65,
-                      margin: 0,
-                    }}
-                  >
-                    {p.desc}
-                  </p>
+                  {s.icon}
                 </div>
+
+                <h4
+                  style={{
+                    fontSize: "20px",
+                    lineHeight: "28px",
+                    fontWeight: 500,
+                    color: t.text,
+                    margin: "0 0 8px",
+                    paddingRight: "32px",
+                  }}
+                >
+                  {s.title}
+                </h4>
+                <p
+                  style={{
+                    fontSize: "16px",
+                    lineHeight: "24px",
+                    color: t.muted,
+                    margin: 0,
+                  }}
+                >
+                  {s.desc}
+                </p>
               </div>
             </FadeIn>
           ))}
         </div>
       </div>
-    </AltSection>
+    </section>
   );
 }
 
@@ -1528,131 +1784,347 @@ function Benefits() {
   );
 }
 
-// ── Recursos Principais (3 cards, no tabs) ────────────────────────────────────
+// ── Key Features — carrossel (from develop) ───────────────────────────────────
 
-const FEATURES = [
+const FEATURE_TABS = [
   {
-    id: "scan",
-    badge: "IA Avançada",
-    title: "Scan Inteligente e Super Preciso",
-    desc: "Aponte a câmera e o Mint Foil identifica a carta instantaneamente: nome, set, edição e raridade.",
-    icon: <ScanLine size={26} />,
+    value: "scan",
+    icon: <Camera size={15} />,
+    label: "Scan Inteligente",
+    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
+    mockupIcon: <ScanLine size={40} />,
   },
   {
-    id: "precos",
-    badge: "Exclusivo Brasil",
-    title: "Preço Real e Monitoramento de Valor",
-    desc: "Puxa preços da Liga Pokémon, myP Cards e outros marketplaces BR. Gráficos para saber quando comprar ou vender.",
-    icon: <TrendingUp size={26} />,
+    value: "precos",
+    icon: <DollarSign size={15} />,
+    label: "Preços Reais BR",
+    desc: "Puxa preços da Liga Pokémon, myP Cards e outros marketplaces BR. O preço real.",
+    mockupIcon: <TrendingUp size={40} />,
   },
   {
-    id: "portfolio",
-    badge: "Controle Total",
-    title: "Organização por Portfólios e Decks",
-    desc: "Organize por jogo, crie decks, separe por coleção e acesse de qualquer lugar, no celular ou no PC.",
-    icon: <BarChart3 size={26} />,
+    value: "portfolio",
+    icon: <BarChart3 size={15} />,
+    label: "Portfólio Inteligente",
+    desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
+    mockupIcon: <BarChart3 size={40} />,
+  },
+  {
+    value: "historico",
+    icon: <TrendingUp size={15} />,
+    label: "Histórico de Preços",
+    desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
+    mockupIcon: <TrendingUp size={40} />,
+  },
+  {
+    value: "alertas",
+    icon: <Star size={15} />,
+    label: "Alertas de Valorização",
+    desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
+    mockupIcon: <Star size={40} />,
+  },
+  {
+    value: "multi-tcg",
+    icon: <Gamepad2 size={15} />,
+    label: "4 Jogos, 1 App",
+    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
+    mockupIcon: <Gamepad2 size={40} />,
   },
 ];
 
-function Resources() {
+const CAROUSEL_INTERVAL = 5000;
+const CARD_W = 600;
+const CARD_GAP = 24;
+const CARD_LEFT_PAD = 64;
+
+function KeyFeatures() {
   const t = useTheme();
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const isMobile = useIsMobile();
+  const [winW, setWinW] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1280,
+  );
+  useEffect(() => {
+    const onResize = () => setWinW(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const cardW = isMobile ? winW - 40 : CARD_W;
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(
+      () => setActiveIdx((i) => (i + 1) % FEATURE_TABS.length),
+      CAROUSEL_INTERVAL,
+    );
+    return () => clearInterval(timer);
+  }, [paused]);
+
+  const prev = () =>
+    setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
+  const next = () => setActiveIdx((i) => (i + 1) % FEATURE_TABS.length);
+
   return (
-    <AltSection id="recursos">
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <STitle
-          badge="Recursos Principais"
-          title="Ferramentas que nenhum outro app tem"
-        />
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover apenas pausa o autoplay do carrossel
+    <section
+      id="recursos"
+      style={{ padding: isMobile ? "80px 0" : "125px 0" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* ── Header ── */}
+      <FadeIn>
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
-            gap: "20px",
+            maxWidth: "1240px",
+            margin: "0 auto",
+            padding: isMobile ? "0 20px 36px" : "0 24px 52px",
           }}
         >
-          {FEATURES.map((f, i) => (
-            <FadeIn key={f.id} delay={i * 0.1}>
-              <div style={{ position: "relative", paddingTop: "70px" }}>
-                {/* Bleeding mockup */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "-30px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    zIndex: 2,
-                  }}
-                >
-                  <PhoneMockup size="sm">
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                        gap: "8px",
-                        padding: "12px",
-                      }}
-                    >
-                      <div style={{ color: t.primary }}>{f.icon}</div>
-                      <p
-                        style={{
-                          fontSize: "9px",
-                          color: t.muted,
-                          textAlign: "center",
-                        }}
-                      >
-                        Screenshot real aqui
-                      </p>
-                    </div>
-                  </PhoneMockup>
-                </div>
+          <STitle
+            badge="Key Features"
+            title="Ferramentas que nenhum outro app tem"
+            sub="Escaneie cartas com IA, veja preços das ligas brasileiras e organize seu portfólio."
+          />
+        </div>
+      </FadeIn>
 
-                {/* Card body */}
+      {/* ── Carousel — full viewport width ── */}
+      <div style={{ position: "relative", width: "100%" }}>
+        {/* Left arrow */}
+        <button
+          type="button"
+          onClick={prev}
+          aria-label="Feature anterior"
+          style={{
+            position: "absolute",
+            left: isMobile ? "8px" : "16px",
+            top: isMobile ? "120px" : "162px",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            background: t.cardBg,
+            border: `1px solid ${t.border}`,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            padding: 0,
+          }}
+        >
+          <ChevronLeft size={18} color={t.text} />
+        </button>
+
+        {/* Cards strip */}
+        <div style={{ overflow: "hidden" }}>
+          <motion.div
+            style={{
+              display: "flex",
+              gap: `${CARD_GAP}px`,
+              paddingLeft: isMobile ? "20px" : `${CARD_LEFT_PAD}px`,
+            }}
+            animate={{ x: -activeIdx * (cardW + CARD_GAP) }}
+            transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            drag={isMobile ? "x" : false}
+            dragConstraints={{
+              left: -(FEATURE_TABS.length - 1) * (cardW + CARD_GAP),
+              right: 0,
+            }}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -50) next();
+              else if (info.offset.x > 50) prev();
+            }}
+          >
+            {FEATURE_TABS.map((ft) => (
+              <div
+                key={ft.value}
+                style={{
+                  width: `${cardW}px`,
+                  flexShrink: 0,
+                  background: t.cardBg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "16px",
+                  overflow: "hidden",
+                  cursor: "default",
+                }}
+              >
+                {/* ── Video / preview area ── */}
                 <div
                   style={{
-                    background: t.cardBg,
-                    border: `1px solid ${t.border}`,
-                    borderRadius: "20px",
-                    padding: "100px 24px 28px",
-                    minHeight: "260px",
+                    height: isMobile ? "200px" : "325px",
+                    position: "relative",
+                    background:
+                      "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
+                    overflow: "hidden",
                   }}
                 >
-                  <PinkBadge>{f.badge}</PinkBadge>
-                  <h3
+                  {/* Radial glow */}
+                  <div
                     style={{
-                      fontSize: "17px",
-                      fontWeight: 700,
-                      color: t.text,
-                      lineHeight: 1.25,
-                      margin: "14px 0 10px",
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "radial-gradient(ellipse at 50% 110%, rgba(248,86,167,0.22) 0%, transparent 65%)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Phone mockup clipped at bottom */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "-18px",
+                      left: "50%",
+                      transform: "translateX(-50%) scale(0.65)",
+                      transformOrigin: "bottom center",
+                      opacity: 0.72,
                     }}
                   >
-                    {f.title}
-                  </h3>
+                    <PhoneMockup>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                          padding: "20px",
+                        }}
+                      >
+                        <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
+                      </div>
+                    </PhoneMockup>
+                  </div>
+                  {/* Play button — top-left */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "14px",
+                      left: "14px",
+                      width: "34px",
+                      height: "34px",
+                      borderRadius: "50%",
+                      background: "rgba(255,255,255,0.9)",
+                      boxShadow: "0 2px 10px rgba(248,86,167,0.22)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Play
+                      size={13}
+                      fill="#B50D57"
+                      color="#B50D57"
+                      style={{ marginLeft: "2px" }}
+                    />
+                  </div>
+                </div>
+
+                {/* ── Info area — icon + label + desc ── */}
+                <div
+                  style={{
+                    padding: "18px 20px 22px",
+                    borderTop: `1px solid ${t.border}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <span style={{ color: t.muted, display: "flex" }}>
+                      {ft.icon}
+                    </span>
+                    <p
+                      style={{
+                        fontSize: "20px",
+                        lineHeight: "28px",
+                        fontWeight: 500,
+                        color: t.text,
+                        margin: 0,
+                      }}
+                    >
+                      {ft.label}
+                    </p>
+                  </div>
                   <p
                     style={{
-                      fontSize: "13.5px",
+                      fontSize: "16px",
+                      lineHeight: "24px",
                       color: t.muted,
-                      lineHeight: 1.65,
                       margin: 0,
                     }}
                   >
-                    {f.desc}
+                    {ft.desc}
                   </p>
-                  <div style={{ marginTop: "20px" }}>
-                    <PrimaryBtn small>
-                      <ArrowRight size={13} /> Saiba mais
-                    </PrimaryBtn>
-                  </div>
                 </div>
               </div>
-            </FadeIn>
-          ))}
+            ))}
+          </motion.div>
         </div>
+
+        {/* Right arrow */}
+        <button
+          type="button"
+          onClick={next}
+          aria-label="Próxima feature"
+          style={{
+            position: "absolute",
+            right: isMobile ? "8px" : "16px",
+            top: isMobile ? "120px" : "162px",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            background: t.cardBg,
+            border: `1px solid ${t.border}`,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            padding: 0,
+          }}
+        >
+          <ChevronRight size={18} color={t.text} />
+        </button>
       </div>
-    </AltSection>
+
+      {/* ── Dots ── */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "8px",
+          marginTop: "32px",
+        }}
+      >
+        {FEATURE_TABS.map((ft, i) => (
+          <button
+            key={ft.value}
+            type="button"
+            aria-label={`Ir para ${ft.label}`}
+            onClick={() => setActiveIdx(i)}
+            style={{
+              width: activeIdx === i ? "24px" : "8px",
+              height: "8px",
+              borderRadius: "4px",
+              background: activeIdx === i ? t.primary : t.border,
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              transition: "all 0.3s ease",
+            }}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -2012,9 +2484,9 @@ function Pricing() {
                 </div>
               ))}
               <div style={{ marginTop: "20px" }}>
-                <PrimaryBtn ghost full>
+                <GradBtn ghost full>
                   Começar grátis
-                </PrimaryBtn>
+                </GradBtn>
               </div>
             </div>
           </FadeIn>
@@ -2034,7 +2506,7 @@ function Pricing() {
                   position: "absolute",
                   top: "14px",
                   right: "14px",
-                  background: t.primary,
+                  background: GRAD,
                   color: "#FFFFFF",
                   fontSize: "10px",
                   fontWeight: 700,
@@ -2094,9 +2566,9 @@ function Pricing() {
                 </div>
               ))}
               <div style={{ marginTop: "20px" }}>
-                <PrimaryBtn full>
+                <GradBtn full>
                   <ArrowRight size={14} /> Assinar PRO
-                </PrimaryBtn>
+                </GradBtn>
               </div>
             </div>
           </FadeIn>
@@ -2661,8 +3133,9 @@ export function LandingPage() {
         <VideoSection />
         <RevealSection />
         <Pain />
+        <Solution />
         <Benefits />
-        <Resources />
+        <KeyFeatures />
         <Integrations />
         <Pricing />
         <FAQSection />
