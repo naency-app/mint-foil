@@ -784,15 +784,16 @@ function Hero() {
           <PinkBadge>Lançamento 2026</PinkBadge>
         </motion.div>
 
+        {/* Mesmo estilo dos taglines do CinematicHero: 96px/96px, weight 700 */}
         <motion.h1
           variants={fadeUp}
           style={{
-            fontSize: "clamp(38px, 6.5vw, 72px)",
-            fontWeight: 800,
+            fontSize: "clamp(48px, 7.5vw, 96px)",
+            fontWeight: 700,
             color: t.text,
-            lineHeight: 1.04,
+            lineHeight: 1,
             margin: "22px 0 0",
-            letterSpacing: "-1px",
+            letterSpacing: "-2px",
           }}
         >
           Escaneie. Descubra.
