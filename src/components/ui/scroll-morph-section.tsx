@@ -24,8 +24,8 @@ interface FlipCardProps {
 }
 
 // --- FlipCard ---
-const IMG_WIDTH = 60;
-const IMG_HEIGHT = 85;
+const IMG_WIDTH = 92;
+const IMG_HEIGHT = 129;
 
 function FlipCard({ src, target }: FlipCardProps) {
   return (
@@ -172,12 +172,12 @@ export default function ScrollMorphSection({
   }, []);
 
   // --- Intro (espalhadas → linha → círculo) quando a seção entra na tela ---
-  const inView = useInView(wrapperRef, { amount: 0.15, once: true });
+  const inView = useInView(stickyRef, { amount: 0.6, once: true });
 
   useEffect(() => {
     if (!inView) return;
-    const timer1 = setTimeout(() => setIntroPhase("line"), 400);
-    const timer2 = setTimeout(() => setIntroPhase("circle"), 2000);
+    const timer1 = setTimeout(() => setIntroPhase("line"), 300);
+    const timer2 = setTimeout(() => setIntroPhase("circle"), 1600);
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -191,10 +191,10 @@ export default function ScrollMorphSection({
   });
 
   // 0 → 0.3: círculo vira arco · 0.3 → 1: arco gira
-  const morphProgress = useTransform(scrollYProgress, [0.05, 0.3], [0, 1]);
+  const morphProgress = useTransform(scrollYProgress, [0.15, 0.4], [0, 1]);
   const smoothMorph = useSpring(morphProgress, { stiffness: 40, damping: 20 });
 
-  const arcSpin = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
+  const arcSpin = useTransform(scrollYProgress, [0.4, 0.95], [0, 1]);
   const smoothArcSpin = useSpring(arcSpin, { stiffness: 40, damping: 20 });
 
   // --- Parallax do mouse ---
@@ -250,7 +250,7 @@ export default function ScrollMorphSection({
       >
         <div className="flex h-full w-full flex-col items-center justify-center">
           {/* Frase de intro (some no morph) */}
-          <div className="pointer-events-none absolute top-1/2 z-0 flex -translate-y-1/2 flex-col items-center justify-center px-4 text-center">
+          <div className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center px-4 text-center">
             <motion.h2
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
               animate={
@@ -259,7 +259,7 @@ export default function ScrollMorphSection({
                   : { opacity: 0, filter: "blur(10px)" }
               }
               transition={{ duration: 1 }}
-              className="text-2xl font-medium tracking-tight md:text-4xl"
+              className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl"
               style={{ color: textMain }}
             >
               {introTitle}
@@ -272,7 +272,7 @@ export default function ScrollMorphSection({
                   : { opacity: 0 }
               }
               transition={{ duration: 1, delay: 0.2 }}
-              className="mt-4 text-xs font-bold tracking-[0.2em]"
+              className="mt-5 text-[11px] font-bold tracking-[0.3em] md:text-xs"
               style={{ color: textMuted }}
             >
               {introHint}
@@ -282,16 +282,16 @@ export default function ScrollMorphSection({
           {/* Frase do arco */}
           <motion.div
             style={{ opacity: contentOpacity, y: contentY }}
-            className="pointer-events-none absolute top-[14%] z-10 flex flex-col items-center justify-center px-4 text-center"
+            className="pointer-events-none absolute top-[7%] z-30 flex flex-col items-center justify-center px-4 text-center"
           >
             <h2
-              className="mb-4 text-3xl font-semibold tracking-tight md:text-5xl"
+              className="mb-3 text-4xl font-extrabold tracking-tight md:text-6xl"
               style={{ color: textMain }}
             >
               {arcTitle}
             </h2>
             <p
-              className="max-w-lg text-sm leading-relaxed md:text-base"
+              className="max-w-lg text-sm font-medium leading-relaxed md:text-lg"
               style={{ color: textMuted }}
             >
               {arcSubtitle}
@@ -299,14 +299,14 @@ export default function ScrollMorphSection({
           </motion.div>
 
           {/* Cartas */}
-          <div className="relative flex h-full w-full items-center justify-center">
+          <div className="relative z-10 flex h-full w-full items-center justify-center">
             {IMAGES.slice(0, TOTAL_IMAGES).map((src, i) => {
               let target = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
 
               if (introPhase === "scatter") {
                 target = scatterPositions[i];
               } else if (introPhase === "line") {
-                const lineSpacing = 70;
+                const lineSpacing = 104;
                 const lineTotalWidth = TOTAL_IMAGES * lineSpacing;
                 const lineX = i * lineSpacing - lineTotalWidth / 2;
                 target = { x: lineX, y: 0, rotation: 0, scale: 1, opacity: 1 };
@@ -318,7 +318,7 @@ export default function ScrollMorphSection({
                 );
 
                 // A. Círculo
-                const circleRadius = Math.min(minDimension * 0.35, 350);
+                const circleRadius = Math.min(minDimension * 0.38, 400);
                 const circleAngle = (i / TOTAL_IMAGES) * 360;
                 const circleRad = (circleAngle * Math.PI) / 180;
                 const circlePos = {
@@ -334,7 +334,7 @@ export default function ScrollMorphSection({
                 );
                 const arcRadius = baseRadius * (isMobile ? 1.4 : 1.1);
                 const arcApexY =
-                  containerSize.height * (isMobile ? 0.35 : 0.25);
+                  containerSize.height * (isMobile ? 0.44 : 0.36);
                 const arcCenterY = arcApexY + arcRadius;
                 const spreadAngle = isMobile ? 100 : 130;
                 const startAngle = -90 - spreadAngle / 2;
@@ -350,7 +350,7 @@ export default function ScrollMorphSection({
                   x: Math.cos(arcRad) * arcRadius + parallaxValue,
                   y: Math.sin(arcRad) * arcRadius + arcCenterY,
                   rotation: currentArcAngle + 90,
-                  scale: isMobile ? 1.4 : 1.8,
+                  scale: isMobile ? 1.15 : 1.45,
                 };
 
                 // C. Interpolação (morph)
