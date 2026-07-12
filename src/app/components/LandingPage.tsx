@@ -2942,7 +2942,11 @@ export function LandingPage() {
       >
         <Nav isDark={isDark} onToggle={handleThemeToggle} />
         <Hero />
-        <CinematicHero isDark={isDark} />
+        {/* Margem negativa: a "Veja em ação" já espera atrás da animação,
+            que dá fade no final — sem tela vazia entre as duas */}
+        <div style={{ marginBottom: "-100vh" }}>
+          <CinematicHero isDark={isDark} />
+        </div>
         <VideoSection />
         <RevealSection />
         <WhyMintFoil />

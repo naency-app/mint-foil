@@ -367,7 +367,14 @@ export function CinematicHero({
           y: -window.innerHeight - 300,
           ease: "power3.in",
           duration: 1.4,
-        });
+        })
+        // Crossfade final: a seção some e revela a próxima (que está atrás,
+        // via margem negativa no pai)
+        .to(
+          containerRef.current,
+          { autoAlpha: 0, ease: "power2.inOut", duration: 0.9 },
+          "-=0.9",
+        );
     }, containerRef);
 
     return () => ctx.revert();
