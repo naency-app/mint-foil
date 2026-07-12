@@ -368,13 +368,13 @@ export function CinematicHero({
           ease: "power3.in",
           duration: 1.4,
         })
-        // Crossfade final: a seção some e revela a próxima (que está atrás,
-        // via margem negativa no pai)
-        .to(
-          containerRef.current,
-          { autoAlpha: 0, ease: "power2.inOut", duration: 0.9 },
-          "-=0.9",
-        );
+        // Só DEPOIS que o card sumiu por completo: a tela (já vazia) esmaece
+        // e revela a próxima seção, que espera atrás via margem negativa
+        .to(containerRef.current, {
+          autoAlpha: 0,
+          ease: "power1.inOut",
+          duration: 0.5,
+        });
     }, containerRef);
 
     return () => ctx.revert();
