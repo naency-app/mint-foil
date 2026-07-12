@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ChevronUp,
   DollarSign,
-  ExternalLink,
   Gamepad2,
   Instagram,
   Moon,
@@ -599,6 +598,7 @@ const NAV_LINKS = [
   { label: "Recursos", href: "#recursos" },
   { label: "Planos", href: "#planos" },
   { label: "FAQ", href: "#faq" },
+  { label: "Loja", href: "/loja" },
 ];
 
 function Nav({
@@ -610,6 +610,7 @@ function Nav({
 }) {
   const t = useTheme();
   const [scrolled, setScrolled] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -626,9 +627,9 @@ function Nav({
         left: 0,
         right: 0,
         zIndex: 9999,
-        padding: "13px 28px",
-        display: "flex",
-        justifyContent: "space-between",
+        padding: "13px 56px",
+        display: "grid",
+        gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
         background: scrolled
           ? isDark
@@ -642,8 +643,16 @@ function Nav({
         transition: "all 0.3s ease",
       }}
     >
-      {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      {/* Logo — recuada pro centro */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          justifySelf: "start",
+          paddingLeft: "24px",
+        }}
+      >
         <div
           style={{
             width: "28px",
@@ -665,44 +674,56 @@ function Nav({
         </span>
       </div>
 
-      {/* Links */}
-      <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
+      {/* Links centrais — pill desliza entre eles no hover */}
+      <div
+        style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        onMouseLeave={() => setHovered(null)}
+      >
         {NAV_LINKS.map((l) => (
           <a
             key={l.href}
             href={l.href}
+            onMouseEnter={() => setHovered(l.href)}
             style={{
+              position: "relative",
+              padding: "8px 16px",
               fontSize: "13.5px",
               fontWeight: 500,
-              color: t.muted,
+              color:
+                hovered === l.href ? (isDark ? "#020617" : "#FFFFFF") : t.muted,
               textDecoration: "none",
               transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.color = t.text;
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.color = t.muted;
+              borderRadius: "999px",
             }}
           >
-            {l.label}
+            {hovered === l.href && (
+              <motion.span
+                layoutId="nav-pill"
+                transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "999px",
+                  background: isDark ? "#FFFFFF" : "#020617",
+                  zIndex: 0,
+                }}
+              />
+            )}
+            <span style={{ position: "relative", zIndex: 1 }}>{l.label}</span>
           </a>
         ))}
-        <a
-          href="/loja"
-          style={{
-            fontSize: "13.5px",
-            fontWeight: 500,
-            color: t.primary,
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          Loja <ExternalLink size={11} />
-        </a>
+      </div>
 
+      {/* Direita — recuada pro centro */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          justifySelf: "end",
+          paddingRight: "24px",
+        }}
+      >
         {/* Dark/light toggle */}
         <button
           ref={toggleRef}
