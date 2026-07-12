@@ -773,7 +773,7 @@ function Hero() {
         initial="hidden"
         animate="show"
         style={{
-          maxWidth: "820px",
+          maxWidth: "1100px",
           textAlign: "center",
           position: "relative",
           zIndex: 10,
@@ -784,22 +784,42 @@ function Hero() {
           <PinkBadge>Lançamento 2026</PinkBadge>
         </motion.div>
 
-        {/* Mesmo estilo dos taglines do CinematicHero: 96px/96px, weight 700 */}
-        <motion.h1
-          variants={fadeUp}
-          style={{
-            fontSize: "clamp(48px, 7.5vw, 96px)",
-            fontWeight: 700,
-            color: t.text,
-            lineHeight: 1,
-            margin: "22px 0 0",
-            letterSpacing: "-2px",
-          }}
-        >
-          Escaneie. Descubra.
-          <br />
-          <span style={{ color: t.primary }}>Saiba o valor real.</span>
-        </motion.h1>
+        {/* Taglines idênticos aos do CinematicHero: 96px, weight 700/800,
+            tracking-tight/-tighter — com a mesma entrada (blur+subida e wipe) */}
+        <div style={{ margin: "22px 0 0" }}>
+          <motion.h1
+            initial={{ opacity: 0, y: 50, scale: 0.88, filter: "blur(16px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            style={{
+              fontSize: "clamp(34px, 7.5vw, 96px)",
+              fontWeight: 700,
+              color: t.text,
+              lineHeight: 1,
+              letterSpacing: "-0.025em",
+              whiteSpace: "nowrap",
+              margin: 0,
+            }}
+          >
+            Escaneie. Descubra.
+          </motion.h1>
+          <motion.h1
+            initial={{ clipPath: "inset(0 100% 0 0)" }}
+            animate={{ clipPath: "inset(0 0% 0 0)" }}
+            transition={{ duration: 1.3, ease: [0.85, 0, 0.15, 1], delay: 0.9 }}
+            style={{
+              fontSize: "clamp(34px, 7.5vw, 96px)",
+              fontWeight: 800,
+              color: t.primary,
+              lineHeight: 1.05,
+              letterSpacing: "-0.05em",
+              whiteSpace: "nowrap",
+              margin: "8px 0 0",
+            }}
+          >
+            Saiba o valor real.
+          </motion.h1>
+        </div>
 
         <motion.p
           variants={fadeUp}
