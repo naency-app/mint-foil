@@ -255,7 +255,6 @@ export default function ScrollMorphSection({
 
   // --- Frase do arco (aparece quando o arco forma) ---
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
-  const contentY = useTransform(smoothMorph, [0.8, 1], [20, 0]);
 
   return (
     // Altura extra = distância que o scroll percorre com a seção pinada
@@ -299,7 +298,6 @@ export default function ScrollMorphSection({
           <motion.div
             style={{
               opacity: contentOpacity,
-              y: contentY,
               top: `${7 + exitValue * 43}%`,
               translateY: `${exitValue * -50}%`,
               scale: 1 + exitValue * 0.12,

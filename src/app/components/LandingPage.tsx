@@ -2991,7 +2991,8 @@ export function LandingPage() {
           background: theme.bg,
           color: theme.text,
           minHeight: "100vh",
-          overflowX: "hidden",
+          // "clip" evita scroll horizontal SEM quebrar position:sticky
+          overflowX: "clip",
           transition: "background 0.1s",
         }}
       >
