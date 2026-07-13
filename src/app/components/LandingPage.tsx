@@ -635,6 +635,7 @@ function Nav({
         display: "grid",
         gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
+        // Mesma cor do bg da página (#020617 / #FFFFFF), com transparência
         background: scrolled
           ? isDark
             ? "rgba(2,6,23,0.85)"
@@ -643,7 +644,7 @@ function Nav({
         backdropFilter: scrolled ? "blur(16px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
         border: scrolled ? `1px solid ${t.border}` : "1px solid transparent",
-        borderRadius: scrolled ? "999px" : "0px",
+        borderRadius: scrolled ? "12px" : "0px",
         boxShadow: scrolled
           ? isDark
             ? "0 8px 32px rgba(0,0,0,0.4)"
