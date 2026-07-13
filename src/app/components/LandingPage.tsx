@@ -638,8 +638,8 @@ function Nav({
         // Mesma cor do bg da página (#020617 / #FFFFFF), com transparência
         background: scrolled
           ? isDark
-            ? "rgba(2,6,23,0.85)"
-            : "rgba(255,255,255,0.85)"
+            ? "rgba(2,6,23,0.92)"
+            : "rgba(255,255,255,0.92)"
           : "transparent",
         backdropFilter: scrolled ? "blur(16px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
@@ -647,8 +647,8 @@ function Nav({
         borderRadius: scrolled ? "12px" : "0px",
         boxShadow: scrolled
           ? isDark
-            ? "0 8px 32px rgba(0,0,0,0.4)"
-            : "0 8px 32px rgba(2,6,23,0.08)"
+            ? "0 4px 20px rgba(0,0,0,0.25)"
+            : "0 4px 20px rgba(2,6,23,0.05)"
           : "none",
         transition:
           "top 0.35s ease, width 0.35s ease, padding 0.35s ease, background 0.35s ease, border-radius 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease",
