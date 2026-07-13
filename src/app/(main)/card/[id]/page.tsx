@@ -91,15 +91,14 @@ function getSearchUrls(
       logo: "/logos/sites/logo_ligaonepiece.png",
     });
   }
-  // MyPCards: deep link direto pela página da carta quando há código de
-  // colecionador (padrão /yugioh_bpro-en024); senão, busca por nome.
+  // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)
+  // que não temos como derivar — o link de conferência vai pra busca, com o
+  // código de colecionador quando houver (mais preciso que o nome).
   const myPTcg = tcgSlug ?? "yugioh";
-  const myPUrl = collectorNumber
-    ? `https://mypcards.com/${myPTcg}_${collectorNumber.toLowerCase()}`
-    : `https://mypcards.com/${myPTcg}?${new URLSearchParams({
-        "ProdutoSearch[marca]": myPTcg,
-        "ProdutoSearch[query]": cardName,
-      }).toString()}`;
+  const myPUrl = `https://mypcards.com/${myPTcg}?${new URLSearchParams({
+    "ProdutoSearch[marca]": myPTcg,
+    "ProdutoSearch[query]": collectorNumber ?? cardName,
+  }).toString()}`;
   urls.push({
     name: "MyPCards",
     url: myPUrl,
