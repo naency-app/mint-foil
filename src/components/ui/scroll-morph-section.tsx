@@ -126,7 +126,7 @@ export default function ScrollMorphSection({
   isDark = false,
   introTitle = "Toda coleção tem tesouros escondidos.",
   introHint = "CONTINUE ROLANDO",
-  arcTitle = "A sua vale quanto?",
+  arcTitle = "Quanto vale a sua?",
   arcSubtitle = "Escaneie e descubra — preço em reais, atualizado todo dia.",
 }: {
   isDark?: boolean;
@@ -305,8 +305,12 @@ export default function ScrollMorphSection({
   const morphProgress = useTransform(virtualScroll, [0, 600], [0, 1]);
   const smoothMorph = useSpring(morphProgress, { stiffness: 40, damping: 20 });
 
-  const arcSpin = useTransform(virtualScroll, [600, MAX_SCROLL], [0, 1]);
+  const arcSpin = useTransform(virtualScroll, [600, 1800], [0, 1]);
   const smoothArcSpin = useSpring(arcSpin, { stiffness: 40, damping: 20 });
+
+  // Fase final: as cartas saem e só a frase fica, centralizada
+  const exitProgress = useTransform(virtualScroll, [1800, 2150], [0, 1]);
+  const smoothExit = useSpring(exitProgress, { stiffness: 40, damping: 20 });
 
   // --- Parallax do mouse ---
   const [parallaxValue, setParallaxValue] = useState(0);
@@ -338,15 +342,18 @@ export default function ScrollMorphSection({
   // --- Valores derivados (para o cálculo manual do morph) ---
   const [morphValue, setMorphValue] = useState(0);
   const [spinValue, setSpinValue] = useState(0);
+  const [exitValue, setExitValue] = useState(0);
 
   useEffect(() => {
     const unsubMorph = smoothMorph.on("change", setMorphValue);
     const unsubSpin = smoothArcSpin.on("change", setSpinValue);
+    const unsubExit = smoothExit.on("change", setExitValue);
     return () => {
       unsubMorph();
       unsubSpin();
+      unsubExit();
     };
-  }, [smoothMorph, smoothArcSpin]);
+  }, [smoothMorph, smoothArcSpin, smoothExit]);
 
   // --- Frase do arco (aparece quando o arco forma) ---
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
@@ -387,8 +394,13 @@ export default function ScrollMorphSection({
 
         {/* Frase 2 — no arco */}
         <motion.div
-          style={{ opacity: contentOpacity, y: contentY }}
-          className="pointer-events-none absolute top-[7%] z-30 flex flex-col items-center justify-center px-4 text-center"
+          style={{
+            opacity: contentOpacity,
+            y: contentY,
+            top: `${7 + exitValue * 33}%`,
+            scale: 1 + exitValue * 0.12,
+          }}
+          className="pointer-events-none absolute z-30 flex flex-col items-center justify-center px-4 text-center"
         >
           <h2
             className="mb-3 text-4xl font-extrabold tracking-tight md:text-6xl"
@@ -458,13 +470,14 @@ export default function ScrollMorphSection({
                 scale: isMobile ? 1.15 : 1.45,
               };
 
-              // C. Interpolação (morph)
+              // C. Interpolação (morph) + saída final (fica só a frase)
               target = {
                 x: lerp(circlePos.x, arcPos.x, morphValue),
-                y: lerp(circlePos.y, arcPos.y, morphValue),
+                y: lerp(circlePos.y, arcPos.y, morphValue) + exitValue * 140,
                 rotation: lerp(circlePos.rotation, arcPos.rotation, morphValue),
-                scale: lerp(1, arcPos.scale, morphValue),
-                opacity: 1,
+                scale:
+                  lerp(1, arcPos.scale, morphValue) * (1 - exitValue * 0.35),
+                opacity: 1 - exitValue,
               };
             }
 
