@@ -619,38 +619,49 @@ function Nav({
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  // Pill de hover discreto — cinza claro em ambos os temas
+  const pillBg = isDark ? "rgba(255,255,255,0.10)" : "rgba(2,6,23,0.06)";
+
   return (
     <nav
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
+        top: scrolled ? "12px" : "0px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: scrolled ? "min(880px, calc(100% - 32px))" : "100%",
         zIndex: 9999,
-        padding: "13px 56px",
+        padding: scrolled ? "6px 10px" : "13px 56px",
         display: "grid",
         gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
         background: scrolled
           ? isDark
-            ? "rgba(2,6,23,0.92)"
-            : "rgba(255,255,255,0.92)"
+            ? "rgba(2,6,23,0.85)"
+            : "rgba(255,255,255,0.85)"
           : "transparent",
-        backdropFilter: scrolled ? "blur(14px)" : "none",
-        borderBottom: scrolled
-          ? `1px solid ${t.border}`
-          : "1px solid transparent",
-        transition: "all 0.3s ease",
+        backdropFilter: scrolled ? "blur(16px)" : "none",
+        WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
+        border: scrolled ? `1px solid ${t.border}` : "1px solid transparent",
+        borderRadius: scrolled ? "999px" : "0px",
+        boxShadow: scrolled
+          ? isDark
+            ? "0 8px 32px rgba(0,0,0,0.4)"
+            : "0 8px 32px rgba(2,6,23,0.08)"
+          : "none",
+        transition:
+          "top 0.35s ease, width 0.35s ease, padding 0.35s ease, background 0.35s ease, border-radius 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease",
       }}
     >
-      {/* Logo — recuada pro centro */}
+      {/* Logo */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: "8px",
           justifySelf: "start",
-          paddingLeft: "24px",
+          paddingLeft: scrolled ? "10px" : "24px",
+          transition: "padding 0.35s ease",
         }}
       >
         <div
@@ -674,9 +685,9 @@ function Nav({
         </span>
       </div>
 
-      {/* Links centrais — pill desliza entre eles no hover */}
+      {/* Links centrais — pill cinza desliza entre eles no hover */}
       <div
-        style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        style={{ display: "flex", alignItems: "center", gap: "2px" }}
         onMouseLeave={() => setHovered(null)}
       >
         {NAV_LINKS.map((l) => (
@@ -686,11 +697,10 @@ function Nav({
             onMouseEnter={() => setHovered(l.href)}
             style={{
               position: "relative",
-              padding: "8px 16px",
+              padding: "8px 14px",
               fontSize: "13.5px",
               fontWeight: 500,
-              color:
-                hovered === l.href ? (isDark ? "#020617" : "#FFFFFF") : t.muted,
+              color: hovered === l.href ? t.text : t.muted,
               textDecoration: "none",
               transition: "color 0.2s",
               borderRadius: "999px",
@@ -704,7 +714,7 @@ function Nav({
                   position: "absolute",
                   inset: 0,
                   borderRadius: "999px",
-                  background: isDark ? "#FFFFFF" : "#020617",
+                  background: pillBg,
                   zIndex: 0,
                 }}
               />
@@ -714,14 +724,15 @@ function Nav({
         ))}
       </div>
 
-      {/* Direita — recuada pro centro */}
+      {/* Direita */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "14px",
+          gap: "12px",
           justifySelf: "end",
-          paddingRight: "24px",
+          paddingRight: scrolled ? "6px" : "24px",
+          transition: "padding 0.35s ease",
         }}
       >
         {/* Dark/light toggle */}
