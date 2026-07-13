@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  motion,
-  useInView,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "motion/react";
+import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 // --- Types ---
@@ -116,15 +110,17 @@ const IMAGES = [
 ];
 
 const TOTAL_IMAGES = 20;
+const MAX_SCROLL = 2200; // Alcance do scroll virtual da interação
 
 const lerp = (start: number, end: number, t: number) =>
   start * (1 - t) + end * t;
 
 /**
- * Seção scroll-morph dirigida pelo scroll REAL da página (sticky, sem
- * sequestrar a rolagem): as cartas entram espalhadas, viram um círculo e,
- * conforme a página rola, o círculo vira um arco que gira desfilando as
- * cartas — com as frases-chave no meio.
+ * Seção scroll-morph com scroll travado (como a animação original): quando a
+ * seção alinha na tela, a rolagem da página trava e passa a controlar a
+ * interação — círculo → arco → giro, com as duas frases. Só depois que a
+ * interação termina a página volta a rolar. Ao sair da vista, reseta e a
+ * interação sempre recomeça do início.
  */
 export default function ScrollMorphSection({
   isDark = false,
@@ -139,17 +135,16 @@ export default function ScrollMorphSection({
   arcTitle?: string;
   arcSubtitle?: string;
 }) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const stickyRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
   const [introPhase, setIntroPhase] = useState<IntroPhase>("scatter");
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   const textMain = isDark ? "#FFFFFF" : "#020617";
   const textMuted = isDark ? "rgba(255,255,255,0.5)" : "rgba(2,6,23,0.5)";
 
-  // --- Tamanho do container sticky ---
+  // --- Tamanho do container ---
   useEffect(() => {
-    if (!stickyRef.current) return;
+    if (!sectionRef.current) return;
 
     const handleResize = (entries: ResizeObserverEntry[]) => {
       for (const entry of entries) {
@@ -161,56 +156,172 @@ export default function ScrollMorphSection({
     };
 
     const observer = new ResizeObserver(handleResize);
-    observer.observe(stickyRef.current);
+    observer.observe(sectionRef.current);
 
     setContainerSize({
-      width: stickyRef.current.offsetWidth,
-      height: stickyRef.current.offsetHeight,
+      width: sectionRef.current.offsetWidth,
+      height: sectionRef.current.offsetHeight,
     });
 
     return () => observer.disconnect();
   }, []);
 
-  // --- Intro (espalhadas → linha → círculo) quando a seção entra na tela ---
-  const inView = useInView(stickyRef, { amount: 0.6, once: true });
+  // --- Intro (espalhadas → linha → círculo) quando a seção aparece ---
+  const [introStarted, setIntroStarted] = useState(false);
 
   useEffect(() => {
-    if (!inView) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.5) setIntroStarted(true);
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!introStarted) return;
     const timer1 = setTimeout(() => setIntroPhase("line"), 300);
     const timer2 = setTimeout(() => setIntroPhase("circle"), 1600);
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, [inView]);
+  }, [introStarted]);
 
-  // --- Progresso pelo scroll real da página ---
-  const { scrollYProgress } = useScroll({
-    target: wrapperRef,
-    offset: ["start start", "end end"],
-  });
+  // --- Scroll virtual travado (comportamento da animação original) ---
+  const virtualScroll = useMotionValue(0);
+  const scrollRef = useRef(0);
 
-  // 0 → 0.3: círculo vira arco · 0.3 → 1: arco gira
-  const morphProgress = useTransform(scrollYProgress, [0.15, 0.4], [0, 1]);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const advance = (delta: number) => {
+      const next = Math.min(Math.max(scrollRef.current + delta, 0), MAX_SCROLL);
+      scrollRef.current = next;
+      virtualScroll.set(next);
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const goingDown = e.deltaY > 0;
+
+      // Fora da vista: scroll nativo + reseta pra interação recomeçar do zero
+      if (rect.bottom <= 0 || rect.top >= vh) {
+        if (scrollRef.current !== 0) {
+          scrollRef.current = 0;
+          virtualScroll.set(0);
+        }
+        return;
+      }
+
+      // Descendo e a seção está entrando: guia o alinhamento até o topo
+      // travar em 0 (sem deixar passar direto), depois trava a interação
+      if (goingDown && scrollRef.current < MAX_SCROLL) {
+        if (rect.top > 2) {
+          // Ainda alinhando — consome o delta pra encostar a seção no topo
+          if (rect.top < vh * 0.6) {
+            e.preventDefault();
+            window.scrollBy({ top: Math.min(e.deltaY, rect.top) });
+          }
+          return;
+        }
+        // Alinhada: trava e roda a interação
+        e.preventDefault();
+        advance(e.deltaY);
+        return;
+      }
+
+      // Subindo com interação em andamento: rebobina antes de liberar
+      if (!goingDown && scrollRef.current > 0 && rect.top >= -2) {
+        e.preventDefault();
+        advance(e.deltaY);
+        return;
+      }
+      // Nos extremos (0 ou MAX), deixa a página rolar normalmente
+    };
+
+    // --- Touch ---
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const touchY = e.touches[0].clientY;
+      const delta = touchStartY - touchY;
+      const goingDown = delta > 0;
+
+      if (rect.bottom <= 0 || rect.top >= vh) {
+        if (scrollRef.current !== 0) {
+          scrollRef.current = 0;
+          virtualScroll.set(0);
+        }
+        return;
+      }
+
+      if (goingDown && scrollRef.current < MAX_SCROLL) {
+        if (rect.top > 2) {
+          if (rect.top < vh * 0.6) {
+            e.preventDefault();
+            window.scrollBy({ top: Math.min(delta, rect.top) });
+            touchStartY = touchY;
+          }
+          return;
+        }
+        e.preventDefault();
+        touchStartY = touchY;
+        advance(delta * 2);
+        return;
+      }
+
+      if (!goingDown && scrollRef.current > 0 && rect.top >= -2) {
+        e.preventDefault();
+        touchStartY = touchY;
+        advance(delta * 2);
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [virtualScroll]);
+
+  // Frase 1 no círculo (0 → 600: morph) · giro do arco (600 → fim): frase 2
+  const morphProgress = useTransform(virtualScroll, [0, 600], [0, 1]);
   const smoothMorph = useSpring(morphProgress, { stiffness: 40, damping: 20 });
 
-  const arcSpin = useTransform(scrollYProgress, [0.4, 0.95], [0, 1]);
+  const arcSpin = useTransform(virtualScroll, [600, MAX_SCROLL], [0, 1]);
   const smoothArcSpin = useSpring(arcSpin, { stiffness: 40, damping: 20 });
 
   // --- Parallax do mouse ---
   const [parallaxValue, setParallaxValue] = useState(0);
 
   useEffect(() => {
-    const sticky = stickyRef.current;
-    if (!sticky) return;
+    const section = sectionRef.current;
+    if (!section) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = sticky.getBoundingClientRect();
+      const rect = section.getBoundingClientRect();
       const normalizedX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       setParallaxValue(normalizedX * 100);
     };
-    sticky.addEventListener("mousemove", handleMouseMove);
-    return () => sticky.removeEventListener("mousemove", handleMouseMove);
+    section.addEventListener("mousemove", handleMouseMove);
+    return () => section.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   // --- Posições aleatórias do scatter ---
@@ -237,139 +348,128 @@ export default function ScrollMorphSection({
     };
   }, [smoothMorph, smoothArcSpin]);
 
-  // --- Conteúdo do arco (aparece quando o arco forma) ---
+  // --- Frase do arco (aparece quando o arco forma) ---
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
   const contentY = useTransform(smoothMorph, [0.8, 1], [20, 0]);
 
   return (
-    // Altura extra = distância de rolagem da animação; o miolo fica sticky
-    <div ref={wrapperRef} style={{ height: "280vh", position: "relative" }}>
-      <div
-        ref={stickyRef}
-        className="sticky top-0 h-svh w-full overflow-hidden"
-      >
-        <div className="flex h-full w-full flex-col items-center justify-center">
-          {/* Frase de intro (some no morph) */}
-          <div className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center px-4 text-center">
-            <motion.h2
-              initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-              animate={
-                introPhase === "circle" && morphValue < 0.5
-                  ? { opacity: 1 - morphValue * 2, y: 0, filter: "blur(0px)" }
-                  : { opacity: 0, filter: "blur(10px)" }
-              }
-              transition={{ duration: 1 }}
-              className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl"
-              style={{ color: textMain }}
-            >
-              {introTitle}
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={
-                introPhase === "circle" && morphValue < 0.5
-                  ? { opacity: 0.5 - morphValue }
-                  : { opacity: 0 }
-              }
-              transition={{ duration: 1, delay: 0.2 }}
-              className="mt-5 text-[11px] font-bold tracking-[0.3em] md:text-xs"
-              style={{ color: textMuted }}
-            >
-              {introHint}
-            </motion.p>
-          </div>
-
-          {/* Frase do arco */}
-          <motion.div
-            style={{ opacity: contentOpacity, y: contentY }}
-            className="pointer-events-none absolute top-[7%] z-30 flex flex-col items-center justify-center px-4 text-center"
+    <div ref={sectionRef} className="relative h-svh w-full overflow-hidden">
+      <div className="flex h-full w-full flex-col items-center justify-center">
+        {/* Frase 1 — no círculo (some no morph) */}
+        <div className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center px-4 text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+            animate={
+              introPhase === "circle" && morphValue < 0.5
+                ? { opacity: 1 - morphValue * 2, y: 0, filter: "blur(0px)" }
+                : { opacity: 0, filter: "blur(10px)" }
+            }
+            transition={{ duration: 1 }}
+            className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl"
+            style={{ color: textMain }}
           >
-            <h2
-              className="mb-3 text-4xl font-extrabold tracking-tight md:text-6xl"
-              style={{ color: textMain }}
-            >
-              {arcTitle}
-            </h2>
-            <p
-              className="max-w-lg text-sm font-medium leading-relaxed md:text-lg"
-              style={{ color: textMuted }}
-            >
-              {arcSubtitle}
-            </p>
-          </motion.div>
+            {introTitle}
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={
+              introPhase === "circle" && morphValue < 0.5
+                ? { opacity: 0.5 - morphValue }
+                : { opacity: 0 }
+            }
+            transition={{ duration: 1, delay: 0.2 }}
+            className="mt-5 text-[11px] font-bold tracking-[0.3em] md:text-xs"
+            style={{ color: textMuted }}
+          >
+            {introHint}
+          </motion.p>
+        </div>
 
-          {/* Cartas */}
-          <div className="relative z-10 flex h-full w-full items-center justify-center">
-            {IMAGES.slice(0, TOTAL_IMAGES).map((src, i) => {
-              let target = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
+        {/* Frase 2 — no arco */}
+        <motion.div
+          style={{ opacity: contentOpacity, y: contentY }}
+          className="pointer-events-none absolute top-[7%] z-30 flex flex-col items-center justify-center px-4 text-center"
+        >
+          <h2
+            className="mb-3 text-4xl font-extrabold tracking-tight md:text-6xl"
+            style={{ color: textMain }}
+          >
+            {arcTitle}
+          </h2>
+          <p
+            className="max-w-lg text-sm font-medium leading-relaxed md:text-lg"
+            style={{ color: textMuted }}
+          >
+            {arcSubtitle}
+          </p>
+        </motion.div>
 
-              if (introPhase === "scatter") {
-                target = scatterPositions[i];
-              } else if (introPhase === "line") {
-                const lineSpacing = 104;
-                const lineTotalWidth = TOTAL_IMAGES * lineSpacing;
-                const lineX = i * lineSpacing - lineTotalWidth / 2;
-                target = { x: lineX, y: 0, rotation: 0, scale: 1, opacity: 1 };
-              } else {
-                const isMobile = containerSize.width < 768;
-                const minDimension = Math.min(
-                  containerSize.width,
-                  containerSize.height,
-                );
+        {/* Cartas */}
+        <div className="relative z-10 flex h-full w-full items-center justify-center">
+          {IMAGES.slice(0, TOTAL_IMAGES).map((src, i) => {
+            let target = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
 
-                // A. Círculo
-                const circleRadius = Math.min(minDimension * 0.38, 400);
-                const circleAngle = (i / TOTAL_IMAGES) * 360;
-                const circleRad = (circleAngle * Math.PI) / 180;
-                const circlePos = {
-                  x: Math.cos(circleRad) * circleRadius,
-                  y: Math.sin(circleRad) * circleRadius,
-                  rotation: circleAngle + 90,
-                };
+            if (introPhase === "scatter") {
+              target = scatterPositions[i];
+            } else if (introPhase === "line") {
+              const lineSpacing = 104;
+              const lineTotalWidth = TOTAL_IMAGES * lineSpacing;
+              const lineX = i * lineSpacing - lineTotalWidth / 2;
+              target = { x: lineX, y: 0, rotation: 0, scale: 1, opacity: 1 };
+            } else {
+              const isMobile = containerSize.width < 768;
+              const minDimension = Math.min(
+                containerSize.width,
+                containerSize.height,
+              );
 
-                // B. Arco inferior ("arco-íris" convexo pra cima)
-                const baseRadius = Math.min(
-                  containerSize.width,
-                  containerSize.height * 1.5,
-                );
-                const arcRadius = baseRadius * (isMobile ? 1.4 : 1.1);
-                const arcApexY =
-                  containerSize.height * (isMobile ? 0.44 : 0.36);
-                const arcCenterY = arcApexY + arcRadius;
-                const spreadAngle = isMobile ? 100 : 130;
-                const startAngle = -90 - spreadAngle / 2;
-                const step = spreadAngle / (TOTAL_IMAGES - 1);
+              // A. Círculo
+              const circleRadius = Math.min(minDimension * 0.38, 400);
+              const circleAngle = (i / TOTAL_IMAGES) * 360;
+              const circleRad = (circleAngle * Math.PI) / 180;
+              const circlePos = {
+                x: Math.cos(circleRad) * circleRadius,
+                y: Math.sin(circleRad) * circleRadius,
+                rotation: circleAngle + 90,
+              };
 
-                const maxRotation = spreadAngle * 0.8;
-                const boundedRotation = -spinValue * maxRotation;
+              // B. Arco inferior ("arco-íris" convexo pra cima)
+              const baseRadius = Math.min(
+                containerSize.width,
+                containerSize.height * 1.5,
+              );
+              const arcRadius = baseRadius * (isMobile ? 1.4 : 1.1);
+              const arcApexY = containerSize.height * (isMobile ? 0.44 : 0.36);
+              const arcCenterY = arcApexY + arcRadius;
+              const spreadAngle = isMobile ? 100 : 130;
+              const startAngle = -90 - spreadAngle / 2;
+              const step = spreadAngle / (TOTAL_IMAGES - 1);
 
-                const currentArcAngle = startAngle + i * step + boundedRotation;
-                const arcRad = (currentArcAngle * Math.PI) / 180;
+              const maxRotation = spreadAngle * 0.8;
+              const boundedRotation = -spinValue * maxRotation;
 
-                const arcPos = {
-                  x: Math.cos(arcRad) * arcRadius + parallaxValue,
-                  y: Math.sin(arcRad) * arcRadius + arcCenterY,
-                  rotation: currentArcAngle + 90,
-                  scale: isMobile ? 1.15 : 1.45,
-                };
+              const currentArcAngle = startAngle + i * step + boundedRotation;
+              const arcRad = (currentArcAngle * Math.PI) / 180;
 
-                // C. Interpolação (morph)
-                target = {
-                  x: lerp(circlePos.x, arcPos.x, morphValue),
-                  y: lerp(circlePos.y, arcPos.y, morphValue),
-                  rotation: lerp(
-                    circlePos.rotation,
-                    arcPos.rotation,
-                    morphValue,
-                  ),
-                  scale: lerp(1, arcPos.scale, morphValue),
-                  opacity: 1,
-                };
-              }
+              const arcPos = {
+                x: Math.cos(arcRad) * arcRadius + parallaxValue,
+                y: Math.sin(arcRad) * arcRadius + arcCenterY,
+                rotation: currentArcAngle + 90,
+                scale: isMobile ? 1.15 : 1.45,
+              };
 
-              return <FlipCard key={src} src={src} target={target} />;
-            })}
-          </div>
+              // C. Interpolação (morph)
+              target = {
+                x: lerp(circlePos.x, arcPos.x, morphValue),
+                y: lerp(circlePos.y, arcPos.y, morphValue),
+                rotation: lerp(circlePos.rotation, arcPos.rotation, morphValue),
+                scale: lerp(1, arcPos.scale, morphValue),
+                opacity: 1,
+              };
+            }
+
+            return <FlipCard key={src} src={src} target={target} />;
+          })}
         </div>
       </div>
     </div>
