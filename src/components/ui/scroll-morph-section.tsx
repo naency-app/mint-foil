@@ -134,6 +134,7 @@ export default function ScrollMorphSection({
   arcSubtitle?: string;
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [introPhase, setIntroPhase] = useState<IntroPhase>("scatter");
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
@@ -168,13 +169,15 @@ export default function ScrollMorphSection({
   const [introStarted, setIntroStarted] = useState(false);
 
   useEffect(() => {
-    const el = sectionRef.current;
+    const el = wrapperRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry.intersectionRatio >= 0.5) setIntroStarted(true);
+        if (entry.isIntersecting) setIntroStarted(true);
       },
-      { threshold: 0.5 },
+      // Dispara assim que o wrapper encosta na vista — a intro roda enquanto
+      // a seção ainda está entrando, e o círculo já chega pronto no pin
+      { threshold: 0.05 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -182,8 +185,8 @@ export default function ScrollMorphSection({
 
   useEffect(() => {
     if (!introStarted) return;
-    const timer1 = setTimeout(() => setIntroPhase("line"), 300);
-    const timer2 = setTimeout(() => setIntroPhase("circle"), 1600);
+    const timer1 = setTimeout(() => setIntroPhase("line"), 200);
+    const timer2 = setTimeout(() => setIntroPhase("circle"), 1100);
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -191,21 +194,20 @@ export default function ScrollMorphSection({
   }, [introStarted]);
 
   // --- Progresso pinado: o wrapper alto define a distância da interação ---
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: wrapperRef,
     offset: ["start start", "end end"],
   });
 
-  // Fases sem zona morta: morph 5–35% · giro 35–80% · saída 80–98%
-  const morphProgress = useTransform(scrollYProgress, [0.05, 0.35], [0, 1]);
+  // Círculo + frase 1 seguram até 28% · morph 28–50% · giro 50–82% ·
+  // saída 82–97% (cartas somem, frase 2 centraliza) · 97–100% respiro
+  const morphProgress = useTransform(scrollYProgress, [0.28, 0.5], [0, 1]);
   const smoothMorph = useSpring(morphProgress, { stiffness: 40, damping: 20 });
 
-  const arcSpin = useTransform(scrollYProgress, [0.35, 0.8], [0, 1]);
+  const arcSpin = useTransform(scrollYProgress, [0.5, 0.82], [0, 1]);
   const smoothArcSpin = useSpring(arcSpin, { stiffness: 40, damping: 20 });
 
-  // Fase final: as cartas saem e só a frase fica, centralizada
-  const exitProgress = useTransform(scrollYProgress, [0.8, 0.98], [0, 1]);
+  const exitProgress = useTransform(scrollYProgress, [0.82, 0.97], [0, 1]);
   const smoothExit = useSpring(exitProgress, { stiffness: 40, damping: 20 });
 
   // --- Parallax do mouse ---
@@ -298,7 +300,8 @@ export default function ScrollMorphSection({
             style={{
               opacity: contentOpacity,
               y: contentY,
-              top: `${7 + exitValue * 33}%`,
+              top: `${7 + exitValue * 43}%`,
+              translateY: `${exitValue * -50}%`,
               scale: 1 + exitValue * 0.12,
             }}
             className="pointer-events-none absolute z-30 flex flex-col items-center justify-center px-4 text-center"
