@@ -48,17 +48,17 @@ function getSearchUrls(
     color: string;
     label: string;
     logo?: string;
-    backgroundColor?: string;
   }[] = [];
 
+  // Favicons dos sites (fundo de marca embutido) — legíveis nos dois temas,
+  // diferente dos wordmarks transparentes que sumiam no light.
   if (!tcgSlug || tcgSlug === "magic") {
     urls.push({
       name: "LigaMagic",
       url: `https://www.ligamagic.com.br/?view=cards/card&card=${encoded}`,
       color: "text-blue-400",
-      backgroundColor: "bg-[#FF5A00]",
       label: "Buscar no LigaMagic",
-      logo: "/logos/sites/logo-ligamagic.png",
+      logo: "/logos/sites/favicons/ligamagic.png",
     });
   }
   if (!tcgSlug || tcgSlug === "pokemon") {
@@ -66,9 +66,8 @@ function getSearchUrls(
       name: "LigaPokemon",
       url: `https://www.ligapokemon.com.br/?view=cards/card&card=${encoded}`,
       color: "text-yellow-400",
-      backgroundColor: "bg-[#FFFF]",
       label: "Buscar no LigaPokemon",
-      logo: "/logos/sites/logo_ligapokemon.png",
+      logo: "/logos/sites/favicons/ligapokemon.png",
     });
   }
   if (!tcgSlug || tcgSlug === "yugioh") {
@@ -76,9 +75,8 @@ function getSearchUrls(
       name: "LigaYugioh",
       url: `https://www.ligayugioh.com.br/?view=cards/card&card=${encoded}`,
       color: "text-purple-400",
-      backgroundColor: "bg-[#7C3AED]",
       label: "Buscar no LigaYugioh",
-      logo: "/logos/sites/logo_ligayugioh.png",
+      logo: "/logos/sites/favicons/ligayugioh.png",
     });
   }
   if (!tcgSlug || tcgSlug === "onepiece") {
@@ -86,9 +84,8 @@ function getSearchUrls(
       name: "LigaOnePiece",
       url: `https://www.ligaonepiece.com.br/?view=cards/card&card=${encoded}`,
       color: "text-red-400",
-      backgroundColor: "bg-[#EBA40F]",
       label: "Buscar no LigaOnePiece",
-      logo: "/logos/sites/logo_ligaonepiece.png",
+      logo: "/logos/sites/favicons/ligaonepiece.png",
     });
   }
   // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)
@@ -104,7 +101,7 @@ function getSearchUrls(
     url: myPUrl,
     color: "text-orange-400",
     label: "Ver no MyPCards",
-    logo: "/logos/sites/logo-mypcards.png",
+    logo: "/logos/sites/favicons/mypcards.png",
   });
 
   return urls;
@@ -803,13 +800,15 @@ export default function CardDetailPage({
               >
                 <div className="flex items-center gap-3">
                   {link.logo ? (
-                    <Image
-                      src={link.logo}
-                      alt={link.name}
-                      width={60}
-                      height={20}
-                      className={`h-5 w-auto object-contain ${link.backgroundColor} p-0.5 rounded-xs`}
-                    />
+                    <span className="size-7 shrink-0 rounded-md bg-white overflow-hidden flex items-center justify-center">
+                      <Image
+                        src={link.logo}
+                        alt={link.name}
+                        width={28}
+                        height={28}
+                        className="size-7 object-cover"
+                      />
+                    </span>
                   ) : (
                     <Badge
                       variant="outline"
