@@ -922,8 +922,7 @@ function Nav({
                 fontWeight: 700,
                 color: t.text,
                 textDecoration: "none",
-                padding: "16px 0",
-                borderBottom: `1px solid ${t.border}`,
+                padding: "14px 0",
                 letterSpacing: "-0.5px",
               }}
             >
