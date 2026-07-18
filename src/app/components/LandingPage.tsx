@@ -2168,8 +2168,25 @@ function KeyFeatures() {
     setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
   const next = () => setActiveIdx((i) => (i + 1) % FEATURE_TABS.length);
 
+  // Saiu da tela → volta pro primeiro card (o reset acontece fora da vista;
+  // ao rolar de volta, o carrossel sempre recomeça do início)
+  const sectionRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) setActiveIdx(0);
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <section id="recursos" style={{ padding: isMobile ? "80px 0" : "125px 0" }}>
+    <section
+      ref={sectionRef}
+      id="recursos"
+      style={{ padding: isMobile ? "80px 0" : "125px 0" }}
+    >
       {/* ── Header — à esquerda, padrão da seção Solução ── */}
       <div
         style={{
