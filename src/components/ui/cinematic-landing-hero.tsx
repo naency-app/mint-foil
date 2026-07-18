@@ -41,6 +41,21 @@ const INJECTED_STYLES = `
       drop-shadow(0px 3px 6px rgba(0,0,0,0.5));
   }
 
+  @keyframes mfFoilShift { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+  /* "FOIL" com o gradiente foil da logo (rosas → roxo → azul), shimmer contínuo */
+  .mf-card-foil {
+    background: linear-gradient(110deg, #B50D57 0%, #D7327F 6%, #F856A7 12%, #FC7DC0 19%, #FF9AD5 26%, #E3A9E9 33%, #C49AFF 40%, #AEADFF 45%, #9AC1FF 50%, #AEADFF 55%, #C49AFF 60%, #E3A9E9 67%, #FF9AD5 74%, #FC7DC0 81%, #F856A7 88%, #D7327F 94%, #B50D57 100%);
+    background-size: 200% 200%;
+    animation: mfFoilShift 7s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transform: translateZ(0);
+    filter:
+      drop-shadow(0px 10px 22px rgba(0,0,0,0.8))
+      drop-shadow(0px 3px 6px rgba(0,0,0,0.5));
+  }
+
   .mf-depth-card {
     background: #020617;
     box-shadow:
@@ -464,10 +479,10 @@ export function CinematicHero({
           <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 py-6 lg:py-0">
             {/* Right / top-mobile: BRAND wordmark */}
             <div className="mf-card-right mf-gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full">
-              <h2 className="text-5xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter mf-card-silver leading-none text-center lg:text-right">
-                MINT
+              <h2 className="text-5xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
+                <span className="mf-card-silver">MINT</span>
                 <br />
-                FOIL
+                <span className="mf-card-foil">FOIL</span>
               </h2>
             </div>
 
@@ -760,7 +775,7 @@ export function CinematicHero({
                 <div className="mt-9">
                   <p
                     className="mb-3 font-bold text-xs uppercase tracking-[0.22em]"
-                    style={{ color: "#F856A7" }}
+                    style={{ color: "#C49AFF" }}
                   >
                     Baixe agora — é grátis
                   </p>

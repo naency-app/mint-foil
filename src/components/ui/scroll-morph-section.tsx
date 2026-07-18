@@ -80,6 +80,8 @@ function FlipCard({ src, back, target }: FlipCardProps) {
             src={src}
             alt=""
             referrerPolicy="no-referrer"
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover"
           />
         </div>
@@ -90,7 +92,13 @@ function FlipCard({ src, back, target }: FlipCardProps) {
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           {/* biome-ignore lint/performance/noImgElement: imagem local do verso */}
-          <img src={back} alt="" className="h-full w-full object-cover" />
+          <img
+            src={back}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
         </div>
       </motion.div>
     </motion.div>

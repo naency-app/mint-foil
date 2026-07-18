@@ -18,7 +18,7 @@ const Card = ({
   return (
     <div
       className={cn(
-        "relative flex h-[380px] w-[272px] cursor-pointer items-center justify-center",
+        "relative flex h-[300px] w-[215px] cursor-pointer items-center justify-center md:h-[380px] md:w-[272px]",
         className,
       )}
     >
@@ -28,6 +28,8 @@ const Card = ({
           src={image}
           alt=""
           referrerPolicy="no-referrer"
+          loading="lazy"
+          decoding="async"
           // object-contain + largura automática: cada TCG tem proporção
           // própria (Yu-Gi-Oh é mais estreita) — cover cortava as bordas
           className="h-full w-auto rounded-xl object-contain"
@@ -72,7 +74,7 @@ const StackedCardsInteraction = ({
 
   return (
     <div className="relative flex h-full w-full items-center justify-center">
-      <div className="relative h-[380px] w-[272px]">
+      <div className="relative h-[300px] w-[215px] md:h-[380px] md:w-[272px]">
         {limitedCards.map((card, index) => {
           const isFirst = index === 0;
 

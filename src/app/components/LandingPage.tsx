@@ -12,6 +12,7 @@ import {
   DollarSign,
   Gamepad2,
   Instagram,
+  Menu,
   Moon,
   Play,
   ScanLine,
@@ -21,6 +22,7 @@ import {
   TrendingUp,
   Twitter,
   Wallet,
+  X,
   Youtube,
 } from "lucide-react";
 import {
@@ -36,9 +38,11 @@ import {
   type ReactNode,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import ScrollMorphSection from "@/components/ui/scroll-morph-section";
@@ -335,11 +339,7 @@ function PrimaryBtn({
         border: ghost ? `1px solid ${ghostColor}80` : "none",
         // Ghost com vidro: continua legível quando as cartas do marquee
         // passam por baixo
-        background: ghost
-          ? dark || t.isDark
-            ? "rgba(2,6,23,0.3)"
-            : "rgba(255,255,255,0.35)"
-          : GRAD,
+        background: ghost ? "var(--mf-ghost-bg, rgba(255,255,255,0.35))" : GRAD,
         backdropFilter: ghost ? "blur(10px)" : undefined,
         WebkitBackdropFilter: ghost ? "blur(10px)" : undefined,
         color: ghost ? ghostColor : "#FFFFFF",
@@ -377,14 +377,18 @@ const GRAD = "linear-gradient(135deg, #F856A7 0%, #B50D57 100%)";
 function StoreBadge({
   store,
   light = false,
+  brand = false,
 }: {
   store: "ios" | "android";
   // Variante do footer: vidro branco translúcido (tom da marca d'água
   // MINT FOIL) com fonte branca
   light?: boolean;
+  // Variante de destaque: gradiente rosa da marca com fonte branca
+  brand?: boolean;
 }) {
   const isIos = store === "ios";
-  const fg = "#FFFFFF";
+  // brand: branco com fonte/ícone rosa — destaque limpo sobre o card escuro
+  const fg = brand ? "#F856A7" : "#FFFFFF";
   return (
     <button
       type="button"
@@ -394,19 +398,30 @@ function StoreBadge({
         gap: "10px",
         padding: "10px 18px",
         borderRadius: "12px",
-        background: light ? "rgba(255,255,255,0.06)" : "#000000",
-        border: light
-          ? "1px solid rgba(255,255,255,0.12)"
-          : "1px solid rgba(255,255,255,0.15)",
+        background: brand
+          ? "#FFFFFF"
+          : light
+            ? "rgba(255,255,255,0.06)"
+            : "#000000",
+        border: brand
+          ? "1px solid rgba(255,255,255,0.4)"
+          : light
+            ? "1px solid rgba(255,255,255,0.12)"
+            : "1px solid rgba(255,255,255,0.15)",
+        boxShadow: brand ? "0 8px 24px rgba(0,0,0,0.35)" : "none",
         cursor: "pointer",
-        transition: "opacity 0.18s, background 0.2s",
+        transition: "opacity 0.18s, background 0.2s, transform 0.2s ease",
       }}
       onMouseEnter={(e) => {
-        if (light) e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+        if (brand) e.currentTarget.style.transform = "translateY(-2px)";
+        else if (light)
+          e.currentTarget.style.background = "rgba(255,255,255,0.12)";
         else e.currentTarget.style.opacity = "0.82";
       }}
       onMouseLeave={(e) => {
-        if (light) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+        if (brand) e.currentTarget.style.transform = "translateY(0)";
+        else if (light)
+          e.currentTarget.style.background = "rgba(255,255,255,0.06)";
         else e.currentTarget.style.opacity = "1";
       }}
     >
@@ -435,7 +450,7 @@ function StoreBadge({
         <div
           style={{
             fontSize: "9px",
-            color: "rgba(255,255,255,0.7)",
+            color: brand ? "rgba(248,86,167,0.75)" : "rgba(255,255,255,0.7)",
             lineHeight: 1.2,
           }}
         >
@@ -559,9 +574,10 @@ function PhoneMockup({
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 
+// Mesma ordem das seções na página: Como funciona → Coleções → Planos
 const NAV_LINKS = [
+  { label: "Como funciona", href: "#recursos" },
   { label: "Coleções", href: "#colecoes" },
-  { label: "Recursos", href: "#recursos" },
   { label: "Planos", href: "#planos" },
   { label: "Loja", href: "/loja" },
 ];
@@ -574,13 +590,20 @@ function Nav({
   onToggle: (ref: React.RefObject<HTMLButtonElement | null>) => void;
 }) {
   const t = useTheme();
+  const isMobile = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
-  // O fundo atrás da navbar é escuro agora? (card da animação, footer,
-  // seções invertidas) — a pill acompanha o fundo, não só o tema
-  const [onDark, setOnDark] = useState(isDark);
-  // Cor exata amostrada atrás da nav: vira o tint translúcido do bg
-  const [behindRgb, setBehindRgb] = useState(isDark ? "2,6,23" : "255,255,255");
+  // Menu mobile (hambúrguer)
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    if (!isMobile) setMenuOpen(false);
+  }, [isMobile]);
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -600,202 +623,311 @@ function Nav({
       let node: Element | null =
         stack.find((n) => !n.closest("nav") && !n.closest("[data-nav-skip]")) ??
         null;
+      // Escreve direto nas CSS vars (nada de estado React): a nav pinta
+      // certa desde o primeiro frame (script pré-paint dá o valor inicial)
+      const apply = (dark: boolean, rgb: string) => {
+        const root = document.documentElement.style;
+        root.setProperty("--mf-nav-fg", dark ? "#FFFFFF" : "#020617");
+        root.setProperty(
+          "--mf-nav-muted",
+          dark ? "rgba(255,255,255,0.55)" : "rgba(2,6,23,0.5)",
+        );
+        root.setProperty(
+          "--mf-nav-border",
+          dark ? "rgba(255,255,255,0.12)" : "rgba(2,6,23,0.08)",
+        );
+        root.setProperty(
+          "--mf-nav-pill",
+          dark ? "rgba(255,255,255,0.10)" : "rgba(2,6,23,0.06)",
+        );
+        root.setProperty("--mf-nav-rgb", rgb);
+      };
       while (node) {
         const c = getComputedStyle(node).backgroundColor.match(/[\d.]+/g);
         if (c && c.length >= 3 && (c.length < 4 || Number(c[3]) > 0.5)) {
-          // Só aceita fundo de blocos LARGOS (seções/cards de tela): botão,
-          // badge ou chip passando atrás da nav não pode tingir a pill
+          // Só aceita fundo de blocos GRANDES (seções, cards de tela,
+          // banner PRO): botão/badge/chip atrás da nav não tinge a pill
           const r = node.getBoundingClientRect();
-          if (r.width >= window.innerWidth * 0.7) {
+          if (
+            r.width >= window.innerWidth * 0.7 ||
+            (r.width >= 500 && r.height >= 240)
+          ) {
             const lum =
               0.2126 * Number(c[0]) +
               0.7152 * Number(c[1]) +
               0.0722 * Number(c[2]);
-            setOnDark(lum < 115);
-            setBehindRgb(`${c[0]},${c[1]},${c[2]}`);
+            apply(lum < 115, `${c[0]},${c[1]},${c[2]}`);
             return;
           }
         }
         node = node.parentElement;
       }
-      setOnDark(isDark);
-      setBehindRgb(isDark ? "2,6,23" : "255,255,255");
+      apply(isDark, isDark ? "2,6,23" : "255,255,255");
     };
     raf = requestAnimationFrame(sampleBehind);
     return () => cancelAnimationFrame(raf);
   }, [isDark]);
 
-  // Paleta efetiva da navbar — segue o fundo amostrado, não o tema
-  const navText = onDark ? "#FFFFFF" : "#020617";
-  const navMuted = onDark ? "rgba(255,255,255,0.55)" : "rgba(2,6,23,0.5)";
-  const navBorder = onDark ? "rgba(255,255,255,0.12)" : "rgba(2,6,23,0.08)";
+  // Paleta da navbar via CSS vars — amostradas por frame, pré-paint no load
+  const navText = "var(--mf-nav-fg, #020617)";
+  const navMuted = "var(--mf-nav-muted, rgba(2,6,23,0.5))";
+  const navBorder = "var(--mf-nav-border, rgba(2,6,23,0.08))";
   // Pill de hover discreto — cinza claro em ambos os temas
-  const pillBg = onDark ? "rgba(255,255,255,0.10)" : "rgba(2,6,23,0.06)";
+  const pillBg = "var(--mf-nav-pill, rgba(2,6,23,0.06))";
 
   return (
-    <nav
-      style={{
-        position: "fixed",
-        top: scrolled ? "12px" : "0px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: scrolled ? "min(880px, calc(100% - 32px))" : "100%",
-        zIndex: 9999,
-        // Parada (topo): maior pra leitura; reduzida (pill) mantém compacta
-        padding: scrolled ? "5px 10px" : "16px 56px",
-        display: "grid",
-        gridTemplateColumns: "1fr auto 1fr",
-        alignItems: "center",
-        // Tint translúcido da COR REAL atrás da nav (amostrada por frame):
-        // a pill parece feita do próprio fundo, só desfocada
-        background: scrolled ? `rgba(${behindRgb}, 0.5)` : "transparent",
-        backdropFilter: scrolled ? "blur(18px) saturate(1.4)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(18px) saturate(1.4)" : "none",
-        border: scrolled ? `1px solid ${navBorder}` : "1px solid transparent",
-        borderRadius: scrolled ? "16px" : "0px",
-        boxShadow: scrolled
-          ? onDark
-            ? "0 8px 28px rgba(0,0,0,0.35)"
-            : "0 8px 28px rgba(2,6,23,0.08)"
-          : "none",
-        transition:
-          "top 0.35s ease, width 0.35s ease, padding 0.35s ease, background 0.15s ease, border-radius 0.35s ease, box-shadow 0.35s ease, border-color 0.15s ease",
-      }}
-    >
-      {/* Logo */}
-      <div
+    <>
+      <nav
         style={{
-          display: "flex",
+          position: "fixed",
+          top: scrolled ? "12px" : "0px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: scrolled ? "min(880px, calc(100% - 32px))" : "100%",
+          zIndex: 9999,
+          // Parada (topo): maior pra leitura; reduzida (pill) mantém compacta
+          padding: scrolled ? "5px 10px" : isMobile ? "12px 16px" : "16px 56px",
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
-          gap: "8px",
-          justifySelf: "start",
-          paddingLeft: scrolled ? "10px" : "24px",
-          transition: "padding 0.35s ease",
+          // Tint translúcido da COR REAL atrás da nav (amostrada por frame):
+          // a pill parece feita do próprio fundo, só desfocada
+          background: scrolled
+            ? "rgba(var(--mf-nav-rgb, 255,255,255), 0.5)"
+            : "transparent",
+          backdropFilter: scrolled ? "blur(18px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(18px) saturate(1.4)" : "none",
+          border: scrolled ? `1px solid ${navBorder}` : "1px solid transparent",
+          borderRadius: scrolled ? "16px" : "0px",
+          boxShadow: scrolled ? "0 8px 28px rgba(2,6,23,0.18)" : "none",
+          transition:
+            "top 0.35s ease, width 0.35s ease, padding 0.35s ease, background 0.15s ease, border-radius 0.35s ease, box-shadow 0.35s ease, border-color 0.15s ease",
         }}
       >
-        {/* biome-ignore lint/performance/noImgElement: logo local pequeno, sem necessidade de next/image */}
-        <img
-          src="/landing/logo-m.png"
-          alt="Mint Foil"
-          width={32}
-          height={32}
+        {/* Logo — clique volta a página pro início */}
+        <a
+          href="/"
           style={{
-            display: "block",
-            width: scrolled ? "28px" : "32px",
-            height: scrolled ? "28px" : "32px",
-            transition: "width 0.35s ease, height 0.35s ease",
-          }}
-        />
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: keyframe estático do shimmer foil */}
-        <style dangerouslySetInnerHTML={{ __html: FOIL_CSS }} />
-        <span
-          style={{
-            // Mesma cara do "MINT FOIL" da dashboard do app: fonte do
-            // sistema, peso 800, caixa alta, tracking largo (1.5/10 = 0.15em)
-            fontFamily:
-              '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
-            fontSize: scrolled ? "15px" : "18px",
-            fontWeight: 800,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            color: navText,
-            transition: "color 0.15s ease, font-size 0.35s ease",
-          }}
-        >
-          Mint{" "}
-          <span
-            style={{
-              background: FOIL_PINK,
-              backgroundSize: "200% 200%",
-              animation: "mfFoilShift 7s linear infinite",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-          >
-            Foil
-          </span>
-        </span>
-      </div>
-
-      {/* Links centrais — pill cinza desliza entre eles no hover */}
-      <div
-        style={{ display: "flex", alignItems: "center", gap: "2px" }}
-        onMouseLeave={() => setHovered(null)}
-      >
-        {NAV_LINKS.map((l) => (
-          <a
-            key={l.href}
-            href={l.href}
-            onMouseEnter={() => setHovered(l.href)}
-            style={{
-              position: "relative",
-              padding: "8px 14px",
-              fontSize: scrolled ? "13.5px" : "15.5px",
-              fontWeight: 500,
-              color: hovered === l.href ? navText : navMuted,
-              textDecoration: "none",
-              transition: "color 0.15s ease, font-size 0.35s ease",
-              borderRadius: "999px",
-            }}
-          >
-            {hovered === l.href && (
-              <motion.span
-                layoutId="nav-pill"
-                transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "999px",
-                  background: pillBg,
-                  zIndex: 0,
-                }}
-              />
-            )}
-            <span style={{ position: "relative", zIndex: 1 }}>{l.label}</span>
-          </a>
-        ))}
-      </div>
-
-      {/* Direita */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          justifySelf: "end",
-          paddingRight: scrolled ? "6px" : "24px",
-          transition: "padding 0.35s ease",
-        }}
-      >
-        {/* Dark/light toggle */}
-        <button
-          ref={toggleRef}
-          type="button"
-          onClick={() => onToggle(toggleRef)}
-          style={{
-            width: "30px",
-            height: "30px",
-            borderRadius: "50%",
-            background: t.primaryBg,
-            border: `1px solid ${t.primaryBorder}`,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            gap: "8px",
+            justifySelf: "start",
+            paddingLeft: scrolled ? "10px" : isMobile ? "0px" : "24px",
+            transition: "padding 0.35s ease",
+            textDecoration: "none",
             cursor: "pointer",
-            color: t.primary,
-            transition: "all 0.2s",
           }}
-          aria-label="Alternar tema"
         >
-          {isDark ? <Sun size={14} /> : <Moon size={14} />}
-        </button>
+          {/* biome-ignore lint/performance/noImgElement: logo local pequeno, sem necessidade de next/image */}
+          <img
+            src="/landing/logo-m.png"
+            alt="Mint Foil"
+            width={32}
+            height={32}
+            style={{
+              display: "block",
+              width: scrolled ? "28px" : "32px",
+              height: scrolled ? "28px" : "32px",
+              transition: "width 0.35s ease, height 0.35s ease",
+            }}
+          />
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: keyframe estático do shimmer foil */}
+          <style dangerouslySetInnerHTML={{ __html: FOIL_CSS }} />
+          <span
+            style={{
+              // Mesma cara do "MINT FOIL" da dashboard do app: fonte do
+              // sistema, peso 800, caixa alta, tracking largo (1.5/10 = 0.15em)
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
+              fontSize: scrolled ? "15px" : "18px",
+              fontWeight: 800,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              color: navText,
+              transition: "color 0.15s ease, font-size 0.35s ease",
+            }}
+          >
+            Mint{" "}
+            <span
+              style={{
+                background: FOIL_PINK,
+                backgroundSize: "200% 200%",
+                animation: "mfFoilShift 7s linear infinite",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+            >
+              Foil
+            </span>
+          </span>
+        </a>
 
-        <PrimaryBtn small>
-          <ArrowRight size={13} /> Explorar Agora
-        </PrimaryBtn>
-      </div>
-    </nav>
+        {/* Links centrais — pill cinza desliza entre eles no hover.
+          No mobile não cabem: somem (âncoras seguem acessíveis rolando) */}
+        <div
+          style={{
+            display: isMobile ? "none" : "flex",
+            alignItems: "center",
+            gap: "2px",
+          }}
+          onMouseLeave={() => setHovered(null)}
+        >
+          {NAV_LINKS.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              onMouseEnter={() => setHovered(l.href)}
+              style={{
+                position: "relative",
+                padding: "8px 14px",
+                fontSize: scrolled ? "13.5px" : "15.5px",
+                fontWeight: 500,
+                color: hovered === l.href ? navText : navMuted,
+                textDecoration: "none",
+                transition: "color 0.15s ease, font-size 0.35s ease",
+                borderRadius: "999px",
+              }}
+            >
+              {hovered === l.href && (
+                <motion.span
+                  layoutId="nav-pill"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "999px",
+                    background: pillBg,
+                    zIndex: 0,
+                  }}
+                />
+              )}
+              <span style={{ position: "relative", zIndex: 1 }}>{l.label}</span>
+            </a>
+          ))}
+        </div>
+
+        {/* Direita */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            justifySelf: "end",
+            paddingRight: scrolled ? "6px" : isMobile ? "0px" : "24px",
+            transition: "padding 0.35s ease",
+          }}
+        >
+          {/* Dark/light toggle */}
+          <button
+            type="button"
+            ref={toggleRef}
+            onClick={() => onToggle(toggleRef)}
+            style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "50%",
+              background: t.primaryBg,
+              border: `1px solid ${t.primaryBorder}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: t.primary,
+              transition: "all 0.2s",
+            }}
+            aria-label="Alternar tema"
+          >
+            {isDark ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+
+          {/* Hambúrguer (mobile) */}
+          {isMobile && (
+            <button
+              type="button"
+              aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+              onClick={() => setMenuOpen((o) => !o)}
+              style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                background: t.primaryBg,
+                border: `1px solid ${t.primaryBorder}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: t.primary,
+              }}
+            >
+              {menuOpen ? <X size={15} /> : <Menu size={15} />}
+            </button>
+          )}
+
+          {!isMobile && (
+            <PrimaryBtn
+              small
+              onClick={() => {
+                window.location.href = "/explore";
+              }}
+            >
+              <ArrowRight size={13} /> Explorar Agora
+            </PrimaryBtn>
+          )}
+        </div>
+      </nav>
+
+      {/* Menu mobile — tela cheia sob a nav */}
+      {menuOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9998,
+            background: t.isDark
+              ? "rgba(2,6,23,0.97)"
+              : "rgba(255,255,255,0.97)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            paddingTop: "96px",
+            paddingLeft: "28px",
+            paddingRight: "28px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {NAV_LINKS.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                color: t.text,
+                textDecoration: "none",
+                padding: "16px 0",
+                borderBottom: `1px solid ${t.border}`,
+                letterSpacing: "-0.5px",
+              }}
+            >
+              {l.label}
+            </a>
+          ))}
+          <div style={{ marginTop: "28px" }}>
+            <PrimaryBtn
+              full
+              onClick={() => {
+                setMenuOpen(false);
+                window.location.href = "/explore";
+              }}
+            >
+              <ArrowRight size={16} /> Explorar Agora
+            </PrimaryBtn>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -815,7 +947,9 @@ function Hero() {
         justifyContent: "flex-start",
         paddingTop: "130px",
         overflow: "hidden",
-        background: t.bg,
+        // Var pré-paint: o estado React nasce light e pintava o hero de
+        // branco por um frame no reload em dark
+        background: "var(--mf-bg, #FFFFFF)",
       }}
     >
       {/* Luz ambiente do hero (só no light): wash rosa suave descendo do
@@ -852,7 +986,24 @@ function Hero() {
         }}
       >
         <motion.div variants={fadeUp}>
-          <PinkBadge small>Lançamento 2026</PinkBadge>
+          {/* Vars pré-paint: sem flash de cor no reload em dark */}
+          <span
+            style={{
+              display: "inline-block",
+              padding: "2px 12px",
+              borderRadius: "999px",
+              fontSize: "10px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              background: "var(--mf-primary-bg, rgba(248,86,167,0.07))",
+              border:
+                "1px solid var(--mf-primary-border, rgba(248,86,167,0.2))",
+              color: "var(--mf-primary, #F856A7)",
+            }}
+          >
+            Lançamento 2026
+          </span>
         </motion.div>
 
         {/* Taglines idênticos aos do CinematicHero: 96px, weight 700/800,
@@ -865,7 +1016,7 @@ function Hero() {
             style={{
               fontSize: "clamp(36px, 8vw, 104px)",
               fontWeight: 700,
-              color: t.text,
+              color: "var(--mf-fg, #020617)",
               lineHeight: 1,
               letterSpacing: "-0.045em",
               whiteSpace: "nowrap",
@@ -881,7 +1032,7 @@ function Hero() {
             style={{
               fontSize: "clamp(36px, 8vw, 104px)",
               fontWeight: 800,
-              color: t.primary,
+              color: "var(--mf-primary, #F856A7)",
               lineHeight: 1.05,
               letterSpacing: "-0.065em",
               whiteSpace: "nowrap",
@@ -896,7 +1047,7 @@ function Hero() {
           variants={fadeUp}
           style={{
             fontSize: "clamp(15px, 2.2vw, 18px)",
-            color: t.textBody,
+            color: "var(--mf-body, #4a4a68)",
             maxWidth: "600px",
             margin: "22px auto 0",
             lineHeight: 1.7,
@@ -980,6 +1131,8 @@ function Hero() {
                 src={src}
                 alt=""
                 referrerPolicy="no-referrer"
+                loading="lazy"
+                decoding="async"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -1042,8 +1195,8 @@ function VideoSection() {
   );
 }
 
-// Tamanho natural SEMPRE — sem depender da altura da tela
-const VIDEO_W = "960px";
+// Tamanho natural no desktop; 92vw só limita no mobile (não transbordar)
+const VIDEO_W = "min(960px, 92vw)";
 
 function VideoInner({
   cardScale,
@@ -1053,6 +1206,7 @@ function VideoInner({
   cardY: MotionValue<number>;
 }) {
   const t = useTheme();
+  const isMobile = useIsMobile();
   const [hovered, setHovered] = useState(false);
   // Mesmo tratamento dos tiles da Solução no dark
   const accent = t.isDark ? "#F856A7" : t.primary;
@@ -1135,14 +1289,16 @@ function VideoInner({
             onMouseLeave={() => setHovered(false)}
             style={{
               width: "100%",
-              maxWidth: VIDEO_W,
+              // Mobile: formato de TELA DE CELULAR — estreito e em pé
+              maxWidth: isMobile ? "min(300px, 78vw)" : VIDEO_W,
               margin: "0 auto",
-              borderRadius: "20px",
+              borderRadius: isMobile ? "24px" : "20px",
               overflow: "hidden",
               background: cardBg,
               // Mesma borda/hover dos tiles da Solução
               border: `1px solid ${hovered ? "#F856A755" : cardBorder}`,
-              aspectRatio: "1024 / 534.945",
+              // Mobile: proporção de celular (vídeo gravado em pé)
+              aspectRatio: isMobile ? "9 / 16" : "1024 / 534.945",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1250,6 +1406,7 @@ function RevealItem({
           onMouseLeave={() => setHovered(false)}
           onFocus={() => setHovered(true)}
           onBlur={() => setHovered(false)}
+          onClick={() => setHovered((h) => !h)}
           style={{
             background: "none",
             border: "none",
@@ -1260,6 +1417,10 @@ function RevealItem({
         >
           <h3
             style={{
+              // Stack do sistema: a Circular Std só vai até 700, então o
+              // 900 saía "falso" e fino — SF Pro/Segoe têm Black de verdade
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
               fontSize: "clamp(52px, 9.5vw, 96px)",
               fontWeight: 900,
               color: soon ? t.muted : t.text,
@@ -1267,7 +1428,7 @@ function RevealItem({
               lineHeight: 1,
               transition: "opacity 0.4s",
               opacity: hovered ? 0.2 : soon ? 0.35 : 1,
-              letterSpacing: "-1px",
+              letterSpacing: "-2px",
             }}
           >
             {text}
@@ -1311,6 +1472,7 @@ function RevealItem({
           <img
             src={imgs[1]}
             alt=""
+            decoding="async"
             style={{
               width: "100%",
               height: "100%",
@@ -1343,6 +1505,7 @@ function RevealItem({
           <img
             src={imgs[0]}
             alt=""
+            decoding="async"
             style={{
               width: "100%",
               height: "100%",
@@ -1426,12 +1589,17 @@ function RevealSection() {
 
 function WatchDemoBtn() {
   const t = useTheme();
-  // Discreto: sem bloco sólido — só borda sutil, texto do tema e um tint
-  // leve no hover
+  // Discreto (borda/texto neutros) — SÓ o play é rosa
+  const accent = t.isDark ? "#F856A7" : t.primary;
   const hoverBg = t.isDark ? "rgba(255,255,255,0.06)" : "rgba(2,6,23,0.04)";
   return (
     <button
       type="button"
+      onClick={() =>
+        document
+          .getElementById("recursos")
+          ?.scrollIntoView({ behavior: "smooth" })
+      }
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -1460,7 +1628,8 @@ function WatchDemoBtn() {
           width: "20px",
           height: "20px",
           borderRadius: "50%",
-          background: t.isDark ? "rgba(255,255,255,0.10)" : "rgba(2,6,23,0.08)",
+          background: "rgba(248,86,167,0.14)",
+          color: accent,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -1632,7 +1801,7 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
           <div style={{ position: "relative" }}>
             <StackedCardsInteraction
               cards={STACK_CARDS}
-              spreadDistance={isMobile ? 64 : 120}
+              spreadDistance={isMobile ? 44 : 120}
               rotationAngle={10}
             />
             <p
@@ -2166,7 +2335,9 @@ function KeyFeatures() {
                       position: "absolute",
                       bottom: "-18px",
                       left: "50%",
-                      transform: "translateX(-50%) scale(0.65)",
+                      transform: isMobile
+                        ? "translateX(-50%) scale(0.4)"
+                        : "translateX(-50%) scale(0.65)",
                       transformOrigin: "bottom center",
                       opacity: 0.72,
                     }}
@@ -2502,6 +2673,10 @@ function ProBanner() {
           >
             <button
               type="button"
+              onClick={() => {
+                // Grátis → scan direto (30/dia sem conta); PRO → login
+                window.location.href = isPro ? "/login" : "/scan";
+              }}
               style={{
                 padding: "13px 30px",
                 borderRadius: "999px",
@@ -2697,13 +2872,24 @@ function PricingInner() {
 
 // ── Footer ────────────────────────────────────────────────────────────────────
 
-const SOCIAL_LINKS = [
-  { id: "instagram", icon: <Instagram size={15} />, label: "Instagram" },
+const SOCIAL_LINKS: {
+  id: string;
+  icon: ReactNode;
+  label: string;
+  href?: string;
+}[] = [
+  {
+    id: "instagram",
+    icon: <Instagram size={15} />,
+    label: "Instagram",
+    href: "https://instagram.com/mintfoil",
+  },
   { id: "youtube", icon: <Youtube size={15} />, label: "YouTube" },
   { id: "twitter", icon: <Twitter size={15} />, label: "X / Twitter" },
 ];
 
 function FooterSection() {
+  const isMobile = useIsMobile();
   const auroraRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -2869,7 +3055,12 @@ function FooterSection() {
             marginBottom: 0,
           }}
         >
-          <PrimaryBtn dark>
+          <PrimaryBtn
+            dark
+            onClick={() => {
+              window.location.href = "/explore";
+            }}
+          >
             <ArrowRight size={16} /> Explorar Agora
           </PrimaryBtn>
         </div>
@@ -2882,9 +3073,11 @@ function FooterSection() {
           position: "relative",
           zIndex: 10,
           display: "grid",
-          gridTemplateColumns: "1fr auto 1fr",
+          // Mobile: empilha centralizado; desktop: esq/centro/dir
+          gridTemplateColumns: isMobile ? "1fr" : "1fr auto 1fr",
+          justifyItems: isMobile ? "center" : undefined,
           alignItems: "center",
-          gap: "12px",
+          gap: isMobile ? "16px" : "12px",
           maxWidth: "1200px",
           margin: "56px auto 0",
           paddingTop: "24px",
@@ -2909,9 +3102,11 @@ function FooterSection() {
         {/* Sociais — centro */}
         <div style={{ display: "flex", gap: "14px", justifySelf: "center" }}>
           {SOCIAL_LINKS.map((s) => (
-            <button
+            <a
               key={s.id}
-              type="button"
+              href={s.href ?? "#"}
+              target={s.href ? "_blank" : undefined}
+              rel={s.href ? "noreferrer" : undefined}
               aria-label={s.label}
               style={{
                 width: "32px",
@@ -2936,7 +3131,7 @@ function FooterSection() {
               }}
             >
               {s.icon}
-            </button>
+            </a>
           ))}
         </div>
 
@@ -2950,13 +3145,16 @@ function FooterSection() {
             justifySelf: "end",
           }}
         >
-          {["Privacidade", "Termos", "Suporte", "Loja"].map((lbl) => (
-            <button
+          {[
+            { lbl: "Privacidade", href: "/privacidade" },
+            { lbl: "Termos", href: "/termos" },
+            { lbl: "Suporte", href: "mailto:contato@mintfoil.app" },
+            { lbl: "Loja", href: "/loja" },
+          ].map(({ lbl, href }) => (
+            <a
               key={lbl}
-              type="button"
+              href={href}
               style={{
-                background: "none",
-                border: "none",
                 fontSize: "11px",
                 fontWeight: 600,
                 letterSpacing: "1px",
@@ -2965,6 +3163,7 @@ function FooterSection() {
                 cursor: "pointer",
                 transition: "color 0.2s",
                 padding: 0,
+                textDecoration: "none",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = "#FFFFFF";
@@ -2974,7 +3173,7 @@ function FooterSection() {
               }}
             >
               {lbl}
-            </button>
+            </a>
           ))}
 
           {/* Voltar ao topo — junto dos links, na direita */}
@@ -3011,63 +3210,140 @@ function FooterSection() {
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
-export function LandingPage() {
-  const [isDark, setIsDark] = useState(false);
+// View Transitions: sem crossfade default — o círculo do toggle é a única
+// animação (revela o tema novo real, sem tela chapada)
+const VT_CSS =
+  "::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }";
+
+// Grava o tema em cookie (SSR do próximo load) + localStorage (compat)
+function persistTheme(dark: boolean) {
+  const v = dark ? "dark" : "light";
+  localStorage.setItem("mf-theme", v);
+  // biome-ignore lint/suspicious/noDocumentCookie: cookie simples de preferência de tema, lido no SSR
+  document.cookie = `mf-theme=${v}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
+export function LandingPage({
+  initialDark = false,
+}: {
+  initialDark?: boolean;
+}) {
+  const [isDark, setIsDark] = useState(initialDark);
   const theme = isDark ? DARK : LIGHT;
 
   // No load: escolha salva do usuário > tema do sistema. Lido pós-mount
-  // (não no estado inicial) pra não divergir do SSR na hidratação
-  useEffect(() => {
+  // (não no estado inicial) pra não divergir do SSR na hidratação;
+  // useLayoutEffect: o flip acontece ANTES do paint pós-hidratação
+  useLayoutEffect(() => {
     const stored = localStorage.getItem("mf-theme");
-    if (stored === "dark" || stored === "light") {
-      setIsDark(stored === "dark");
-    } else {
-      setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    }
+    const desired =
+      stored === "dark" || stored === "light"
+        ? stored === "dark"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // Converge cookie/localStorage (1ª visita ou cookie apagado); só
+    // re-renderiza se o SSR veio com o tema errado
+    persistTheme(desired);
+    setIsDark((cur) => (cur === desired ? cur : desired));
   }, []);
+
+  // Landing SEMPRE abre do topo — inclusive quando o navegador tenta
+  // restaurar a posição (voltar/bfcache)
+  useEffect(() => {
+    window.history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.scrollTo(0, 0);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
+  // Mantém as vars pré-paint em sincronia com o tema do React
+  useLayoutEffect(() => {
+    const r = document.documentElement;
+    const bg = isDark ? "#020617" : "#FFFFFF";
+    r.style.setProperty("--mf-bg", bg);
+    r.style.setProperty("--mf-fg", isDark ? "#FFFFFF" : "#020617");
+    r.style.setProperty("--mf-wash", isDark ? "0" : "1");
+    r.style.setProperty("--mf-primary", isDark ? "#B50D57" : "#F856A7");
+    r.style.setProperty(
+      "--mf-body",
+      isDark ? "rgba(255,255,255,0.82)" : "#4a4a68",
+    );
+    r.style.setProperty(
+      "--mf-ghost-bg",
+      isDark ? "rgba(2,6,23,0.3)" : "rgba(255,255,255,0.35)",
+    );
+    r.style.setProperty(
+      "--mf-primary-bg",
+      isDark ? "rgba(181,13,87,0.07)" : "rgba(248,86,167,0.07)",
+    );
+    r.style.setProperty(
+      "--mf-primary-border",
+      isDark ? "rgba(181,13,87,0.22)" : "rgba(248,86,167,0.2)",
+    );
+    // html/body pintados junto (o body tem bg claro vindo do globals.css)
+    r.style.backgroundColor = bg;
+    document.body.style.backgroundColor = bg;
+  }, [isDark]);
 
   const handleThemeToggle = (
     btnRef: React.RefObject<HTMLButtonElement | null>,
   ) => {
-    const btn = btnRef.current;
-    if (!btn) {
+    const apply = () => {
       setIsDark((d) => {
-        localStorage.setItem("mf-theme", d ? "light" : "dark");
+        persistTheme(!d);
         return !d;
       });
+    };
+
+    const doc = document as Document & {
+      startViewTransition?: (cb: () => void) => { ready: Promise<void> };
+    };
+    if (!doc.startViewTransition) {
+      const style = document.createElement("style");
+      style.innerHTML =
+        "*, *::before, *::after { transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease, fill 0.45s ease !important; }";
+      document.head.appendChild(style);
+      apply();
+      setTimeout(() => style.remove(), 600);
       return;
     }
 
-    const rect = btn.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    const newDark = !isDark;
+    const rect = btnRef.current?.getBoundingClientRect();
+    const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+    const y = rect ? rect.top + rect.height / 2 : 40;
+    const maxR = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
 
-    const overlay = document.createElement("div");
-    Object.assign(overlay.style, {
-      position: "fixed",
-      inset: "0",
-      zIndex: "99999",
-      background: newDark ? "#020617" : "#FFFFFF",
-      clipPath: `circle(0px at ${x}px ${y}px)`,
-      transition: "clip-path 0.55s ease-in-out",
-      pointerEvents: "none",
+    const vt = doc.startViewTransition(() => {
+      flushSync(apply);
     });
-    document.body.appendChild(overlay);
-    // Force reflow
-    void overlay.offsetWidth;
-    overlay.style.clipPath = `circle(200% at ${x}px ${y}px)`;
-
-    localStorage.setItem("mf-theme", newDark ? "dark" : "light");
-    setTimeout(() => setIsDark(newDark), 240);
-    setTimeout(() => overlay.remove(), 620);
+    vt.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${maxR}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 550,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    });
   };
 
   return (
     <ThemeCtx.Provider value={theme}>
       <div
         style={{
-          background: theme.bg,
+          // var resolvida ANTES do paint pelo script do layout — sem flash
+          background: "var(--mf-bg, #FFFFFF)",
           color: theme.text,
           minHeight: "100vh",
           // "clip" evita scroll horizontal SEM quebrar position:sticky
@@ -3075,6 +3351,9 @@ export function LandingPage() {
           transition: "background 0.1s",
         }}
       >
+        {/* Desliga o crossfade padrão do View Transitions: só o círculo anima */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: CSS estático do view-transition */}
+        <style dangerouslySetInnerHTML={{ __html: VT_CSS }} />
         <Nav isDark={isDark} onToggle={handleThemeToggle} />
         <Hero />
         {/* Margem negativa: a "Veja em ação" já espera atrás da animação,
@@ -3093,8 +3372,8 @@ export function LandingPage() {
             isDark={isDark}
             storeBadges={
               <>
-                <StoreBadge store="ios" light />
-                <StoreBadge store="android" light />
+                <StoreBadge store="ios" brand />
+                <StoreBadge store="android" brand />
               </>
             }
           />
