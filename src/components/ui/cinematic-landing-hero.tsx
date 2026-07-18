@@ -322,16 +322,6 @@ export function CinematicHero({
           },
           "-=1.4",
         )
-        .to(
-          ".mf-chart-line",
-          { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" },
-          "-=1.2",
-        )
-        .to(
-          ".mf-chart-area",
-          { opacity: 1, duration: 1.8, ease: "power2.out" },
-          "-=2.0",
-        )
         .fromTo(
           ".mf-badge",
           { y: 80, autoAlpha: 0, scale: 0.75, rotationZ: -8 },
@@ -537,174 +527,14 @@ export function CinematicHero({
                       />
                     </div>
 
-                    {/* App UI */}
-                    <div className="relative w-full h-full pt-11 px-4 pb-7 flex flex-col">
-                      {/* Header */}
-                      <div className="mf-phone-widget flex justify-between items-center mb-6">
-                        <div>
-                          <span className="text-[9px] text-neutral-400 uppercase tracking-widest font-bold block mb-0.5">
-                            Portfólio
-                          </span>
-                          <span className="text-lg font-bold text-white">
-                            Minha Coleção
-                          </span>
-                        </div>
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border border-white/10"
-                          style={{
-                            background: "rgba(248,86,167,0.15)",
-                            color: "#F856A7",
-                          }}
-                        >
-                          IS
-                        </div>
-                      </div>
-
-                      {/* Stock-style chart */}
-                      <div className="mf-phone-widget mf-widget-depth rounded-2xl px-3 pt-3 pb-2 mb-4">
-                        <div className="flex justify-between items-baseline mb-2">
-                          <span className="text-[9px] text-white/40 uppercase tracking-widest font-bold">
-                            Portfólio
-                          </span>
-                          <span
-                            className="text-[10px] font-bold"
-                            style={{ color: "#10B981" }}
-                          >
-                            +23,4%
-                          </span>
-                        </div>
-                        <svg
-                          viewBox="0 0 180 90"
-                          className="w-full"
-                          preserveAspectRatio="none"
-                          style={{ height: 88 }}
-                          role="img"
-                          aria-label="Gráfico de valorização do portfólio"
-                        >
-                          <defs>
-                            <linearGradient
-                              id="mf-chart-fill"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="0%"
-                                stopColor="#F856A7"
-                                stopOpacity="0.25"
-                              />
-                              <stop
-                                offset="100%"
-                                stopColor="#F856A7"
-                                stopOpacity="0"
-                              />
-                            </linearGradient>
-                          </defs>
-                          {/* Area fill */}
-                          <path
-                            className="mf-chart-area"
-                            d="M0 68 L18 60 L36 72 L54 48 L72 54 L90 33 L108 42 L126 27 L144 36 L162 15 L180 21 L180 90 L0 90 Z"
-                            fill="url(#mf-chart-fill)"
-                            style={{ opacity: 0 }}
-                          />
-                          {/* Line */}
-                          <path
-                            className="mf-chart-line"
-                            d="M0 68 L18 60 L36 72 L54 48 L72 54 L90 33 L108 42 L126 27 L144 36 L162 15 L180 21"
-                            fill="none"
-                            stroke="#F856A7"
-                            strokeWidth="2"
-                          />
-                          {/* Last point dot */}
-                          <circle cx="180" cy="21" r="3" fill="#F856A7" />
-                        </svg>
-                        <div className="flex justify-between mt-1">
-                          <span className="text-[8px] text-white/25">30d</span>
-                          <span className="text-[8px] text-white/25">Hoje</span>
-                        </div>
-                      </div>
-
-                      {/* Widgets */}
-                      <div className="space-y-2.5">
-                        <div className="mf-phone-widget mf-widget-depth rounded-2xl p-3 flex items-center">
-                          <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center mr-3 border flex-shrink-0"
-                            style={{
-                              background: "rgba(248,86,167,0.12)",
-                              borderColor: "rgba(248,86,167,0.2)",
-                            }}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="#F856A7"
-                              viewBox="0 0 24 24"
-                              aria-hidden="true"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[10px] font-semibold text-white/80 truncate">
-                              Charizard ex · SV3
-                            </div>
-                            <div
-                              className="text-[9px] font-bold mt-0.5"
-                              style={{ color: "#F856A7" }}
-                            >
-                              R$ 850,00
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mf-phone-widget mf-widget-depth rounded-2xl p-3 flex items-center">
-                          <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center mr-3 border flex-shrink-0"
-                            style={{
-                              background: "rgba(16,185,129,0.12)",
-                              borderColor: "rgba(16,185,129,0.2)",
-                            }}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="#10B981"
-                              viewBox="0 0 24 24"
-                              aria-hidden="true"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                              />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[10px] font-semibold text-white/80 truncate">
-                              Portfólio este mês
-                            </div>
-                            <div className="text-[9px] font-bold mt-0.5 text-emerald-400">
-                              +R$ 1.240,00
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div
-                        className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[110px] h-[3.5px] rounded-full"
-                        style={{ background: "rgba(255,255,255,0.18)" }}
+                    {/* App real — print da dashboard (entra na animação
+                        junto dos widgets via classe mf-phone-widget) */}
+                    <div className="mf-phone-widget relative h-full w-full">
+                      {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
+                      <img
+                        src="/landing/app-dashboard.jpg"
+                        alt="Dashboard do Mint Foil"
+                        className="h-full w-full object-cover object-top"
                       />
                     </div>
                   </div>

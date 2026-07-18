@@ -953,6 +953,7 @@ function Nav({
 
 function Hero() {
   const t = useTheme();
+  const isMobile = useIsMobile();
   return (
     <section
       id="hero"
@@ -1000,7 +1001,7 @@ function Hero() {
           textAlign: "center",
           position: "relative",
           zIndex: 10,
-          padding: "0 24px",
+          padding: isMobile ? "0 10px" : "0 24px",
         }}
       >
         <motion.div variants={fadeUp}>
@@ -1032,7 +1033,7 @@ function Hero() {
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
             style={{
-              fontSize: "clamp(36px, 8vw, 104px)",
+              fontSize: "clamp(36px, 10.2vw, 104px)",
               fontWeight: 700,
               color: "var(--mf-fg, #020617)",
               lineHeight: 1,
@@ -1048,7 +1049,7 @@ function Hero() {
             animate={{ clipPath: "inset(0 0% 0 0)" }}
             transition={{ duration: 1.3, ease: [0.85, 0, 0.15, 1], delay: 0.9 }}
             style={{
-              fontSize: "clamp(36px, 8vw, 104px)",
+              fontSize: "clamp(36px, 10.2vw, 104px)",
               fontWeight: 800,
               color: "var(--mf-primary, #F856A7)",
               lineHeight: 1.05,
