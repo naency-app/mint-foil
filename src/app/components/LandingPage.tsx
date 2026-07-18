@@ -691,7 +691,10 @@ function Nav({
           zIndex: 9999,
           // Parada (topo): maior pra leitura; reduzida (pill) mantém compacta
           padding: scrolled ? "5px 10px" : isMobile ? "12px 16px" : "16px 56px",
-          display: "grid",
+          // Mobile: flex space-between (logo ⟷ botões cravados na borda);
+          // desktop: grid com os links realmente centralizados
+          display: isMobile ? "flex" : "grid",
+          justifyContent: isMobile ? "space-between" : undefined,
           gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
           // Tint translúcido da COR REAL atrás da nav (amostrada por frame):
