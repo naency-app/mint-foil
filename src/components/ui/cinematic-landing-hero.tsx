@@ -135,22 +135,27 @@ export interface CinematicHeroProps
   tagline2?: string;
   cardHeading?: string;
   cardDescription?: React.ReactNode;
+  // Badges das lojas renderizados abaixo da descrição do card (injetados
+  // pela landing pra evitar import circular)
+  storeBadges?: React.ReactNode;
   metricValue?: number;
   metricLabel?: string;
 }
 
 export function CinematicHero({
   isDark = false,
-  tagline1 = "Escaneie. Descubra.",
-  tagline2 = "Saiba o valor real.",
+  tagline1 = "Saber o preço da sua carta",
+  tagline2 = "ficou mais fácil.",
   cardHeading = "Coleção inteligente.",
   cardDescription = (
     <>
       O <span style={{ color: "#F856A7", fontWeight: 600 }}>Mint Foil</span>{" "}
-      identifica suas cartas em segundos e exibe o preço real das ligas e
-      marketplaces brasileiros — tudo num só lugar.
+      identifica suas cartas em segundos e mostra o valor de referência em
+      reais, atualizado todos os dias — com link pra conferir nas lojas
+      brasileiras.
     </>
   ),
+  storeBadges,
   metricValue = 428,
   metricLabel = "Cartas",
   className,
@@ -414,17 +419,32 @@ export function CinematicHero({
         aria-hidden="true"
       />
 
-      {/* Hero text layer */}
+      {/* Hero text layer — mesma formatação exata dos taglines do hero:
+          clamp(34px→96px), weight 700/800, tracking -0.025/-0.05em */}
       <div className="mf-hero-text absolute z-10 flex flex-col items-center justify-center text-center w-screen px-4">
         <h1
-          className="mf-text-track mf-gsap-reveal text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tight mb-2"
-          style={{ color: textColor }}
+          className="mf-text-track mf-gsap-reveal"
+          style={{
+            color: textColor,
+            fontSize: "clamp(34px, 7.5vw, 96px)",
+            fontWeight: 700,
+            lineHeight: 1,
+            letterSpacing: "-0.025em",
+            margin: 0,
+          }}
         >
           {tagline1}
         </h1>
         <h1
-          className={`mf-text-reveal mf-gsap-reveal text-5xl md:text-7xl lg:text-[6rem] font-extrabold tracking-tighter${isDark ? " mf-text-silver" : ""}`}
-          style={isDark ? undefined : { color: textColor, fontWeight: 800 }}
+          className={`mf-text-reveal mf-gsap-reveal${isDark ? " mf-text-silver" : ""}`}
+          style={{
+            ...(isDark ? {} : { color: textColor }),
+            fontSize: "clamp(34px, 7.5vw, 96px)",
+            fontWeight: 800,
+            lineHeight: 1.05,
+            letterSpacing: "-0.05em",
+            margin: "8px 0 0",
+          }}
         >
           {tagline2}
         </h1>
@@ -736,6 +756,19 @@ export function CinematicHero({
               >
                 {cardDescription}
               </p>
+              {storeBadges && (
+                <div className="mt-9">
+                  <p
+                    className="mb-3 font-bold text-xs uppercase tracking-[0.22em]"
+                    style={{ color: "#F856A7" }}
+                  >
+                    Baixe agora — é grátis
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
+                    {storeBadges}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

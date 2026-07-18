@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Mono, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
-import { DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./provider";
 
@@ -32,6 +32,14 @@ const dmMono = DM_Mono({
   display: "swap",
 });
 
+// Display geométrica pro wordmark "Mint Foil" (combina com o M facetado)
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Mint Foil — Gerencie sua Coleção de TCG",
   description:
@@ -53,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${circularStd.variable} ${dmMono.variable} antialiased font-sans`}
+        className={`${circularStd.variable} ${dmMono.variable} ${spaceGrotesk.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>

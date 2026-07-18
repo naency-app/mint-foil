@@ -18,7 +18,7 @@ const Card = ({
   return (
     <div
       className={cn(
-        "relative h-[380px] w-[272px] cursor-pointer overflow-hidden rounded-2xl shadow-[0_18px_50px_rgba(0,0,0,0.28)]",
+        "relative flex h-[380px] w-[272px] cursor-pointer items-center justify-center",
         className,
       )}
     >
@@ -28,11 +28,15 @@ const Card = ({
           src={image}
           alt=""
           referrerPolicy="no-referrer"
-          className="h-full w-full object-cover"
+          // object-contain + largura automática: cada TCG tem proporção
+          // própria (Yu-Gi-Oh é mais estreita) — cover cortava as bordas
+          className="h-full w-auto rounded-xl object-contain"
+          style={{ filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.28))" }}
         />
       )}
       {badge && (
-        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#F856A7] to-[#B50D57] px-3.5 py-1.5 text-xs font-bold text-white shadow-lg">
+        // Preço ABAIXO da carta (não sobreposto à arte)
+        <span className="-bottom-4 absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#F856A7] to-[#B50D57] px-3.5 py-1.5 font-bold text-white text-xs shadow-lg">
           {badge}
         </span>
       )}

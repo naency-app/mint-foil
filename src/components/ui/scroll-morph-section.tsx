@@ -8,6 +8,7 @@ type IntroPhase = "scatter" | "line" | "circle";
 
 interface FlipCardProps {
   src: string;
+  back: string;
   target: {
     x: number;
     y: number;
@@ -17,11 +18,24 @@ interface FlipCardProps {
   };
 }
 
+// Verso REAL de cada TCG (imagens locais) — nada de verso genérico
+function backFor(src: string): string {
+  if (src.includes("pokemontcg.io") || src.includes("charizard"))
+    return "/landing/pkm-card-back.jpg";
+  if (src.includes("ygoprodeck") || src.includes("blue-eyes"))
+    return "/landing/ygo-card-back.jpg";
+  if (src.includes("scryfall") || src.includes("shivan"))
+    return "/landing/mtg-card-back.jpg";
+  if (src.includes("luffy") || src.includes("one-piece"))
+    return "/landing/op-card-back.jpg";
+  return "/landing/pkm-card-back.jpg";
+}
+
 // --- FlipCard ---
 const IMG_WIDTH = 92;
 const IMG_HEIGHT = 129;
 
-function FlipCard({ src, target }: FlipCardProps) {
+function FlipCard({ src, back, target }: FlipCardProps) {
   return (
     <motion.div
       animate={{
@@ -70,15 +84,13 @@ function FlipCard({ src, target }: FlipCardProps) {
           />
         </div>
 
-        {/* Verso — marca Mint Foil */}
+        {/* Verso — traseira real do TCG da carta */}
         <div
-          className="absolute inset-0 flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-[#F856A7] to-[#B50D57] shadow-lg"
+          className="absolute inset-0 h-full w-full overflow-hidden rounded-md shadow-lg"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
-          <span className="text-lg font-extrabold text-white">M</span>
-          <span className="mt-0.5 text-[6px] font-bold uppercase tracking-widest text-white/80">
-            Mint Foil
-          </span>
+          {/* biome-ignore lint/performance/noImgElement: imagem local do verso */}
+          <img src={back} alt="" className="h-full w-full object-cover" />
         </div>
       </motion.div>
     </motion.div>
@@ -90,22 +102,30 @@ const IMAGES = [
   "/landing/blue-eyes-card.jpg",
   "https://images.pokemontcg.io/swsh7/215_hires.png",
   "/landing/shivan-card.jpg",
-  "https://images.pokemontcg.io/sv3/234_hires.png",
+  // Umbreon ex — Prismatic Evolutions (2025)
+  "https://images.pokemontcg.io/sv8pt5/161_hires.png",
   "/landing/luffy-card.png",
-  "https://images.ygoprodeck.com/images/cards/46986414.jpg",
+  // Ash Blossom & Joyous Spring — staple nº 1, tem versão Starlight
+  "https://images.ygoprodeck.com/images/cards/14558127.jpg",
   "/landing/charizard-card.png",
   "https://images.pokemontcg.io/swsh4/188_hires.png",
-  "https://cards.scryfall.io/large/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7571.jpg",
+  // Sheoldred, the Apocalypse — staple atual de Magic
+  "https://cards.scryfall.io/large/front/d/6/d67be074-cdd4-41d9-ac89-0a0456c4e4b2.jpg?1783921327",
   "https://images.pokemontcg.io/swsh8/271_hires.png",
-  "https://images.ygoprodeck.com/images/cards/33396948.jpg",
+  // Infinite Impermanence — staple desejadíssima, versão Starlight
+  "https://images.ygoprodeck.com/images/cards/10045474.jpg",
   "https://images.pokemontcg.io/pgo/31_hires.png",
   "https://cards.scryfall.io/large/front/4/c/4cbc6901-6a4a-4d0a-83ea-7eefa3b35021.jpg",
-  "https://images.pokemontcg.io/swsh11/131_hires.png",
-  "https://images.ygoprodeck.com/images/cards/74677422.jpg",
-  "https://images.pokemontcg.io/swsh8/270_hires.png",
+  // Leafeon ex — Prismatic Evolutions (2025)
+  "https://images.pokemontcg.io/sv8pt5/144_hires.png",
+  // S:P Little Knight — chase atual do extra deck
+  "https://images.ygoprodeck.com/images/cards/29301450.jpg",
+  // Pikachu ex — Surging Sparks (2024)
+  "https://images.pokemontcg.io/sv8/238_hires.png",
   "https://cards.scryfall.io/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg",
   "https://images.pokemontcg.io/swsh7/212_hires.png",
-  "https://images.ygoprodeck.com/images/cards/38033121.jpg",
+  // Mulcharmy Fuwalos — hand trap chase de 2024/25
+  "https://images.ygoprodeck.com/images/cards/42141493.jpg",
   "https://images.pokemontcg.io/swsh45sv/SV107_hires.png",
 ];
 
@@ -125,13 +145,11 @@ export default function ScrollMorphSection({
   introTitle = "Toda coleção tem tesouros escondidos.",
   introHint = "CONTINUE ROLANDO",
   arcTitle = "Quanto vale a sua?",
-  arcSubtitle = "Escaneie e descubra — preço em reais, atualizado todo dia.",
 }: {
   isDark?: boolean;
   introTitle?: string;
   introHint?: string;
   arcTitle?: string;
-  arcSubtitle?: string;
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -165,23 +183,24 @@ export default function ScrollMorphSection({
     return () => observer.disconnect();
   }, []);
 
-  // --- Intro (espalhadas → linha → círculo) quando a seção aparece ---
+  // --- Progresso pinado: o wrapper alto define a distância da interação ---
+  const { scrollYProgress } = useScroll({
+    target: wrapperRef,
+    offset: ["start start", "end end"],
+  });
+
+  // --- Intro (espalhadas → linha → círculo) ---
   const [introStarted, setIntroStarted] = useState(false);
 
+  // A intro SÓ dispara quando a seção ocupa a tela inteira (início do pin:
+  // scrollYProgress sai de 0) — nada de cartas aparecendo com a seção
+  // anterior ainda visível
   useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIntroStarted(true);
-      },
-      // Dispara assim que o wrapper encosta na vista — a intro roda enquanto
-      // a seção ainda está entrando, e o círculo já chega pronto no pin
-      { threshold: 0.05 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    const unsub = scrollYProgress.on("change", (v) => {
+      if (v > 0.004) setIntroStarted(true);
+    });
+    return () => unsub();
+  }, [scrollYProgress]);
 
   useEffect(() => {
     if (!introStarted) return;
@@ -193,22 +212,19 @@ export default function ScrollMorphSection({
     };
   }, [introStarted]);
 
-  // --- Progresso pinado: o wrapper alto define a distância da interação ---
-  const { scrollYProgress } = useScroll({
-    target: wrapperRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Círculo + frase 1 seguram até 28% · morph 28–50% · giro 50–82% ·
-  // saída 82–97% (cartas somem, frase 2 centraliza) · 97–100% respiro
-  const morphProgress = useTransform(scrollYProgress, [0.28, 0.5], [0, 1]);
+  // O círculo chega pronto do intro: segura só até 12% (um scroll) e já
+  // morpha · morph 12–34% · giro 34–66% · saída 66–78% (cartas somem,
+  // frase 2 centraliza) · 78–100% = segurada final no centro (~62vh)
+  const morphProgress = useTransform(scrollYProgress, [0.12, 0.34], [0, 1]);
   const smoothMorph = useSpring(morphProgress, { stiffness: 40, damping: 20 });
 
-  const arcSpin = useTransform(scrollYProgress, [0.5, 0.82], [0, 1]);
+  const arcSpin = useTransform(scrollYProgress, [0.34, 0.66], [0, 1]);
   const smoothArcSpin = useSpring(arcSpin, { stiffness: 40, damping: 20 });
 
-  const exitProgress = useTransform(scrollYProgress, [0.82, 0.97], [0, 1]);
-  const smoothExit = useSpring(exitProgress, { stiffness: 40, damping: 20 });
+  // Saída termina em 78% e com spring firme: a frase PARA no centro bem
+  // antes do unpin — sem chegar descendo junto com a troca de seção
+  const exitProgress = useTransform(scrollYProgress, [0.66, 0.78], [0, 1]);
+  const smoothExit = useSpring(exitProgress, { stiffness: 110, damping: 26 });
 
   // --- Parallax do mouse ---
   const [parallaxValue, setParallaxValue] = useState(0);
@@ -226,12 +242,17 @@ export default function ScrollMorphSection({
     return () => section.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // --- Posições aleatórias do scatter ---
+  // --- Posições "aleatórias" do scatter — determinísticas por índice:
+  // Math.random() divergia entre servidor e cliente e quebrava a hidratação
   const scatterPositions = useMemo(() => {
-    return IMAGES.map(() => ({
-      x: (Math.random() - 0.5) * 1500,
-      y: (Math.random() - 0.5) * 1000,
-      rotation: (Math.random() - 0.5) * 180,
+    const rand = (i: number, n: number) => {
+      const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    return IMAGES.map((_, i) => ({
+      x: (rand(i, 1) - 0.5) * 1500,
+      y: (rand(i, 2) - 0.5) * 1000,
+      rotation: (rand(i, 3) - 0.5) * 180,
       scale: 0.6,
       opacity: 0,
     }));
@@ -257,8 +278,16 @@ export default function ScrollMorphSection({
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
 
   return (
-    // Altura extra = distância que o scroll percorre com a seção pinada
-    <div ref={wrapperRef} style={{ height: "320vh", position: "relative" }}>
+    // Altura extra = distância que o scroll percorre com a seção pinada.
+    // Sem divisor: o Veja em ação (fundo próprio) já marca a troca
+    <div
+      ref={wrapperRef}
+      style={{
+        // Mais alto = animação mais lenta no scroll (dá tempo de ler)
+        height: "380vh",
+        position: "relative",
+      }}
+    >
       <div
         ref={sectionRef}
         className="sticky top-0 h-svh w-full overflow-hidden"
@@ -266,6 +295,27 @@ export default function ScrollMorphSection({
         <div className="flex h-full w-full flex-col items-center justify-center">
           {/* Frase 1 — no círculo (some no morph) */}
           <div className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center px-4 text-center">
+            {/* Halo esfumaçado da cor do fundo: descola a frase das cartas
+                atrás (efeito de profundidade) e garante a leitura */}
+            <motion.div
+              aria-hidden
+              initial={{ opacity: 0 }}
+              animate={
+                introPhase === "circle" && morphValue < 0.5
+                  ? { opacity: 0.9 * (1 - morphValue * 2) }
+                  : { opacity: 0 }
+              }
+              transition={{ duration: 1 }}
+              style={{
+                position: "absolute",
+                inset: "-70px -140px",
+                zIndex: -1,
+                background: `radial-gradient(ellipse at center, ${
+                  isDark ? "#020617" : "#FFFFFF"
+                } 30%, transparent 72%)`,
+                filter: "blur(28px)",
+              }}
+            />
             <motion.h2
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
               animate={
@@ -294,11 +344,12 @@ export default function ScrollMorphSection({
             </motion.p>
           </div>
 
-          {/* Frase 2 — no arco */}
+          {/* Frase 2 — no arco: nasce um pouco mais baixa e termina
+              exatamente centralizada */}
           <motion.div
             style={{
               opacity: contentOpacity,
-              top: `${7 + exitValue * 43}%`,
+              top: `${16 + exitValue * 34}%`,
               translateY: `${exitValue * -50}%`,
               scale: 1 + exitValue * 0.12,
             }}
@@ -314,7 +365,24 @@ export default function ScrollMorphSection({
               className="max-w-lg text-sm font-medium leading-relaxed md:text-lg"
               style={{ color: textMuted }}
             >
-              {arcSubtitle}
+              <span
+                style={{
+                  color: isDark ? "#B50D57" : "#F856A7",
+                  fontWeight: 700,
+                }}
+              >
+                Escaneie
+              </span>
+              {" e "}
+              <span
+                style={{
+                  color: isDark ? "#B50D57" : "#F856A7",
+                  fontWeight: 700,
+                }}
+              >
+                descubra
+              </span>
+              {" — preço em reais, atualizado todo dia."}
             </p>
           </motion.div>
 
@@ -388,7 +456,14 @@ export default function ScrollMorphSection({
                 };
               }
 
-              return <FlipCard key={src} src={src} target={target} />;
+              return (
+                <FlipCard
+                  key={src}
+                  src={src}
+                  back={backFor(src)}
+                  target={target}
+                />
+              );
             })}
           </div>
         </div>
