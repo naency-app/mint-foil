@@ -683,7 +683,11 @@ function Nav({
           top: scrolled ? "12px" : "0px",
           left: "50%",
           transform: "translateX(-50%)",
-          width: scrolled ? "min(880px, calc(100% - 32px))" : "100%",
+          width: scrolled
+            ? isMobile
+              ? "calc(100% - 16px)"
+              : "min(880px, calc(100% - 32px))"
+            : "100%",
           zIndex: 9999,
           // Parada (topo): maior pra leitura; reduzida (pill) mantém compacta
           padding: scrolled ? "5px 10px" : isMobile ? "12px 16px" : "16px 56px",
@@ -712,7 +716,13 @@ function Nav({
             alignItems: "center",
             gap: "8px",
             justifySelf: "start",
-            paddingLeft: scrolled ? "10px" : isMobile ? "0px" : "24px",
+            paddingLeft: scrolled
+              ? isMobile
+                ? "2px"
+                : "10px"
+              : isMobile
+                ? "0px"
+                : "24px",
             transition: "padding 0.35s ease",
             textDecoration: "none",
             cursor: "pointer",
@@ -814,7 +824,13 @@ function Nav({
             alignItems: "center",
             gap: "12px",
             justifySelf: "end",
-            paddingRight: scrolled ? "6px" : isMobile ? "0px" : "24px",
+            paddingRight: scrolled
+              ? isMobile
+                ? "0px"
+                : "6px"
+              : isMobile
+                ? "0px"
+                : "24px",
             transition: "padding 0.35s ease",
           }}
         >
