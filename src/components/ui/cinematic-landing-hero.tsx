@@ -253,7 +253,6 @@ export function CinematicHero({
         ],
         { autoAlpha: 0 },
       );
-      gsap.set(".mf-chart-band", { clipPath: "inset(0 100% 0 0)" });
 
       const introTl = gsap.timeline({ delay: 0.2 });
       introTl
@@ -338,21 +337,15 @@ export function CinematicHero({
           "-=1.4",
         )
         .to(
-          ".mf-chart-band",
-          {
-            clipPath: "inset(0 0% 0 0)",
-            duration: 2,
-            ease: "power2.inOut",
-          },
-          "-=1.0",
+          ".mf-chart-line",
+          { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" },
+          "-=1.2",
         )
-        .fromTo(
-          ".mf-chart-cursor",
-          { left: "-6%", autoAlpha: 0 },
-          { left: "99%", autoAlpha: 1, duration: 2, ease: "power2.inOut" },
-          "<",
+        .to(
+          ".mf-chart-area",
+          { opacity: 1, duration: 1.8, ease: "power2.out" },
+          "-=2.0",
         )
-        .to(".mf-chart-cursor", { autoAlpha: 0, duration: 0.35 }, ">-0.15")
         .fromTo(
           ".mf-badge",
           { y: 80, autoAlpha: 0, scale: 0.75, rotationZ: -8 },
@@ -564,11 +557,7 @@ export function CinematicHero({
                       {PHONE_BANDS.map((b) => (
                         <div
                           key={b.top}
-                          className={
-                            b.chart
-                              ? "mf-chart-band absolute left-0 w-full overflow-hidden"
-                              : "mf-phone-widget absolute left-0 w-full overflow-hidden"
-                          }
+                          className="mf-phone-widget absolute left-0 w-full overflow-hidden"
                           style={{ top: `${b.top}%`, height: `${b.h}%` }}
                         >
                           {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
@@ -586,16 +575,69 @@ export function CinematicHero({
                             }}
                           />
                           {b.chart && (
-                            <div
-                              className="mf-chart-cursor pointer-events-none absolute top-0 bottom-0 w-[10px]"
-                              style={{
-                                left: "-6%",
-                                background:
-                                  "linear-gradient(90deg, transparent, rgba(248,86,167,0.55), transparent)",
-                                boxShadow: "0 0 18px 4px rgba(248,86,167,0.5)",
-                                opacity: 0,
-                              }}
-                            />
+                            <>
+                              {/* Capa na cor exata do bg do print: "apaga"
+                                  o gráfico original pra redesenhar em SVG */}
+                              <div
+                                className="absolute inset-0"
+                                style={{ background: "#0D1019" }}
+                              />
+                              {/* Réplica vetorial da curva do print (extraída
+                                  pixel a pixel) — anima como o original */}
+                              <svg
+                                className="absolute inset-0 h-full w-full"
+                                viewBox="0 0 100 100"
+                                preserveAspectRatio="none"
+                                aria-hidden="true"
+                              >
+                                <defs>
+                                  <linearGradient
+                                    id="mf-replica-fill"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                  >
+                                    <stop
+                                      offset="0%"
+                                      stopColor="#F856A7"
+                                      stopOpacity="0.28"
+                                    />
+                                    <stop
+                                      offset="100%"
+                                      stopColor="#F856A7"
+                                      stopOpacity="0"
+                                    />
+                                  </linearGradient>
+                                </defs>
+                                <path
+                                  className="mf-chart-area"
+                                  d="M2.5 80.3 L6.9 66.0 L11.2 48.3 L15.6 35.5 L19.9 27.6 L24.2 23.2 L28.6 27.6 L32.9 33.5 L37.3 29.1 L41.6 19.7 L45.9 12.8 L50.3 11.3 L54.6 11.3 L59.0 35.0 L63.3 65.0 L67.6 81.8 L72.0 84.7 L76.3 86.2 L80.7 88.2 L85.0 88.2 L89.3 87.7 L93.7 86.7 L96.6 86.2 L96.6 100 L2.5 100 Z"
+                                  fill="url(#mf-replica-fill)"
+                                  style={{ opacity: 0 }}
+                                />
+                                <path
+                                  className="mf-chart-line"
+                                  d="M2.5 80.3 L6.9 66.0 L11.2 48.3 L15.6 35.5 L19.9 27.6 L24.2 23.2 L28.6 27.6 L32.9 33.5 L37.3 29.1 L41.6 19.7 L45.9 12.8 L50.3 11.3 L54.6 11.3 L59.0 35.0 L63.3 65.0 L67.6 81.8 L72.0 84.7 L76.3 86.2 L80.7 88.2 L85.0 88.2 L89.3 87.7 L93.7 86.7 L96.6 86.2"
+                                  fill="none"
+                                  stroke="#F856A7"
+                                  strokeWidth="2"
+                                  vectorEffect="non-scaling-stroke"
+                                  style={{
+                                    strokeDasharray: 212,
+                                    strokeDashoffset: 212,
+                                  }}
+                                />
+                                <circle
+                                  className="mf-chart-area"
+                                  cx="96.6"
+                                  cy="86.2"
+                                  r="1.6"
+                                  fill="#F856A7"
+                                  style={{ opacity: 0 }}
+                                />
+                              </svg>
+                            </>
                           )}
                         </div>
                       ))}
