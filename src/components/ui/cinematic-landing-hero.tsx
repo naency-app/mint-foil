@@ -144,6 +144,18 @@ const INJECTED_STYLES = `
   .mf-btn-dark:active { transform: translateY(1px); background: #7d0a3d; }
 `;
 
+// Fatias do print da dashboard: cada banda entra na animação como um
+// widget (stagger); a banda do gráfico tem reveal próprio (wipe)
+const PHONE_BANDS = [
+  { top: 0, h: 13.1 }, // status + "Olá, Danilo"
+  { top: 13.1, h: 13.1 }, // valor da coleção
+  { top: 26.2, h: 16.9, chart: true }, // gráfico
+  { top: 43.1, h: 9.4 }, // períodos + portfólios
+  { top: 52.5, h: 11.9 }, // ações circulares
+  { top: 64.4, h: 10.6 }, // aviso de preços
+  { top: 75, h: 25 }, // Em Alta
+];
+
 export interface CinematicHeroProps
   extends React.HTMLAttributes<HTMLDivElement> {
   isDark?: boolean;
@@ -240,6 +252,7 @@ export function CinematicHero({
         ],
         { autoAlpha: 0 },
       );
+      gsap.set(".mf-chart-band", { clipPath: "inset(0 100% 0 0)" });
 
       const introTl = gsap.timeline({ delay: 0.2 });
       introTl
@@ -322,6 +335,15 @@ export function CinematicHero({
             duration: 1.4,
           },
           "-=1.4",
+        )
+        .to(
+          ".mf-chart-band",
+          {
+            clipPath: "inset(0 0% 0 0)",
+            duration: 2,
+            ease: "power2.inOut",
+          },
+          "-=1.0",
         )
         .fromTo(
           ".mf-badge",
@@ -528,15 +550,31 @@ export function CinematicHero({
                       />
                     </div>
 
-                    {/* App real — print da dashboard (entra na animação
-                        junto dos widgets via classe mf-phone-widget) */}
-                    <div className="mf-phone-widget relative h-full w-full">
-                      {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
-                      <img
-                        src="/landing/app-dashboard.jpg"
-                        alt="Dashboard do Mint Foil"
-                        className="h-full w-full object-cover object-top"
-                      />
+                    {/* App real fatiado: cada banda entra como um widget
+                        (stagger um a um); o gráfico entra com wipe */}
+                    <div className="relative h-full w-full">
+                      {PHONE_BANDS.map((b) => (
+                        <div
+                          key={b.top}
+                          className={
+                            b.chart
+                              ? "mf-chart-band absolute left-0 w-full overflow-hidden"
+                              : "mf-phone-widget absolute left-0 w-full overflow-hidden"
+                          }
+                          style={{ top: `${b.top}%`, height: `${b.h}%` }}
+                        >
+                          {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
+                          <img
+                            src="/landing/app-dashboard.jpg"
+                            alt=""
+                            className="absolute left-0 w-full object-cover"
+                            style={{
+                              top: `${(-b.top / b.h) * 100}%`,
+                              height: `${(100 / b.h) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
