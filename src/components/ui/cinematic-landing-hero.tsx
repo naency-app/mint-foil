@@ -541,7 +541,7 @@ export function CinematicHero({
                 </div>
 
                 {/* Floating badges */}
-                <div className="mf-badge absolute top-20 lg:top-28 left-[-10px] lg:left-[-72px] mf-float-badge rounded-xl lg:rounded-2xl p-3 lg:p-3.5 flex items-center gap-2.5 z-30">
+                <div className="mf-badge absolute top-20 lg:top-36 left-[-10px] lg:left-[-72px] mf-float-badge rounded-xl lg:rounded-2xl p-3 lg:p-3.5 flex items-center gap-2.5 z-30">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center border flex-shrink-0"
                     style={{
