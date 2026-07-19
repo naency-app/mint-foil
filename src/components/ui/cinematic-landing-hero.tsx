@@ -100,15 +100,16 @@ const INJECTED_STYLES = `
   }
 
   .mf-float-badge {
-    /* Navy translúcido: mesmo tom, com transparência + blur de vidro */
-    background: linear-gradient(135deg, rgba(13,18,34,0.6) 0%, rgba(2,6,23,0.42) 100%);
+    /* Navy translúcido com luz batendo do canto superior (o "3D" do vidro
+       vem desse highlight + insets fortes) */
+    background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(13,18,34,0.55) 32%, rgba(2,6,23,0.45) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     box-shadow:
-      0 0 0 1px rgba(255,255,255,0.1),
-      0 20px 40px -10px rgba(0,0,0,0.8),
-      inset 0 1px 1px rgba(255,255,255,0.18),
-      inset 0 -1px 1px rgba(0,0,0,0.5);
+      0 0 0 1px rgba(255,255,255,0.12),
+      0 20px 40px -10px rgba(0,0,0,0.85),
+      inset 0 1px 1px rgba(255,255,255,0.28),
+      inset 0 -2px 3px rgba(0,0,0,0.6);
   }
 
   .mf-chart-line {
