@@ -100,7 +100,8 @@ const INJECTED_STYLES = `
   }
 
   .mf-float-badge {
-    background: linear-gradient(135deg, rgba(13,18,34,0.94) 0%, rgba(2,6,23,0.88) 100%);
+    /* Navy translúcido: mesmo tom, com transparência + blur de vidro */
+    background: linear-gradient(135deg, rgba(13,18,34,0.6) 0%, rgba(2,6,23,0.42) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     box-shadow:
@@ -541,7 +542,7 @@ export function CinematicHero({
                 </div>
 
                 {/* Floating badges */}
-                <div className="mf-badge absolute top-20 lg:top-36 left-[-10px] lg:left-[-72px] mf-float-badge rounded-xl lg:rounded-2xl p-3 lg:p-3.5 flex items-center gap-2.5 z-30">
+                <div className="mf-badge absolute top-24 lg:top-40 left-[-10px] lg:left-[-72px] mf-float-badge rounded-xl lg:rounded-2xl p-3 lg:p-3.5 flex items-center gap-2.5 z-30">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center border flex-shrink-0"
                     style={{
