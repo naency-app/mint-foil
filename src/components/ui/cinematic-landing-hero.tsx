@@ -100,11 +100,13 @@ const INJECTED_STYLES = `
   }
 
   .mf-float-badge {
-    background: linear-gradient(135deg, rgba(13,18,34,0.94) 0%, rgba(2,6,23,0.88) 100%);
+    /* Vidro translúcido com TINT ROSA: transparente como antes, mas a cor
+       da marca descola do fundo navy do print */
+    background: linear-gradient(135deg, rgba(248,86,167,0.20) 0%, rgba(181,13,87,0.08) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     box-shadow:
-      0 0 0 1px rgba(255,255,255,0.1),
+      0 0 0 1px rgba(248,86,167,0.32),
       0 20px 40px -10px rgba(0,0,0,0.8),
       inset 0 1px 1px rgba(255,255,255,0.18),
       inset 0 -1px 1px rgba(0,0,0,0.5);
