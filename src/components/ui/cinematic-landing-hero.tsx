@@ -147,14 +147,22 @@ const INJECTED_STYLES = `
 
 // Fatias do print da dashboard: cada banda entra na animação como um
 // widget (stagger); a banda do gráfico tem reveal próprio (wipe)
-const PHONE_BANDS = [
+const PHONE_BANDS: {
+  top: number;
+  h: number;
+  left?: number;
+  w?: number;
+  chart?: boolean;
+}[] = [
   { top: 0, h: 13.1 }, // status + "Olá, Danilo"
   { top: 13.1, h: 13.1 }, // valor da coleção
   { top: 26.2, h: 16.9, chart: true }, // gráfico
   { top: 43.1, h: 9.4 }, // períodos + portfólios
   { top: 52.5, h: 11.9 }, // ações circulares
   { top: 64.4, h: 10.6 }, // aviso de preços
-  { top: 75, h: 25 }, // Em Alta
+  { top: 75, h: 6.3 }, // título "Em Alta"
+  { top: 81.3, h: 18.7, left: 0, w: 52 }, // card esquerdo
+  { top: 81.3, h: 18.7, left: 52, w: 48 }, // card direito
 ];
 
 export interface CinematicHeroProps
@@ -556,21 +564,28 @@ export function CinematicHero({
                     <div className="relative h-full w-full">
                       {PHONE_BANDS.map((b) => (
                         <div
-                          key={b.top}
-                          className="mf-phone-widget absolute left-0 w-full overflow-hidden"
-                          style={{ top: `${b.top}%`, height: `${b.h}%` }}
+                          key={`${b.top}-${b.left ?? 0}`}
+                          className="mf-phone-widget absolute overflow-hidden"
+                          style={{
+                            top: `${b.top}%`,
+                            left: `${b.left ?? 0}%`,
+                            width: `${b.w ?? 100}%`,
+                            // +1px de overlap: sem frestas pretas de
+                            // arredondamento entre as fatias
+                            height: `calc(${b.h}% + 1px)`,
+                          }}
                         >
                           {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
                           <img
                             src="/landing/app-dashboard.jpg"
                             alt=""
-                            className="absolute left-0 w-full"
+                            className="absolute"
                             style={{
                               top: `${(-b.top / b.h) * 100}%`,
+                              left: `${(-(b.left ?? 0) / (b.w ?? 100)) * 100}%`,
                               height: `${(100 / b.h) * 100}%`,
+                              width: `${(100 / (b.w ?? 100)) * 100}%`,
                               // fill: mapeamento idêntico em todas as fatias
-                              // (object-cover deslocava cada banda ~px e
-                              // criava emendas visíveis)
                               objectFit: "fill",
                             }}
                           />
@@ -612,26 +627,26 @@ export function CinematicHero({
                                 </defs>
                                 <path
                                   className="mf-chart-area"
-                                  d="M2.5 80.3 L6.9 66.0 L11.2 48.3 L15.6 35.5 L19.9 27.6 L24.2 23.2 L28.6 27.6 L32.9 33.5 L37.3 29.1 L41.6 19.7 L45.9 12.8 L50.3 11.3 L54.6 11.3 L59.0 35.0 L63.3 65.0 L67.6 81.8 L72.0 84.7 L76.3 86.2 L80.7 88.2 L85.0 88.2 L89.3 87.7 L93.7 86.7 L96.6 86.2 L96.6 100 L2.5 100 Z"
+                                  d="M0 80.3 L2.5 80.3 L6.9 66.0 L11.2 48.3 L15.6 35.5 L19.9 27.6 L24.2 23.2 L28.6 27.6 L32.9 33.5 L37.3 29.1 L41.6 19.7 L45.9 12.8 L50.3 11.3 L54.6 11.3 L59.0 35.0 L63.3 65.0 L67.6 81.8 L72.0 84.7 L76.3 86.2 L80.7 88.2 L85.0 88.2 L89.3 87.7 L93.7 86.7 L96.9 86.7 L100 86.7 L100 100 L0 100 Z"
                                   fill="url(#mf-replica-fill)"
                                   style={{ opacity: 0 }}
                                 />
                                 <path
                                   className="mf-chart-line"
-                                  d="M2.5 80.3 L6.9 66.0 L11.2 48.3 L15.6 35.5 L19.9 27.6 L24.2 23.2 L28.6 27.6 L32.9 33.5 L37.3 29.1 L41.6 19.7 L45.9 12.8 L50.3 11.3 L54.6 11.3 L59.0 35.0 L63.3 65.0 L67.6 81.8 L72.0 84.7 L76.3 86.2 L80.7 88.2 L85.0 88.2 L89.3 87.7 L93.7 86.7 L96.6 86.2"
+                                  d="M0 80.3 L2.5 80.3 L6.9 66.0 L11.2 48.3 L15.6 35.5 L19.9 27.6 L24.2 23.2 L28.6 27.6 L32.9 33.5 L37.3 29.1 L41.6 19.7 L45.9 12.8 L50.3 11.3 L54.6 11.3 L59.0 35.0 L63.3 65.0 L67.6 81.8 L72.0 84.7 L76.3 86.2 L80.7 88.2 L85.0 88.2 L89.3 87.7 L93.7 86.7 L96.9 86.7 L100 86.7"
                                   fill="none"
                                   stroke="#F856A7"
                                   strokeWidth="2"
                                   vectorEffect="non-scaling-stroke"
                                   style={{
-                                    strokeDasharray: 212,
-                                    strokeDashoffset: 212,
+                                    strokeDasharray: 217,
+                                    strokeDashoffset: 217,
                                   }}
                                 />
                                 <circle
                                   className="mf-chart-area"
-                                  cx="96.6"
-                                  cy="86.2"
+                                  cx="98.4"
+                                  cy="86.7"
                                   r="1.6"
                                   fill="#F856A7"
                                   style={{ opacity: 0 }}
