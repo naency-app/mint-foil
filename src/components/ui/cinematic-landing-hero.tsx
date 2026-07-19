@@ -347,6 +347,13 @@ export function CinematicHero({
           "-=1.0",
         )
         .fromTo(
+          ".mf-chart-cursor",
+          { left: "-6%", autoAlpha: 0 },
+          { left: "99%", autoAlpha: 1, duration: 2, ease: "power2.inOut" },
+          "<",
+        )
+        .to(".mf-chart-cursor", { autoAlpha: 0, duration: 0.35 }, ">-0.15")
+        .fromTo(
           ".mf-badge",
           { y: 80, autoAlpha: 0, scale: 0.75, rotationZ: -8 },
           {
@@ -574,6 +581,18 @@ export function CinematicHero({
                               height: `${(100 / b.h) * 100}%`,
                             }}
                           />
+                          {b.chart && (
+                            <div
+                              className="mf-chart-cursor pointer-events-none absolute top-0 bottom-0 w-[10px]"
+                              style={{
+                                left: "-6%",
+                                background:
+                                  "linear-gradient(90deg, transparent, rgba(248,86,167,0.55), transparent)",
+                                boxShadow: "0 0 18px 4px rgba(248,86,167,0.5)",
+                                opacity: 0,
+                              }}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
