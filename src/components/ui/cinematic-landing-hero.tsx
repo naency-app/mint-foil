@@ -575,10 +575,14 @@ export function CinematicHero({
                           <img
                             src="/landing/app-dashboard.jpg"
                             alt=""
-                            className="absolute left-0 w-full object-cover"
+                            className="absolute left-0 w-full"
                             style={{
                               top: `${(-b.top / b.h) * 100}%`,
                               height: `${(100 / b.h) * 100}%`,
+                              // fill: mapeamento idêntico em todas as fatias
+                              // (object-cover deslocava cada banda ~px e
+                              // criava emendas visíveis)
+                              objectFit: "fill",
                             }}
                           />
                           {b.chart && (
