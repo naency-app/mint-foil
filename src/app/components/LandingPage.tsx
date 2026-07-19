@@ -964,7 +964,8 @@ function Hero() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        paddingTop: "130px",
+        // Mobile: conteúdo mais pro centro vertical (desktop mantém)
+        paddingTop: isMobile ? "21vh" : "130px",
         overflow: "hidden",
         // Var pré-paint: o estado React nasce light e pintava o hero de
         // branco por um frame no reload em dark
