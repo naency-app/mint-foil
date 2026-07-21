@@ -22,6 +22,12 @@ import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { sileo } from "sileo";
+import {
+  FilterSection,
+  LanguageFilter,
+  PriceRangeFilter,
+  ProductTypeFilter,
+} from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { getSetImageUrl, type SetProgress } from "@/app/components/SetCard";
@@ -31,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GlassPill, SectionLabel } from "@/components/ui/glass";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -39,7 +46,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Slider } from "@/components/ui/slider";
 import {
   api,
   type CardSet,
@@ -77,36 +83,6 @@ const COMING_SOON_TCGS = [
   "Weiß Schwarz",
   "Union Arena",
 ];
-
-const LANGUAGES = [
-  { code: "en", name: "Inglês" },
-  { code: "ja", name: "Japonês" },
-  { code: "zh", name: "Chinês" },
-];
-
-function FilterSection({
-  title,
-  badge,
-  children,
-}: {
-  title: string;
-  badge?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <SectionLabel>{title}</SectionLabel>
-        {badge && (
-          <Badge variant="default" className="h-4 px-1.5 text-[9px]">
-            {badge}
-          </Badge>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -641,20 +617,23 @@ function ExplorePageContent() {
 
       {/* ── Chips de jogo — só em telas pequenas; no desktop o filtro mora
           na sidebar de marketplace ── */}
-      <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
-        <GlassPill active={activeTcgs.length === 0} onClick={clearTcgs}>
-          Todos
-        </GlassPill>
-        {SUPPORTED_TCGS.map((t) => (
-          <GlassPill
-            key={t.slug}
-            active={activeTcgs.includes(t.slug)}
-            onClick={() => toggleTcg(t.slug)}
-          >
-            {t.chip}
+      <ScrollArea className="lg:hidden">
+        <div className="flex gap-2 pb-2">
+          <GlassPill active={activeTcgs.length === 0} onClick={clearTcgs}>
+            Todos
           </GlassPill>
-        ))}
-      </div>
+          {SUPPORTED_TCGS.map((t) => (
+            <GlassPill
+              key={t.slug}
+              active={activeTcgs.includes(t.slug)}
+              onClick={() => toggleTcg(t.slug)}
+            >
+              {t.chip}
+            </GlassPill>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
 
       {/* ── Marketplace: sidebar de filtros aparente + conteúdo ── */}
       {/* Sem items-start: o aside precisa esticar na altura da linha para o
@@ -662,119 +641,22 @@ function ExplorePageContent() {
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
-            <FilterSection title="Tipo de Produto">
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-center gap-2">
-                  <Checkbox id="cards-only" checked />
-                  <label
-                    htmlFor="cards-only"
-                    className="text-xs font-medium text-foreground"
-                  >
-                    Apenas Cartas
-                  </label>
-                </div>
-                <div className="flex items-center gap-2 opacity-50">
-                  <Checkbox id="sealed-only" disabled />
-                  <span className="text-xs text-muted-foreground">
-                    Apenas Selados
-                  </span>
-                </div>
-              </div>
-            </FilterSection>
+            <ProductTypeFilter />
 
-            <FilterSection title="Faixa de Preço" badge="PRO">
-              {isPro ? (
-                <div className="space-y-2 pt-3">
-                  <Slider
-                    value={priceRange ?? [0, priceCeil]}
-                    onValueChange={(v) => setPriceRange(v as [number, number])}
-                    max={priceCeil}
-                    step={5}
-                    className="mx-auto w-full"
-                  />
-                  <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
-                    <span>R$ {(priceRange?.[0] ?? 0).toFixed(0)}</span>
-                    <span>R$ {(priceRange?.[1] ?? priceCeil).toFixed(0)}</span>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setProModalOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setProModalOpen(true);
-                    }
-                  }}
-                  className="block w-full cursor-pointer space-y-2 rounded pt-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <div className="pointer-events-none opacity-60">
-                    <Slider
-                      defaultValue={[25, 50]}
-                      max={100}
-                      step={5}
-                      className="mx-auto w-full"
-                    />
-                  </div>
-                  <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
-                    <span>R$ 25</span>
-                    <span>R$ 50</span>
-                  </div>
-                </div>
-              )}
-            </FilterSection>
+            <PriceRangeFilter
+              isPro={isPro}
+              value={priceRange}
+              ceil={priceCeil}
+              onChange={setPriceRange}
+              onUpsell={() => setProModalOpen(true)}
+            />
 
-            <FilterSection title="Idioma" badge="PRO">
-              {isPro ? (
-                <div className="space-y-2 pt-2">
-                  {LANGUAGES.map((lang) => (
-                    <div key={lang.code} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`lang-${lang.code}`}
-                        checked={proLanguages.includes(lang.code)}
-                        onCheckedChange={() =>
-                          setProLanguages((prev) =>
-                            prev.includes(lang.code)
-                              ? prev.filter((x) => x !== lang.code)
-                              : [...prev, lang.code],
-                          )
-                        }
-                      />
-                      <label
-                        htmlFor={`lang-${lang.code}`}
-                        className="cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground"
-                      >
-                        {lang.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setProModalOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setProModalOpen(true);
-                    }
-                  }}
-                  className="block w-full cursor-pointer space-y-2 rounded pt-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  {LANGUAGES.map((lang) => (
-                    <div key={lang.code} className="flex items-center gap-2">
-                      <Checkbox id={`lang-${lang.code}`} disabled />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {lang.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </FilterSection>
+            <LanguageFilter
+              isPro={isPro}
+              value={proLanguages}
+              onChange={setProLanguages}
+              onUpsell={() => setProModalOpen(true)}
+            />
 
             <FilterSection title="Jogo / Categoria">
               <div className="space-y-2.5 pt-2">
@@ -849,17 +731,22 @@ function ExplorePageContent() {
                   ))}
                 </div>
               ) : (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {sortedSets.slice(0, 24).map((set) => (
-                    <CarouselSetItem
-                      key={set.id}
-                      set={set}
-                      progress={setProgress[set.code] ?? null}
-                      selected={selectedSet?.id === set.id}
-                      onClick={() => handleSelectSet(set)}
-                    />
-                  ))}
-                </div>
+                // ScrollArea em vez de overflow-x-auto: no Windows a scrollbar
+                // nativa é permanente e feia; a do Radix é overlay e discreta
+                <ScrollArea>
+                  <div className="flex gap-2 pb-2.5">
+                    {sortedSets.slice(0, 24).map((set) => (
+                      <CarouselSetItem
+                        key={set.id}
+                        set={set}
+                        progress={setProgress[set.code] ?? null}
+                        selected={selectedSet?.id === set.id}
+                        onClick={() => handleSelectSet(set)}
+                      />
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
               )}
             </section>
           )}

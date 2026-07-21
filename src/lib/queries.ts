@@ -79,6 +79,17 @@ export function useCardDetail(id: string | undefined) {
   });
 }
 
+export function useSetBySlug(
+  tcgSlug: string | undefined,
+  setSlug: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["set-by-slug", tcgSlug ?? "none", setSlug ?? "none"],
+    queryFn: () => api.cards.setBySlug(tcgSlug as string, setSlug as string),
+    enabled: !!tcgSlug && !!setSlug,
+  });
+}
+
 export function useTrendingCards(limit: number) {
   return useQuery({
     queryKey: queryKeys.trending(limit),

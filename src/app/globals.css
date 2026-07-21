@@ -124,9 +124,9 @@
 .dark {
   --background: #020617;
   --foreground: #ffffff;
-  --card: #021937;
+  --card: #0d1121;
   --card-foreground: #ffffff;
-  --popover: #021937;
+  --popover: #0d1121;
   --popover-foreground: #ffffff;
   /* No dark a landing usa #B50D57 como primary de superfícies e #F856A7 como
      accent legível (ghostColor) — aqui primary precisa ler em texto/ícone */
@@ -136,7 +136,7 @@
   --tertiary-hover: #b50d57;
   --secondary: #b50d57;
   --secondary-foreground: #ffffff;
-  --muted: #021937;
+  --muted: #0d1121;
   --muted-foreground: rgba(255, 255, 255, 0.55);
   --accent: oklch(0.371 0 0);
   --accent-foreground: oklch(0.985 0 0);
@@ -199,8 +199,8 @@
   .dark .glass-card,
   .dark .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
-    /* Navy da landing (#021937) semi-transparente */
-    background-color: rgba(2, 25, 55, 0.45);
+    /* Navy dos cards (#0D1121) semi-transparente */
+    background-color: rgba(13, 17, 33, 0.45);
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */

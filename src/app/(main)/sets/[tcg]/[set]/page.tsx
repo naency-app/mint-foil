@@ -1,31 +1,35 @@
 "use client";
 
+import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
-  IconFolder,
-  IconLayoutGrid,
-  IconListDetails,
-} from "@tabler/icons-react";
-import {
-  ArrowLeft,
   ArrowUpDown,
+  Calendar,
   ChevronRight,
   Loader2,
   Search,
   TrendingUp,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import {
+  FilterSection,
+  LanguageFilter,
+  PriceRangeFilter,
+  ProductTypeFilter,
+} from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { getSetImageUrl } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { GlassPill, SectionLabel } from "@/components/ui/glass";
 import {
   Select,
   SelectContent,
@@ -33,15 +37,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Card as CardType, Portfolio } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import {
-  api,
-  type CardSet,
-  type Card as CardType,
-  type CollectionItem,
-  type Portfolio,
-} from "@/lib/api";
+  useCards,
+  useCollectionStats,
+  useInvalidateCollection,
+  usePortfolioDetail,
+  usePortfolios,
+  useSetBySlug,
+} from "@/lib/queries";
 
 type CollectionMap = Record<string, number>;
 
@@ -64,7 +70,7 @@ function getPriceChange(card: CardType) {
   return ((current - previous) / previous) * 100;
 }
 
-function CardSkeleton() {
+function GridCardSkeleton() {
   return (
     <Card className="w-full h-full overflow-hidden bg-card py-0">
       <CardContent className="p-0">
@@ -75,9 +81,29 @@ function CardSkeleton() {
       <div className="p-3 space-y-2">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-3 w-2/3" />
         <Skeleton className="h-4 w-1/3 mt-2" />
       </div>
     </Card>
+  );
+}
+
+/** Skeleton 1:1 com o banner real do set — mesma altura, sem layout shift */
+function SetBannerSkeleton() {
+  return (
+    <div className="glass-card flex flex-col gap-4 !rounded-2xl p-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-[64px] w-[100px] shrink-0 rounded-lg" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+      </div>
+      <div className="w-full space-y-1.5 md:w-56">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-1.5 w-full rounded-full" />
+      </div>
+    </div>
   );
 }
 
@@ -97,7 +123,7 @@ function ListRow({
 
   return (
     <Link href={`/card/${card.id}`} className="block">
-      <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-card hover:bg-background/50 transition-all group">
+      <div className="glass-card flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30 group">
         <div className="shrink-0 size-12 rounded-md overflow-hidden">
           <Image
             src={card.imageUrl}
@@ -119,7 +145,7 @@ function ListRow({
 
         <div className="text-right shrink-0 w-32">
           <div className="flex items-center justify-end gap-1">
-            <TrendingUp className="size-3 text-emerald-400" />
+            <TrendingUp className="size-3 text-emerald-500" />
             <span className="text-sm font-bold text-foreground font-mono">
               R$ {formatPrice(displayPrice)}
             </span>
@@ -135,7 +161,7 @@ function ListRow({
           cardId={card.id}
           defaultPortfolioId={activePortfolioId}
           onSuccess={onAdd}
-          triggerClassName="shrink-0 size-8 rounded-full border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+          triggerClassName="shrink-0 size-8 rounded-full border border-emerald-500/50 text-emerald-600 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
         />
       </div>
     </Link>
@@ -147,9 +173,6 @@ function SetCardsPageContent() {
     tcg: string;
     set: string;
   }>();
-  const [setInfo, setSetInfo] = useState<CardSet | null>(null);
-  const [cards, setCards] = useState<CardType[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useQueryState("q", {
     defaultValue: "",
     throttleMs: 300,
@@ -157,123 +180,116 @@ function SetCardsPageContent() {
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useQueryState("sort", { defaultValue: "number" });
 
-  // Portfolio states for collection progress
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
-  const [portfolioItems, setPortfolioItems] = useState<CollectionItem[]>([]);
-  const [collectionMap, setCollectionMap] = useState<CollectionMap>({});
+  const [setImgFailed, setSetImgFailed] = useState(false);
 
+  // Filtros da sidebar (mesmo padrão marketplace do Explore)
+  const [proModalOpen, setProModalOpen] = useState(false);
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [proLanguages, setProLanguages] = useState<string[]>([]);
+  const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
+
+  // PRO: sessão primeiro, stats como fallback (mesma regra do settings)
+  const { data: session } = useSession();
+  const sessionUser = session?.user as { isPro?: boolean } | undefined;
+  const statsQuery = useCollectionStats(!!session?.user);
+  const isPro =
+    (sessionUser?.isPro ?? false) || (statsQuery.data?.isPro ?? false);
+
+  // Dados via TanStack Query — mesmo cache do Explore (['cards', ..., setId])
+  const setQuery = useSetBySlug(tcgSlug, setSlug);
+  const setInfo = setQuery.data ?? null;
+  const cardsQuery = useCards(undefined, tcgSlug, setInfo?.id);
+  const cards = useMemo(
+    () => (setInfo ? (cardsQuery.data ?? []) : []),
+    [setInfo, cardsQuery.data],
+  );
+  const loading = setQuery.isPending || (!!setInfo && cardsQuery.isPending);
+
+  const portfoliosQuery = usePortfolios();
+  const portfolioDetail = usePortfolioDetail(activePortfolioId || undefined);
+  const invalidateCollection = useInvalidateCollection();
+
+  // Favoritos primeiro + escolha do ativo (mesma regra do Explore)
   useEffect(() => {
-    async function load() {
-      setLoading(true);
+    const data = portfoliosQuery.data;
+    if (!data) return;
+
+    const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+    let favs: string[] = [];
+    if (favsStr) {
       try {
-        const set = await api.cards.setBySlug(tcgSlug, setSlug);
-        setSetInfo(set);
-        if (set) {
-          const cardList = await api.cards.list(undefined, tcgSlug, set.id);
-          setCards(cardList);
-        }
-      } finally {
-        setLoading(false);
-      }
+        favs = JSON.parse(favsStr) as string[];
+      } catch {}
+    } else {
+      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+      if (oldDefault) favs = [oldDefault];
     }
-    load();
-  }, [tcgSlug, setSlug]);
 
-  const fetchPortfolios = useCallback(() => {
-    api.collection
-      .portfolios()
-      .then((data) => {
-        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-        let favs: string[] = [];
-        if (favsStr) {
-          try {
-            favs = JSON.parse(favsStr) as string[];
-          } catch {}
-        } else {
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          if (oldDefault) favs = [oldDefault];
+    const sortedPortfolios = [...data].sort((a, b) => {
+      const aFav = favs.includes(a.id);
+      const bFav = favs.includes(b.id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
+
+    setPortfolios(sortedPortfolios);
+
+    if (sortedPortfolios.length > 0) {
+      const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+      const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+      const nextActive = foundFav
+        ? foundFav.id
+        : hasOldStored && oldDefault
+          ? oldDefault
+          : sortedPortfolios[0].id;
+
+      setActivePortfolioId((prev) => {
+        if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+          return prev;
         }
-
-        const sortedPortfolios = [...data].sort((a, b) => {
-          const aFav = favs.includes(a.id);
-          const bFav = favs.includes(b.id);
-          if (aFav && !bFav) return -1;
-          if (!aFav && bFav) return 1;
-          return 0;
-        });
-
-        setPortfolios(sortedPortfolios);
-
-        if (sortedPortfolios.length > 0) {
-          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some(
-            (p) => p.id === oldDefault,
-          );
-
-          const nextActive = foundFav
-            ? foundFav.id
-            : hasOldStored && oldDefault
-              ? oldDefault
-              : sortedPortfolios[0].id;
-
-          setActivePortfolioId((prev) => {
-            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
-              return prev;
-            }
-            return nextActive;
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    fetchPortfolios();
-  }, [fetchPortfolios]);
-
-  const refreshPortfolio = useCallback(() => {
-    if (!activePortfolioId) {
-      setPortfolioItems([]);
-      setCollectionMap({});
-      return;
-    }
-    api.collection
-      .getPortfolio(activePortfolioId)
-      .then((data) => {
-        setPortfolioItems(data.items);
-        const map: CollectionMap = {};
-        for (const item of data.items) {
-          map[item.cardId] = (map[item.cardId] ?? 0) + item.quantity;
-        }
-        setCollectionMap(map);
-      })
-      .catch(() => {
-        setPortfolioItems([]);
-        setCollectionMap({});
+        return nextActive;
       });
-  }, [activePortfolioId]);
+    }
+  }, [portfoliosQuery.data]);
 
-  useEffect(() => {
-    refreshPortfolio();
-  }, [refreshPortfolio]);
-
-  // Compute set progress map: unique cards collected per set code
-  const setProgressMap = useMemo(() => {
+  // Quantidades por carta e progresso do set a partir do detalhe do portfólio
+  const { collectionMap, setProgressMap } = useMemo(() => {
+    const map: CollectionMap = {};
     const progressMap: Record<string, { count: number; value: number }> = {};
-    for (const item of portfolioItems) {
+    for (const item of portfolioDetail.data?.items ?? []) {
+      map[item.cardId] = (map[item.cardId] ?? 0) + item.quantity;
       const setCode = item.card.set?.code ?? item.card.setCode;
       if (!setCode) continue;
-      if (!progressMap[setCode]) {
-        progressMap[setCode] = { count: 0, value: 0 };
-      }
+      if (!progressMap[setCode]) progressMap[setCode] = { count: 0, value: 0 };
       progressMap[setCode].count += 1;
       progressMap[setCode].value +=
         (item.card.prices?.[0]?.value ?? 0) * item.quantity;
     }
-    return progressMap;
-  }, [portfolioItems]);
+    return { collectionMap: map, setProgressMap: progressMap };
+  }, [portfolioDetail.data]);
+
+  // Raridades presentes no set, para o filtro da sidebar
+  const rarityOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const c of cards) {
+      if (!c.rarity) continue;
+      counts.set(c.rarity, (counts.get(c.rarity) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([rarity, count]) => ({ rarity, count }));
+  }, [cards]);
+
+  // Teto do slider de preço: maior preço do set, arredondado pra cima
+  const priceCeil = useMemo(() => {
+    const top = cards.reduce((m, c) => Math.max(m, getLatestPrice(c)), 0);
+    return Math.max(10, Math.ceil(top / 10) * 10);
+  }, [cards]);
 
   const filteredCards = useMemo(() => {
     let result = cards;
@@ -283,8 +299,28 @@ function SetCardsPageContent() {
         (c) =>
           c.name.toLowerCase().includes(term) ||
           c.setCode.toLowerCase().includes(term) ||
-          (c.rarity && c.rarity.toLowerCase().includes(term)),
+          c.rarity?.toLowerCase().includes(term),
       );
+    }
+
+    if (selectedRarities.length > 0) {
+      result = result.filter(
+        (c) => c.rarity && selectedRarities.includes(c.rarity),
+      );
+    }
+
+    // Filtros PRO client-side (mesma regra do Explore)
+    if (isPro) {
+      if (priceRange) {
+        const [min, max] = priceRange;
+        result = result.filter((c) => {
+          const p = getLatestPrice(c);
+          return p >= min && p <= max;
+        });
+      }
+      if (proLanguages.length > 0) {
+        result = result.filter((c) => proLanguages.includes(c.language));
+      }
     }
 
     return [...result].sort((a, b) => {
@@ -305,148 +341,158 @@ function SetCardsPageContent() {
           return a.setCode.localeCompare(b.setCode);
       }
     });
-  }, [cards, search, sortBy]);
+  }, [
+    cards,
+    search,
+    sortBy,
+    selectedRarities,
+    isPro,
+    priceRange,
+    proLanguages,
+  ]);
 
   const tcgName = setInfo?.tcg?.name ?? tcgSlug;
+  const sortActive = sortBy !== "number";
+  const relDate = setInfo?.releaseDate
+    ? new Date(setInfo.releaseDate).toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+  const total = setInfo?.totalCards ?? setInfo?._count?.cards ?? 0;
+  const collected = setInfo ? (setProgressMap[setInfo.code]?.count ?? 0) : 0;
+  const pct = total > 0 ? Math.min(collected / total, 1) : 0;
 
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">
-        <Link href="/sets" className="hover:text-foreground transition-colors">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+      {/* Breadcrumb (mesmo padrão da página da carta) */}
+      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Link href="/sets" className="hover:text-primary transition-colors">
           Sets
         </Link>
         <ChevronRight className="size-3" />
         <Link
           href={`/sets/${tcgSlug}`}
-          className="hover:text-foreground transition-colors"
+          className="hover:text-primary transition-colors"
         >
           {tcgName}
         </Link>
         <ChevronRight className="size-3" />
-        <span className="text-foreground">{setInfo?.name ?? setSlug}</span>
-      </div>
+        <span className="text-foreground truncate max-w-50">
+          {setInfo?.name ?? setSlug}
+        </span>
+      </nav>
 
-      {/* Set Header with Info and Progress Bar */}
-      <div>
-        <Link
-          href={`/sets/${tcgSlug}`}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-4 font-mono uppercase"
-        >
-          <ArrowLeft className="size-3" />
-          Voltar para {tcgName}
-        </Link>
-        {loading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-7 w-64" />
-            <Skeleton className="h-4 w-40" />
-          </div>
-        ) : setInfo ? (
-          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border border-border bg-card/45 gap-4">
-            <div className="flex items-center gap-4">
-              {setInfo.imageUrl && (
-                <div className="relative w-[100px] h-[64px] rounded-lg bg-muted border border-border overflow-hidden shrink-0">
+      {/* Banner do set — mesmo padrão do banner de set do Explore */}
+      {loading && !setInfo ? (
+        <SetBannerSkeleton />
+      ) : setInfo ? (
+        <div className="glass-card flex flex-col gap-4 !rounded-2xl p-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            {(() => {
+              const imgUrl = getSetImageUrl(setInfo);
+              return imgUrl && !setImgFailed ? (
+                <div className="relative h-[64px] w-[100px] shrink-0 overflow-hidden rounded-lg">
                   <Image
-                    src={setInfo.imageUrl}
+                    src={imgUrl}
                     alt={setInfo.name}
                     fill
                     sizes="150px"
-                    className="object-cover "
+                    className="object-contain"
+                    onError={() => setSetImgFailed(true)}
                   />
                 </div>
-              )}
-              <div>
-                <h1 className="text-xl font-bold text-foreground">
-                  {setInfo.name}
-                </h1>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <Badge
-                    variant="outline"
-                    className="font-mono text-[10px] py-0 px-1.5 font-bold"
-                  >
-                    {setInfo.code}
-                  </Badge>
-                  <span>{cards.length} cartas catalogadas</span>
-                  {setInfo.releaseDate && (
-                    <span>
-                      {new Date(setInfo.releaseDate).toLocaleDateString(
-                        "pt-BR",
-                        {
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )}
-                    </span>
-                  )}
-                </div>
+              ) : null;
+            })()}
+            <div>
+              <h1 className="text-xl font-bold text-foreground">
+                {setInfo.name}
+              </h1>
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <Badge
+                  variant="outline"
+                  className="px-1.5 py-0 font-mono text-[10px] font-bold"
+                >
+                  {setInfo.code}
+                </Badge>
+                <span>{cards.length} cartas catalogadas</span>
+                {relDate && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="size-2.5" />
+                    {relDate}
+                  </span>
+                )}
               </div>
             </div>
-
-            {/* Set Collection Progress Bar */}
-            {(() => {
-              const total = setInfo.totalCards ?? setInfo._count?.cards ?? 0;
-              const collected = setProgressMap[setInfo.code]?.count ?? 0;
-              const pct = total > 0 ? Math.min(collected / total, 1) : 0;
-              if (total === 0) return null;
-              return (
-                <div className="flex flex-col gap-1 w-full md:w-56 shrink-0 pt-2 md:pt-0 border-t border-border/40 md:border-0">
-                  <div className="flex justify-between text-[10px] font-bold text-muted-foreground font-mono">
-                    <span>Progresso da Coleção</span>
-                    <span>
-                      {collected}/{total} ({Math.round(pct * 100)}%)
-                    </span>
-                  </div>
-                  <div className="bg-muted rounded-full h-1.5 overflow-hidden w-full">
-                    <div
-                      className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${pct * 100}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        ) : (
-          <h1 className="text-2xl font-bold text-foreground">
-            Set não encontrado
-          </h1>
-        )}
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filtrar cartas..."
-              className="pl-10"
-            />
           </div>
 
-          {portfolios.length > 0 && (
-            <>
-              <Separator
-                orientation="vertical"
-                className="h-5 hidden sm:block"
-              />
-              <PortfolioSelector
-                portfolios={portfolios}
-                activePortfolioId={activePortfolioId}
-                onSelect={setActivePortfolioId}
-                onRefresh={fetchPortfolios}
-                labelPrefix="Adicionando a:"
-              />
-            </>
+          {total > 0 && (
+            <div className="flex w-full shrink-0 flex-col gap-1 border-t border-border/40 pt-2 md:w-56 md:border-0 md:pt-0">
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span>Progresso</span>
+                <span className="tabular-nums">
+                  {collected}/{total} ({Math.round(pct * 100)}%)
+                </span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  style={{ width: `${pct * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <h1 className="text-2xl font-bold text-foreground">
+          Set não encontrado
+        </h1>
+      )}
+
+      {/* Toolbar: busca em pill + Adicionando em + ordenação e visualização */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="glass-pill flex h-10 w-full max-w-xs items-center gap-2.5 px-4">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filtrar cartas..."
+            className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {search.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        {portfolios.length > 0 && (
+          <PortfolioSelector
+            portfolios={portfolios}
+            activePortfolioId={activePortfolioId}
+            onSelect={setActivePortfolioId}
+            onRefresh={invalidateCollection}
+            labelPrefix="Adicionando em"
+          />
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[160px]">
-              <ArrowUpDown className="size-3.5 text-muted-foreground" />
+            <SelectTrigger
+              size="sm"
+              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+                sortActive
+                  ? "border-primary/25 bg-primary/10 text-primary"
+                  : "glass-pill text-foreground"
+              }`}
+            >
+              <ArrowUpDown
+                className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
+              />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -459,97 +505,163 @@ function SetCardsPageContent() {
             </SelectContent>
           </Select>
 
-          <Separator orientation="vertical" className="h-6" />
-          <ButtonGroup>
-            <Button
-              size="icon"
-              variant={viewType === "grid" ? "default" : "outline"}
+          <div className="flex items-center gap-1">
+            <GlassPill
+              active={viewType === "grid"}
               onClick={() => setViewType("grid")}
-              className="h-8 w-8"
+              className="px-2.5 py-1.5"
+              aria-label="Visualizar em grade"
             >
               <IconLayoutGrid className="size-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant={viewType === "list" ? "default" : "outline"}
+            </GlassPill>
+            <GlassPill
+              active={viewType === "list"}
               onClick={() => setViewType("list")}
-              className="h-8 w-8"
+              className="px-2.5 py-1.5"
+              aria-label="Visualizar em lista"
             >
               <IconListDetails className="size-4" />
-            </Button>
-          </ButtonGroup>
+            </GlassPill>
+          </div>
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {loading ? (
-          <span className="flex items-center gap-1">
-            <Loader2 className="size-3 animate-spin" /> Carregando...
-          </span>
-        ) : (
-          `${filteredCards.length} cartas encontradas`
-        )}
-      </p>
+      {/* Sidebar de filtros aparente + conteúdo (sem items-start: o aside
+          estica na linha e o sticky acompanha o scroll) */}
+      <div className="flex gap-6">
+        <aside className="hidden w-60 shrink-0 lg:block">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+            <ProductTypeFilter />
 
-      {/* Cards Display */}
-      {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <CardSkeleton key={i} />
-          ))}
-        </div>
-      ) : filteredCards.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Search className="size-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-1">
-            Nenhuma carta encontrada
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {search
-              ? `Nenhum resultado para "${search}".`
-              : "Este set ainda não possui cartas catalogadas."}
-          </p>
-        </div>
-      ) : viewType === "grid" ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {filteredCards.map((card) => (
-            <TcgCard
-              key={card.id}
-              name={card.name}
-              price={formatPrice(getLatestPrice(card))}
-              priceChange={
-                card.prices.length >= 2
-                  ? card.prices[0].value - card.prices[1].value
-                  : 0
-              }
-              imageUrl={card.imageUrl}
-              setCode={card.setCode}
-              setName={card.setName}
-              tcgSlug={card.tcg?.slug}
-              setSlug={card.set?.slug}
-              rarity={card.rarity}
-              change={getPriceChange(card)}
-              cardId={card.id}
-              cardHref={`/card/${card.id}`}
-              quantity={collectionMap[card.id] ?? 0}
-              defaultPortfolioId={activePortfolioId}
-              onAdd={refreshPortfolio}
+            <PriceRangeFilter
+              isPro={isPro}
+              value={priceRange}
+              ceil={priceCeil}
+              onChange={setPriceRange}
+              onUpsell={() => setProModalOpen(true)}
             />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filteredCards.map((card) => (
-            <ListRow
-              key={card.id}
-              card={card}
-              activePortfolioId={activePortfolioId}
-              quantity={collectionMap[card.id] ?? 0}
-              onAdd={refreshPortfolio}
+
+            <LanguageFilter
+              isPro={isPro}
+              value={proLanguages}
+              onChange={setProLanguages}
+              onUpsell={() => setProModalOpen(true)}
             />
-          ))}
+
+            {rarityOptions.length > 0 && (
+              <FilterSection title="Raridade">
+                <div className="space-y-2 pt-2">
+                  {rarityOptions.map(({ rarity, count }) => (
+                    <div
+                      key={rarity}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Checkbox
+                          id={`rarity-${rarity}`}
+                          checked={selectedRarities.includes(rarity)}
+                          onCheckedChange={() =>
+                            setSelectedRarities((prev) =>
+                              prev.includes(rarity)
+                                ? prev.filter((x) => x !== rarity)
+                                : [...prev, rarity],
+                            )
+                          }
+                        />
+                        <label
+                          htmlFor={`rarity-${rarity}`}
+                          className="cursor-pointer select-none truncate text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {rarity}
+                        </label>
+                      </div>
+                      <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
+                        {count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
+          </div>
+        </aside>
+
+        {/* Coluna de conteúdo */}
+        <div className="min-w-0 flex-1 space-y-4">
+          {/* Label da seção */}
+          <SectionLabel>
+            {loading
+              ? "Carregando..."
+              : `${filteredCards.length} carta${filteredCards.length !== 1 ? "s" : ""}`}
+          </SectionLabel>
+
+          {/* Cards */}
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 10 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
+                <GridCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredCards.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Search className="size-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Nenhuma carta encontrada
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {search
+                  ? `Nenhum resultado para "${search}".`
+                  : "Este set ainda não possui cartas catalogadas."}
+              </p>
+            </div>
+          ) : viewType === "grid" ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredCards.map((card) => (
+                <TcgCard
+                  key={card.id}
+                  name={card.name}
+                  price={formatPrice(getLatestPrice(card))}
+                  priceChange={
+                    card.prices.length >= 2
+                      ? card.prices[0].value - card.prices[1].value
+                      : 0
+                  }
+                  imageUrl={card.imageUrl}
+                  setCode={card.setCode}
+                  setName={card.setName}
+                  tcgSlug={card.tcg?.slug}
+                  setSlug={card.set?.slug}
+                  rarity={card.rarity}
+                  change={getPriceChange(card)}
+                  cardId={card.id}
+                  cardHref={`/card/${card.id}`}
+                  quantity={collectionMap[card.id] ?? 0}
+                  defaultPortfolioId={activePortfolioId}
+                  onAdd={invalidateCollection}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredCards.map((card) => (
+                <ListRow
+                  key={card.id}
+                  card={card}
+                  activePortfolioId={activePortfolioId}
+                  quantity={collectionMap[card.id] ?? 0}
+                  onAdd={invalidateCollection}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
+      <ProUpgradeModal
+        open={proModalOpen}
+        onClose={() => setProModalOpen(false)}
+      />
     </main>
   );
 }
