@@ -17,6 +17,7 @@ import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import {
+  CheckboxFilterList,
   FilterSection,
   LanguageFilter,
   PriceRangeFilter,
@@ -28,7 +29,6 @@ import { getSetImageUrl } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { GlassPill, SectionLabel } from "@/components/ui/glass";
 import {
   Select,
@@ -550,37 +550,22 @@ function SetCardsPageContent() {
 
             {rarityOptions.length > 0 && (
               <FilterSection title="Raridade">
-                <div className="space-y-2 pt-2">
-                  {rarityOptions.map(({ rarity, count }) => (
-                    <div
-                      key={rarity}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <Checkbox
-                          id={`rarity-${rarity}`}
-                          checked={selectedRarities.includes(rarity)}
-                          onCheckedChange={() =>
-                            setSelectedRarities((prev) =>
-                              prev.includes(rarity)
-                                ? prev.filter((x) => x !== rarity)
-                                : [...prev, rarity],
-                            )
-                          }
-                        />
-                        <label
-                          htmlFor={`rarity-${rarity}`}
-                          className="cursor-pointer select-none truncate text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          {rarity}
-                        </label>
-                      </div>
-                      <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
-                        {count}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <CheckboxFilterList
+                  idPrefix="rarity"
+                  options={rarityOptions.map(({ rarity, count }) => ({
+                    value: rarity,
+                    label: rarity,
+                    count,
+                  }))}
+                  selected={selectedRarities}
+                  onToggle={(rarity) =>
+                    setSelectedRarities((prev) =>
+                      prev.includes(rarity)
+                        ? prev.filter((x) => x !== rarity)
+                        : [...prev, rarity],
+                    )
+                  }
+                />
               </FilterSection>
             )}
           </div>

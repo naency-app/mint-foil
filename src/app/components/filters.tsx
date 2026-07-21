@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
@@ -37,6 +39,73 @@ export function FilterSection({
         )}
       </div>
       {children}
+    </div>
+  );
+}
+
+/**
+ * Lista de checkboxes com limite de itens visíveis — listas derivadas dos
+ * dados (anos, raridades…) podem crescer muito; acima de `limit` entra o
+ * "Ver mais/menos" pra sidebar não virar um paredão.
+ */
+export function CheckboxFilterList({
+  idPrefix,
+  options,
+  selected,
+  onToggle,
+  limit = 6,
+}: {
+  idPrefix: string;
+  options: { value: string; label: string; count?: number }[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  limit?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  // Selecionados nunca somem ao recolher — senão o usuário perde de vista
+  // um filtro ativo
+  const visible = expanded
+    ? options
+    : options.filter((o, i) => i < limit || selected.includes(o.value));
+  const hiddenCount = options.length - visible.length;
+
+  return (
+    <div className="space-y-2 pt-2">
+      {visible.map(({ value, label, count }) => (
+        <div key={value} className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Checkbox
+              id={`${idPrefix}-${value}`}
+              checked={selected.includes(value)}
+              onCheckedChange={() => onToggle(value)}
+            />
+            <label
+              htmlFor={`${idPrefix}-${value}`}
+              className="cursor-pointer select-none truncate text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {label}
+            </label>
+          </div>
+          {count != null && (
+            <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
+              {count}
+            </span>
+          )}
+        </div>
+      ))}
+
+      {(hiddenCount > 0 || expanded) && options.length > limit && (
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className="flex cursor-pointer items-center gap-1 text-[11px] font-bold text-primary transition-colors hover:text-tertiary-hover"
+        >
+          {expanded ? "Ver menos" : `Ver mais (${hiddenCount})`}
+          <ChevronDown
+            className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
     </div>
   );
 }

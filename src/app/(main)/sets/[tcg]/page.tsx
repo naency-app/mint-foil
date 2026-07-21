@@ -12,7 +12,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { FilterSection, ProductTypeFilter } from "@/app/components/filters";
+import {
+  CheckboxFilterList,
+  FilterSection,
+  ProductTypeFilter,
+} from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -309,37 +313,22 @@ function TcgSetsPageContent() {
 
             {yearOptions.length > 0 && (
               <FilterSection title="Ano de Lançamento">
-                <div className="space-y-2 pt-2">
-                  {yearOptions.map(({ year, count }) => (
-                    <div
-                      key={year}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <Checkbox
-                          id={`year-${year}`}
-                          checked={selectedYears.includes(year)}
-                          onCheckedChange={() =>
-                            setSelectedYears((prev) =>
-                              prev.includes(year)
-                                ? prev.filter((x) => x !== year)
-                                : [...prev, year],
-                            )
-                          }
-                        />
-                        <label
-                          htmlFor={`year-${year}`}
-                          className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          {year}
-                        </label>
-                      </div>
-                      <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
-                        {count}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <CheckboxFilterList
+                  idPrefix="year"
+                  options={yearOptions.map(({ year, count }) => ({
+                    value: year,
+                    label: year,
+                    count,
+                  }))}
+                  selected={selectedYears}
+                  onToggle={(year) =>
+                    setSelectedYears((prev) =>
+                      prev.includes(year)
+                        ? prev.filter((x) => x !== year)
+                        : [...prev, year],
+                    )
+                  }
+                />
               </FilterSection>
             )}
 
