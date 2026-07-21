@@ -110,22 +110,58 @@ export function CheckboxFilterList({
   );
 }
 
-export function ProductTypeFilter() {
+export type ProductTypeValue = "single" | "sealed" | "all";
+
+/**
+ * Filtro de tipo de produto, agora funcional (backend tem Card.productType).
+ * Dois checkboxes independentes → mapeiam para o param do back:
+ *   cartas & !selados → single (padrão) · ambos → all · só selados → sealed.
+ * Desmarcar os dois cai de volta em single (nunca esvazia o grid à toa).
+ */
+export function ProductTypeFilter({
+  value = "single",
+  onChange,
+}: {
+  value?: ProductTypeValue;
+  onChange?: (v: ProductTypeValue) => void;
+}) {
+  const cards = value === "single" || value === "all";
+  const sealed = value === "sealed" || value === "all";
+
+  function resolve(nextCards: boolean, nextSealed: boolean): ProductTypeValue {
+    if (nextCards && nextSealed) return "all";
+    if (nextSealed) return "sealed";
+    return "single";
+  }
+
   return (
     <FilterSection title="Tipo de Produto">
       <div className="space-y-1.5 pt-1">
         <div className="flex items-center gap-2">
-          <Checkbox id="cards-only" checked />
+          <Checkbox
+            id="type-cards"
+            checked={cards}
+            onCheckedChange={() => onChange?.(resolve(!cards, sealed))}
+          />
           <label
-            htmlFor="cards-only"
-            className="text-xs font-medium text-foreground"
+            htmlFor="type-cards"
+            className="cursor-pointer text-xs font-medium text-foreground"
           >
             Apenas Cartas
           </label>
         </div>
-        <div className="flex items-center gap-2 opacity-50">
-          <Checkbox id="sealed-only" disabled />
-          <span className="text-xs text-muted-foreground">Apenas Selados</span>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="type-sealed"
+            checked={sealed}
+            onCheckedChange={() => onChange?.(resolve(cards, !sealed))}
+          />
+          <label
+            htmlFor="type-sealed"
+            className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Produtos Selados
+          </label>
         </div>
       </div>
     </FilterSection>

@@ -27,6 +27,7 @@ import {
   LanguageFilter,
   PriceRangeFilter,
   ProductTypeFilter,
+  type ProductTypeValue,
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
@@ -315,6 +316,8 @@ function ExplorePageContent() {
   // null = faixa intocada (sem filtro); o teto acompanha o resultado carregado
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [proLanguages, setProLanguages] = useState<string[]>([]);
+  // Tipo de produto: cartas (padrão), selados ou ambos — filtra no backend
+  const [productType, setProductType] = useState<ProductTypeValue>("single");
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -337,6 +340,7 @@ function ExplorePageContent() {
     search.trim() || undefined,
     activeTcgs.length > 0 ? activeTcgs.join(",") : undefined,
     selectedSet?.id,
+    productType,
   );
   const invalidateCollection = useInvalidateCollection();
 
@@ -641,7 +645,7 @@ function ExplorePageContent() {
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
-            <ProductTypeFilter />
+            <ProductTypeFilter value={productType} onChange={setProductType} />
 
             <PriceRangeFilter
               isPro={isPro}

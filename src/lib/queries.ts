@@ -116,15 +116,25 @@ export function useCardSets(tcg?: string) {
  * Estado puro (sem busca/jogo/set) = descoberta → "Em Alta" real
  * (maiores variações do dia). Ver adr/0002.
  */
-export function useCards(search?: string, tcg?: string, setId?: string) {
+export function useCards(
+  search?: string,
+  tcg?: string,
+  setId?: string,
+  productType?: "single" | "sealed" | "all",
+) {
   return useQuery({
-    queryKey: queryKeys.cards(search, tcg, setId),
+    queryKey: [...queryKeys.cards(search, tcg, setId), productType ?? "single"],
     queryFn: () =>
       setId
-        ? api.cards.list(undefined, undefined, setId)
-        : !search && !tcg
+        ? api.cards.list(undefined, undefined, setId, productType)
+        : !search && !tcg && (!productType || productType === "single")
           ? api.cards.trending(60)
-          : api.cards.list(search || undefined, tcg || undefined),
+          : api.cards.list(
+              search || undefined,
+              tcg || undefined,
+              undefined,
+              productType,
+            ),
     // Sem keepPreviousData de propósito: toda troca de contexto mostra
     // skeleton previsível em vez de conteúdo antigo sendo trocado "do nada"
     // (mesmo comportamento do resetGrid() do explore mobile). Voltar a um

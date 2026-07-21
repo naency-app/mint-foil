@@ -12,11 +12,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import {
-  CheckboxFilterList,
-  FilterSection,
-  ProductTypeFilter,
-} from "@/app/components/filters";
+import { CheckboxFilterList, FilterSection } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -309,8 +305,6 @@ function TcgSetsPageContent() {
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
-            <ProductTypeFilter />
-
             {yearOptions.length > 0 && (
               <FilterSection title="Ano de Lançamento">
                 <CheckboxFilterList

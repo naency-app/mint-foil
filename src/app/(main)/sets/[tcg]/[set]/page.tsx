@@ -22,6 +22,7 @@ import {
   LanguageFilter,
   PriceRangeFilter,
   ProductTypeFilter,
+  type ProductTypeValue,
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
@@ -189,6 +190,7 @@ function SetCardsPageContent() {
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [proLanguages, setProLanguages] = useState<string[]>([]);
   const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
+  const [productType, setProductType] = useState<ProductTypeValue>("single");
 
   // PRO: sessão primeiro, stats como fallback (mesma regra do settings)
   const { data: session } = useSession();
@@ -200,7 +202,7 @@ function SetCardsPageContent() {
   // Dados via TanStack Query — mesmo cache do Explore (['cards', ..., setId])
   const setQuery = useSetBySlug(tcgSlug, setSlug);
   const setInfo = setQuery.data ?? null;
-  const cardsQuery = useCards(undefined, tcgSlug, setInfo?.id);
+  const cardsQuery = useCards(undefined, tcgSlug, setInfo?.id, productType);
   const cards = useMemo(
     () => (setInfo ? (cardsQuery.data ?? []) : []),
     [setInfo, cardsQuery.data],
@@ -531,7 +533,7 @@ function SetCardsPageContent() {
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
-            <ProductTypeFilter />
+            <ProductTypeFilter value={productType} onChange={setProductType} />
 
             <PriceRangeFilter
               isPro={isPro}

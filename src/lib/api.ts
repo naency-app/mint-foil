@@ -54,6 +54,8 @@ export interface Card {
   def: number | null;
   level: number | null;
   language: string;
+  // SINGLE = carta avulsa; SEALED = produto selado (booster box, blister…)
+  productType?: "SINGLE" | "SEALED";
   tcgId: string;
   tcg?: Tcg;
   set?: CardSet | null;
@@ -162,11 +164,18 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   cards: {
-    list: (search?: string, tcg?: string, setId?: string) => {
+    list: (
+      search?: string,
+      tcg?: string,
+      setId?: string,
+      // 'single' (padrão no back) esconde selados; 'sealed' só selados; 'all' tudo
+      productType?: "single" | "sealed" | "all",
+    ) => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (tcg) params.set("tcg", tcg);
       if (setId) params.set("setId", setId);
+      if (productType) params.set("productType", productType);
       const qs = params.toString();
       return apiFetch<Card[]>(`/cards${qs ? `?${qs}` : ""}`);
     },
