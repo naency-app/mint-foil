@@ -67,6 +67,8 @@
   --color-chart-background: var(----chart-background);
 }
 
+/* Tokens espelhando a LANDING (LandingPage.tsx: LIGHT/DARK) — a landing é a
+   fonte de verdade de cor e tipografia; web app e mobile seguem ela. */
 :root {
   --background: #f6f6f6;
   --foreground: #020617;
@@ -74,18 +76,18 @@
   --card-foreground: #020617;
   --popover: #ffffff;
   --popover-foreground: #020617;
-  --primary: #b50d57;
+  --primary: #f856a7;
   --primary-foreground: #ffffff;
   --tertiary: #f856a7;
   --tertiary-hover: #b50d57;
   --secondary: #021937;
   --secondary-foreground: #ffffff;
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: #4a4a68;
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
+  --border: rgba(2, 6, 23, 0.08);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.81 0.117 11.638);
@@ -126,14 +128,16 @@
   --card-foreground: #ffffff;
   --popover: #021937;
   --popover-foreground: #ffffff;
+  /* No dark a landing usa #B50D57 como primary de superfícies e #F856A7 como
+     accent legível (ghostColor) — aqui primary precisa ler em texto/ícone */
   --primary: #f856a7;
   --primary-foreground: #020617;
   --tertiary: #f856a7;
   --tertiary-hover: #b50d57;
   --secondary: #b50d57;
   --secondary-foreground: #ffffff;
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(70.4% 0.04 256.788);
+  --muted: #021937;
+  --muted-foreground: rgba(255, 255, 255, 0.55);
   --accent: oklch(0.371 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -171,6 +175,82 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ── Superfícies de vidro (espelho de mint-foil-app/components/glass-card.tsx):
+   o blur existe sempre — claro no light, escuro no dark. Superfície padrão dos
+   cards e pills do sistema. ─────────────────────────────────────────────────── */
+
+@layer components {
+  .glass-card,
+  .glass-pill {
+    border: 1px solid rgba(2, 6, 23, 0.08);
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .glass-card {
+    border-radius: 20px;
+  }
+  .glass-pill {
+    border-radius: 9999px;
+  }
+  .dark .glass-card,
+  .dark .glass-pill {
+    border-color: rgba(255, 255, 255, 0.1);
+    /* Navy da landing (#021937) semi-transparente */
+    background-color: rgba(2, 25, 55, 0.45);
+  }
+
+  /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
+  .glass-pill-active {
+    border-color: transparent;
+    background-color: #020617;
+    color: #ffffff;
+  }
+  .dark .glass-pill-active {
+    border-color: transparent;
+    background-color: #ffffff;
+    color: #020617;
+  }
+
+  /* Shimmer foil do wordmark (mesmo gradiente/animação da landing) */
+  .foil-text {
+    background: linear-gradient(
+      110deg,
+      #b50d57 0%,
+      #d7327f 6%,
+      #f856a7 12%,
+      #fc7dc0 19%,
+      #ff9ad5 26%,
+      #e3a9e9 33%,
+      #c49aff 40%,
+      #aeadff 45%,
+      #9ac1ff 50%,
+      #aeadff 55%,
+      #c49aff 60%,
+      #e3a9e9 67%,
+      #ff9ad5 74%,
+      #fc7dc0 81%,
+      #f856a7 88%,
+      #d7327f 94%,
+      #b50d57 100%
+    );
+    background-size: 200% 200%;
+    animation: mfFoilShift 7s linear infinite;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@keyframes mfFoilShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
   }
 }
 

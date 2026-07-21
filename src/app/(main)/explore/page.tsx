@@ -1,14 +1,36 @@
 "use client";
 
+import {
+  IconLayoutGrid,
+  IconListDetails,
+  IconLoader2,
+  IconPlus,
+} from "@tabler/icons-react";
+import {
+  ArrowUpDown,
+  Calendar,
+  Clock,
+  Layers,
+  Loader2,
+  Search,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { sileo } from "sileo";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { getSetImageUrl, type SetProgress } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { GlassPill, SectionLabel } from "@/components/ui/glass";
 import {
   Select,
   SelectContent,
@@ -16,25 +38,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type Card as CardType, type Portfolio } from "@/lib/api";
-
+import { Slider } from "@/components/ui/slider";
 import {
-  IconLayoutGrid,
-  IconListDetails,
-  IconLoader2,
-  IconPlus,
-} from "@tabler/icons-react";
-import { ArrowUpDown, Clock, Loader2, Search, TrendingUp } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useQueryState } from "nuqs";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { sileo } from "sileo";
+  api,
+  type CardSet,
+  type Card as CardType,
+  type Portfolio,
+} from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
+import {
+  useCardSets,
+  useCards,
+  useCollectionStats,
+  useInvalidateCollection,
+  usePortfolioDetail,
+  usePortfolios,
+} from "@/lib/queries";
 
 type CollectionMap = Record<string, number>;
+type SetProgressMap = Record<string, SetProgress>;
+
+// Mesmo catálogo suportado do mobile (mint-foil-app/lib/tcg-catalog.ts);
+// `chip` é o nome curto usado nos chips de telas pequenas
+const SUPPORTED_TCGS = [
+  { slug: "pokemon", name: "Pokémon", chip: "Pokémon" },
+  { slug: "magic", name: "Magic: The Gathering", chip: "Magic" },
+  { slug: "yugioh", name: "Yu-Gi-Oh!", chip: "Yu-Gi-Oh!" },
+  { slug: "onepiece", name: "One Piece", chip: "One Piece" },
+];
+
+const COMING_SOON_TCGS = [
+  "Lorcana",
+  "Flesh and Blood",
+  "Dragon Ball Super",
+  "Digimon",
+  "Star Wars Unlimited",
+  "Weiß Schwarz",
+  "Union Arena",
+];
+
+const LANGUAGES = [
+  { code: "en", name: "Inglês" },
+  { code: "ja", name: "Japonês" },
+  { code: "zh", name: "Chinês" },
+];
 
 function FilterSection({
   title,
@@ -48,11 +96,9 @@ function FilterSection({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-          {title}
-        </h3>
+        <SectionLabel>{title}</SectionLabel>
         {badge && (
-          <Badge variant="default" className="text-[9px] h-4 px-1.5">
+          <Badge variant="default" className="h-4 px-1.5 text-[9px]">
             {badge}
           </Badge>
         )}
@@ -83,7 +129,7 @@ function getPriceChange(card: CardType) {
 
 function GridCardSkeleton() {
   return (
-    <Card className="w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card py-0">
+    <Card className="w-full h-full overflow-hidden bg-card py-0">
       <CardContent className="p-0">
         <div className="p-2">
           <Skeleton className="w-full rounded-lg aspect-2/3" />
@@ -96,6 +142,71 @@ function GridCardSkeleton() {
         <Skeleton className="h-4 w-1/3 mt-2" />
       </div>
     </Card>
+  );
+}
+
+/** Item compacto do carrossel de coleções (espelho do carrossel do explore mobile). */
+function CarouselSetItem({
+  set,
+  progress,
+  selected,
+  onClick,
+}: {
+  set: CardSet;
+  progress: SetProgress | null;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const imgUrl = getSetImageUrl(set);
+  const [imgFailed, setImgFailed] = useState(false);
+  const total = set.totalCards ?? set._count?.cards ?? 0;
+  const collected = progress?.count ?? 0;
+  const pct = total > 0 ? Math.min(collected / total, 1) : 0;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`glass-card w-28 shrink-0 cursor-pointer overflow-hidden !rounded-[14px] text-left transition-all hover:-translate-y-0.5 ${
+        selected ? "ring-2 ring-primary" : ""
+      }`}
+    >
+      <div className="relative flex h-16 w-full items-center justify-center p-2">
+        {imgUrl && !imgFailed ? (
+          <Image
+            src={imgUrl}
+            alt={set.name}
+            fill
+            sizes="112px"
+            className="object-contain p-1.5"
+            loading="lazy"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <Layers className="size-6 stroke-[1.5] text-muted-foreground" />
+        )}
+      </div>
+      <div className="space-y-1 px-2 pb-2">
+        <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+          {set.name}
+        </p>
+        {total > 0 && collected > 0 ? (
+          <div className="flex items-center gap-1.5">
+            <div className="h-1 flex-1 overflow-hidden rounded-full bg-border">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${pct * 100}%` }}
+              />
+            </div>
+            <span className="text-[9px] font-bold tabular-nums text-muted-foreground">
+              {collected}/{total}
+            </span>
+          </div>
+        ) : total > 0 ? (
+          <p className="text-[10px] text-muted-foreground">{total} cartas</p>
+        ) : null}
+      </div>
+    </button>
   );
 }
 
@@ -140,7 +251,7 @@ function ListRow({
 
   return (
     <Link href={`/card/${card.id}`} className="block">
-      <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-card hover:bg-background/50 transition-all group">
+      <div className="glass-card flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30 group">
         <div className="shrink-0 size-12 rounded-md overflow-hidden">
           <Image
             src={card.imageUrl}
@@ -171,7 +282,7 @@ function ListRow({
 
         <div className="text-right shrink-0 w-36">
           <div className="flex items-center justify-end gap-1">
-            <TrendingUp className="size-3 text-emerald-400" />
+            <TrendingUp className="size-3 text-emerald-500" />
             <span className="text-sm font-bold text-foreground font-mono">
               R$ {formatPrice(displayPrice)}
             </span>
@@ -186,7 +297,7 @@ function ListRow({
         <Button
           variant="outline"
           size="icon"
-          className="shrink-0 size-8 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-200 duration-300"
+          className="shrink-0 size-8 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10"
           onClick={handleAdd}
           disabled={adding}
         >
@@ -208,27 +319,80 @@ function ExplorePageContent() {
   });
   const [search, setSearch] = useQueryState("q", { defaultValue: "" });
   const [searchInput, setSearchInput] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
-  const [collectionMap, setCollectionMap] = useState<CollectionMap>({});
-  const [proModalOpen, setProModalOpen] = useState(false);
 
-  // States from filter sidebar & searches
+  // Jogos ativos: multi-select estilo marketplace (funcionalidade própria do
+  // web — o mobile usa escolha única). "Todos" = lista vazia.
   const [selectedTcg, setSelectedTcg] = useQueryState("tcg");
-  const activeTcgs = useMemo(() => {
-    return selectedTcg ? selectedTcg.split(",") : [];
-  }, [selectedTcg]);
+  const activeTcgs = useMemo(
+    () => (selectedTcg ? selectedTcg.split(",") : []),
+    [selectedTcg],
+  );
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [cards, setCards] = useState<CardType[]>([]);
-  const [cardsLoading, setCardsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Synchronize searchInput when query parameter 'q' changes (e.g. initial load, recent chip click)
+  const [selectedSet, setSelectedSet] = useState<CardSet | null>(null);
+
+  // Filtros PRO (client-side sobre o resultado carregado)
+  const [proModalOpen, setProModalOpen] = useState(false);
+  // null = faixa intocada (sem filtro); o teto acompanha o resultado carregado
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [proLanguages, setProLanguages] = useState<string[]>([]);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // PRO: sessão primeiro, stats como fallback (mesma regra do settings)
+  const { data: session } = useSession();
+  const sessionUser = session?.user as { isPro?: boolean } | undefined;
+  const statsQuery = useCollectionStats(!!session?.user);
+  const isPro =
+    (sessionUser?.isPro ?? false) || (statsQuery.data?.isPro ?? false);
+
+  // Carrossel segue um jogo só quando exatamente um está filtrado
+  const carouselTcg = activeTcgs.length === 1 ? activeTcgs[0] : undefined;
+
+  // Dados via TanStack Query (lib/queries.ts): cache compartilhado entre
+  // páginas e revalidação automática após mutações (useInvalidateCollection)
+  const portfoliosQuery = usePortfolios();
+  const portfolioDetail = usePortfolioDetail(activePortfolioId || undefined);
+  const setsQuery = useCardSets(carouselTcg);
+  const cardsQuery = useCards(
+    search.trim() || undefined,
+    activeTcgs.length > 0 ? activeTcgs.join(",") : undefined,
+    selectedSet?.id,
+  );
+  const invalidateCollection = useInvalidateCollection();
+
+  const sets = setsQuery.data ?? [];
+  const setsLoading = setsQuery.isPending;
+  const cards = cardsQuery.data ?? [];
+  const cardsLoading = cardsQuery.isPending;
+  const error = cardsQuery.error
+    ? (cardsQuery.error.message ?? "Erro ao buscar cartas")
+    : null;
+
+  const activeTcgLabel = SUPPORTED_TCGS.find(
+    (t) => t.slug === carouselTcg,
+  )?.chip;
+  const searching = !!search.trim();
+
+  // Sincroniza o input quando 'q' muda por fora (load inicial, chip de recente)
   useEffect(() => {
     setSearchInput(search || "");
   }, [search]);
 
-  // Load recent searches on mount
+  // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
+  function handleChangeQuery(value: string) {
+    setSearchInput(value);
+    if (value) setSelectedSet(null);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(value);
+      if (value.trim()) saveRecentSearch(value);
+    }, 300);
+  }
+
   useEffect(() => {
     const stored = localStorage.getItem("recent_searches");
     if (stored) {
@@ -238,7 +402,6 @@ function ExplorePageContent() {
     }
   }, []);
 
-  // Save recent searches
   const saveRecentSearch = (term: string) => {
     if (!term.trim()) return;
     const cleanTerm = term.trim();
@@ -252,139 +415,134 @@ function ExplorePageContent() {
     });
   };
 
-  const fetchPortfolios = useCallback(() => {
-    api.collection
-      .portfolios()
-      .then((data) => {
-        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-        let favs: string[] = [];
-        if (favsStr) {
-          try {
-            favs = JSON.parse(favsStr) as string[];
-          } catch {}
-        } else {
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          if (oldDefault) favs = [oldDefault];
-        }
-
-        const sortedPortfolios = [...data].sort((a, b) => {
-          const aFav = favs.includes(a.id);
-          const bFav = favs.includes(b.id);
-          if (aFav && !bFav) return -1;
-          if (!aFav && bFav) return 1;
-          return 0;
-        });
-
-        setPortfolios(sortedPortfolios);
-
-        if (sortedPortfolios.length > 0) {
-          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some(
-            (p) => p.id === oldDefault,
-          );
-
-          const nextActive = foundFav
-            ? foundFav.id
-            : hasOldStored && oldDefault
-              ? oldDefault
-              : sortedPortfolios[0].id;
-
-          setActivePortfolioId((prev) => {
-            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
-              return prev;
-            }
-            return nextActive;
-          });
-        }
-      })
-      .catch(() => {}); // user may not be logged in
-  }, []);
-
-  // Fetch portfolios
+  // Ordena favoritos primeiro e escolhe o ativo quando a lista chega —
+  // localStorage só no efeito (client), nunca durante o render
   useEffect(() => {
-    fetchPortfolios();
-  }, [fetchPortfolios]);
+    const data = portfoliosQuery.data;
+    if (!data) return;
 
-  // Fetch portfolio details to compute collection map
-  const refreshPortfolio = useCallback(() => {
-    if (!activePortfolioId) {
-      setCollectionMap({});
-      return;
-    }
-    api.collection
-      .getPortfolio(activePortfolioId)
-      .then((data) => {
-        const map: CollectionMap = {};
-        for (const item of data.items) {
-          map[item.cardId] = (map[item.cardId] ?? 0) + item.quantity;
-        }
-        setCollectionMap(map);
-      })
-      .catch(() => {
-        setCollectionMap({});
-      });
-  }, [activePortfolioId]);
-
-  useEffect(() => {
-    refreshPortfolio();
-  }, [refreshPortfolio]);
-
-  // Load cards based on search query & selected TCG category
-  useEffect(() => {
-    let active = true;
-
-    async function loadCards() {
-      setCardsLoading(true);
-      setError(null);
+    const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+    let favs: string[] = [];
+    if (favsStr) {
       try {
-        // Estado puro (sem busca/jogo) = descoberta → "Em Alta" real
-        // (maiores variações do dia). Ver adr/0002.
-        const data =
-          !search && !selectedTcg
-            ? await api.cards.trending(60)
-            : await api.cards.list(search || undefined, selectedTcg || undefined);
-        if (active) {
-          setCards(data);
-        }
-      } catch (err) {
-        if (active) {
-          setError(
-            err instanceof Error ? err.message : "Erro ao buscar cartas",
-          );
-          setCards([]);
-        }
-      } finally {
-        if (active) {
-          setCardsLoading(false);
-        }
-      }
+        favs = JSON.parse(favsStr) as string[];
+      } catch {}
+    } else {
+      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+      if (oldDefault) favs = [oldDefault];
     }
 
-    loadCards();
-    return () => {
-      active = false;
-    };
-  }, [search, selectedTcg]);
+    const sortedPortfolios = [...data].sort((a, b) => {
+      const aFav = favs.includes(a.id);
+      const bFav = favs.includes(b.id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
 
-  function handleSearch() {
-    setSearch(searchInput);
-    if (searchInput.trim()) {
-      saveRecentSearch(searchInput);
+    setPortfolios(sortedPortfolios);
+
+    if (sortedPortfolios.length > 0) {
+      const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+      const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+      const nextActive = foundFav
+        ? foundFav.id
+        : hasOldStored && oldDefault
+          ? oldDefault
+          : sortedPortfolios[0].id;
+
+      setActivePortfolioId((prev) => {
+        if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+          return prev;
+        }
+        return nextActive;
+      });
     }
-  }
+  }, [portfoliosQuery.data]);
+
+  // Detalhe do portfólio → mapa de quantidades por carta e progresso por set
+  const { collectionMap, setProgress } = useMemo(() => {
+    const map: CollectionMap = {};
+    const progress: SetProgressMap = {};
+    for (const item of portfolioDetail.data?.items ?? []) {
+      map[item.cardId] = (map[item.cardId] ?? 0) + item.quantity;
+      const code = item.card.set?.code ?? item.card.setCode;
+      if (!progress[code]) progress[code] = { count: 0, value: 0 };
+      progress[code].count += 1; // cartas únicas, não cópias
+      progress[code].value +=
+        (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+    }
+    return { collectionMap: map, setProgress: progress };
+  }, [portfolioDetail.data]);
 
   function handleClear() {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setSearchInput("");
     setSearch("");
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") handleSearch();
+  // Filtro de jogo estilo marketplace: toggle de cada jogo na lista.
+  // Refinar filtro NÃO limpa a busca (comportamento de marketplace); só o
+  // set selecionado cai, porque set pertence a um jogo.
+  function toggleTcg(slug: string) {
+    setSelectedTcg((prev) => {
+      const current = prev ? prev.split(",") : [];
+      const next = current.includes(slug)
+        ? current.filter((x) => x !== slug)
+        : [...current, slug];
+      return next.length > 0 ? next.join(",") : null;
+    });
+    setSelectedSet(null);
   }
 
+  function clearTcgs() {
+    setSelectedTcg(null);
+    setSelectedSet(null);
+  }
+
+  // Carrossel: clicar no set selecionado de novo desmarca (toggle)
+  function handleSelectSet(set: CardSet) {
+    if (selectedSet?.id === set.id) {
+      setSelectedSet(null);
+      return;
+    }
+    handleClear();
+    setSelectedSet(set);
+  }
+
+  function applyRecentSearch(term: string) {
+    setSelectedSet(null);
+    setSearchInput(term);
+    setSearch(term);
+    saveRecentSearch(term);
+  }
+
+  // Filtros PRO aplicados client-side sobre o resultado carregado
+  const filteredCards = useMemo(() => {
+    if (!isPro) return cards;
+    let list = cards;
+    if (priceRange) {
+      const [min, max] = priceRange;
+      list = list.filter((c) => {
+        const p = getLatestPrice(c);
+        return p >= min && p <= max;
+      });
+    }
+    if (proLanguages.length > 0)
+      list = list.filter((c) => proLanguages.includes(c.language));
+    return list;
+  }, [cards, isPro, priceRange, proLanguages]);
+
+  // Teto do slider: maior preço do resultado, arredondado pra cima
+  const priceCeil = useMemo(() => {
+    const top = cards.reduce((m, c) => Math.max(m, getLatestPrice(c)), 0);
+    return Math.max(10, Math.ceil(top / 10) * 10);
+  }, [cards]);
+
   const sortedCards = useMemo(() => {
-    return [...cards].sort((a, b) => {
+    return [...filteredCards].sort((a, b) => {
       const priceA = getLatestPrice(a);
       const priceB = getLatestPrice(b);
       switch (sortBy) {
@@ -400,284 +558,259 @@ function ExplorePageContent() {
           return 0;
       }
     });
-  }, [cards, sortBy]);
+  }, [filteredCards, sortBy]);
 
-  // Helper to handle TCG sidebar filter toggle
-  const handleTcgToggle = (slug: string) => {
-    setSelectedTcg((prev) => {
-      const current = prev ? prev.split(",") : [];
-      const next = current.includes(slug)
-        ? current.filter((x) => x !== slug)
-        : [...current, slug];
-      return next.length > 0 ? next.join(",") : null;
-    });
-  };
+  // Sets com imagem primeiro (getcollectr > ygoprodeck), preservando a ordem
+  // de lançamento do backend dentro de cada grupo (sort estável) — como no mobile
+  const sortedSets = useMemo(() => {
+    const rank = (s: CardSet) =>
+      s.imageUrl?.includes("getcollectr")
+        ? 0
+        : s.imageUrl?.includes("ygoprodeck")
+          ? 1
+          : 2;
+    return [...sets].sort((a, b) => rank(a) - rank(b));
+  }, [sets]);
+
+  const contentLabel = selectedSet
+    ? `${selectedSet.name} — ${sortedCards.length} carta${sortedCards.length !== 1 ? "s" : ""}`
+    : searching
+      ? `${sortedCards.length} resultado${sortedCards.length !== 1 ? "s" : ""}`
+      : activeTcgs.length === 1
+        ? `Em Alta · ${activeTcgLabel}`
+        : "Em Alta";
+
+  const sortActive = sortBy !== "best-match";
+  const selectedSetTotal =
+    selectedSet?.totalCards ?? selectedSet?._count?.cards ?? 0;
+  const selectedSetProg = selectedSet
+    ? (setProgress[selectedSet.code] ?? null)
+    : null;
+  const selectedSetRelDate = selectedSet?.releaseDate
+    ? new Date(selectedSet.releaseDate).toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+  const selectedSetImg = selectedSet ? getSetImageUrl(selectedSet) : null;
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-      {/* Search Input Section */}
-      <section className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
-        <h2 className="text-sm font-bold text-foreground">
-          Buscar no Catálogo
-        </h2>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              id="search-products"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Buscar cartas por nome, expansão, código ou raridade..."
-              className="pl-10"
-            />
-          </div>
-          <Button onClick={handleSearch}>Buscar</Button>
-          <Button variant="secondary" onClick={handleClear}>
-            Limpar
-          </Button>
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+      {/* ── Busca: pill de vidro, busca ao digitar ── */}
+      <div className="relative max-w-2xl">
+        <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={searchInput}
+            onChange={(e) => handleChangeQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            placeholder="Buscar cartas..."
+            className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {searchInput.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
 
-        {/* Recent Searches */}
-        {recentSearches.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/40">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-              <Clock className="size-3" /> Recentes:
-            </span>
+        {/* Histórico de busca — só enquanto o input está focado e vazio,
+            como no mobile (histórico mora no gesto de buscar) */}
+        {searchFocused && !searchInput.trim() && recentSearches.length > 0 && (
+          <div className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-lg">
             {recentSearches.map((term) => (
               <button
                 key={term}
-                onClick={() => {
-                  setSearchInput(term);
-                  setSearch(term);
-                  saveRecentSearch(term);
-                }}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-muted/30 text-[11px] font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyRecentSearch(term)}
+                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-muted/40"
               >
-                {term}
+                <Clock className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate">{term}</span>
               </button>
             ))}
           </div>
         )}
-      </section>
-
-      {/* Toolbar: Portfolio, ResultsCount, Sorting & Layout */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
-        <div className="flex items-center gap-2">
-          {portfolios.length > 0 && (
-            <PortfolioSelector
-              portfolios={portfolios}
-              activePortfolioId={activePortfolioId}
-              onSelect={setActivePortfolioId}
-              onRefresh={fetchPortfolios}
-              labelPrefix="Adicionando a:"
-            />
-          )}
-
-          <Separator
-            orientation="vertical"
-            className="h-5 hidden sm:block mx-1"
-          />
-
-          <p className="text-xs text-muted-foreground">
-            {cardsLoading ? (
-              <span className="flex items-center gap-1">
-                <Loader2 className="size-3 animate-spin" /> Buscando...
-              </span>
-            ) : (
-              `${sortedCards.length} resultados encontrados`
-            )}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-end gap-3">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="h-8 border-border bg-muted text-foreground text-xs min-w-[160px]">
-              <ArrowUpDown className="size-3.5 text-muted-foreground" />{" "}
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="best-match">Melhor Resultado</SelectItem>
-              <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
-              <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
-              <SelectItem value="name-asc">Nome: A → Z</SelectItem>
-              <SelectItem value="name-desc">Nome: Z → A</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          <ButtonGroup>
-            <Button
-              size="icon"
-              variant={viewType === "grid" ? "default" : "outline"}
-              onClick={() => setViewType("grid")}
-              className="h-8 w-8"
-            >
-              <IconLayoutGrid className="size-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant={viewType === "list" ? "default" : "outline"}
-              onClick={() => setViewType("list")}
-              className="h-8 w-8"
-            >
-              <IconListDetails className="size-4" />
-            </Button>
-          </ButtonGroup>
-        </div>
       </div>
 
-      {/* Main Layout: Sidebar Filters + Cards List */}
+      {/* ── Chips de jogo — só em telas pequenas; no desktop o filtro mora
+          na sidebar de marketplace ── */}
+      <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
+        <GlassPill active={activeTcgs.length === 0} onClick={clearTcgs}>
+          Todos
+        </GlassPill>
+        {SUPPORTED_TCGS.map((t) => (
+          <GlassPill
+            key={t.slug}
+            active={activeTcgs.includes(t.slug)}
+            onClick={() => toggleTcg(t.slug)}
+          >
+            {t.chip}
+          </GlassPill>
+        ))}
+      </div>
+
+      {/* ── Marketplace: sidebar de filtros aparente + conteúdo ── */}
+      {/* Sem items-start: o aside precisa esticar na altura da linha para o
+          sticky interno ter percurso e acompanhar o scroll */}
       <div className="flex gap-6">
-        <aside className="hidden lg:block w-60 shrink-0">
-          <div className="sticky top-20 rounded-xl border border-border bg-card/30 backdrop-blur-sm p-4 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-auto">
+        <aside className="hidden w-60 shrink-0 lg:block">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
             <FilterSection title="Tipo de Produto">
-              <p className="text-xs text-muted-foreground -mt-1">
-                Filtrar por tipo de produto.
-              </p>
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center gap-2">
                   <Checkbox id="cards-only" checked />
                   <label
                     htmlFor="cards-only"
-                    className="text-xs text-foreground font-medium"
+                    className="text-xs font-medium text-foreground"
                   >
                     Apenas Cartas
                   </label>
                 </div>
                 <div className="flex items-center gap-2 opacity-50">
                   <Checkbox id="sealed-only" disabled />
-                  <label
-                    htmlFor="sealed-only"
-                    className="text-xs text-muted-foreground"
-                  >
+                  <span className="text-xs text-muted-foreground">
                     Apenas Selados
-                  </label>
+                  </span>
                 </div>
               </div>
             </FilterSection>
 
-            <Separator />
-
             <FilterSection title="Faixa de Preço" badge="PRO">
-              <p className="text-xs text-muted-foreground -mt-1">
-                Filtrar por faixa de preço.
-              </p>
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setProModalOpen(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setProModalOpen(true);
-                  }
-                }}
-                className="flex items-center gap-2 w-full pt-1 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
-              >
-                <Input
-                  placeholder="Min."
-                  readOnly
-                  className="h-8 bg-muted/40 border-border text-foreground text-xs pointer-events-none"
-                />
-                <span className="text-xs text-muted-foreground">a</span>
-                <Input
-                  placeholder="Max."
-                  readOnly
-                  className="h-8 bg-muted/40 border-border text-foreground text-xs pointer-events-none"
-                />
-              </div>
+              {isPro ? (
+                <div className="space-y-2 pt-3">
+                  <Slider
+                    value={priceRange ?? [0, priceCeil]}
+                    onValueChange={(v) => setPriceRange(v as [number, number])}
+                    max={priceCeil}
+                    step={5}
+                    className="mx-auto w-full"
+                  />
+                  <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
+                    <span>R$ {(priceRange?.[0] ?? 0).toFixed(0)}</span>
+                    <span>R$ {(priceRange?.[1] ?? priceCeil).toFixed(0)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setProModalOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setProModalOpen(true);
+                    }
+                  }}
+                  className="block w-full cursor-pointer space-y-2 rounded pt-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <div className="pointer-events-none opacity-60">
+                    <Slider
+                      defaultValue={[25, 50]}
+                      max={100}
+                      step={5}
+                      className="mx-auto w-full"
+                    />
+                  </div>
+                  <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
+                    <span>R$ 25</span>
+                    <span>R$ 50</span>
+                  </div>
+                </div>
+              )}
             </FilterSection>
-
-            <Separator />
 
             <FilterSection title="Idioma" badge="PRO">
-              <p className="text-xs text-muted-foreground -mt-1">
-                Filtrar por idioma.
-              </p>
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setProModalOpen(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setProModalOpen(true);
-                  }
-                }}
-                className="space-y-2 pt-2 text-left block w-full cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
-              >
-                {[
-                  { code: "en", name: "Inglês" },
-                  { code: "ja", name: "Japonês" },
-                  { code: "zh", name: "Chinês" },
-                ].map((lang) => (
-                  <div key={lang.code} className="flex items-center gap-2">
-                    <Checkbox id={`lang-${lang.code}`} disabled />
-                    <span className="text-xs text-muted-foreground font-medium">
-                      {lang.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {isPro ? (
+                <div className="space-y-2 pt-2">
+                  {LANGUAGES.map((lang) => (
+                    <div key={lang.code} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`lang-${lang.code}`}
+                        checked={proLanguages.includes(lang.code)}
+                        onCheckedChange={() =>
+                          setProLanguages((prev) =>
+                            prev.includes(lang.code)
+                              ? prev.filter((x) => x !== lang.code)
+                              : [...prev, lang.code],
+                          )
+                        }
+                      />
+                      <label
+                        htmlFor={`lang-${lang.code}`}
+                        className="cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground"
+                      >
+                        {lang.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setProModalOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setProModalOpen(true);
+                    }
+                  }}
+                  className="block w-full cursor-pointer space-y-2 rounded pt-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {LANGUAGES.map((lang) => (
+                    <div key={lang.code} className="flex items-center gap-2">
+                      <Checkbox id={`lang-${lang.code}`} disabled />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {lang.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </FilterSection>
 
-            <Separator />
-
             <FilterSection title="Jogo / Categoria">
-              <p className="text-xs text-muted-foreground -mt-1">
-                Filtrar por jogo.
-              </p>
               <div className="space-y-2.5 pt-2">
-                {/* Supported TCGs */}
-                {[
-                  { slug: "pokemon", name: "Pokémon" },
-                  { slug: "magic", name: "Magic: The Gathering" },
-                  { slug: "yugioh", name: "Yu-Gi-Oh!" },
-                  { slug: "onepiece", name: "One Piece" },
-                ].map((tcg) => (
+                {SUPPORTED_TCGS.map((tcg) => (
                   <div key={tcg.slug} className="flex items-center gap-2">
                     <Checkbox
                       id={`tcg-${tcg.slug}`}
                       checked={activeTcgs.includes(tcg.slug)}
-                      onCheckedChange={() => handleTcgToggle(tcg.slug)}
+                      onCheckedChange={() => toggleTcg(tcg.slug)}
                     />
                     <label
                       htmlFor={`tcg-${tcg.slug}`}
-                      className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none font-medium"
+                      className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {tcg.name}
                     </label>
                   </div>
                 ))}
 
-                {/* Coming Soon TCGs */}
-                {[
-                  { name: "Lorcana" },
-                  { name: "Flesh and Blood" },
-                  { name: "Dragon Ball Super" },
-                  { name: "Digimon" },
-                  { name: "Star Wars Unlimited" },
-                  { name: "Weiß Schwarz" },
-                  { name: "Union Arena" },
-                ].map((tcg) => (
+                {COMING_SOON_TCGS.map((name) => (
                   <div
-                    key={tcg.name}
-                    className="flex items-center justify-between gap-2 opacity-50 select-none"
+                    key={name}
+                    className="flex select-none items-center justify-between gap-2 opacity-50"
                   >
                     <div className="flex items-center gap-2">
                       <Checkbox
-                        id={`tcg-coming-${tcg.name.toLowerCase().replace(/\s+/g, "")}`}
+                        id={`tcg-coming-${name.toLowerCase().replace(/\s+/g, "")}`}
                         disabled
                       />
-                      <span className="text-xs text-muted-foreground font-medium">
-                        {tcg.name}
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {name}
                       </span>
                     </div>
                     <Badge
                       variant="outline"
-                      className="text-[8px] h-3.5 px-1 uppercase tracking-wider font-mono opacity-80 leading-none"
+                      className="h-3.5 px-1 font-mono text-[8px] uppercase leading-none tracking-wider opacity-80"
                     >
                       Breve
                     </Badge>
@@ -688,17 +821,183 @@ function ExplorePageContent() {
           </div>
         </aside>
 
-        {/* Content Area */}
-        <div className="flex-1 min-w-0">
-          {error && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 mb-4">
-              <p className="text-sm text-red-400">{error}</p>
+        {/* ── Coluna de conteúdo ── */}
+        <div className="min-w-0 flex-1 space-y-4">
+          {/* ── Carrossel de coleções — clica para filtrar o grid (some na busca) ── */}
+          {!searching && (
+            <section className="space-y-2">
+              <div className="flex items-center justify-between">
+                <SectionLabel>
+                  {carouselTcg
+                    ? `Coleções · ${activeTcgLabel}`
+                    : "Coleções recentes"}
+                </SectionLabel>
+                <Link
+                  href="/sets"
+                  className="text-xs font-bold text-primary hover:underline"
+                >
+                  Ver todas →
+                </Link>
+              </div>
+              {setsLoading && sortedSets.length === 0 ? (
+                <div className="flex gap-2">
+                  {[0, 1, 2, 3].map((i) => (
+                    <Skeleton
+                      key={i}
+                      className="h-[120px] w-28 rounded-[14px]"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {sortedSets.slice(0, 24).map((set) => (
+                    <CarouselSetItem
+                      key={set.id}
+                      set={set}
+                      progress={setProgress[set.code] ?? null}
+                      selected={selectedSet?.id === set.id}
+                      onClick={() => handleSelectSet(set)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* ── Adicionando em (esquerda) + ordenação e visualização (direita) ── */}
+          <div className="flex flex-wrap items-center gap-2">
+            {portfolios.length > 0 && (
+              <PortfolioSelector
+                portfolios={portfolios}
+                activePortfolioId={activePortfolioId}
+                onSelect={setActivePortfolioId}
+                onRefresh={invalidateCollection}
+                labelPrefix="Adicionando em"
+              />
+            )}
+
+            <div className="ml-auto flex items-center gap-2">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger
+                  size="sm"
+                  className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+                    sortActive
+                      ? "border-primary/25 bg-primary/10 text-primary"
+                      : "glass-pill text-foreground"
+                  }`}
+                >
+                  <ArrowUpDown
+                    className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
+                  />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="best-match">Melhor Resultado</SelectItem>
+                  <SelectItem value="price-asc">
+                    Preço: Menor → Maior
+                  </SelectItem>
+                  <SelectItem value="price-desc">
+                    Preço: Maior → Menor
+                  </SelectItem>
+                  <SelectItem value="name-asc">Nome: A → Z</SelectItem>
+                  <SelectItem value="name-desc">Nome: Z → A</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center gap-1">
+                <GlassPill
+                  active={viewType === "grid"}
+                  onClick={() => setViewType("grid")}
+                  className="px-2.5 py-1.5"
+                  aria-label="Visualizar em grade"
+                >
+                  <IconLayoutGrid className="size-4" />
+                </GlassPill>
+                <GlassPill
+                  active={viewType === "list"}
+                  onClick={() => setViewType("list")}
+                  className="px-2.5 py-1.5"
+                  aria-label="Visualizar em lista"
+                >
+                  <IconListDetails className="size-4" />
+                </GlassPill>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Label da seção + limpar set selecionado ── */}
+          <div className="flex items-center justify-between gap-2">
+            <SectionLabel className="min-w-0 truncate">
+              {contentLabel}
+            </SectionLabel>
+            {selectedSet && (
+              <button
+                type="button"
+                onClick={() => setSelectedSet(null)}
+                className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/15"
+              >
+                Limpar
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
+          {/* ── Banner do set selecionado ── */}
+          {selectedSet && (
+            <div className="glass-card flex items-stretch gap-3 !rounded-2xl p-2">
+              {selectedSetImg && (
+                <div className="relative h-[70px] w-[110px] shrink-0">
+                  <Image
+                    src={selectedSetImg}
+                    alt={selectedSet.name}
+                    fill
+                    sizes="110px"
+                    className="object-contain"
+                  />
+                </div>
+              )}
+              <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-1 pr-2">
+                <p className="line-clamp-2 text-[13px] font-bold leading-snug text-foreground">
+                  {selectedSet.name}
+                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                  {selectedSet.tcg?.name && <span>{selectedSet.tcg.name}</span>}
+                  {selectedSetRelDate && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="size-2.5" />
+                      {selectedSetRelDate}
+                    </span>
+                  )}
+                </div>
+                {selectedSetTotal > 0 && (
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-border">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{
+                          width: `${Math.min((selectedSetProg?.count ?? 0) / selectedSetTotal, 1) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {selectedSetProg?.count ?? 0}/{selectedSetTotal}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {cardsLoading && cards.length === 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
+          {/* ── Grid de cartas ── */}
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          {cardsLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 10 }).map((_, i) => (
                 <GridCardSkeleton key={`skeleton-${i}`} />
               ))}
             </div>
@@ -715,7 +1014,7 @@ function ExplorePageContent() {
               </p>
             </div>
           ) : viewType === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {sortedCards.map((card) => (
                 <TcgCard
                   key={card.id}
@@ -737,7 +1036,7 @@ function ExplorePageContent() {
                   cardHref={`/card/${card.id}`}
                   quantity={collectionMap[card.id] ?? 0}
                   defaultPortfolioId={activePortfolioId}
-                  onAdd={refreshPortfolio}
+                  onAdd={invalidateCollection}
                 />
               ))}
             </div>
@@ -748,7 +1047,7 @@ function ExplorePageContent() {
                   key={card.id}
                   card={card}
                   activePortfolioId={activePortfolioId}
-                  onAdd={refreshPortfolio}
+                  onAdd={invalidateCollection}
                 />
               ))}
             </div>

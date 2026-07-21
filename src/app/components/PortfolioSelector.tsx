@@ -210,15 +210,19 @@ export function PortfolioSelector({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          icon={<ChevronDown className="size-4 animate-in fade-in" />}
+        <button
+          type="button"
+          className="glass-pill flex min-w-0 cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-muted/40"
         >
-          {labelPrefix}
-          <span className="text-primary font-extrabold hover:underline flex items-center gap-1.5 ml-1 select-none">
-            {activePortfolio?.name ?? "Carregando..."}
+          <span className="size-[7px] shrink-0 rounded-full bg-primary" />
+          <span className="shrink-0 text-xs font-medium text-muted-foreground">
+            {labelPrefix}
           </span>
-        </Button>
+          <span className="truncate text-xs font-bold text-foreground">
+            {activePortfolio?.name ?? "Selecionar portfólio"}
+          </span>
+          <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+        </button>
       </PopoverTrigger>
 
       <PopoverContent className="w-80 p-0 overflow-hidden bg-background border-border shadow-xl rounded-xl z-50">

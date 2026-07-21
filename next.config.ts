@@ -70,6 +70,11 @@ const nextConfig: NextConfig = {
         hostname: "images.pokemontcg.io",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "svgs.scryfall.io",
+        pathname: "/**",
+      },
     ],
   },
 };

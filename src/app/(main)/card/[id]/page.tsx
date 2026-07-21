@@ -1,17 +1,5 @@
 "use client";
 
-import { Area } from "@/components/charts/area";
-import { AreaChart } from "@/components/charts/area-chart";
-import Grid from "@/components/charts/grid";
-import { ChartTooltip } from "@/components/charts/tooltip";
-import { XAxis } from "@/components/charts/x-axis";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useCard } from "@/hooks/use-cards";
-import { api } from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
 import {
   AlertCircle,
   Check,
@@ -30,10 +18,21 @@ import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useState, useEffect, useCallback, useRef } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
-import { type Portfolio, type CollectionItem } from "@/lib/api";
+import { Area } from "@/components/charts/area";
+import { AreaChart } from "@/components/charts/area-chart";
+import Grid from "@/components/charts/grid";
+import { ChartTooltip } from "@/components/charts/tooltip";
+import { XAxis } from "@/components/charts/x-axis";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api, type CollectionItem, type Portfolio } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
+import { useCardDetail } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 function getSearchUrls(
@@ -114,28 +113,86 @@ function formatPrice(value: number) {
   });
 }
 
+/**
+ * Skeleton 1:1 com o layout final — mesmos wrappers, paddings e proporções
+ * (aspect-5/7 da imagem, aspect-2.2/1 do chart, alturas das linhas), então a
+ * troca skeleton → conteúdo não desloca nada na tela.
+ */
 function CardDetailSkeleton() {
   return (
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Breadcrumb */}
       <Skeleton className="h-4 w-64" />
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+
+      {/* Header: título + caixa de preço (mesmas alturas do conteúdo real) */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-80" />
-          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-5 w-56" />
         </div>
-        <Skeleton className="h-10 w-48" />
+        <div className="glass-card !rounded-xl p-3.5 min-w-[220px] space-y-1.5">
+          <Skeleton className="h-3 w-44" />
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-3 w-40" />
+          <Skeleton className="h-7 w-56" />
+        </div>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Imagem (aspect idêntico ao real) */}
         <div className="lg:col-span-3">
-          <Skeleton className="w-full aspect-5/7 rounded-xl" />
+          <div className="glass-card !rounded-xl p-3">
+            <Skeleton className="w-full aspect-5/7 rounded-xl" />
+          </div>
         </div>
+
+        {/* Chart + detalhes */}
         <div className="lg:col-span-5 space-y-5">
-          <Skeleton className="w-full h-64 rounded-xl" />
-          <Skeleton className="w-full h-48 rounded-xl" />
+          <div className="glass-card !rounded-xl p-4 space-y-4">
+            <Skeleton className="h-4 w-52" />
+            <Skeleton className="w-full aspect-[2.2/1] rounded-lg" />
+          </div>
+          <div className="glass-card !rounded-xl p-4 space-y-4">
+            <Skeleton className="h-4 w-24" />
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
+                <div key={i} className="space-y-1">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* Adicionar + lojas */}
         <div className="lg:col-span-4 space-y-5">
-          <Skeleton className="w-full h-56 rounded-xl" />
-          <Skeleton className="w-full h-40 rounded-xl" />
+          <div className="glass-card !rounded-xl p-4 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <Skeleton className="h-9 w-44 rounded-full" />
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-12" />
+              <Skeleton className="h-8 w-32 rounded-full" />
+            </div>
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <div className="glass-card !rounded-xl p-4 space-y-3">
+            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-3 w-full" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
+              <div key={i} className="flex items-center gap-3 py-1">
+                <Skeleton className="size-7 rounded-md" />
+                <Skeleton className="h-3.5 w-40" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>
@@ -153,7 +210,10 @@ export default function CardDetailPage({
   const sParams = use(searchParams);
   const queryPortfolioId = sParams?.portfolioId;
 
-  const { card, loading, error } = useCard(id);
+  const cardQuery = useCardDetail(id);
+  const card = cardQuery.data ?? null;
+  const loading = cardQuery.isPending;
+  const error = cardQuery.error ? cardQuery.error.message : null;
   const { data: session } = useSession();
   const router = useRouter();
   const [qty, setQty] = useState(1);
@@ -317,7 +377,7 @@ export default function CardDetailPage({
         portfolioId: activePortfolioId || undefined,
       });
       setAdded(true);
-      toast.success(`${card!.name} adicionado à coleção!`);
+      toast.success(`${card?.name ?? "Carta"} adicionado à coleção!`);
       fetchOwnedItems();
       fetchPortfolios();
       setTimeout(() => setAdded(false), 3000);
@@ -389,7 +449,7 @@ export default function CardDetailPage({
         </div>
 
         {/* Preço internacional (estimado) — ver adr/0002 */}
-        <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-xs p-3.5 min-w-[220px] flex flex-col gap-0.5 shadow-xs">
+        <div className="glass-card !rounded-xl p-3.5 min-w-[220px] flex flex-col gap-0.5">
           <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold flex items-center gap-1">
             <Globe className="size-3" />
             Preço internacional (estimado)
@@ -439,7 +499,7 @@ export default function CardDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left: Card Image */}
         <div className="lg:col-span-3">
-          <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3 sticky top-20">
+          <div className="glass-card !rounded-xl p-3 sticky top-20">
             <Image
               src={card.imageUrl}
               alt={card.name}
@@ -452,7 +512,7 @@ export default function CardDetailPage({
 
         {/* Center: Chart + Details */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="rounded-xl border border-border bg-card backdrop-blur-sm p-4">
+          <div className="glass-card !rounded-xl p-4">
             <h2 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
               <TrendingUp className="size-4 text-primary" />
               Histórico de Preço (Ungraded)
@@ -474,16 +534,16 @@ export default function CardDetailPage({
                 />
                 <Area
                   dataKey="price"
-                  fill="#EF1556"
+                  fill="var(--primary)"
                   fillOpacity={0.15}
-                  stroke="#EF1556"
+                  stroke="var(--primary)"
                   strokeWidth={2.5}
                   gradientToOpacity={0.01}
                 />
                 <ChartTooltip
                   rows={(point) => [
                     {
-                      color: "#EF1556",
+                      color: "var(--primary)",
                       label: "Preço",
                       value: `R$ ${formatPrice(Number(point.price))}`,
                     },
@@ -509,10 +569,10 @@ export default function CardDetailPage({
           </div>
 
           {/* Details */}
-          <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-4">
+          <div className="glass-card !rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <AlertCircle className="size-4 text-blue-400" />
+                <AlertCircle className="size-4 text-tertiary" />
                 Detalhes
               </h2>
             </div>
@@ -588,7 +648,7 @@ export default function CardDetailPage({
 
         {/* Right: Collection + Shop */}
         <div className="lg:col-span-4 space-y-5">
-          <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-4">
+          <div className="glass-card !rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 {portfolios.length > 0 ? (
@@ -737,7 +797,7 @@ export default function CardDetailPage({
 
           {/* User Holdings (Inventory) */}
           {session?.user && ownedItems.length > 0 && (
-            <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-3">
+            <div className="glass-card !rounded-xl p-4 space-y-3">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                 <Package className="size-3.5 text-primary animate-in zoom-in duration-200" />
                 Suas Cópias (
@@ -780,52 +840,54 @@ export default function CardDetailPage({
           )}
 
           {/* Preço real nas lojas BR — links de conferência (ver adr/0002) */}
-          <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4 space-y-1">
+          <div className="glass-card !rounded-xl p-4 space-y-1">
             <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
               <ShoppingCart className="size-3.5 text-emerald-400" />
               Preço real nas lojas BR
             </h3>
             <p className="text-[10px] text-muted-foreground leading-snug mb-3">
-              O preço do mercado brasileiro você confere direto na loja —
-              clique para abrir a página desta carta.
+              O preço do mercado brasileiro você confere direto na loja — clique
+              para abrir a página desta carta.
             </p>
 
-            {getSearchUrls(card.name, card.tcg?.slug, card.collectorNumber).map((link) => (
-              <a
-                key={link.name}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-3">
-                  {link.logo ? (
-                    <span className="size-7 shrink-0 rounded-md bg-white overflow-hidden flex items-center justify-center">
-                      <Image
-                        src={link.logo}
-                        alt={link.name}
-                        width={28}
-                        height={28}
-                        className="size-7 object-cover"
-                      />
+            {getSearchUrls(card.name, card.tcg?.slug, card.collectorNumber).map(
+              (link) => (
+                <a
+                  key={link.name}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    {link.logo ? (
+                      <span className="size-7 shrink-0 rounded-md bg-white overflow-hidden flex items-center justify-center">
+                        <Image
+                          src={link.logo}
+                          alt={link.name}
+                          width={28}
+                          height={28}
+                          className="size-7 object-cover"
+                        />
+                      </span>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
+                      >
+                        {link.name}
+                      </Badge>
+                    )}
+                    <span className="text-xs text-muted-foreground group-hover:text-foreground">
+                      {link.label}
                     </span>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                    >
-                      {link.name}
-                    </Badge>
-                  )}
-                  <span className="text-xs text-muted-foreground group-hover:text-foreground">
-                    {link.label}
-                  </span>
-                </div>
-                <ExternalLink
-                  className={`size-3.5 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
-                />
-              </a>
-            ))}
+                  </div>
+                  <ExternalLink
+                    className={`size-3.5 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
+                  />
+                </a>
+              ),
+            )}
           </div>
         </div>
       </div>
