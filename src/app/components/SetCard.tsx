@@ -3,7 +3,7 @@
 import { type CardSet } from "@/lib/api";
 import { Layers } from "lucide-react";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export interface SetProgress {
   count: number;
@@ -32,6 +32,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
   const collected = progress?.count ?? 0;
   const pct = total > 0 ? Math.min(collected / total, 1) : 0;
   const cdnUrl = getSetImageUrl(set);
+  const [imgFailed, setImgFailed] = useState(false);
 
   const relDate = useMemo(() => {
     if (!set.releaseDate) return null;
@@ -48,11 +49,11 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm shadow-sm hover:shadow-md hover:border-slate-400 dark:hover:border-slate-700 hover:-translate-y-0.5 hover:bg-background/50 transition-all duration-300 cursor-pointer w-full h-full"
+      className="glass-card group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden !rounded-2xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
     >
       <div>
         <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3 border-b border-border">
-          {cdnUrl ? (
+          {cdnUrl && !imgFailed ? (
             <Image
               src={cdnUrl}
               alt={set.name}
@@ -60,6 +61,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
               sizes="(max-w-768px) 100vw, 300px"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
+              onError={() => setImgFailed(true)}
             />
           ) : (
             <Layers className="size-8 text-muted-foreground stroke-[1.5]" />
@@ -88,9 +90,9 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
       {total > 0 && (
         <div className="p-3 pt-0 mt-auto">
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
+            <div className="flex-1 bg-border rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                className="bg-primary h-full rounded-full transition-all duration-500"
                 style={{ width: `${pct * 100}%` }}
               />
             </div>

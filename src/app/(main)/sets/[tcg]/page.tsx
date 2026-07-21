@@ -1,28 +1,29 @@
 "use client";
 
-import { PortfolioSelector } from "@/app/components/PortfolioSelector";
-import { SetCard } from "@/app/components/SetCard";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  api,
-  type CardSet,
-  type CollectionItem,
-  type Portfolio,
-  type Tcg,
-} from "@/lib/api";
-import {
-  ArrowLeft,
   Calendar,
   ChevronRight,
   Layers,
   Loader2,
   Search,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { SetCard } from "@/app/components/SetCard";
+import { SectionLabel } from "@/components/ui/glass";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { CardSet, Portfolio } from "@/lib/api";
+import {
+  useCardSets,
+  useInvalidateCollection,
+  usePortfolioDetail,
+  usePortfolios,
+  useTcgs,
+} from "@/lib/queries";
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
@@ -36,25 +37,32 @@ function formatDate(dateStr: string | null) {
   }
 }
 
-function SetRowSkeleton() {
+/** Skeleton 1:1 com o SetCard do grid — mesma estrutura, sem layout shift */
+function SetCardSkeleton() {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card">
-      <Skeleton className="size-10 rounded-lg shrink-0" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-4 w-48" />
-        <Skeleton className="h-3 w-32" />
+    <div className="glass-card overflow-hidden !rounded-2xl">
+      <Skeleton className="aspect-video w-full rounded-none" />
+      <div className="space-y-2 p-3">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+      <div className="p-3 pt-0">
+        <Skeleton className="h-1.5 w-full rounded-full" />
       </div>
     </div>
   );
 }
 
+/** Linha compacta dos sets ainda sem cartas sincronizadas */
 function SetRow({ set }: { set: CardSet }) {
   const date = formatDate(set.releaseDate);
 
   return (
-    <div className="flex items-center gap-4 p-3 rounded-xl border border-border bg-card/50 opacity-50">
-      <div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+    <div className="glass-card flex items-center gap-4 !rounded-2xl p-3 opacity-50">
+      <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
         {set.imageUrl ? (
+          // biome-ignore lint/performance/noImgElement: thumbs pequenos de fontes variadas, sem otimização necessária
           <img
             src={set.imageUrl}
             alt={set.name}
@@ -64,16 +72,16 @@ function SetRow({ set }: { set: CardSet }) {
           <Layers className="size-4 text-muted-foreground" />
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium text-foreground truncate">
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-medium text-foreground">
           {set.name}
         </h3>
-        <div className="flex items-center gap-3 mt-0.5">
-          <span className="text-xs text-muted-foreground font-mono">
+        <div className="mt-0.5 flex items-center gap-3">
+          <span className="font-mono text-xs text-muted-foreground">
             {set.code}
           </span>
           {date && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="size-3" />
               {date}
             </span>
@@ -87,126 +95,86 @@ function SetRow({ set }: { set: CardSet }) {
 function TcgSetsPageContent() {
   const { tcg: tcgSlug } = useParams<{ tcg: string }>();
   const router = useRouter();
-  const [tcg, setTcg] = useState<Tcg | null>(null);
-  const [sets, setSets] = useState<CardSet[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useQueryState("q", {
     defaultValue: "",
     throttleMs: 300,
   });
 
-  // Portfolio tracking for collection progress
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
-  const [portfolioItems, setPortfolioItems] = useState<CollectionItem[]>([]);
 
-  // Load basic TCG info and sets
+  // Dados via TanStack Query — useCardSets compartilha cache com o carrossel
+  // do Explore (mesma queryKey ['card-sets', tcg])
+  const tcgsQuery = useTcgs();
+  const setsQuery = useCardSets(tcgSlug);
+  const loading = tcgsQuery.isPending || setsQuery.isPending;
+  const tcg = tcgsQuery.data?.find((t) => t.slug === tcgSlug) ?? null;
+
+  const portfoliosQuery = usePortfolios();
+  const portfolioDetail = usePortfolioDetail(activePortfolioId || undefined);
+  const invalidateCollection = useInvalidateCollection();
+
+  // Sets com imagem primeiro (getcollectr > ygoprodeck), sort estável
+  const sets = useMemo(() => {
+    const rank = (s: CardSet) =>
+      s.imageUrl?.includes("getcollectr")
+        ? 0
+        : s.imageUrl?.includes("ygoprodeck")
+          ? 1
+          : 2;
+    return [...(setsQuery.data ?? [])].sort((a, b) => rank(a) - rank(b));
+  }, [setsQuery.data]);
+
+  // Favoritos primeiro + escolha do ativo (mesma regra do Explore)
   useEffect(() => {
-    async function load() {
-      setLoading(true);
+    const data = portfoliosQuery.data;
+    if (!data) return;
+
+    const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
+    let favs: string[] = [];
+    if (favsStr) {
       try {
-        const [tcgs, setsData] = await Promise.all([
-          api.cards.tcgs(),
-          api.cards.sets(tcgSlug),
-        ]);
-        const found = tcgs.find((t) => t.slug === tcgSlug);
-        setTcg(found ?? null);
-
-        // Sort sets: getcollectr images first, then ygoprodeck, then others (stable sort)
-        const sorted = [...setsData].sort((a, b) => {
-          const rank = (s: any) =>
-            s.imageUrl?.includes("getcollectr")
-              ? 0
-              : s.imageUrl?.includes("ygoprodeck")
-                ? 1
-                : 2;
-          return rank(a) - rank(b);
-        });
-
-        setSets(sorted);
-      } catch (err) {
-        console.error("Error loading TCG sets", err);
-      } finally {
-        setLoading(false);
-      }
+        favs = JSON.parse(favsStr) as string[];
+      } catch {}
+    } else {
+      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+      if (oldDefault) favs = [oldDefault];
     }
-    load();
-  }, [tcgSlug]);
 
-  const fetchPortfolios = useCallback(() => {
-    api.collection
-      .portfolios()
-      .then((data) => {
-        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-        let favs: string[] = [];
-        if (favsStr) {
-          try {
-            favs = JSON.parse(favsStr) as string[];
-          } catch {}
-        } else {
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          if (oldDefault) favs = [oldDefault];
+    const sortedPortfolios = [...data].sort((a, b) => {
+      const aFav = favs.includes(a.id);
+      const bFav = favs.includes(b.id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
+
+    setPortfolios(sortedPortfolios);
+
+    if (sortedPortfolios.length > 0) {
+      const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
+      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
+      const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
+
+      const nextActive = foundFav
+        ? foundFav.id
+        : hasOldStored && oldDefault
+          ? oldDefault
+          : sortedPortfolios[0].id;
+
+      setActivePortfolioId((prev) => {
+        if (prev && sortedPortfolios.some((p) => p.id === prev)) {
+          return prev;
         }
-
-        const sortedPortfolios = [...data].sort((a, b) => {
-          const aFav = favs.includes(a.id);
-          const bFav = favs.includes(b.id);
-          if (aFav && !bFav) return -1;
-          if (!aFav && bFav) return 1;
-          return 0;
-        });
-
-        setPortfolios(sortedPortfolios);
-
-        if (sortedPortfolios.length > 0) {
-          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some(
-            (p) => p.id === oldDefault,
-          );
-
-          const nextActive = foundFav
-            ? foundFav.id
-            : hasOldStored && oldDefault
-              ? oldDefault
-              : sortedPortfolios[0].id;
-
-          setActivePortfolioId((prev) => {
-            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
-              return prev;
-            }
-            return nextActive;
-          });
-        }
-      })
-      .catch(() => {}); // user may not be logged in
-  }, []);
-
-  // Load portfolios
-  useEffect(() => {
-    fetchPortfolios();
-  }, [fetchPortfolios]);
-
-  // Fetch portfolio details to compute set progress
-  useEffect(() => {
-    if (!activePortfolioId) {
-      setPortfolioItems([]);
-      return;
-    }
-    api.collection
-      .getPortfolio(activePortfolioId)
-      .then((data) => {
-        setPortfolioItems(data.items);
-      })
-      .catch(() => {
-        setPortfolioItems([]);
+        return nextActive;
       });
-  }, [activePortfolioId]);
+    }
+  }, [portfoliosQuery.data]);
 
-  // Compute set progress map: unique cards collected per set code
+  // Progresso por set (cartas únicas) a partir do detalhe do portfólio
   const setProgressMap = useMemo(() => {
     const progressMap: Record<string, { count: number; value: number }> = {};
-    for (const item of portfolioItems) {
+    for (const item of portfolioDetail.data?.items ?? []) {
       const setCode = item.card.set?.code ?? item.card.setCode;
       if (!setCode) continue;
       if (!progressMap[setCode]) {
@@ -217,7 +185,7 @@ function TcgSetsPageContent() {
         (item.card.prices?.[0]?.value ?? 0) * item.quantity;
     }
     return progressMap;
-  }, [portfolioItems]);
+  }, [portfolioDetail.data]);
 
   const filteredSets = useMemo(() => {
     if (!search) return sets;
@@ -235,65 +203,67 @@ function TcgSetsPageContent() {
   );
 
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">
-        <Link href="/sets" className="hover:text-foreground transition-colors">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+      {/* Breadcrumb (mesmo padrão da página da carta) */}
+      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Link href="/sets" className="hover:text-primary transition-colors">
           Sets
         </Link>
         <ChevronRight className="size-3" />
         <span className="text-foreground">{tcg?.name ?? tcgSlug}</span>
-      </div>
+      </nav>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Link
-            href="/sets"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2 font-mono uppercase"
-          >
-            <ArrowLeft className="size-3" />
-            Voltar
-          </Link>
           <h1 className="text-2xl font-bold text-foreground">
             {tcg?.name ?? tcgSlug}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             {loading
               ? "Carregando..."
-              : `${sets.length} sets encontrados • ${setsWithCards.length} com cartas catalogadas`}
+              : `${sets.length} sets • ${setsWithCards.length} com cartas catalogadas`}
           </p>
         </div>
 
-        {/* Portfolio selector & Search filter */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
           {portfolios.length > 0 && (
             <PortfolioSelector
               portfolios={portfolios}
               activePortfolioId={activePortfolioId}
               onSelect={setActivePortfolioId}
-              onRefresh={fetchPortfolios}
-              labelPrefix="Adicionando a:"
+              onRefresh={invalidateCollection}
+              labelPrefix="Adicionando em"
             />
           )}
 
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
+          <div className="glass-pill flex h-10 w-full items-center gap-2.5 px-4 sm:w-72">
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filtrar sets..."
-              className="pl-10 h-9"
+              className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
+            {search.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Content */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => (
-            <SetRowSkeleton key={i} />
+            // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
+            <SetCardSkeleton key={i} />
           ))}
         </div>
       ) : filteredSets.length === 0 ? (
@@ -310,14 +280,13 @@ function TcgSetsPageContent() {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Sets with cards — SetCard grid */}
+          {/* Sets com cartas — grid de SetCard */}
           {setsWithCards.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Layers className="size-3.5 text-muted-foreground" />
+              <SectionLabel>
                 Sets com cartas ({setsWithCards.length})
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              </SectionLabel>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {setsWithCards.map((set) => (
                   <SetCard
                     key={set.id}
@@ -330,20 +299,19 @@ function TcgSetsPageContent() {
             </section>
           )}
 
-          {/* Sets without cards — compact list */}
+          {/* Sets sem cartas — lista compacta */}
           {setsWithoutCards.length > 0 && (
-            <section className="space-y-2">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Layers className="size-3.5 opacity-50" />
+            <section className="space-y-3">
+              <SectionLabel>
                 Aguardando sync ({setsWithoutCards.length})
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              </SectionLabel>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {setsWithoutCards.slice(0, 40).map((set) => (
                   <SetRow key={set.id} set={set} />
                 ))}
               </div>
               {setsWithoutCards.length > 40 && (
-                <p className="text-xs text-muted-foreground text-center py-2">
+                <p className="py-2 text-center text-xs text-muted-foreground">
                   + {setsWithoutCards.length - 40} sets restantes aguardando
                   sincronização
                 </p>

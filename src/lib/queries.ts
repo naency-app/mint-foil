@@ -79,6 +79,13 @@ export function useCardDetail(id: string | undefined) {
   });
 }
 
+export function useTcgs() {
+  return useQuery({
+    queryKey: ["tcgs"],
+    queryFn: () => api.cards.tcgs(),
+  });
+}
+
 export function useSetBySlug(
   tcgSlug: string | undefined,
   setSlug: string | undefined,
