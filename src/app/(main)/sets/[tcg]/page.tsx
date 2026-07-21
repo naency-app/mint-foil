@@ -12,8 +12,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { FilterSection, ProductTypeFilter } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CardSet, Portfolio } from "@/lib/api";
@@ -103,6 +105,10 @@ function TcgSetsPageContent() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState("");
 
+  // Filtros da sidebar
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
+  const [selectedProgress, setSelectedProgress] = useState<string[]>([]);
+
   // Dados via TanStack Query — useCardSets compartilha cache com o carrossel
   // do Explore (mesma queryKey ['card-sets', tcg])
   const tcgsQuery = useTcgs();
@@ -187,15 +193,51 @@ function TcgSetsPageContent() {
     return progressMap;
   }, [portfolioDetail.data]);
 
+  // Anos presentes na listagem, para o filtro (mais recentes primeiro)
+  const yearOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const s of sets) {
+      if (!s.releaseDate) continue;
+      const year = String(new Date(s.releaseDate).getFullYear());
+      counts.set(year, (counts.get(year) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([year, count]) => ({ year, count }));
+  }, [sets]);
+
   const filteredSets = useMemo(() => {
-    if (!search) return sets;
-    const term = search.toLowerCase();
-    return sets.filter(
-      (s) =>
-        s.name.toLowerCase().includes(term) ||
-        s.code.toLowerCase().includes(term),
-    );
-  }, [sets, search]);
+    function progressBucket(set: CardSet): string {
+      const total = set.totalCards ?? set._count?.cards ?? 0;
+      const collected = setProgressMap[set.code]?.count ?? 0;
+      if (collected === 0) return "none";
+      if (total > 0 && collected >= total) return "complete";
+      return "started";
+    }
+
+    let result = sets;
+    if (search) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.name.toLowerCase().includes(term) ||
+          s.code.toLowerCase().includes(term),
+      );
+    }
+    if (selectedYears.length > 0) {
+      result = result.filter(
+        (s) =>
+          s.releaseDate &&
+          selectedYears.includes(String(new Date(s.releaseDate).getFullYear())),
+      );
+    }
+    if (selectedProgress.length > 0) {
+      result = result.filter((s) =>
+        selectedProgress.includes(progressBucket(s)),
+      );
+    }
+    return result;
+  }, [sets, search, selectedYears, selectedProgress, setProgressMap]);
 
   const setsWithCards = filteredSets.filter((s) => (s._count?.cards ?? 0) > 0);
   const setsWithoutCards = filteredSets.filter(
@@ -258,68 +300,149 @@ function TcgSetsPageContent() {
         </div>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {Array.from({ length: 10 }).map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
-            <SetCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : filteredSets.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Search className="size-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-1">
-            Nenhum set encontrado
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {search
-              ? `Nenhum resultado para "${search}".`
-              : "Nenhum set disponível para este TCG."}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Sets com cartas — grid de SetCard */}
-          {setsWithCards.length > 0 && (
-            <section className="space-y-3">
-              <SectionLabel>
-                Sets com cartas ({setsWithCards.length})
-              </SectionLabel>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                {setsWithCards.map((set) => (
-                  <SetCard
-                    key={set.id}
-                    set={set}
-                    progress={setProgressMap[set.code]}
-                    onClick={() => router.push(`/sets/${tcgSlug}/${set.slug}`)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+      {/* Sidebar de filtros aparente + conteúdo (sem items-start: o aside
+          estica na linha e o sticky acompanha o scroll) */}
+      <div className="flex gap-6">
+        <aside className="hidden w-60 shrink-0 lg:block">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+            <ProductTypeFilter />
 
-          {/* Sets sem cartas — lista compacta */}
-          {setsWithoutCards.length > 0 && (
-            <section className="space-y-3">
-              <SectionLabel>
-                Aguardando sync ({setsWithoutCards.length})
-              </SectionLabel>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {setsWithoutCards.slice(0, 40).map((set) => (
-                  <SetRow key={set.id} set={set} />
+            {yearOptions.length > 0 && (
+              <FilterSection title="Ano de Lançamento">
+                <div className="space-y-2 pt-2">
+                  {yearOptions.map(({ year, count }) => (
+                    <div
+                      key={year}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Checkbox
+                          id={`year-${year}`}
+                          checked={selectedYears.includes(year)}
+                          onCheckedChange={() =>
+                            setSelectedYears((prev) =>
+                              prev.includes(year)
+                                ? prev.filter((x) => x !== year)
+                                : [...prev, year],
+                            )
+                          }
+                        />
+                        <label
+                          htmlFor={`year-${year}`}
+                          className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {year}
+                        </label>
+                      </div>
+                      <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
+                        {count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
+
+            <FilterSection title="Progresso da Coleção">
+              <div className="space-y-2 pt-2">
+                {[
+                  { key: "none", label: "Não começado" },
+                  { key: "started", label: "Em progresso" },
+                  { key: "complete", label: "Completo" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`progress-${key}`}
+                      checked={selectedProgress.includes(key)}
+                      onCheckedChange={() =>
+                        setSelectedProgress((prev) =>
+                          prev.includes(key)
+                            ? prev.filter((x) => x !== key)
+                            : [...prev, key],
+                        )
+                      }
+                    />
+                    <label
+                      htmlFor={`progress-${key}`}
+                      className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {label}
+                    </label>
+                  </div>
                 ))}
               </div>
-              {setsWithoutCards.length > 40 && (
-                <p className="py-2 text-center text-xs text-muted-foreground">
-                  + {setsWithoutCards.length - 40} sets restantes aguardando
-                  sincronização
-                </p>
+            </FilterSection>
+          </div>
+        </aside>
+
+        {/* Coluna de conteúdo */}
+        <div className="min-w-0 flex-1 space-y-4">
+          {/* Content */}
+          {loading ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 10 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
+                <SetCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredSets.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Search className="size-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Nenhum set encontrado
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {search
+                  ? `Nenhum resultado para "${search}".`
+                  : "Nenhum set disponível para este TCG."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Sets com cartas — grid de SetCard */}
+              {setsWithCards.length > 0 && (
+                <section className="space-y-3">
+                  <SectionLabel>
+                    Sets com cartas ({setsWithCards.length})
+                  </SectionLabel>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+                    {setsWithCards.map((set) => (
+                      <SetCard
+                        key={set.id}
+                        set={set}
+                        progress={setProgressMap[set.code]}
+                        onClick={() =>
+                          router.push(`/sets/${tcgSlug}/${set.slug}`)
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
               )}
-            </section>
+
+              {/* Sets sem cartas — lista compacta */}
+              {setsWithoutCards.length > 0 && (
+                <section className="space-y-3">
+                  <SectionLabel>
+                    Aguardando sync ({setsWithoutCards.length})
+                  </SectionLabel>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    {setsWithoutCards.slice(0, 40).map((set) => (
+                      <SetRow key={set.id} set={set} />
+                    ))}
+                  </div>
+                  {setsWithoutCards.length > 40 && (
+                    <p className="py-2 text-center text-xs text-muted-foreground">
+                      + {setsWithoutCards.length - 40} sets restantes aguardando
+                      sincronização
+                    </p>
+                  )}
+                </section>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </main>
   );
 }
