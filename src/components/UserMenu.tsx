@@ -1,18 +1,16 @@
 "use client";
 
-import { signOut, useSession } from "@/lib/auth-client";
-
 import { IconLogin, IconLogout, IconSettings } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
@@ -76,35 +74,53 @@ export function UserMenu() {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col gap-1">
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="glass-card w-60 !rounded-2xl border-border p-1.5 shadow-xl"
+      >
+        {/* Header do usuário com avatar */}
+        <div className="flex items-center gap-3 px-2 py-2">
+          {user.image ? (
+            <Image
+              src={user.image}
+              alt=""
+              width={36}
+              height={36}
+              className="size-9 shrink-0 rounded-full border border-border object-cover"
+            />
+          ) : (
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-foreground">
+              {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0">
             {user.name && (
-              <p className="text-sm font-medium text-foreground">{user.name}</p>
+              <p className="truncate text-sm font-semibold text-foreground">
+                {user.name}
+              </p>
             )}
             {user.email && (
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="truncate text-xs text-muted-foreground">
                 {user.email}
               </p>
             )}
           </div>
-        </DropdownMenuLabel>
+        </div>
 
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-border" />
 
         <DropdownMenuItem
-          className="cursor-pointer"
+          className="cursor-pointer rounded-lg px-2 py-2 text-sm font-medium focus:bg-muted/60"
           onClick={() => router.push("/settings")}
         >
-          <IconSettings className="size-4" />
+          <IconSettings className="size-4 text-muted-foreground" />
           Configurações
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
-
         <DropdownMenuItem
           variant="destructive"
-          className="cursor-pointer"
+          className="cursor-pointer rounded-lg px-2 py-2 text-sm font-medium"
           onClick={handleLogout}
         >
           <IconLogout className="size-4" />

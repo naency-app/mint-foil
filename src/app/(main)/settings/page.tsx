@@ -1,14 +1,5 @@
 "use client";
 
-import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { api, type UserStats } from "@/lib/api";
-import { signOut, useSession } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
 import {
   BarChart3,
   Crown,
@@ -28,11 +19,20 @@ import {
   Trophy,
   User,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from "next-themes";
+import { Suspense, useEffect, useState } from "react";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api, type UserStats } from "@/lib/api";
+import { signOut, useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
@@ -132,19 +132,16 @@ function AdminPanel() {
   };
 
   return (
-    <section className="rounded-xl border border-violet-500/30 bg-violet-900/10 backdrop-blur-sm p-6 space-y-5">
-      <h2 className="text-sm font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2">
-        <Settings2 className="size-4" />
+    <section className="glass-card !rounded-2xl p-6 space-y-5">
+      <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+        <Settings2 className="size-4 text-muted-foreground" />
         Admin
-        <Badge
-          variant="outline"
-          className="ml-1 text-[10px] border-violet-500/40 text-violet-400"
-        >
+        <Badge variant="outline" className="ml-1 text-[10px]">
           internal
         </Badge>
       </h2>
 
-      <Separator className="bg-violet-500/20" />
+      <Separator className="bg-border" />
 
       <div className="space-y-1.5">
         <p className="text-xs text-muted-foreground">SCRAPER_SECRET</p>
@@ -167,7 +164,7 @@ function AdminPanel() {
           return (
             <div
               key={job.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card/50 px-4 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/30 px-4 py-2.5"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">
@@ -305,12 +302,12 @@ function StatsSkeleton() {
     <div className="space-y-6">
       {/* 2 Big Cards Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-border bg-card/50 p-6 space-y-3">
+        <div className="glass-card !rounded-2xl p-6 space-y-3">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-9 w-40" />
           <Skeleton className="h-4 w-32" />
         </div>
-        <div className="rounded-xl border border-border bg-card/50 p-6 space-y-3">
+        <div className="glass-card !rounded-2xl p-6 space-y-3">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-9 w-40" />
           <Skeleton className="h-4 w-32" />
@@ -320,10 +317,7 @@ function StatsSkeleton() {
       {/* 4 Mini Cards Skeleton */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="rounded-xl border border-border bg-card/50 p-4 space-y-2"
-          >
+          <div key={i} className="glass-card !rounded-2xl p-4 space-y-2">
             <Skeleton className="h-3 w-20 mx-auto sm:mx-0" />
             <Skeleton className="h-7 w-12 mx-auto sm:mx-0" />
           </div>
@@ -331,7 +325,7 @@ function StatsSkeleton() {
       </div>
 
       {/* TCG Breakdown Skeleton */}
-      <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+      <div className="glass-card !rounded-2xl p-6 space-y-4">
         <Skeleton className="h-4 w-32" />
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -347,7 +341,7 @@ function StatsSkeleton() {
       </div>
 
       {/* Top Cards Skeleton */}
-      <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+      <div className="glass-card !rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-48" />
         </div>
@@ -503,7 +497,7 @@ function SettingsContent() {
               {statsLoading ? (
                 <StatsSkeleton />
               ) : !stats ? (
-                <div className="text-center py-10 rounded-xl border border-border bg-card/45 p-6">
+                <div className="text-center py-10 glass-card !rounded-2xl p-6">
                   <p className="text-sm text-muted-foreground">
                     Não foi possível carregar as estatísticas.
                   </p>
@@ -549,7 +543,7 @@ function SettingsContent() {
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-border bg-card/50 p-6 space-y-2">
+                    <div className="glass-card !rounded-2xl p-6 space-y-2">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Sparkles className="size-4 text-primary" />
                         <span className="text-xs font-bold uppercase tracking-wider">
@@ -603,7 +597,7 @@ function SettingsContent() {
                     ].map((m) => (
                       <div
                         key={m.label}
-                        className="rounded-xl border border-border bg-card/50 p-4 space-y-1 text-center sm:text-left"
+                        className="glass-card !rounded-2xl p-4 space-y-1 text-center sm:text-left"
                       >
                         <div className="flex items-center justify-center sm:justify-start gap-1.5 text-muted-foreground">
                           <m.icon className="size-3.5 text-primary" />
@@ -620,7 +614,7 @@ function SettingsContent() {
 
                   {/* TCG Breakdown */}
                   {stats.tcgBreakdown.length > 0 && (
-                    <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+                    <div className="glass-card !rounded-2xl p-6 space-y-4">
                       <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                         Distribuição por Jogo
                       </h3>
@@ -656,7 +650,7 @@ function SettingsContent() {
 
                   {/* Top Cards */}
                   {stats.topCards.length > 0 && (
-                    <div className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+                    <div className="glass-card !rounded-2xl p-6 space-y-4">
                       <div className="flex items-center gap-2">
                         <Trophy className="size-4 text-primary" />
                         <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
@@ -756,7 +750,7 @@ function SettingsContent() {
               </div>
 
               {/* Appearance */}
-              <section className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+              <section className="glass-card !rounded-2xl p-6 space-y-4">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                   <Sun className="size-4 text-primary" />
                   Aparência
@@ -833,7 +827,7 @@ function SettingsContent() {
 
           {activeTab === "support" && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              <section className="rounded-xl border border-border bg-card/50 p-6 space-y-4">
+              <section className="glass-card !rounded-2xl p-6 space-y-4">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                   <Info className="size-4 text-primary" />
                   Ajuda & Informações
