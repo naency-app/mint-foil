@@ -9,6 +9,9 @@ import {
 import {
   ArrowUpDown,
   Calendar,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Layers,
   Loader2,
@@ -20,7 +23,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { sileo } from "sileo";
 import {
   FilterSection,
@@ -122,7 +132,83 @@ function GridCardSkeleton() {
   );
 }
 
-/** Item compacto do carrossel de coleções (espelho do carrossel do explore mobile). */
+/**
+ * Carrossel horizontal com setas de navegação (desktop) — scroll puro é ruim
+ * de descobrir/usar. Scrollbar nativa escondida; as setas aparecem no hover e
+ * só quando há pra onde rolar, com fade nas bordas indicando mais conteúdo.
+ */
+function SetCarousel({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const update = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    // ResizeObserver pega quando os cards/imagens mudam a largura do conteúdo
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro.disconnect();
+    };
+  }, [update]);
+
+  function scroll(dir: -1 | 1) {
+    ref.current?.scrollBy({ left: dir * 340, behavior: "smooth" });
+  }
+
+  return (
+    <div className="group/car relative">
+      <div
+        ref={ref}
+        className="flex gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {children}
+      </div>
+
+      {/* Fades nas bordas — dica visual de que há mais */}
+      {canLeft && (
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background to-transparent" />
+      )}
+      {canRight && (
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" />
+      )}
+
+      {/* Setas — aparecem no hover do carrossel, só se dá pra rolar */}
+      {canLeft && (
+        <button
+          type="button"
+          aria-label="Anterior"
+          onClick={() => scroll(-1)}
+          className="glass-card absolute left-1 top-[38%] z-10 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center !rounded-full opacity-0 shadow-md transition-opacity hover:bg-muted/60 group-hover/car:opacity-100"
+        >
+          <ChevronLeft className="size-4 text-foreground" />
+        </button>
+      )}
+      {canRight && (
+        <button
+          type="button"
+          aria-label="Próximo"
+          onClick={() => scroll(1)}
+          className="glass-card absolute right-1 top-[38%] z-10 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center !rounded-full opacity-0 shadow-md transition-opacity hover:bg-muted/60 group-hover/car:opacity-100"
+        >
+          <ChevronRight className="size-4 text-foreground" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 function CarouselSetItem({
   set,
   progress,
@@ -144,27 +230,37 @@ function CarouselSetItem({
     <button
       type="button"
       onClick={onClick}
-      className={`glass-card w-28 shrink-0 cursor-pointer overflow-hidden !rounded-[14px] text-left transition-all hover:-translate-y-0.5 ${
+      title={set.name}
+      className={`group/item glass-card w-32 shrink-0 cursor-pointer overflow-hidden !rounded-2xl text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
         selected ? "ring-2 ring-primary" : ""
       }`}
     >
-      <div className="relative flex h-16 w-full items-center justify-center p-2">
+      {/* Painel de imagem com fundo neutro — logos claros aparecem no light */}
+      <div className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-2 dark:from-white/[0.06] dark:to-white/[0.02]">
         {imgUrl && !imgFailed ? (
           <Image
             src={imgUrl}
             alt={set.name}
             fill
-            sizes="112px"
-            className="object-contain p-1.5"
+            sizes="128px"
+            className="object-contain p-2 transition-transform duration-300 group-hover/item:scale-105"
             loading="lazy"
             onError={() => setImgFailed(true)}
           />
         ) : (
-          <Layers className="size-6 stroke-[1.5] text-muted-foreground" />
+          <Layers className="size-7 stroke-[1.5] text-muted-foreground" />
+        )}
+        {selected && (
+          <span className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-primary">
+            <Check
+              className="size-2.5 text-primary-foreground"
+              strokeWidth={3}
+            />
+          </span>
         )}
       </div>
-      <div className="space-y-1 px-2 pb-2">
-        <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+      <div className="space-y-1.5 p-2.5">
+        <p className="line-clamp-2 min-h-[2rem] text-[11px] font-semibold leading-tight text-foreground">
           {set.name}
         </p>
         {total > 0 && collected > 0 ? (
@@ -726,31 +822,23 @@ function ExplorePageContent() {
                 </Link>
               </div>
               {setsLoading && sortedSets.length === 0 ? (
-                <div className="flex gap-2">
-                  {[0, 1, 2, 3].map((i) => (
-                    <Skeleton
-                      key={i}
-                      className="h-[120px] w-28 rounded-[14px]"
-                    />
+                <div className="flex gap-2.5">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-[132px] w-32 rounded-2xl" />
                   ))}
                 </div>
               ) : (
-                // ScrollArea em vez de overflow-x-auto: no Windows a scrollbar
-                // nativa é permanente e feia; a do Radix é overlay e discreta
-                <ScrollArea>
-                  <div className="flex gap-2 pb-2.5">
-                    {sortedSets.slice(0, 24).map((set) => (
-                      <CarouselSetItem
-                        key={set.id}
-                        set={set}
-                        progress={setProgress[set.code] ?? null}
-                        selected={selectedSet?.id === set.id}
-                        onClick={() => handleSelectSet(set)}
-                      />
-                    ))}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                <SetCarousel>
+                  {sortedSets.slice(0, 24).map((set) => (
+                    <CarouselSetItem
+                      key={set.id}
+                      set={set}
+                      progress={setProgress[set.code] ?? null}
+                      selected={selectedSet?.id === set.id}
+                      onClick={() => handleSelectSet(set)}
+                    />
+                  ))}
+                </SetCarousel>
               )}
             </section>
           )}
