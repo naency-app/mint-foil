@@ -46,7 +46,7 @@ export default function SetsPage() {
             <Link
               key={item.categoryId}
               href={`/sets/${item.slug}`}
-              className="glass-card group relative block aspect-[1.5] w-full overflow-hidden !rounded-2xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10"
+              className="glass-card group relative block aspect-[1.5] w-full overflow-hidden !rounded-2xl transition-all duration-300 hover:-translate-y-0.5"
             >
               {/* biome-ignore lint/performance/noImgElement: artes locais dos TCGs, sem otimização necessária */}
               <img

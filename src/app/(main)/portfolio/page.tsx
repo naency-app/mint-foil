@@ -86,7 +86,7 @@ function MetricCard({
   suffix?: string;
 }) {
   return (
-    <Card className="glass-card">
+    <Card className="glass-card shadow-none">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div
@@ -460,7 +460,7 @@ function PortfolioItemCard({
           }
         }}
         className={cn(
-          "group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0 relative",
+          "group w-full h-full overflow-hidden glass-card !rounded-2xl shadow-none hover:bg-muted/30 transition-all duration-300 hover:-translate-y-1 py-0 relative",
           isSelected &&
             isSelectionMode &&
             "ring-2 ring-primary border-transparent bg-primary/5",
@@ -1137,7 +1137,7 @@ export default function PortfolioPage() {
           {/* Dashboard Metrics and Chart Section */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* Left Card: Value Chart (col-span-8) */}
-            <Card className="lg:col-span-8 glass-card overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+            <Card className="lg:col-span-8 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1264,7 +1264,7 @@ export default function PortfolioPage() {
             </Card>
 
             {/* Right Card: Summary Metrics (col-span-4) */}
-            <Card className="lg:col-span-4 glass-card p-5 flex flex-col justify-between min-h-[380px]">
+            <Card className="lg:col-span-4 glass-card shadow-none p-5 flex flex-col justify-between min-h-[380px]">
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
                   Resumo Geral do Portfólio

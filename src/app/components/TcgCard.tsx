@@ -133,7 +133,7 @@ export function TcgCard({
     tcgSlug && setSlug ? `/sets/${tcgSlug}/${setSlug}` : undefined;
 
   return (
-    <Card className="group w-full h-full overflow-hidden dark:border dark:border-slate-800 bg-card backdrop-blur-sm hover:bg-background/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 py-0">
+    <Card className="group w-full h-full overflow-hidden glass-card !rounded-2xl shadow-none hover:bg-muted/30 transition-all duration-300 hover:-translate-y-1 py-0">
       <CardContent className="p-0 flex-1">
         {cardHref ? (
           <Link href={cardHref} className="block overflow-hidden p-2">
