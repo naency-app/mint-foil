@@ -589,6 +589,19 @@ const NAV_LINKS = [
   { label: "Loja", href: "/loja" },
 ];
 
+// Scroll suave para âncoras da própria página, compensando a navbar fixa
+// (o jump nativo do href="#..." ia "seco" e escondia a seção sob a pill).
+// Rotas externas (/loja) seguem o clique normal.
+function scrollToAnchor(e: React.MouseEvent, href: string) {
+  if (!href.startsWith("#")) return;
+  const el = document.getElementById(href.slice(1));
+  if (!el) return;
+  e.preventDefault();
+  const NAV_OFFSET = 84; // pill (~52px) + folga
+  const y = el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+  window.scrollTo({ top: y, behavior: "smooth" });
+}
+
 function Nav({
   isDark,
   onToggle,
@@ -797,6 +810,7 @@ function Nav({
             <a
               key={l.href}
               href={l.href}
+              onClick={(e) => scrollToAnchor(e, l.href)}
               onMouseEnter={() => setHovered(l.href)}
               style={{
                 position: "relative",
@@ -926,7 +940,10 @@ function Nav({
             <a
               key={l.href}
               href={l.href}
-              onClick={() => setMenuOpen(false)}
+              onClick={(e) => {
+                scrollToAnchor(e, l.href);
+                setMenuOpen(false);
+              }}
               style={{
                 fontSize: "24px",
                 fontWeight: 700,

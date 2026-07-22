@@ -34,15 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
-import { cn } from "@/lib/utils";
-
-const CONDITIONS = [
-  { value: "NM", label: "Near Mint" },
-  { value: "LP", label: "Light Play" },
-  { value: "MP", label: "Mod. Played" },
-  { value: "HP", label: "Heavily Played" },
-  { value: "DMG", label: "Damaged" },
-];
 
 interface AddToPortfolioButtonProps {
   cardId: string;
@@ -63,7 +54,6 @@ export function AddToPortfolioButton({
     defaultPortfolioId ?? "",
   );
   const [quantity, setQuantity] = useState(1);
-  const [condition, setCondition] = useState("NM");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [portfoliosLoading, setPortfoliosLoading] = useState(false);
@@ -158,7 +148,7 @@ export function AddToPortfolioButton({
       await api.collection.add({
         cardId,
         quantity,
-        condition,
+        condition: "NM", // MVP: condição fixa em Near Mint
         portfolioId: selectedPortfolioId,
       });
       setSuccess(true);
@@ -257,33 +247,6 @@ export function AddToPortfolioButton({
                   <IconFolderPlus className="size-3" />
                   Novo portfólio
                 </button>
-              </div>
-
-              {/* Condition chips */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Condição
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {CONDITIONS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setCondition(c.value)}
-                      className={cn(
-                        "px-2 py-1 text-[10px] font-bold rounded-md border transition-all cursor-pointer",
-                        condition === c.value
-                          ? "bg-primary/10 border-primary/50 text-primary"
-                          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                      )}
-                    >
-                      {c.value}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[10px] text-muted-foreground/70">
-                  {CONDITIONS.find((c) => c.value === condition)?.label}
-                </p>
               </div>
 
               {/* Quantity */}
