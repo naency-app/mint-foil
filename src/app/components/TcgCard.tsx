@@ -2,7 +2,6 @@
 
 import {
   IconCheck,
-  IconLoader2,
   IconPlus,
   IconTrendingDown,
   IconTrendingUp,
@@ -10,8 +9,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { sileo } from "sileo";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
@@ -61,48 +60,73 @@ export function TcgCard({
   onAdd,
 }: TcgCardProps) {
   const isPositive = change >= 0;
-  const [adding, setAdding] = useState(false);
   const [localQty, setLocalQty] = useState(quantity);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+  // Cliques acumulam num contador e só viram 1 request + 1 animação depois que
+  // o usuário para de clicar (debounce). Assim dá pra adicionar 3 rápido sem
+  // esperar a animação de cada uma.
+  const pendingRef = useRef(0);
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setLocalQty(quantity);
   }, [quantity]);
 
-  async function handleAdd(e: React.MouseEvent) {
+  // Garante o commit e limpa o timer se o card desmontar com adds pendentes
+  useEffect(() => {
+    return () => {
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+    };
+  }, []);
+
+  function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (!cardId || adding) return;
+    if (!cardId) return;
     if (!defaultPortfolioId) {
       // Sem portfólio ativo: só é login se realmente não estiver logado.
-      // Logado sem portfólio selecionado → pede pra escolher (não chuta pro login).
       if (!session?.user) {
         router.push("/login");
       } else {
-        sileo.error({ title: "Selecione um portfólio para adicionar" });
+        toast.error("Selecione um portfólio para adicionar");
       }
       return;
     }
-    setAdding(true);
-    try {
-      await api.collection.add({
-        cardId,
-        quantity: 1,
-        condition: "NM",
-        portfolioId: defaultPortfolioId,
-      });
-      setLocalQty((prev) => prev + 1);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 1200);
-      if (onAdd) onAdd();
-      sileo.success({ title: "Adicionado ao portfólio!" });
-    } catch {
-      sileo.error({ title: "Erro ao adicionar carta" });
-    } finally {
-      setAdding(false);
-    }
+
+    // Feedback instantâneo: incrementa na hora, sem esperar a rede
+    setLocalQty((prev) => prev + 1);
+    pendingRef.current += 1;
+    const portfolioId = defaultPortfolioId;
+
+    // Reagenda o commit a cada clique — só dispara após ~500ms sem clicar
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+    commitTimer.current = setTimeout(async () => {
+      const qty = pendingRef.current;
+      pendingRef.current = 0;
+      if (qty <= 0) return;
+      try {
+        await api.collection.add({
+          cardId,
+          quantity: qty,
+          condition: "NM",
+          portfolioId,
+        });
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 1200);
+        if (onAdd) onAdd();
+        toast.success(
+          qty > 1
+            ? `+${qty} adicionadas ao portfólio!`
+            : "Adicionado ao portfólio!",
+        );
+      } catch {
+        // Falhou: desfaz o incremento otimista
+        setLocalQty((prev) => Math.max(0, prev - qty));
+        toast.error("Erro ao adicionar carta");
+      }
+    }, 500);
   }
 
   const setHref =
@@ -208,11 +232,8 @@ export function TcgCard({
                     : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent",
                 )}
                 onClick={handleAdd}
-                disabled={adding || success}
               >
-                {adding ? (
-                  <IconLoader2 className="size-3.5 animate-spin" />
-                ) : success ? (
+                {success ? (
                   <IconCheck className="size-3.5 animate-in zoom-in-50 duration-200" />
                 ) : (
                   <IconPlus className="size-3.5" />

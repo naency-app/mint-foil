@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  IconCheck,
+  IconFolderPlus,
+  IconLoader2,
+  IconMinus,
+  IconPlus,
+  IconX,
+} from "@tabler/icons-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,17 +35,6 @@ import {
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import {
-  IconCheck,
-  IconFolderPlus,
-  IconLoader2,
-  IconMinus,
-  IconPlus,
-  IconX,
-} from "@tabler/icons-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
-import { sileo } from "sileo";
 
 const CONDITIONS = [
   { value: "NM", label: "Near Mint" },
@@ -119,7 +119,7 @@ export function AddToPortfolioButton({
           );
         }
       })
-      .catch(() => sileo.error({ title: "Erro ao carregar portfólios" }))
+      .catch(() => toast.error("Erro ao carregar portfólios"))
       .finally(() => setPortfoliosLoading(false));
   }, [open]);
 
@@ -143,9 +143,9 @@ export function AddToPortfolioButton({
       setSelectedPortfolioId(p.id);
       setShowNewDialog(false);
       setNewPortfolioName("");
-      sileo.success({ title: `Portfólio "${p.name}" criado!` });
+      toast.success(`Portfólio "${p.name}" criado!`);
     } catch {
-      sileo.error({ title: "Erro ao criar portfólio" });
+      toast.error("Erro ao criar portfólio");
     } finally {
       setCreatingPortfolio(false);
     }
@@ -164,16 +164,14 @@ export function AddToPortfolioButton({
       setSuccess(true);
       if (onSuccess) onSuccess();
       const portfolio = portfolios.find((p) => p.id === selectedPortfolioId);
-      sileo.success({
-        title: `Adicionado ao portfólio "${portfolio?.name ?? ""}"`,
-      });
+      toast.success(`Adicionado ao portfólio "${portfolio?.name ?? ""}"`);
       setTimeout(() => {
         setSuccess(false);
         setOpen(false);
         setQuantity(1);
       }, 1200);
     } catch {
-      sileo.error({ title: "Erro ao adicionar carta" });
+      toast.error("Erro ao adicionar carta");
     } finally {
       setLoading(false);
     }

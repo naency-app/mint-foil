@@ -31,7 +31,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { sileo } from "sileo";
+import { toast } from "sonner";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -312,7 +312,7 @@ function ListRow({
       if (!session?.user) {
         router.push("/login");
       } else {
-        sileo.error({ title: "Selecione um portfólio para adicionar" });
+        toast.error("Selecione um portfólio para adicionar");
       }
       return;
     }
@@ -324,10 +324,10 @@ function ListRow({
         condition: "NM",
         portfolioId: activePortfolioId,
       });
-      sileo.success({ title: "Adicionado ao portfólio!" });
+      toast.success("Adicionado ao portfólio!");
       onAdd();
     } catch {
-      sileo.error({ title: "Erro ao adicionar carta" });
+      toast.error("Erro ao adicionar carta");
     } finally {
       setAdding(false);
     }
