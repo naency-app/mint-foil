@@ -169,9 +169,11 @@ function SetCarousel({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="group/car relative">
+      {/* py-2.5: overflow-x força overflow-y:auto, que recortaria o topo do
+          card no hover (-translate-y + sombra). O padding dá o respiro. */}
       <div
         ref={ref}
-        className="flex gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-2.5 overflow-x-auto px-0.5 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>
