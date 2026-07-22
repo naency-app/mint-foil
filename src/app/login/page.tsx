@@ -1,11 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { signIn } from "@/lib/auth-client";
-import { IconArrowLeft, IconCards } from "@tabler/icons-react";
+import { IconArrowLeft, IconInfoCircle } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/auth-client";
+
+// Mesma cara do wordmark da landing/navbar
+const WORDMARK_FONT =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif';
 
 export default function LoginPage() {
   return (
@@ -38,100 +42,81 @@ function LoginContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl backdrop-blur-sm">
-        {/* Logo */}
-        <div className="mb-8 text-center flex items-center justify-center gap-2">
-          <IconCards stroke={2} />
-          <span className="text-xl font-extrabold  text-foreground uppercase select-none">
-            Mint Foil
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      {/* Brilho sutil atrás do card de vidro */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 size-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
+      />
+
+      <div className="glass-card relative w-full max-w-sm !rounded-3xl p-8 shadow-xl">
+        {/* Wordmark */}
+        <div className="mb-8 flex items-center justify-center gap-2">
+          {/* biome-ignore lint/performance/noImgElement: logo local pequeno */}
+          <img
+            src="/landing/logo-m.png"
+            alt=""
+            width={28}
+            height={28}
+            className="size-7"
+          />
+          <span
+            className="select-none text-lg font-extrabold uppercase tracking-[0.15em] text-foreground"
+            style={{ fontFamily: WORDMARK_FONT }}
+          >
+            Mint <span className="foil-text">Foil</span>
           </span>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="mb-4 rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
-        {/* OAuth Providers */}
-        <div className="space-y-2.5">
-          <ProviderButton
-            onClick={handleGoogleSignIn}
-            loading={loadingGoogle}
-            icon={<GoogleIcon />}
-            label="Continuar com Google"
-          />
-        </div>
+        {/* Google sign-in */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleGoogleSignIn}
+          isLoading={loadingGoogle}
+          icon={<GoogleIcon />}
+          className="h-11 w-full rounded-full border-border bg-card text-foreground hover:bg-muted/40"
+        >
+          Continuar com Google
+        </Button>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-start gap-2 rounded-lg border border-border bg-muted/50 px-3.5 py-3">
-          <svg
-            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <title>Info</title>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
-            />
-          </svg>
+        {/* Termos */}
+        <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-border bg-muted/30 px-3.5 py-3">
+          <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             Ao continuar, você concorda com os{" "}
             <Link
               href="/terms"
-              className="text-foreground underline decoration-border underline-offset-2 hover:text-primary transition-colors"
+              className="font-medium text-foreground underline decoration-border underline-offset-2 transition-colors hover:text-primary"
             >
               Termos de Uso
             </Link>{" "}
             e{" "}
             <Link
               href="/privacy"
-              className="text-foreground underline decoration-border underline-offset-2 hover:text-primary transition-colors"
+              className="font-medium text-foreground underline decoration-border underline-offset-2 transition-colors hover:text-primary"
             >
               Política de Privacidade
             </Link>
             .
           </p>
         </div>
-        <Button
-          variant="link"
-          className="w-full"
+
+        <button
+          type="button"
           onClick={() => router.push("/explore")}
+          className="mt-5 flex w-full cursor-pointer items-center justify-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-tertiary-hover"
         >
           <IconArrowLeft className="size-4" /> Voltar
-        </Button>
+        </button>
       </div>
     </div>
-  );
-}
-
-function ProviderButton({
-  onClick,
-  loading,
-  icon,
-  label,
-}: {
-  onClick: () => void;
-  loading?: boolean;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={onClick}
-      isLoading={loading}
-      icon={icon}
-      className="w-full h-11 bg-muted border-border text-foreground hover:bg-muted/60"
-    >
-      {label}
-    </Button>
   );
 }
 

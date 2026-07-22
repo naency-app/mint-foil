@@ -139,9 +139,9 @@ function CardDetailSkeleton() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Imagem (aspect idêntico ao real) */}
+        {/* Imagem (aspect ~5/7 aproxima a carta real; frame igual ao final) */}
         <div className="lg:col-span-3">
-          <div className="glass-card !rounded-xl p-3">
+          <div className="glass-card !rounded-2xl p-2">
             <Skeleton className="w-full aspect-5/7 rounded-xl" />
           </div>
         </div>
@@ -497,15 +497,18 @@ export default function CardDetailPage({
 
       {/* 3-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left: Card Image */}
+        {/* Left: Card Image — object-contain garante a carta INTEIRA (sem
+            cortar borda); a proporção real varia por TCG, então nada de
+            aspect fixo com cover. */}
         <div className="lg:col-span-3">
-          <div className="glass-card !rounded-xl p-3 sticky top-20">
+          <div className="glass-card sticky top-20 !rounded-2xl p-2">
             <Image
               src={card.imageUrl}
               alt={card.name}
               width={400}
               height={560}
-              className="w-full rounded-xl aspect-5/7 object-cover"
+              sizes="(max-width: 1024px) 90vw, 22vw"
+              className="mx-auto h-auto w-full rounded-xl"
             />
           </div>
         </div>
