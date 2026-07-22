@@ -19,6 +19,33 @@ export const FILTER_LANGUAGES = [
   { code: "zh", name: "Chinês" },
 ];
 
+/**
+ * Deriva facetas (valores + contagem) de uma característica das cartas —
+ * raridade, tipo, atributo… Mais frequentes primeiro. Alimenta os filtros
+ * dinâmicos que aparecem conforme a busca.
+ */
+export function facetOptions<T>(
+  items: T[],
+  getValue: (item: T) => string | null | undefined,
+): { value: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const v = getValue(item)?.trim();
+    if (!v) continue;
+    counts.set(v, (counts.get(v) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([value, count]) => ({ value, count }));
+}
+
+/** Toggle imutável de um valor numa lista de selecionados. */
+export function toggleValue(list: string[], value: string): string[] {
+  return list.includes(value)
+    ? list.filter((x) => x !== value)
+    : [...list, value];
+}
+
 export function FilterSection({
   title,
   badge,

@@ -33,11 +33,14 @@ import {
 } from "react";
 import { sileo } from "sileo";
 import {
+  CheckboxFilterList,
   FilterSection,
+  facetOptions,
   LanguageFilter,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
+  toggleValue,
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
@@ -422,6 +425,10 @@ function ExplorePageContent() {
   const [proLanguages, setProLanguages] = useState<string[]>([]);
   // Tipo de produto: cartas (padrão), selados ou ambos — filtra no backend
   const [productType, setProductType] = useState<ProductTypeValue>("single");
+  // Facetas derivadas do resultado — livres, valem pra todos os TCGs
+  const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedAttributes, setSelectedAttributes] = useState<string[]>([]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -465,6 +472,15 @@ function ExplorePageContent() {
   useEffect(() => {
     setSearchInput(search || "");
   }, [search]);
+
+  // Nova busca/jogo/set → zera as facetas: uma raridade/tipo selecionado do
+  // resultado anterior sumiria no novo e deixaria o grid vazio "do nada".
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset intencional ao mudar o contexto de resultado
+  useEffect(() => {
+    setSelectedRarities([]);
+    setSelectedTypes([]);
+    setSelectedAttributes([]);
+  }, [search, selectedTcg, selectedSet?.id]);
 
   // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
   function handleChangeQuery(value: string) {
@@ -603,21 +619,60 @@ function ExplorePageContent() {
     saveRecentSearch(term);
   }
 
-  // Filtros PRO aplicados client-side sobre o resultado carregado
+  // Facetas derivadas do resultado carregado (raridade, tipo, atributo) — com
+  // contagem, mais frequentes primeiro. Aparecem conforme a busca, pra TODOS
+  // os TCGs (Yu-Gi-Oh tem atributo, Pokémon tem tipo, etc.).
+  const rarityOptions = useMemo(
+    () => facetOptions(cards, (c) => c.rarity),
+    [cards],
+  );
+  const typeOptions = useMemo(
+    () => facetOptions(cards, (c) => c.cardType),
+    [cards],
+  );
+  const attributeOptions = useMemo(
+    () => facetOptions(cards, (c) => c.attribute),
+    [cards],
+  );
+
+  // Filtros aplicados client-side sobre o resultado carregado.
   const filteredCards = useMemo(() => {
-    if (!isPro) return cards;
     let list = cards;
-    if (priceRange) {
-      const [min, max] = priceRange;
-      list = list.filter((c) => {
-        const p = getLatestPrice(c);
-        return p >= min && p <= max;
-      });
+    // Facetas — livres, pra todos
+    if (selectedRarities.length > 0)
+      list = list.filter(
+        (c) => c.rarity && selectedRarities.includes(c.rarity),
+      );
+    if (selectedTypes.length > 0)
+      list = list.filter(
+        (c) => c.cardType && selectedTypes.includes(c.cardType),
+      );
+    if (selectedAttributes.length > 0)
+      list = list.filter(
+        (c) => c.attribute && selectedAttributes.includes(c.attribute),
+      );
+    // PRO
+    if (isPro) {
+      if (priceRange) {
+        const [min, max] = priceRange;
+        list = list.filter((c) => {
+          const p = getLatestPrice(c);
+          return p >= min && p <= max;
+        });
+      }
+      if (proLanguages.length > 0)
+        list = list.filter((c) => proLanguages.includes(c.language));
     }
-    if (proLanguages.length > 0)
-      list = list.filter((c) => proLanguages.includes(c.language));
     return list;
-  }, [cards, isPro, priceRange, proLanguages]);
+  }, [
+    cards,
+    selectedRarities,
+    selectedTypes,
+    selectedAttributes,
+    isPro,
+    priceRange,
+    proLanguages,
+  ]);
 
   // Teto do slider: maior preço do resultado, arredondado pra cima
   const priceCeil = useMemo(() => {
@@ -808,6 +863,59 @@ function ExplorePageContent() {
                 ))}
               </div>
             </FilterSection>
+
+            {/* Facetas dinâmicas — derivadas do resultado da busca, pra todos
+                os TCGs. Só aparecem quando há valores no resultado atual. */}
+            {rarityOptions.length > 0 && (
+              <FilterSection title="Raridade">
+                <CheckboxFilterList
+                  idPrefix="rarity"
+                  options={rarityOptions.map(({ value, count }) => ({
+                    value,
+                    label: value,
+                    count,
+                  }))}
+                  selected={selectedRarities}
+                  onToggle={(v) =>
+                    setSelectedRarities((prev) => toggleValue(prev, v))
+                  }
+                />
+              </FilterSection>
+            )}
+
+            {typeOptions.length > 0 && (
+              <FilterSection title="Tipo">
+                <CheckboxFilterList
+                  idPrefix="ctype"
+                  options={typeOptions.map(({ value, count }) => ({
+                    value,
+                    label: value,
+                    count,
+                  }))}
+                  selected={selectedTypes}
+                  onToggle={(v) =>
+                    setSelectedTypes((prev) => toggleValue(prev, v))
+                  }
+                />
+              </FilterSection>
+            )}
+
+            {attributeOptions.length > 0 && (
+              <FilterSection title="Atributo">
+                <CheckboxFilterList
+                  idPrefix="attr"
+                  options={attributeOptions.map(({ value, count }) => ({
+                    value,
+                    label: value,
+                    count,
+                  }))}
+                  selected={selectedAttributes}
+                  onToggle={(v) =>
+                    setSelectedAttributes((prev) => toggleValue(prev, v))
+                  }
+                />
+              </FilterSection>
+            )}
           </div>
         </aside>
 
