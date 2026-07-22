@@ -2,11 +2,9 @@
 
 import {
   AlertCircle,
-  Check,
   ChevronRight,
   ExternalLink,
   Globe,
-  Loader2,
   Minus,
   Package,
   Plus,
@@ -18,7 +16,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { Area } from "@/components/charts/area";
@@ -216,13 +214,16 @@ export default function CardDetailPage({
   const error = cardQuery.error ? cardQuery.error.message : null;
   const { data: session } = useSession();
   const router = useRouter();
-  const [qty, setQty] = useState(1);
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState<string>("");
   const [ownedItems, setOwnedItems] = useState<CollectionItem[]>([]);
   const lastDelta = useRef(1);
+  // Stepper controla direto a quantidade no portfólio ativo: cada clique
+  // atualiza otimista e um único request (add/update/remove) sai ~500ms depois
+  // do último clique. Sem botão separado de "Adicionar".
+  const [optimisticQty, setOptimisticQty] = useState(0);
+  const pendingTargetRef = useRef<number | null>(null);
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchPortfolios = useCallback(() => {
     api.collection
@@ -313,9 +314,75 @@ export default function CardDetailPage({
     }
   }, [session, fetchPortfolios, fetchOwnedItems]);
 
+  // Quantidade que o usuário já tem no portfólio ativo (condição NM) + o item
+  // correspondente (pra update/remove).
+  const ownedQtyActive = useMemo(
+    () =>
+      ownedItems
+        .filter((item) => item.portfolioId === activePortfolioId)
+        .reduce((acc, item) => acc + item.quantity, 0),
+    [ownedItems, activePortfolioId],
+  );
+  const activeNmItem = useMemo(
+    () =>
+      ownedItems.find(
+        (item) =>
+          item.portfolioId === activePortfolioId && item.condition === "NM",
+      ) ?? null,
+    [ownedItems, activePortfolioId],
+  );
+
+  // Sincroniza o display com o servidor quando não há edição pendente
+  useEffect(() => {
+    if (pendingTargetRef.current === null) setOptimisticQty(ownedQtyActive);
+  }, [ownedQtyActive]);
+
+  // Limpa o timer se desmontar com commit pendente
+  useEffect(() => {
+    return () => {
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+    };
+  }, []);
+
+  async function commitQty(target: number) {
+    pendingTargetRef.current = null;
+    const price = card?.prices?.[0]?.value ?? 0;
+    try {
+      if (activeNmItem) {
+        if (target <= 0) {
+          await api.collection.remove(activeNmItem.id);
+        } else {
+          await api.collection.update(activeNmItem.id, { quantity: target });
+        }
+      } else if (target > 0) {
+        await api.collection.add({
+          cardId: id,
+          quantity: target,
+          condition: "NM",
+          buyPrice: price,
+          portfolioId: activePortfolioId || undefined,
+        });
+      }
+      fetchOwnedItems();
+      fetchPortfolios();
+    } catch {
+      toast.error("Erro ao atualizar o portfólio");
+      setOptimisticQty(ownedQtyActive); // desfaz o otimista
+    }
+  }
+
   const handleQtyChange = (delta: number) => {
+    if (!session?.user) {
+      router.push("/login");
+      return;
+    }
     lastDelta.current = delta;
-    setQty((prev) => Math.max(1, prev + delta));
+    const next = Math.max(0, optimisticQty + delta);
+    if (next === optimisticQty) return;
+    setOptimisticQty(next);
+    pendingTargetRef.current = next;
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+    commitTimer.current = setTimeout(() => commitQty(next), 500);
   };
 
   if (loading) return <CardDetailSkeleton />;
@@ -344,9 +411,7 @@ export default function CardDetailPage({
     previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;
   const isPositive = changePercent >= 0;
 
-  const currentPortfolioQuantity = ownedItems
-    .filter((item) => item.portfolioId === activePortfolioId)
-    .reduce((acc, item) => acc + item.quantity, 0);
+  const currentPortfolioQuantity = ownedQtyActive;
   const currentPortfolioValue = currentPortfolioQuantity * latestPrice;
 
   // Preço internacional (ver adr/0002): headline em BRL convertido + USD/câmbio.
@@ -360,35 +425,6 @@ export default function CardDetailPage({
       date: new Date(p.createdAt),
       price: p.value,
     }));
-
-  async function handleAddToCollection() {
-    if (!session?.user) {
-      router.push("/login");
-      return;
-    }
-
-    setAdding(true);
-    try {
-      await api.collection.add({
-        cardId: id,
-        quantity: qty,
-        condition: "NM",
-        buyPrice: latestPrice,
-        portfolioId: activePortfolioId || undefined,
-      });
-      setAdded(true);
-      toast.success(`${card?.name ?? "Carta"} adicionado à coleção!`);
-      fetchOwnedItems();
-      fetchPortfolios();
-      setTimeout(() => setAdded(false), 3000);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Erro ao adicionar à coleção",
-      );
-    } finally {
-      setAdding(false);
-    }
-  }
 
   return (
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -707,7 +743,8 @@ export default function CardDetailPage({
                         damping: 18,
                       }}
                       onClick={() => handleQtyChange(-1)}
-                      className="size-8 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      disabled={optimisticQty <= 0}
+                      className="size-8 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border disabled:hover:text-muted-foreground"
                     >
                       <Minus className="size-3.5" strokeWidth={2.5} />
                     </motion.button>
@@ -715,7 +752,7 @@ export default function CardDetailPage({
                     <div className="w-8 flex items-center justify-center overflow-hidden">
                       <AnimatePresence mode="popLayout" initial={false}>
                         <motion.span
-                          key={qty}
+                          key={optimisticQty}
                           initial={{
                             y: lastDelta.current > 0 ? 10 : -10,
                             opacity: 0,
@@ -728,7 +765,7 @@ export default function CardDetailPage({
                           transition={{ duration: 0.13 }}
                           className="text-sm font-bold text-foreground font-mono"
                         >
-                          {qty}
+                          {optimisticQty}
                         </motion.span>
                       </AnimatePresence>
                     </div>
@@ -771,31 +808,6 @@ export default function CardDetailPage({
                 </div>
               </div>
             </div>
-
-            <Separator />
-
-            <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-10 text-sm gap-2 cursor-pointer shadow-sm active:scale-98 transition-transform"
-              onClick={handleAddToCollection}
-              disabled={adding}
-            >
-              {adding ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Adicionando...
-                </>
-              ) : added ? (
-                <>
-                  <Check className="size-4" />
-                  Adicionado!
-                </>
-              ) : (
-                <>
-                  <Plus className="size-4" />
-                  Adicionar ao Portfólio ({qty})
-                </>
-              )}
-            </Button>
           </div>
 
           {/* User Holdings (Inventory) */}
