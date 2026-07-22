@@ -298,13 +298,19 @@ function ListRow({
   const displayPrice = tcgPrice;
   const [adding, setAdding] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
 
   async function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (adding) return;
     if (!activePortfolioId) {
-      router.push("/login");
+      // Logado sem portfólio ativo → pede pra selecionar (não chuta pro login)
+      if (!session?.user) {
+        router.push("/login");
+      } else {
+        sileo.error({ title: "Selecione um portfólio para adicionar" });
+      }
       return;
     }
     setAdding(true);

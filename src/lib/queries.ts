@@ -37,6 +37,11 @@ export function usePortfolios(enabled = true) {
     enabled,
     // Sem login o endpoint falha — não martelar o backend
     retry: false,
+    // A lista de portfólios muda por ação do usuário (criar em outra tela) e é
+    // pequena — sempre revalida ao montar, senão o Explore pega um cache velho
+    // (ex.: vazio de antes de criar) e o "adicionar" não acha portfólio ativo.
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 

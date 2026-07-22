@@ -15,6 +15,7 @@ import { sileo } from "sileo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
@@ -64,6 +65,7 @@ export function TcgCard({
   const [localQty, setLocalQty] = useState(quantity);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     setLocalQty(quantity);
@@ -74,7 +76,13 @@ export function TcgCard({
     e.stopPropagation();
     if (!cardId || adding) return;
     if (!defaultPortfolioId) {
-      router.push("/login");
+      // Sem portfólio ativo: só é login se realmente não estiver logado.
+      // Logado sem portfólio selecionado → pede pra escolher (não chuta pro login).
+      if (!session?.user) {
+        router.push("/login");
+      } else {
+        sileo.error({ title: "Selecione um portfólio para adicionar" });
+      }
       return;
     }
     setAdding(true);
