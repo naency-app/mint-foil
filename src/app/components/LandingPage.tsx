@@ -33,6 +33,8 @@ import {
   useTransform,
   type Variants,
 } from "motion/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -602,6 +604,31 @@ function scrollToAnchor(e: React.MouseEvent, href: string) {
   window.scrollTo({ top: y, behavior: "smooth" });
 }
 
+// Rotas internas ("/loja", "/explore"…) → <Link> do Next (nav client-side +
+// prefetch, sem reload de página inteira). Âncoras (#…), mailto: e URLs
+// externas continuam como <a> normal.
+function SmartLink({
+  href,
+  children,
+  ...rest
+}: { href: string; children: ReactNode } & Omit<
+  React.ComponentProps<"a">,
+  "href" | "ref"
+>) {
+  if (href.startsWith("/")) {
+    return (
+      <Link href={href} {...rest}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  );
+}
+
 function Nav({
   isDark,
   onToggle,
@@ -613,6 +640,7 @@ function Nav({
   const isMobile = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
+  const router = useRouter();
   // Menu mobile (hambúrguer)
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
@@ -732,7 +760,7 @@ function Nav({
         }}
       >
         {/* Logo — clique volta a página pro início */}
-        <a
+        <SmartLink
           href="/"
           style={{
             display: "flex",
@@ -794,10 +822,11 @@ function Nav({
               Foil
             </span>
           </span>
-        </a>
+        </SmartLink>
 
         {/* Links centrais — pill cinza desliza entre eles no hover.
           No mobile não cabem: somem (âncoras seguem acessíveis rolando) */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: onMouseLeave só reseta a pill decorativa do hover; os links (SmartLink) é que são interativos */}
         <div
           style={{
             display: isMobile ? "none" : "flex",
@@ -807,7 +836,7 @@ function Nav({
           onMouseLeave={() => setHovered(null)}
         >
           {NAV_LINKS.map((l) => (
-            <a
+            <SmartLink
               key={l.href}
               href={l.href}
               onClick={(e) => scrollToAnchor(e, l.href)}
@@ -837,7 +866,7 @@ function Nav({
                 />
               )}
               <span style={{ position: "relative", zIndex: 1 }}>{l.label}</span>
-            </a>
+            </SmartLink>
           ))}
         </div>
 
@@ -908,7 +937,7 @@ function Nav({
             <PrimaryBtn
               small
               onClick={() => {
-                window.location.href = "/explore";
+                router.push("/explore");
               }}
             >
               <ArrowRight size={13} /> Explorar Agora
@@ -937,7 +966,7 @@ function Nav({
           }}
         >
           {NAV_LINKS.map((l) => (
-            <a
+            <SmartLink
               key={l.href}
               href={l.href}
               onClick={(e) => {
@@ -954,14 +983,14 @@ function Nav({
               }}
             >
               {l.label}
-            </a>
+            </SmartLink>
           ))}
           <div style={{ marginTop: "28px" }}>
             <PrimaryBtn
               full
               onClick={() => {
                 setMenuOpen(false);
-                window.location.href = "/explore";
+                router.push("/explore");
               }}
             >
               <ArrowRight size={16} /> Explorar Agora
@@ -978,6 +1007,7 @@ function Nav({
 function Hero() {
   const t = useTheme();
   const isMobile = useIsMobile();
+  const router = useRouter();
   return (
     <section
       id="hero"
@@ -1114,7 +1144,7 @@ function Hero() {
           >
             <PrimaryBtn
               onClick={() => {
-                window.location.href = "/explore";
+                router.push("/explore");
               }}
             >
               <ArrowRight size={16} /> Explorar Agora
@@ -2102,7 +2132,7 @@ function SolutionSection() {
                   >
                     {s.desc}
                   </p>
-                  <a
+                  <SmartLink
                     href={s.href}
                     style={{
                       display: "inline-flex",
@@ -2118,7 +2148,7 @@ function SolutionSection() {
                   >
                     {s.cta}
                     <ArrowRight size={14} />
-                  </a>
+                  </SmartLink>
                 </div>
               </FadeIn>
             </div>
@@ -2560,6 +2590,7 @@ const FOIL_CSS =
 
 function ProBanner() {
   const isMobile = useIsMobile();
+  const router = useRouter();
   // Slider embutido: até 30 scans/dia = Grátis (R$ 0); acima = PRO 19,90.
   // Nasce em 31 (PRO): mexendo pra baixo a pessoa descobre que zera
   const [scans, setScans] = useState(31);
@@ -2736,7 +2767,7 @@ function ProBanner() {
               type="button"
               onClick={() => {
                 // Grátis → scan direto (30/dia sem conta); PRO → login
-                window.location.href = isPro ? "/login" : "/scan";
+                router.push(isPro ? "/login" : "/scan");
               }}
               style={{
                 padding: "13px 30px",
@@ -2951,6 +2982,7 @@ const SOCIAL_LINKS: {
 
 function FooterSection() {
   const isMobile = useIsMobile();
+  const router = useRouter();
   const auroraRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -3119,7 +3151,7 @@ function FooterSection() {
           <PrimaryBtn
             dark
             onClick={() => {
-              window.location.href = "/explore";
+              router.push("/explore");
             }}
           >
             <ArrowRight size={16} /> Explorar Agora
@@ -3212,7 +3244,7 @@ function FooterSection() {
             { lbl: "Suporte", href: "mailto:contato@mintfoil.app" },
             { lbl: "Loja", href: "/loja" },
           ].map(({ lbl, href }) => (
-            <a
+            <SmartLink
               key={lbl}
               href={href}
               style={{
@@ -3234,7 +3266,7 @@ function FooterSection() {
               }}
             >
               {lbl}
-            </a>
+            </SmartLink>
           ))}
 
           {/* Voltar ao topo — junto dos links, na direita */}

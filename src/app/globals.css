@@ -70,11 +70,13 @@
 /* Tokens espelhando a LANDING (LandingPage.tsx: LIGHT/DARK) — a landing é a
    fonte de verdade de cor e tipografia; web app e mobile seguem ela. */
 :root {
-  --background: #f6f6f6;
+  /* Light invertido: página branca, cards no cinza (#f6f6f6) — o inverso do
+     padrão. Só afeta o app; a landing usa --mf-* próprios. */
+  --background: #ffffff;
   --foreground: #020617;
-  --card: #ffffff;
+  --card: #f6f6f6;
   --card-foreground: #020617;
-  --popover: #ffffff;
+  --popover: #f6f6f6;
   --popover-foreground: #020617;
   --primary: #f856a7;
   --primary-foreground: #ffffff;

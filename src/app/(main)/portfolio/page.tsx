@@ -1,36 +1,5 @@
 "use client";
 
-import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
-import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { Area } from "@/components/charts/area";
-import { AreaChart } from "@/components/charts/area-chart";
-import Grid from "@/components/charts/grid";
-import { ChartTooltip } from "@/components/charts/tooltip";
-import { XAxis } from "@/components/charts/x-axis";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  api,
-  type CollectionItem,
-  type Portfolio,
-  type PortfolioMetrics,
-} from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
 import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
   ArrowRight,
@@ -55,6 +24,37 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { Area } from "@/components/charts/area";
+import { AreaChart } from "@/components/charts/area-chart";
+import Grid from "@/components/charts/grid";
+import { ChartTooltip } from "@/components/charts/tooltip";
+import { XAxis } from "@/components/charts/x-axis";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { GlassPill } from "@/components/ui/glass";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  api,
+  type CollectionItem,
+  type Portfolio,
+  type PortfolioMetrics,
+} from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -86,7 +86,7 @@ function MetricCard({
   suffix?: string;
 }) {
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border">
+    <Card className="glass-card">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div
@@ -1137,7 +1137,7 @@ export default function PortfolioPage() {
           {/* Dashboard Metrics and Chart Section */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* Left Card: Value Chart (col-span-8) */}
-            <Card className="lg:col-span-8 bg-card/40 backdrop-blur-sm border-border overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+            <Card className="lg:col-span-8 glass-card overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1228,16 +1228,16 @@ export default function PortfolioPage() {
                         />
                         <Area
                           dataKey="value"
-                          fill="#EF1556" // vibrant primary brand pink
+                          fill="var(--primary)" // vibrant primary brand pink
                           fillOpacity={0.15}
-                          stroke="#EF1556"
+                          stroke="var(--primary)"
                           strokeWidth={2.5}
                           gradientToOpacity={0.01}
                         />
                         <ChartTooltip
                           rows={(point) => [
                             {
-                              color: "#EF1556",
+                              color: "var(--primary)",
                               label: "Valor Total",
                               value: `R$ ${formatPrice(Number(point.value))}`,
                             },
@@ -1264,7 +1264,7 @@ export default function PortfolioPage() {
             </Card>
 
             {/* Right Card: Summary Metrics (col-span-4) */}
-            <Card className="lg:col-span-4 bg-card/40 backdrop-blur-sm border-border p-5 flex flex-col justify-between min-h-[380px]">
+            <Card className="lg:col-span-4 glass-card p-5 flex flex-col justify-between min-h-[380px]">
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
                   Resumo Geral do Portfólio
@@ -1483,24 +1483,24 @@ export default function PortfolioPage() {
                     {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
                   </Button>
 
-                  <ButtonGroup>
-                    <Button
-                      size="icon"
-                      variant={viewType === "grid" ? "default" : "outline"}
+                  <div className="flex items-center gap-1">
+                    <GlassPill
+                      active={viewType === "grid"}
                       onClick={() => setViewType("grid")}
-                      className="h-8 w-8"
+                      className="px-2.5 py-1.5"
+                      aria-label="Visualizar em grade"
                     >
                       <IconLayoutGrid className="size-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant={viewType === "list" ? "default" : "outline"}
+                    </GlassPill>
+                    <GlassPill
+                      active={viewType === "list"}
                       onClick={() => setViewType("list")}
-                      className="h-8 w-8"
+                      className="px-2.5 py-1.5"
+                      aria-label="Visualizar em lista"
                     >
                       <IconListDetails className="size-4" />
-                    </Button>
-                  </ButtonGroup>
+                    </GlassPill>
+                  </div>
                 </div>
               </div>
               {viewType === "grid" ? (
@@ -1604,40 +1604,40 @@ export default function PortfolioPage() {
 
       {/* Floating Bulk Action Bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-[#0F111A]/95 border border-primary/30 shadow-[0_0_30px_rgba(239,21,86,0.2)] rounded-full px-6 py-3.5 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
-          <span className="text-xs font-bold text-white whitespace-nowrap">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 glass-card !rounded-full border-primary/30 shadow-[0_0_30px_rgba(248,86,167,0.2)] px-6 py-3.5 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300">
+          <span className="text-xs font-bold text-foreground whitespace-nowrap">
             {selectedIds.size}{" "}
             {selectedIds.size === 1 ? "item selecionado" : "itens selecionados"}
           </span>
-          <Separator orientation="vertical" className="h-5 bg-slate-700/60" />
+          <Separator orientation="vertical" className="h-5 bg-border" />
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               onClick={() => openBulkAction("copy")}
-              className="text-xs gap-1.5 h-8 bg-slate-800/80 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700/60 transition-all cursor-pointer rounded-full px-3.5"
+              className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
             >
               <Plus className="size-3.5" /> Copiar
             </Button>
             <Button
               size="sm"
               onClick={() => openBulkAction("move")}
-              className="text-xs gap-1.5 h-8 bg-slate-800/80 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700/60 transition-all cursor-pointer rounded-full px-3.5"
+              className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
             >
               <ArrowUpDown className="size-3.5" /> Mover
             </Button>
             <Button
               size="sm"
               onClick={() => openBulkAction("delete")}
-              className="text-xs gap-1.5 h-8 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 transition-all cursor-pointer rounded-full px-3.5"
+              className="text-xs gap-1.5 h-8 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/30 transition-all cursor-pointer rounded-full px-3.5"
             >
               <Trash2 className="size-3.5" /> Excluir
             </Button>
           </div>
-          <Separator orientation="vertical" className="h-5 bg-slate-700/60" />
+          <Separator orientation="vertical" className="h-5 bg-border" />
           <Button
             size="sm"
             onClick={() => setSelectedIds(new Set())}
-            className="text-xs h-8 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 cursor-pointer rounded-full px-4"
+            className="text-xs h-8 bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border cursor-pointer rounded-full px-4"
           >
             Limpar
           </Button>
