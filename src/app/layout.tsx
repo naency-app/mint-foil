@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { DM_Mono, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
@@ -73,6 +74,7 @@ export default function RootLayout({
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: script estático de tema, sem input de usuário */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
