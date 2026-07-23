@@ -22,7 +22,7 @@ export interface TcgCardProps {
   price: string;
   priceChange?: number;
   imageUrl: string;
-  setCode: string;
+  collectorNumber?: string | null;
   setName?: string | null;
   tcgSlug?: string;
   setSlug?: string;
@@ -47,7 +47,7 @@ export function TcgCard({
   price,
   priceChange,
   imageUrl,
-  setCode,
+  collectorNumber,
   setName,
   tcgSlug,
   setSlug,
@@ -188,8 +188,20 @@ export function TcgCard({
           </>
         )}
 
-        <p className="text-[10px] text-muted-foreground leading-tight">
-          {rarity ? `${rarity} • ${setCode}` : setCode}
+        <p className="text-[10px] leading-tight">
+          {rarity && (
+            <span className="text-muted-foreground">{rarity}</span>
+          )}
+          {rarity && collectorNumber && (
+            <span className="text-muted-foreground"> • </span>
+          )}
+          {collectorNumber ? (
+            <span className="font-mono font-bold text-foreground/85 tracking-tight">
+              {collectorNumber}
+            </span>
+          ) : (
+            !rarity && <span className="text-muted-foreground">{setName}</span>
+          )}
         </p>
         <div className="pt-1.5 border-t border-border space-y-0.5 flex justify-between">
           <div className="flex flex-col items-start justify-between gap-2">

@@ -140,7 +140,7 @@ function ListRow({
             {card.name}
           </h3>
           <p className="text-xs text-muted-foreground">
-            {card.rarity} • {card.setCode} • Qtd. {quantity}
+            {card.rarity} • {card.collectorNumber} • Qtd. {quantity}
           </p>
         </div>
 
@@ -615,7 +615,7 @@ function SetCardsPageContent() {
                       : 0
                   }
                   imageUrl={card.imageUrl}
-                  setCode={card.setCode}
+                  collectorNumber={card.collectorNumber}
                   setName={card.setName}
                   tcgSlug={card.tcg?.slug}
                   setSlug={card.set?.slug}

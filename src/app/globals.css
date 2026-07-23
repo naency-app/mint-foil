@@ -80,8 +80,8 @@
   --popover-foreground: #020617;
   --primary: #f856a7;
   --primary-foreground: #ffffff;
-  --tertiary: #f856a7;
-  --tertiary-hover: #b50d57;
+  --tertiary: #887cfd;
+  --tertiary-hover: #5347ce;
   --secondary: #021937;
   --secondary-foreground: #ffffff;
   --muted: oklch(0.97 0 0);
@@ -134,8 +134,8 @@
      accent legível (ghostColor) — aqui primary precisa ler em texto/ícone */
   --primary: #f856a7;
   --primary-foreground: #020617;
-  --tertiary: #f856a7;
-  --tertiary-hover: #b50d57;
+  --tertiary: #887cfd;
+  --tertiary-hover: #5347ce;
   --secondary: #b50d57;
   --secondary-foreground: #ffffff;
   --muted: #0d1121;

@@ -548,8 +548,8 @@ function PortfolioItemCard({
           )}
           <p className="text-[10px] text-muted-foreground leading-tight">
             {item.card.rarity
-              ? `${item.card.rarity} • ${item.card.setCode}`
-              : item.card.setCode}
+              ? `${item.card.rarity} • ${item.card.collectorNumber}`
+              : item.card.collectorNumber}
           </p>
 
           <div className="pt-1.5 border-t border-border space-y-2">

@@ -357,7 +357,7 @@ function ListRow({
             {card.setName ?? card.setCode}
           </p>
           <p className="text-xs text-muted-foreground">
-            {card.rarity} • {card.setCode}
+            {card.rarity} • {card.collectorNumber}
           </p>
           {card.cardType && (
             <p className="text-xs text-muted-foreground">{card.cardType}</p>
@@ -1121,7 +1121,7 @@ function ExplorePageContent() {
                       : 0
                   }
                   imageUrl={card.imageUrl}
-                  setCode={card.setCode}
+                  collectorNumber={card.collectorNumber}
                   setName={card.setName}
                   tcgSlug={card.tcg?.slug}
                   setSlug={card.set?.slug}

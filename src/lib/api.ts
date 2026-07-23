@@ -40,6 +40,14 @@ export interface StoreLink {
   cardId: string;
 }
 
+export interface RarityExample {
+  rarity: string;
+  count: number;
+  imageUrl: string;
+  exampleName: string | null;
+  exampleCardId: string | null;
+}
+
 export interface Card {
   id: string;
   name: string;
@@ -137,6 +145,7 @@ export interface UserStats {
     name: string;
     imageUrl: string;
     setCode: string;
+    collectorNumber: string | null;
     quantity: number;
     unitValue: number;
     totalValue: number;
@@ -180,6 +189,11 @@ export const api = {
       return apiFetch<Card[]>(`/cards${qs ? `?${qs}` : ""}`);
     },
     get: (id: string) => apiFetch<Card>(`/cards/${id}`),
+    /** Raridades de um TCG com carta de exemplo — guia "Identifique sua raridade" */
+    rarities: (tcg: string) =>
+      apiFetch<RarityExample[]>(
+        `/cards/rarities?tcg=${encodeURIComponent(tcg)}`,
+      ),
     /** Maiores variações do dia na série internacional (ver adr/0002) */
     trending: (limit?: number) =>
       apiFetch<Card[]>(`/cards/trending${limit ? `?limit=${limit}` : ""}`),

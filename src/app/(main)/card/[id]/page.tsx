@@ -479,7 +479,7 @@ export default function CardDetailPage({
             <span className="text-sm text-muted-foreground">{card.rarity}</span>
             <span className="text-muted-foreground">•</span>
             <span className="text-sm text-muted-foreground font-mono">
-              {card.setCode}
+              {card.collectorNumber}
             </span>
           </div>
         </div>
@@ -637,8 +637,8 @@ export default function CardDetailPage({
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
                   Código
                 </p>
-                <p className="text-xs text-foreground font-mono font-medium">
-                  {card.setCode}
+                <p className="text-xs text-primary font-mono font-bold">
+                  {card.collectorNumber}
                 </p>
               </div>
               {card.cardType && (

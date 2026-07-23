@@ -123,7 +123,7 @@ function ResultCard({
                     {card.rarity}
                   </Badge>
                   <span className="text-[10px] text-muted-foreground font-mono">
-                    {card.setCode}
+                    {card.collectorNumber}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 pt-1">

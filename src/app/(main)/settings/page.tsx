@@ -680,7 +680,7 @@ function SettingsContent() {
                                 {card.name}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {card.setCode} • Qtd: {card.quantity}
+                                {card.collectorNumber ?? card.setCode} • Qtd: {card.quantity}
                               </p>
                             </div>
                             <div className="text-right">
@@ -833,6 +833,20 @@ function SettingsContent() {
                   Ajuda & Informações
                 </h2>
                 <div className="divide-y divide-border">
+                  <div className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-3">
+                      <Sparkles className="size-4 text-tertiary" />
+                      <span className="text-sm font-medium text-foreground">
+                        Identifique sua Raridade
+                      </span>
+                    </div>
+                    <Link
+                      href="/raridades"
+                      className="text-xs font-semibold text-tertiary hover:underline"
+                    >
+                      Ver Tutorial
+                    </Link>
+                  </div>
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <Mail className="size-4 text-primary" />
