@@ -940,7 +940,7 @@ function Nav({
                 router.push("/explore");
               }}
             >
-              <ArrowRight size={13} /> Explorar Agora
+              <ArrowRight size={13} /> Explorar agora
             </PrimaryBtn>
           )}
         </div>
@@ -1147,7 +1147,7 @@ function Hero() {
                 router.push("/explore");
               }}
             >
-              <ArrowRight size={16} /> Explorar Agora
+              <ArrowRight size={16} /> Explorar agora
             </PrimaryBtn>
             <PrimaryBtn
               ghost
@@ -2082,11 +2082,9 @@ function SolutionSection() {
                         transform: "translateY(-50%)",
                         width: "480px",
                         height: "300px",
-                        background: `radial-gradient(ellipse at left center, rgba(248,86,167,${
-                          t.isDark ? 0.28 : 0.18
-                        }) 0%, rgba(248,86,167,${
-                          t.isDark ? 0.1 : 0.06
-                        }) 45%, transparent 75%)`,
+                        background: `radial-gradient(ellipse at left center, rgba(248,86,167,${t.isDark ? 0.28 : 0.18
+                          }) 0%, rgba(248,86,167,${t.isDark ? 0.1 : 0.06
+                          }) 45%, transparent 75%)`,
                         filter: "blur(40px)",
                         pointerEvents: "none",
                       }}
@@ -2171,49 +2169,49 @@ const FEATURE_TABS: {
   mockupIcon: ReactNode;
   video?: string;
 }[] = [
-  {
-    value: "scan",
-    icon: <Camera size={15} />,
-    label: "Scan Inteligente",
-    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
-    mockupIcon: <ScanLine size={40} />,
-  },
-  {
-    value: "precos",
-    icon: <DollarSign size={15} />,
-    label: "Preços em Reais",
-    desc: "Valor de referência convertido pra reais e atualizado todos os dias — com o link das lojas BR na tela da carta.",
-    mockupIcon: <TrendingUp size={40} />,
-  },
-  {
-    value: "portfolio",
-    icon: <BarChart3 size={15} />,
-    label: "Portfólio Inteligente",
-    desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
-    mockupIcon: <BarChart3 size={40} />,
-  },
-  {
-    value: "historico",
-    icon: <TrendingUp size={15} />,
-    label: "Histórico de Preços",
-    desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
-    mockupIcon: <TrendingUp size={40} />,
-  },
-  {
-    value: "alertas",
-    icon: <Star size={15} />,
-    label: "Alertas de Valorização",
-    desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
-    mockupIcon: <Star size={40} />,
-  },
-  {
-    value: "multi-tcg",
-    icon: <Gamepad2 size={15} />,
-    label: "4 Jogos, 1 App",
-    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
-    mockupIcon: <Gamepad2 size={40} />,
-  },
-];
+    {
+      value: "scan",
+      icon: <Camera size={15} />,
+      label: "Scan Inteligente",
+      desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
+      mockupIcon: <ScanLine size={40} />,
+    },
+    {
+      value: "precos",
+      icon: <DollarSign size={15} />,
+      label: "Preços em Reais",
+      desc: "Valor de referência convertido pra reais e atualizado todos os dias — com o link das lojas BR na tela da carta.",
+      mockupIcon: <TrendingUp size={40} />,
+    },
+    {
+      value: "portfolio",
+      icon: <BarChart3 size={15} />,
+      label: "Portfólio Inteligente",
+      desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
+      mockupIcon: <BarChart3 size={40} />,
+    },
+    {
+      value: "historico",
+      icon: <TrendingUp size={15} />,
+      label: "Histórico de Preços",
+      desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
+      mockupIcon: <TrendingUp size={40} />,
+    },
+    {
+      value: "alertas",
+      icon: <Star size={15} />,
+      label: "Alertas de Valorização",
+      desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
+      mockupIcon: <Star size={40} />,
+    },
+    {
+      value: "multi-tcg",
+      icon: <Gamepad2 size={15} />,
+      label: "4 Jogos, 1 App",
+      desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
+      mockupIcon: <Gamepad2 size={40} />,
+    },
+  ];
 
 const CARD_W = 600;
 const CARD_GAP = 24;
@@ -2374,9 +2372,8 @@ function KeyFeatures() {
                   flexShrink: 0,
                   // No dark, mesma cor dos tiles da Solução (sem o azul navy)
                   background: t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg,
-                  border: `1px solid ${
-                    t.isDark ? "rgba(255,255,255,0.08)" : t.border
-                  }`,
+                  border: `1px solid ${t.isDark ? "rgba(255,255,255,0.08)" : t.border
+                    }`,
                   borderRadius: "16px",
                   overflow: "hidden",
                   cursor: activeIdx === i ? "default" : "pointer",
@@ -2569,6 +2566,17 @@ const PRO_FEATURES = [
   "Suporte prioritário",
 ];
 
+// Vantagens reais do plano grátis (o sistema limita só a quantidade de scans/dia
+// — todo o resto o free já tem). Mostradas quando o slider está na faixa grátis.
+const FREE_FEATURES = [
+  "30 scans grátis por dia",
+  "Preços de referência em R$",
+  "Link de conferência na loja",
+  "Carteira da sua coleção",
+  "Histórico de preço",
+  "Todos os TCGs disponíveis",
+];
+
 // ── Banner PRO — tratamento "foil" (holo de carta) no lugar do dourado
 // do Collectr: mesma leitura de raridade/premium, mas literal ao nome
 // Mint Foil e sem abandonar o rosa ─────────────────────────────────────────────
@@ -2657,7 +2665,7 @@ function ProBanner() {
               color: "transparent",
             }}
           >
-            MINT FOIL PRO
+            {isPro ? "MINT FOIL PRO" : "MINT FOIL FREE"}
           </span>
           <h3
             style={{
@@ -2669,7 +2677,7 @@ function ProBanner() {
               margin: "14px 0 0",
             }}
           >
-            Turbine sua coleção.
+            {isPro ? "Turbine sua coleção." : "Comece de graça."}
           </h3>
           <p
             style={{
@@ -2680,8 +2688,9 @@ function ProBanner() {
               maxWidth: "440px",
             }}
           >
-            Scans ilimitados, histórico completo de preços e os novos TCGs
-            chegando primeiro pra você.
+            {isPro
+              ? "Scans ilimitados, histórico completo de preços e os novos TCGs chegando primeiro pra você."
+              : "Preços de referência em real, a carteira da sua coleção e 30 scans grátis por dia — sem pagar nada."}
           </p>
           {/* Features em 2 colunas */}
           <div
@@ -2692,7 +2701,7 @@ function ProBanner() {
               marginBottom: "28px",
             }}
           >
-            {PRO_FEATURES.map((f) => (
+            {(isPro ? PRO_FEATURES : FREE_FEATURES).map((f) => (
               <div
                 key={f}
                 style={{ display: "flex", alignItems: "center", gap: "8px" }}
@@ -2845,7 +2854,7 @@ function ProBanner() {
                 userSelect: "none",
               }}
             >
-              PRO
+              {isPro ? "PRO" : "FREE"}
             </span>
             <span
               aria-hidden
@@ -2970,15 +2979,15 @@ const SOCIAL_LINKS: {
   label: string;
   href?: string;
 }[] = [
-  {
-    id: "instagram",
-    icon: <Instagram size={15} />,
-    label: "Instagram",
-    href: "https://instagram.com/mintfoil",
-  },
-  { id: "youtube", icon: <Youtube size={15} />, label: "YouTube" },
-  { id: "twitter", icon: <Twitter size={15} />, label: "X / Twitter" },
-];
+    {
+      id: "instagram",
+      icon: <Instagram size={15} />,
+      label: "Instagram",
+      href: "https://instagram.com/mintfoil",
+    },
+    { id: "youtube", icon: <Youtube size={15} />, label: "YouTube" },
+    { id: "twitter", icon: <Twitter size={15} />, label: "X / Twitter" },
+  ];
 
 function FooterSection() {
   const isMobile = useIsMobile();
