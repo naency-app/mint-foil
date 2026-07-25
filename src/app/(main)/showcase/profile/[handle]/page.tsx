@@ -39,9 +39,11 @@ function cleanHandle(raw: string): string {
 
 async function fetchShowcase(handle: string): Promise<Showcase | null> {
   try {
+    // Sem cache: o perfil precisa refletir na hora quando o dono adiciona cartas.
+    // (Next deduplica os dois fetches — metadata + página — no mesmo request.)
     const res = await fetch(
       `${API_URL}/users/showcase/${encodeURIComponent(handle)}`,
-      { next: { revalidate: 300 } },
+      { cache: "no-store" },
     );
     if (!res.ok) return null;
     return (await res.json()) as Showcase;
