@@ -1,6 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const publicRoutes = ["/", "/login", "/explore", "/sets", "/card", "/scan"];
+const publicRoutes = [
+  "/",
+  "/login",
+  "/explore",
+  "/sets",
+  "/card",
+  "/scan",
+  "/showcase", // perfil público compartilhável — não pode exigir login
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
