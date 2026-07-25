@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Crown, Layers, ScanLine, TrendingUp } from "lucide-react";
+import { ViewerBanner } from "./viewer-banner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mintfoil.com";
 
 interface ShowcaseCard {
   id: string;
@@ -117,9 +119,13 @@ export default async function ShowcaseProfilePage({
   if (!data) notFound();
 
   const initial = data.displayName.charAt(0).toUpperCase();
+  const shareUrl = `${SITE_URL}/showcase/profile/@${data.handle}`;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
+      {/* Faixa "seu perfil público" — só para o dono (client, viewer-aware) */}
+      <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
+
       {/* Header do perfil */}
       <header className="flex flex-col sm:flex-row sm:items-center gap-5">
         <div className="size-24 rounded-full overflow-hidden bg-primary/15 flex items-center justify-center shrink-0">
@@ -231,7 +237,7 @@ export default async function ShowcaseProfilePage({
         )}
       </section>
 
-      {/* CTA */}
+      {/* CTA de cadastro (para visitantes) */}
       <footer className="glass-card !rounded-2xl p-6 text-center space-y-3">
         <h3 className="text-lg font-black text-foreground">
           Monte sua coleção no Mint Foil
