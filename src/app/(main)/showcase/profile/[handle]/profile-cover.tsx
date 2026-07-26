@@ -40,16 +40,12 @@ export function ProfileCover({
       {/* Degradê para o fundo da página (blende a base da capa) */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
 
-      {/* Ações do dono (compartilhar) — abaixo da navbar */}
-      {actions && (
-        <div className="absolute right-4 top-20 z-10 sm:right-6 sm:top-24">
-          {actions}
-        </div>
-      )}
-
       {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa */}
       <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
         {children}
+
+        {/* Ações do dono (compartilhar) — abaixo do card, alinhadas à direita */}
+        {actions && <div className="mt-5 flex justify-end">{actions}</div>}
       </div>
     </div>
   );
