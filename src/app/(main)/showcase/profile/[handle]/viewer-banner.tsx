@@ -43,14 +43,14 @@ export function ViewerBanner({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur">
+      <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-semibold text-muted-foreground backdrop-blur">
         <Eye className="size-3.5" />
         Seu perfil público
       </span>
       <button
         type="button"
         onClick={handleShare}
-        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+        className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
       >
         {copied ? (
           <>

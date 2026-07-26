@@ -1217,7 +1217,7 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setPreview((p) => !p)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-background/70 px-3.5 py-1.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
             >
               {preview ? (
                 <>
@@ -1233,7 +1233,7 @@ export default function PortfolioPage() {
               <button
                 type="button"
                 onClick={handleShareProfile}
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 <Share2 className="size-3.5" /> Compartilhar
               </button>
