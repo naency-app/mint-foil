@@ -882,7 +882,12 @@ export default function PortfolioPage() {
   }, [session, historyRange, activePortfolioId, fetchHistory]);
 
   function openNewPortfolioOrPaywall() {
-    if (portfolios.length >= 5) {
+    // Grátis: até 5 portfólios. Pro: ilimitado (o backend aplica a mesma regra).
+    const isPro =
+      stats?.isPro ??
+      (session?.user as { isPro?: boolean } | undefined)?.isPro ??
+      false;
+    if (!isPro && portfolios.length >= 5) {
       setProModalOpen(true);
     } else {
       setShowNewDialog(true);
