@@ -84,7 +84,7 @@ export default async function ShowcaseProfilePage({
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
       {/* Header estilo Collectr: banner esticado + card centralizado sobreposto */}
       <section className="relative">
-        <div className="h-48 w-full rounded-3xl bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25 sm:h-60" />
+        <div className="h-64 w-full rounded-3xl bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25 sm:h-80" />
 
         {/* Ações do dono (compartilhar) — sobrepostas no canto do banner */}
         <div className="absolute right-4 top-4 z-10">
