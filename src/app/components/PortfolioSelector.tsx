@@ -28,8 +28,14 @@ interface PortfolioSelectorProps {
   portfolios: Portfolio[];
   activePortfolioId: string;
   onSelect: (id: string) => void;
-  onRefresh: () => void;
+  onRefresh?: () => void;
   labelPrefix?: string;
+  /**
+   * Modo somente-leitura (ex.: perfil público de outro usuário): esconde as
+   * ações de favoritar/renomear/deletar e o "Adicionar Novo Portfólio", que
+   * mexeriam na conta do usuário LOGADO — não do dono do perfil.
+   */
+  readOnly?: boolean;
 }
 
 export function PortfolioSelector({
@@ -38,6 +44,7 @@ export function PortfolioSelector({
   onSelect,
   onRefresh,
   labelPrefix = "Portfólio:",
+  readOnly = false,
 }: PortfolioSelectorProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -135,7 +142,7 @@ export function PortfolioSelector({
       toast.success(`Portfólio "${created.name}" criado!`);
       setNewPortfolioName("");
       setIsAddingMode(false);
-      onRefresh();
+      onRefresh?.();
       onSelect(created.id);
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar portfólio");
@@ -154,7 +161,7 @@ export function PortfolioSelector({
       toast.success("Portfólio renomeado!");
       setEditingId(null);
       setEditName("");
-      onRefresh();
+      onRefresh?.();
     } catch (err: any) {
       toast.error(err.message || "Erro ao renomear portfólio");
     } finally {
@@ -169,7 +176,7 @@ export function PortfolioSelector({
       await api.collection.deletePortfolio(id);
       toast.success("Portfólio deletado com sucesso!");
       setDeletingId(null);
-      onRefresh();
+      onRefresh?.();
       // If we deleted the active one, select another
       if (activePortfolioId === id) {
         const remaining = portfolios.filter((p) => p.id !== id);

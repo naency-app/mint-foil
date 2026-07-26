@@ -236,9 +236,8 @@ function CarouselSetItem({
       type="button"
       onClick={onClick}
       title={set.name}
-      className={`group/item glass-card w-32 shrink-0 cursor-pointer overflow-hidden !rounded-2xl text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
-        selected ? "ring-2 ring-primary" : ""
-      }`}
+      className={`group/item glass-card w-32 shrink-0 cursor-pointer overflow-hidden !rounded-2xl text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${selected ? "ring-2 ring-primary" : ""
+        }`}
     >
       {/* Painel de imagem com fundo neutro — logos claros aparecem no light */}
       <div className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-2 dark:from-white/[0.06] dark:to-white/[0.02]">
@@ -498,7 +497,7 @@ function ExplorePageContent() {
     if (stored) {
       try {
         setRecentSearches(JSON.parse(stored));
-      } catch {}
+      } catch { }
     }
   }, []);
 
@@ -526,7 +525,7 @@ function ExplorePageContent() {
     if (favsStr) {
       try {
         favs = JSON.parse(favsStr) as string[];
-      } catch {}
+      } catch { }
     } else {
       const oldDefault = localStorage.getItem("minty_default_portfolio_id");
       if (oldDefault) favs = [oldDefault];
@@ -727,16 +726,16 @@ function ExplorePageContent() {
     : null;
   const selectedSetRelDate = selectedSet?.releaseDate
     ? new Date(selectedSet.releaseDate).toLocaleDateString("pt-BR", {
-        month: "short",
-        year: "numeric",
-      })
+      month: "short",
+      year: "numeric",
+    })
     : null;
   const selectedSetImg = selectedSet ? getSetImageUrl(selectedSet) : null;
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
       {/* ── Busca: pill de vidro, busca ao digitar ── */}
-      <div className="relative max-w-2xl">
+      <div className="relative w-full">
         <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
@@ -975,11 +974,10 @@ function ExplorePageContent() {
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger
                   size="sm"
-                  className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
-                    sortActive
-                      ? "border-primary/25 bg-primary/10 text-primary"
-                      : "glass-pill text-foreground"
-                  }`}
+                  className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${sortActive
+                    ? "border-primary/25 bg-primary/10 text-primary"
+                    : "glass-pill text-foreground"
+                    }`}
                 >
                   <ArrowUpDown
                     className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}

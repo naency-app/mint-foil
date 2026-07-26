@@ -1,7 +1,7 @@
 "use client";
 
 import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
-import { ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -14,9 +14,9 @@ import {
   facetOptions,
   toggleValue,
 } from "@/app/components/filters";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { TcgCard } from "@/app/components/TcgCard";
 import { GlassPill } from "@/components/ui/glass";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Portfolio } from "@/lib/api";
 import type { ShowcasePortfolio } from "./types";
 
 function formatPrice(value: number) {
@@ -47,14 +48,33 @@ export function ShowcaseBrowser({
   const [view, setView] = useState<ViewMode>("grid");
   const [productType, setProductType] = useState<ProductTypeValue>("all");
   const [tcgs, setTcgs] = useState<string[]>([]);
+  const [rarities, setRarities] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
 
   const active =
     portfolios.find((p) => p.id === activeId) ?? portfolios[0] ?? null;
   const allItems = active?.items ?? [];
 
+  // PortfolioSelector espera o tipo Portfolio da API — mapeamos o showcase.
+  const selectorPortfolios: Portfolio[] = useMemo(
+    () =>
+      portfolios.map((p) => ({
+        id: p.id,
+        name: p.name,
+        userId: "",
+        createdAt: "",
+        updatedAt: "",
+        _count: { items: p.itemCount },
+      })),
+    [portfolios],
+  );
+
   const tcgFacets = useMemo(
     () => facetOptions(allItems, (i) => i.tcgName),
+    [allItems],
+  );
+  const rarityFacets = useMemo(
+    () => facetOptions(allItems, (i) => i.rarity),
     [allItems],
   );
   const priceCeil = useMemo(
@@ -69,6 +89,7 @@ export function ShowcaseBrowser({
       if (productType === "sealed" && i.productType !== "SEALED") return false;
       if (tcgs.length > 0 && (!i.tcgName || !tcgs.includes(i.tcgName)))
         return false;
+      if (rarities.length > 0 && !rarities.includes(i.rarity)) return false;
       if (priceRange) {
         if (i.unitValue < priceRange[0] || i.unitValue > priceRange[1])
           return false;
@@ -93,75 +114,84 @@ export function ShowcaseBrowser({
           return b.totalValue - a.totalValue;
       }
     });
-  }, [allItems, search, productType, tcgs, priceRange, sort]);
+  }, [allItems, search, productType, tcgs, rarities, priceRange, sort]);
 
   return (
-    <div className="space-y-5">
-      {/* Busca */}
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar nesta coleção..."
-          className="h-12 rounded-2xl pl-11"
-        />
+    <div className="space-y-4">
+      {/* Busca — mesmo pill de vidro do /explore */}
+      <div className="relative max-w-2xl">
+        <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar nesta coleção..."
+            className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {search.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
-        {/* Sidebar de filtros — mesmo padrão do /explore */}
-        <aside className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto !rounded-2xl p-4">
-          <ProductTypeFilter value={productType} onChange={setProductType} />
-          {tcgFacets.length > 0 && (
-            <FilterSection title="Categoria">
-              <CheckboxFilterList
-                idPrefix="tcg"
-                options={tcgFacets.map((f) => ({
-                  value: f.value,
-                  label: f.value,
-                  count: f.count,
-                }))}
-                selected={tcgs}
-                onToggle={(v) => setTcgs((prev) => toggleValue(prev, v))}
-              />
-            </FilterSection>
-          )}
-          <PriceRangeFilter
-            isPro
-            value={priceRange}
-            ceil={priceCeil}
-            onChange={setPriceRange}
-            onUpsell={() => {}}
-          />
+      {/* Marketplace: sidebar de filtros + conteúdo (padrão do /explore) */}
+      <div className="flex gap-6">
+        <aside className="hidden w-60 shrink-0 lg:block">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+            <ProductTypeFilter value={productType} onChange={setProductType} />
+            {tcgFacets.length > 0 && (
+              <FilterSection title="Jogo / Categoria">
+                <CheckboxFilterList
+                  idPrefix="tcg"
+                  options={tcgFacets.map((f) => ({
+                    value: f.value,
+                    label: f.value,
+                    count: f.count,
+                  }))}
+                  selected={tcgs}
+                  onToggle={(v) => setTcgs((prev) => toggleValue(prev, v))}
+                />
+              </FilterSection>
+            )}
+            {rarityFacets.length > 0 && (
+              <FilterSection title="Raridade">
+                <CheckboxFilterList
+                  idPrefix="rarity"
+                  options={rarityFacets.map((f) => ({
+                    value: f.value,
+                    label: f.value,
+                    count: f.count,
+                  }))}
+                  selected={rarities}
+                  onToggle={(v) => setRarities((prev) => toggleValue(prev, v))}
+                />
+              </FilterSection>
+            )}
+            <PriceRangeFilter
+              isPro
+              value={priceRange}
+              ceil={priceCeil}
+              onChange={setPriceRange}
+              onUpsell={() => {}}
+            />
+          </div>
         </aside>
 
-        {/* Conteúdo: barra (portfólio + sort + view) + grid/lista */}
-        <div className="space-y-4">
+        <div className="min-w-0 flex-1 space-y-4">
+          {/* Barra: portfólio + sort + view */}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Portfólio:</span>
-              {portfolios.length > 1 ? (
-                <Select value={activeId} onValueChange={setActiveId}>
-                  <SelectTrigger
-                    size="sm"
-                    className="glass-pill cursor-pointer gap-1 rounded-full border text-xs font-bold text-primary shadow-none"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {portfolios.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} ({p.itemCount})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <span className="font-bold text-primary">
-                  {active?.name ?? "—"} ({active?.itemCount ?? 0})
-                </span>
-              )}
-            </div>
+            <PortfolioSelector
+              portfolios={selectorPortfolios}
+              activePortfolioId={activeId}
+              onSelect={setActiveId}
+              readOnly
+            />
 
             <div className="flex items-center gap-2">
               <Select value={sort} onValueChange={(v) => setSort(v as SortValue)}>

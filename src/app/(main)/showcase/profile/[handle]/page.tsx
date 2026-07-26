@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Crown, Layers, Package, TrendingUp } from "lucide-react";
+import { Crown } from "lucide-react";
 import { ViewerBanner } from "./viewer-banner";
 import { ShowcaseBrowser } from "./showcase-browser";
 import type { Showcase } from "./types";
@@ -68,26 +67,6 @@ export async function generateMetadata({
   };
 }
 
-function StatTile({
-  icon,
-  value,
-  label,
-}: {
-  icon: ReactNode;
-  value: string;
-  label: string;
-}) {
-  return (
-    <div className="glass-card !rounded-xl p-4 flex flex-col gap-1">
-      <span className="text-tertiary">{icon}</span>
-      <span className="text-xl font-black text-foreground font-mono">{value}</span>
-      <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 export default async function ShowcaseProfilePage({
   params,
 }: {
@@ -102,74 +81,88 @@ export default async function ShowcaseProfilePage({
   const hasCards = data.portfolios.some((p) => p.items.length > 0);
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
+    <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
       {/* Faixa "seu perfil público" — só para o dono (client, viewer-aware) */}
       <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
 
-      {/* Header do perfil */}
-      <header className="flex flex-col sm:flex-row sm:items-center gap-5">
-        <div className="size-24 rounded-full overflow-hidden bg-primary/15 flex items-center justify-center shrink-0">
-          {data.image ? (
-            <Image
-              src={data.image}
-              alt={data.displayName}
-              width={96}
-              height={96}
-              className="size-24 object-cover"
-            />
-          ) : (
-            <span className="text-4xl font-black text-primary">{initial}</span>
-          )}
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-black text-foreground">
-              {data.displayName}
-            </h1>
-            {data.isPro && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/15 px-2 py-0.5 rounded-full">
-                <Crown className="size-3" />
-                PRO
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground font-medium">
-            @{data.handle}
-          </p>
-          <p className="text-xs text-muted-foreground/80 mt-1">
-            Membro desde {formatMonthYear(data.memberSince)}
-          </p>
-        </div>
-      </header>
+      {/* Header estilo Collectr: banner + card centralizado sobreposto */}
+      <section className="relative">
+        <div className="h-32 w-full rounded-2xl bg-gradient-to-br from-primary/25 via-primary/5 to-tertiary/20 sm:h-40" />
+        <div className="relative mx-auto -mt-16 w-full max-w-sm">
+          <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center">
+            <div className="-mt-16 mb-3 flex size-24 items-center justify-center overflow-hidden rounded-full bg-primary/15 ring-4 ring-background">
+              {data.image ? (
+                <Image
+                  src={data.image}
+                  alt={data.displayName}
+                  width={96}
+                  height={96}
+                  className="size-24 object-cover"
+                />
+              ) : (
+                <span className="text-4xl font-black text-primary">
+                  {initial}
+                </span>
+              )}
+            </div>
 
-      {/* Stats */}
-      <section className="grid grid-cols-3 gap-3">
-        <StatTile
-          icon={<Layers className="size-4" />}
-          value={String(data.totalCards)}
-          label="Cartas"
-        />
-        <StatTile
-          icon={<Package className="size-4" />}
-          value={String(data.totalSealed)}
-          label="Selados"
-        />
-        <StatTile
-          icon={<TrendingUp className="size-4" />}
-          value={`R$ ${formatPrice(data.totalValue)}`}
-          label="Valor"
-        />
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black text-foreground">
+                {data.displayName}
+              </h1>
+              {data.isPro && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
+                  <Crown className="size-3" />
+                  PRO
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+              @{data.handle}
+            </p>
+
+            <p className="mt-4 text-[11px] uppercase tracking-wider text-muted-foreground">
+              Valor estimado do portfólio
+            </p>
+            <p className="font-mono text-3xl font-black text-foreground">
+              R$ {formatPrice(data.totalValue)}
+            </p>
+
+            <div className="mt-4 flex items-stretch divide-x divide-border">
+              <div className="px-6">
+                <p className="font-mono text-lg font-black text-foreground">
+                  {data.totalCards}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Cartas
+                </p>
+              </div>
+              <div className="px-6">
+                <p className="font-mono text-lg font-black text-foreground">
+                  {data.totalSealed}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Selados
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-3 text-[11px] text-muted-foreground/70">
+              Membro desde {formatMonthYear(data.memberSince)}
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}
       {hasCards ? (
         <ShowcaseBrowser portfolios={data.portfolios} />
       ) : (
-        <div className="glass-card !rounded-2xl p-12 text-center space-y-1">
+        <div className="glass-card !rounded-2xl p-12 text-center">
           <p className="text-sm font-semibold text-foreground">
             Esta coleção ainda não tem cartas.
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Quando {data.displayName} adicionar cartas, elas aparecem aqui.
           </p>
         </div>
