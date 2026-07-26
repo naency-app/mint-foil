@@ -55,8 +55,10 @@ import {
   type PortfolioMetrics,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
-import { useCollectionStats } from "@/lib/queries";
+import { useCollectionStats, useShowcase } from "@/lib/queries";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
+import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
@@ -753,6 +755,15 @@ export default function PortfolioPage() {
   const router = useRouter();
   const { data: stats } = useCollectionStats(!!session?.user);
 
+  // "Ver como visitante": pré-visualiza o perfil público (read-only) na mesma tela.
+  const [preview, setPreview] = useState(false);
+  const previewHandle =
+    (session?.user as { handle?: string } | undefined)?.handle ?? "";
+  const { data: showcaseData, isLoading: showcaseLoading } = useShowcase(
+    previewHandle,
+    preview,
+  );
+
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState<string | null>(
@@ -1127,16 +1138,56 @@ export default function PortfolioPage() {
           value: u.coverValue ?? null,
         }}
         actions={
-          <button
-            type="button"
-            onClick={handleShareProfile}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            <Share2 className="size-3.5" /> Compartilhar
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPreview((p) => !p)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-background/70 px-3.5 py-1.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+            >
+              {preview ? (
+                <>
+                  <EyeOff className="size-3.5" /> Sair da pré-visualização
+                </>
+              ) : (
+                <>
+                  <Eye className="size-3.5" /> Ver como visitante
+                </>
+              )}
+            </button>
+            {!preview && (
+              <button
+                type="button"
+                onClick={handleShareProfile}
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Share2 className="size-3.5" /> Compartilhar
+              </button>
+            )}
+          </div>
         }
       />
 
+      {preview ? (
+        /* Pré-visualização pública (read-only) — o que os visitantes veem */
+        <main className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6">
+          {showcaseLoading || !showcaseData ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-8 animate-spin text-primary" />
+            </div>
+          ) : showcaseData.portfolios.some((p) => p.items.length > 0) ? (
+            <ShowcaseBrowser portfolios={showcaseData.portfolios} />
+          ) : (
+            <div className="glass-card !rounded-2xl p-12 text-center">
+              <p className="text-sm font-semibold text-foreground">
+                Sua coleção ainda não tem cartas.
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Adicione cartas e elas aparecem no seu perfil público.
+              </p>
+            </div>
+          )}
+        </main>
+      ) : (
       <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -1896,6 +1947,7 @@ export default function PortfolioPage() {
         </DialogContent>
       </Dialog>
       </main>
+      )}
     </>
   );
 }

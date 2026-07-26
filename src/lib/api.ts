@@ -173,6 +173,13 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  users: {
+    /** Perfil público (showcase) por handle — usado no "Ver como" do dono. */
+    showcase: (handle: string) =>
+      apiFetch<import("./showcase").Showcase>(
+        `/users/showcase/${encodeURIComponent(handle)}`,
+      ),
+  },
   cards: {
     list: (
       search?: string,

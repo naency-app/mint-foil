@@ -76,6 +76,15 @@ export function useCollectionStats(enabled: boolean) {
   });
 }
 
+/** Perfil público (showcase) por handle — usado no "Ver como" do dono. */
+export function useShowcase(handle: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["showcase", handle],
+    queryFn: () => api.users.showcase(handle),
+    enabled: enabled && !!handle,
+  });
+}
+
 export function useCardDetail(id: string | undefined) {
   return useQuery({
     queryKey: ["card", id ?? "none"],
