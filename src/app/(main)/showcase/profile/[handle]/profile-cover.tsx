@@ -12,9 +12,11 @@ import type { Cover } from "./types";
  */
 export function ProfileCover({
   cover,
+  actions,
   children,
 }: {
   cover: Cover;
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   // Estilo do fundo por tipo. gradient = padrão da marca (via classes Tailwind).
@@ -30,14 +32,23 @@ export function ProfileCover({
   }
 
   return (
-    <div className="relative w-full">
+    // -mt-14/-mt-16 cancela o pt do layout → a capa sobe para TRÁS da navbar,
+    // que é translúcida (blur) e deixa a cor da capa aparecer por baixo.
+    <div className="relative -mt-14 w-full md:-mt-16">
       {/* Fundo da capa */}
       <div className={`absolute inset-0 ${bgClass}`} style={bgStyle} />
       {/* Degradê para o fundo da página (blende a base da capa) */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
 
-      {/* Conteúdo (card do perfil), re-centralizado no container padrão */}
-      <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
+      {/* Ações do dono (compartilhar) — abaixo da navbar */}
+      {actions && (
+        <div className="absolute right-4 top-20 z-10 sm:right-6 sm:top-24">
+          {actions}
+        </div>
+      )}
+
+      {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa */}
+      <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
         {children}
       </div>
     </div>

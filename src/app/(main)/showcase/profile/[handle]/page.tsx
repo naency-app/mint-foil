@@ -84,12 +84,10 @@ export default async function ShowcaseProfilePage({
   return (
     <>
       {/* Capa full-bleed (config. no futuro: cor/imagem/gif) + card do perfil */}
-      <ProfileCover cover={data.cover}>
-        {/* Ações do dono (compartilhar) — sobrepostas no canto da capa */}
-        <div className="absolute right-4 top-4 z-10 sm:right-6">
-          <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
-        </div>
-
+      <ProfileCover
+        cover={data.cover}
+        actions={<ViewerBanner handle={data.handle} shareUrl={shareUrl} />}
+      >
         <div className="mx-auto w-full max-w-sm">
           <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center">
             <div className="-mt-16 mb-3 flex size-24 items-center justify-center overflow-hidden rounded-full bg-primary/15 ring-4 ring-background">
