@@ -1692,7 +1692,7 @@ export default function PortfolioPage() {
                           }
                           setIsSelectionMode(!isSelectionMode);
                         }}
-                        className="gap-1.5 px-3 py-1.5 text-xs font-bold"
+                        className="h-8 gap-1.5 px-3 text-xs font-bold"
                       >
                         <Check className="size-3.5" />
                         {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
@@ -1704,7 +1704,7 @@ export default function PortfolioPage() {
                       >
                         <SelectTrigger
                           size="sm"
-                          className="glass-pill cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
+                          className="glass-pill h-8 cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
                         >
                           <ArrowUpDown className="size-3.5 text-muted-foreground" />
                           <SelectValue />
@@ -1721,7 +1721,7 @@ export default function PortfolioPage() {
                         <GlassPill
                           active={viewType === "grid"}
                           onClick={() => setViewType("grid")}
-                          className="px-2.5 py-1.5"
+                          className="h-8 px-2.5"
                           aria-label="Visualizar em grade"
                         >
                           <IconLayoutGrid className="size-4" />
@@ -1729,7 +1729,7 @@ export default function PortfolioPage() {
                         <GlassPill
                           active={viewType === "list"}
                           onClick={() => setViewType("list")}
-                          className="px-2.5 py-1.5"
+                          className="h-8 px-2.5"
                           aria-label="Visualizar em lista"
                         >
                           <IconListDetails className="size-4" />
