@@ -1,6 +1,7 @@
 "use client";
 
-import { LayoutGrid, List, Search } from "lucide-react";
+import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
+import { ArrowUpDown, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -13,6 +14,8 @@ import {
   facetOptions,
   toggleValue,
 } from "@/app/components/filters";
+import { TcgCard } from "@/app/components/TcgCard";
+import { GlassPill } from "@/components/ui/glass";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { ShowcasePortfolio } from "./types";
 
 function formatPrice(value: number) {
@@ -51,7 +53,6 @@ export function ShowcaseBrowser({
     portfolios.find((p) => p.id === activeId) ?? portfolios[0] ?? null;
   const allItems = active?.items ?? [];
 
-  // Facetas de TCG e teto de preço a partir do portfólio ativo.
   const tcgFacets = useMemo(
     () => facetOptions(allItems, (i) => i.tcgName),
     [allItems],
@@ -97,77 +98,19 @@ export function ShowcaseBrowser({
   return (
     <div className="space-y-5">
       {/* Busca */}
-      <div className="glass-card !rounded-xl p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar nesta coleção..."
-            className="pl-9"
-          />
-        </div>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar nesta coleção..."
+          className="h-12 rounded-2xl pl-11"
+        />
       </div>
 
-      {/* Barra: portfólio + sort + view */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Portfólio:</span>
-          {portfolios.length > 1 ? (
-            <Select value={activeId} onValueChange={setActiveId}>
-              <SelectTrigger className="h-8 w-auto gap-1 border-none bg-transparent px-1 font-bold text-primary shadow-none focus:ring-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {portfolios.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} ({p.itemCount})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <span className="font-bold text-primary">
-              {active?.name ?? "—"}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Select value={sort} onValueChange={(v) => setSort(v as SortValue)}>
-            <SelectTrigger className="h-8 w-auto gap-1.5 text-xs">
-              <span className="text-muted-foreground">Ordenar:</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="value-desc">Maior valor</SelectItem>
-              <SelectItem value="value-asc">Menor valor</SelectItem>
-              <SelectItem value="name">Nome (A–Z)</SelectItem>
-              <SelectItem value="qty-desc">Quantidade</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <ToggleGroup
-            type="single"
-            value={view}
-            onValueChange={(v) => v && setView(v as ViewMode)}
-            variant="outline"
-            size="sm"
-          >
-            <ToggleGroupItem value="grid" aria-label="Grade">
-              <LayoutGrid className="size-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label="Lista">
-              <List className="size-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      </div>
-
-      {/* Filtros + resultados */}
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
-        {/* Sidebar de filtros */}
-        <aside className="space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
+        {/* Sidebar de filtros — mesmo padrão do /explore */}
+        <aside className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto !rounded-2xl p-4">
           <ProductTypeFilter value={productType} onChange={setProductType} />
           {tcgFacets.length > 0 && (
             <FilterSection title="Categoria">
@@ -192,52 +135,100 @@ export function ShowcaseBrowser({
           />
         </aside>
 
-        {/* Grid / lista */}
-        <div>
+        {/* Conteúdo: barra (portfólio + sort + view) + grid/lista */}
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Portfólio:</span>
+              {portfolios.length > 1 ? (
+                <Select value={activeId} onValueChange={setActiveId}>
+                  <SelectTrigger
+                    size="sm"
+                    className="glass-pill cursor-pointer gap-1 rounded-full border text-xs font-bold text-primary shadow-none"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portfolios.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} ({p.itemCount})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="font-bold text-primary">
+                  {active?.name ?? "—"} ({active?.itemCount ?? 0})
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Select value={sort} onValueChange={(v) => setSort(v as SortValue)}>
+                <SelectTrigger
+                  size="sm"
+                  className="glass-pill cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
+                >
+                  <ArrowUpDown className="size-3.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="value-desc">Maior valor</SelectItem>
+                  <SelectItem value="value-asc">Menor valor</SelectItem>
+                  <SelectItem value="name">Nome: A → Z</SelectItem>
+                  <SelectItem value="qty-desc">Quantidade</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center gap-1">
+                <GlassPill
+                  active={view === "grid"}
+                  onClick={() => setView("grid")}
+                  className="px-2.5 py-1.5"
+                  aria-label="Visualizar em grade"
+                >
+                  <IconLayoutGrid className="size-4" />
+                </GlassPill>
+                <GlassPill
+                  active={view === "list"}
+                  onClick={() => setView("list")}
+                  className="px-2.5 py-1.5"
+                  aria-label="Visualizar em lista"
+                >
+                  <IconListDetails className="size-4" />
+                </GlassPill>
+              </div>
+            </div>
+          </div>
+
           {items.length === 0 ? (
-            <div className="glass-card !rounded-xl p-12 text-center">
+            <div className="glass-card !rounded-2xl p-12 text-center">
               <p className="text-sm font-semibold text-foreground">
                 Nenhuma carta encontrada.
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Ajuste a busca ou os filtros.
               </p>
             </div>
           ) : view === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((item) => (
-                <Link
+                <TcgCard
                   key={item.id}
-                  href={`/card/${item.cardId}`}
-                  className="group space-y-2"
-                >
-                  <div className="glass-card !rounded-xl p-2 relative">
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.name}
-                      width={240}
-                      height={336}
-                      sizes="(max-width: 640px) 45vw, 22vw"
-                      className="w-full h-auto rounded-lg transition-transform group-hover:scale-[1.02]"
-                    />
-                    {item.quantity > 1 && (
-                      <span className="absolute top-3 right-3 rounded-full bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5">
-                        x{item.quantity}
-                      </span>
-                    )}
-                  </div>
-                  <div className="px-1">
-                    <p className="text-xs font-semibold text-foreground truncate">
-                      {item.name}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {item.setName ?? item.setCode}
-                    </p>
-                    <p className="text-xs font-bold text-foreground font-mono">
-                      R$ {formatPrice(item.totalValue)}
-                    </p>
-                  </div>
-                </Link>
+                  name={item.name}
+                  price={formatPrice(item.unitValue)}
+                  priceChange={item.priceChange}
+                  change={item.changePercent}
+                  imageUrl={item.imageUrl}
+                  collectorNumber={item.collectorNumber}
+                  setName={item.setName}
+                  tcgSlug={item.tcgSlug ?? undefined}
+                  setSlug={item.setSlug ?? undefined}
+                  rarity={item.rarity}
+                  quantity={item.quantity}
+                  cardId={item.cardId}
+                  cardHref={`/card/${item.cardId}`}
+                />
               ))}
             </div>
           ) : (
@@ -246,30 +237,35 @@ export function ShowcaseBrowser({
                 <Link
                   key={item.id}
                   href={`/card/${item.cardId}`}
-                  className="glass-card !rounded-xl p-2 flex items-center gap-3 hover:bg-muted/40 transition-colors"
+                  className="glass-card group flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30"
                 >
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.name}
-                    width={48}
-                    height={67}
-                    className="h-14 w-auto rounded-md shrink-0"
-                  />
+                  <div className="size-12 shrink-0 overflow-hidden rounded-md">
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.name}
+                      width={48}
+                      height={48}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-foreground truncate">
+                    <h3 className="truncate text-sm font-semibold text-foreground">
                       {item.name}
+                    </h3>
+                    <p className="truncate text-xs text-tertiary">
+                      {item.setName ?? item.setCode}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {(item.setName ?? item.setCode) +
-                        (item.rarity ? ` • ${item.rarity}` : "")}
+                    <p className="text-xs text-muted-foreground">
+                      {item.rarity}
+                      {item.collectorNumber ? ` • ${item.collectorNumber}` : ""}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-foreground font-mono">
+                  <div className="w-36 shrink-0 text-right">
+                    <span className="font-mono text-sm font-bold text-foreground">
                       R$ {formatPrice(item.totalValue)}
-                    </p>
+                    </span>
                     <p className="text-[11px] text-muted-foreground">
-                      Qtd {item.quantity}
+                      Quant. {item.quantity}
                     </p>
                   </div>
                 </Link>

@@ -5,6 +5,8 @@ export interface ShowcaseItem {
   imageUrl: string;
   setCode: string;
   setName: string | null;
+  setSlug: string | null;
+  collectorNumber: string | null;
   rarity: string;
   tcgName: string | null;
   tcgSlug: string | null;
@@ -13,6 +15,8 @@ export interface ShowcaseItem {
   quantity: number;
   condition: string;
   unitValue: number;
+  priceChange: number;
+  changePercent: number;
   totalValue: number;
 }
 
