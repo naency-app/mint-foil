@@ -1684,25 +1684,19 @@ export default function PortfolioPage() {
                         : ""}
                     </p>
                     <div className="flex items-center gap-3">
-                      <Button
-                        variant={isSelectionMode ? "default" : "outline"}
-                        size="sm"
+                      <GlassPill
+                        active={isSelectionMode}
                         onClick={() => {
                           if (isSelectionMode) {
                             setSelectedIds(new Set());
                           }
                           setIsSelectionMode(!isSelectionMode);
                         }}
-                        className={cn(
-                          "h-8 px-3 rounded-lg text-xs gap-1.5 cursor-pointer font-semibold transition-all",
-                          isSelectionMode
-                            ? "bg-primary text-primary-foreground hover:bg-primary/95"
-                            : "border-border text-muted-foreground hover:text-foreground",
-                        )}
+                        className="gap-1.5 px-3 py-1.5 text-xs font-bold"
                       >
                         <Check className="size-3.5" />
                         {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
-                      </Button>
+                      </GlassPill>
 
                       <Select
                         value={sort}
