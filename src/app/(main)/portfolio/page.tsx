@@ -1,24 +1,25 @@
 "use client";
 
-import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
-  ArrowRight,
-  ArrowUpDown,
-  Check,
-  ChevronLeft,
-  Copy,
-  DollarSign,
-  FolderPlus,
-  Loader2,
-  Minus,
-  Package,
-  Plus,
-  Share2,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  X,
-} from "lucide-react";
+  IconArrowRight as ArrowRight,
+  IconArrowsUpDown as ArrowUpDown,
+  IconCheck as Check,
+  IconChevronLeft as ChevronLeft,
+  IconCopy as Copy,
+  IconCurrencyDollar as DollarSign,
+  IconFolderPlus as FolderPlus,
+  IconLayoutGrid,
+  IconListDetails,
+  IconLoader2 as Loader2,
+  IconMinus as Minus,
+  IconPackage as Package,
+  IconPlus as Plus,
+  IconShare as Share2,
+  IconTrash as Trash2,
+  IconTrendingDown as TrendingDown,
+  IconTrendingUp as TrendingUp,
+  IconX as X,
+} from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -75,7 +76,11 @@ import {
   facetOptions,
   toggleValue,
 } from "@/app/components/filters";
-import { Eye, EyeOff, Search } from "lucide-react";
+import {
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
+  IconSearch as Search,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
