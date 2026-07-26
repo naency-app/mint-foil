@@ -28,12 +28,8 @@ export interface ShowcasePortfolio {
   items: ShowcaseItem[];
 }
 
-export type CoverType = "gradient" | "color" | "image";
-
-export interface Cover {
-  type: CoverType;
-  value: string | null;
-}
+export type { Cover, CoverType } from "@/app/components/ProfileCover";
+import type { Cover } from "@/app/components/ProfileCover";
 
 export interface Showcase {
   handle: string;

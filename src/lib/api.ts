@@ -134,6 +134,7 @@ export interface UserStats {
   isPro: boolean;
   portfolioCount: number;
   totalCards: number;
+  totalSealed: number;
   uniqueCards: number;
   totalValue: number;
   totalInvested: number;

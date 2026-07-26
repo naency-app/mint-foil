@@ -13,6 +13,7 @@ import {
   Minus,
   Package,
   Plus,
+  Share2,
   Trash2,
   TrendingDown,
   TrendingUp,
@@ -54,6 +55,8 @@ import {
   type PortfolioMetrics,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { useCollectionStats } from "@/lib/queries";
+import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
@@ -748,6 +751,7 @@ function PortfolioPageSkeleton() {
 export default function PortfolioPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
+  const { data: stats } = useCollectionStats(!!session?.user);
 
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -1081,22 +1085,73 @@ export default function PortfolioPage() {
   const totalCards = items.reduce((acc, item) => acc + item.quantity, 0);
   const activePortfolio = portfolios.find((p) => p.id === activePortfolioId);
 
+  const u = session.user as {
+    name?: string | null;
+    nickname?: string | null;
+    image?: string | null;
+    handle?: string | null;
+    isPro?: boolean | null;
+    coverType?: string | null;
+    coverValue?: string | null;
+  };
+  const ownerHandle = u.handle ?? "";
+  const shareUrl =
+    typeof window !== "undefined" && ownerHandle
+      ? `${window.location.origin}/showcase/profile/@${ownerHandle}`
+      : "";
+
+  async function handleShareProfile() {
+    if (!shareUrl) return;
+    try {
+      if (navigator.share) await navigator.share({ url: shareUrl });
+      else await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      /* cancelado */
+    }
+  }
+
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            Meus Portfólios
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {portfolios.length} portfólio{portfolios.length !== 1 ? "s" : ""}
-          </p>
+    <>
+      {/* Cabeçalho unificado (mesmo do /showcase) — dados do dono */}
+      <ProfileHeader
+        displayName={u.nickname ?? u.name ?? "Colecionador"}
+        handle={ownerHandle}
+        image={u.image ?? null}
+        isPro={stats?.isPro ?? u.isPro ?? false}
+        memberSince={stats?.memberSince ?? null}
+        totalCards={stats?.totalCards ?? 0}
+        totalSealed={stats?.totalSealed ?? 0}
+        totalValue={stats?.totalValue ?? 0}
+        cover={{
+          type: (u.coverType ?? "gradient") as "gradient" | "color" | "image",
+          value: u.coverValue ?? null,
+        }}
+        actions={
+          <button
+            type="button"
+            onClick={handleShareProfile}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Share2 className="size-3.5" /> Compartilhar
+          </button>
+        }
+      />
+
+      <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Meus Portfólios
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {portfolios.length} portfólio{portfolios.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <Button onClick={openNewPortfolioOrPaywall}>
+            <FolderPlus className="size-4" />
+            Novo Portfólio
+          </Button>
         </div>
-        <Button onClick={openNewPortfolioOrPaywall}>
-          <FolderPlus className="size-4" />
-          Novo Portfólio
-        </Button>
-      </div>
 
       {/* Portfolio Tabs */}
       {portfolios.length > 0 && (
@@ -1840,6 +1895,7 @@ export default function PortfolioPage() {
           )}
         </DialogContent>
       </Dialog>
-    </main>
+      </main>
+    </>
   );
 }
