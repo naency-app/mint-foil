@@ -1,36 +1,14 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Crown, Layers, ScanLine, TrendingUp } from "lucide-react";
+import { Crown, Layers, Package, TrendingUp } from "lucide-react";
 import { ViewerBanner } from "./viewer-banner";
+import { ShowcaseBrowser } from "./showcase-browser";
+import type { Showcase } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mintfoil.com";
-
-interface ShowcaseCard {
-  id: string;
-  name: string;
-  imageUrl: string;
-  setCode: string;
-  rarity: string;
-  quantity: number;
-  totalValue: number;
-}
-
-interface Showcase {
-  handle: string;
-  displayName: string;
-  image: string | null;
-  isPro: boolean;
-  memberSince: string;
-  totalCards: number;
-  uniqueCards: number;
-  totalValue: number;
-  tcgBreakdown: { name: string; slug: string; value: number; count: number }[];
-  topCards: ShowcaseCard[];
-}
 
 // Aceita o handle com ou sem "@" na URL (/showcase/profile/@joao).
 function cleanHandle(raw: string): string {
@@ -40,7 +18,6 @@ function cleanHandle(raw: string): string {
 async function fetchShowcase(handle: string): Promise<Showcase | null> {
   try {
     // Sem cache: o perfil precisa refletir na hora quando o dono adiciona cartas.
-    // (Next deduplica os dois fetches — metadata + página — no mesmo request.)
     const res = await fetch(
       `${API_URL}/users/showcase/${encodeURIComponent(handle)}`,
       { cache: "no-store" },
@@ -122,9 +99,10 @@ export default async function ShowcaseProfilePage({
 
   const initial = data.displayName.charAt(0).toUpperCase();
   const shareUrl = `${SITE_URL}/showcase/profile/@${data.handle}`;
+  const hasCards = data.portfolios.some((p) => p.items.length > 0);
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
       {/* Faixa "seu perfil público" — só para o dono (client, viewer-aware) */}
       <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
 
@@ -172,9 +150,9 @@ export default async function ShowcaseProfilePage({
           label="Cartas"
         />
         <StatTile
-          icon={<ScanLine className="size-4" />}
-          value={String(data.uniqueCards)}
-          label="Únicas"
+          icon={<Package className="size-4" />}
+          value={String(data.totalSealed)}
+          label="Selados"
         />
         <StatTile
           icon={<TrendingUp className="size-4" />}
@@ -183,77 +161,19 @@ export default async function ShowcaseProfilePage({
         />
       </section>
 
-      {/* Breakdown por TCG */}
-      {data.tcgBreakdown.length > 0 && (
-        <section className="flex flex-wrap gap-2">
-          {data.tcgBreakdown.map((tcg) => (
-            <span
-              key={tcg.slug}
-              className="text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1"
-            >
-              {tcg.name}:{" "}
-              <span className="text-foreground font-semibold">
-                R$ {formatPrice(tcg.value)}
-              </span>
-            </span>
-          ))}
-        </section>
+      {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}
+      {hasCards ? (
+        <ShowcaseBrowser portfolios={data.portfolios} />
+      ) : (
+        <div className="glass-card !rounded-2xl p-12 text-center space-y-1">
+          <p className="text-sm font-semibold text-foreground">
+            Esta coleção ainda não tem cartas.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Quando {data.displayName} adicionar cartas, elas aparecem aqui.
+          </p>
+        </div>
       )}
-
-      {/* Top cartas */}
-      <section className="space-y-4">
-        <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
-          Destaques da coleção
-        </h2>
-        {data.topCards.length === 0 ? (
-          <div className="glass-card !rounded-xl p-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              Esta coleção ainda não tem cartas.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {data.topCards.map((card) => (
-              <div key={card.id} className="space-y-2">
-                <div className="glass-card !rounded-xl p-2">
-                  <Image
-                    src={card.imageUrl}
-                    alt={card.name}
-                    width={240}
-                    height={336}
-                    sizes="(max-width: 640px) 45vw, 30vw"
-                    className="w-full h-auto rounded-lg"
-                  />
-                </div>
-                <div className="px-1">
-                  <p className="text-xs font-semibold text-foreground truncate">
-                    {card.name}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground font-mono">
-                    {card.quantity}x • R$ {formatPrice(card.totalValue)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* CTA de cadastro (para visitantes) */}
-      <footer className="glass-card !rounded-2xl p-6 text-center space-y-3">
-        <h3 className="text-lg font-black text-foreground">
-          Monte sua coleção no Mint Foil
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Escaneie suas cartas, acompanhe preços e compartilhe seu perfil.
-        </p>
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold px-6 py-2.5 text-sm hover:bg-primary/90 transition-colors"
-        >
-          Conhecer o Mint Foil
-        </Link>
-      </footer>
     </main>
   );
 }
