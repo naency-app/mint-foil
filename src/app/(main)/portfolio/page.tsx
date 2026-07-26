@@ -57,6 +57,7 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useCollectionStats, useShowcase } from "@/lib/queries";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -1189,52 +1190,20 @@ export default function PortfolioPage() {
         </main>
       ) : (
       <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Meus Portfólios
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {portfolios.length} portfólio{portfolios.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <Button onClick={openNewPortfolioOrPaywall}>
+      {/* Seletor de portfólio (dropdown) — substitui as tabs */}
+      {portfolios.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <PortfolioSelector
+            portfolios={portfolios}
+            activePortfolioId={activePortfolioId ?? ""}
+            onSelect={setActivePortfolioId}
+            onRefresh={fetchPortfolios}
+            variant="inline"
+          />
+          <Button onClick={openNewPortfolioOrPaywall} variant="outline" size="sm">
             <FolderPlus className="size-4" />
             Novo Portfólio
           </Button>
-        </div>
-
-      {/* Portfolio Tabs */}
-      {portfolios.length > 0 && (
-        <div className="flex items-center gap-6 overflow-x-auto pb-1 border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
-          {portfolios.map((p) => {
-            const active = p.id === activePortfolioId;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setActivePortfolioId(p.id)}
-                className={cn(
-                  "relative py-2.5 text-sm font-semibold flex items-center gap-1.5 cursor-pointer transition-colors focus:outline-none shrink-0",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <span>{p.name}</span>
-                {p._count && (
-                  <span className="text-xs opacity-60">({p._count.items})</span>
-                )}
-                {active && (
-                  <motion.span
-                    layoutId="portfolio-tab-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-            );
-          })}
         </div>
       )}
 
@@ -1371,13 +1340,13 @@ export default function PortfolioPage() {
 
             {/* Right Card: Summary Metrics (col-span-4) */}
             <Card className="lg:col-span-4 glass-card shadow-none p-5 flex flex-col justify-between min-h-[380px]">
-              <div>
+              <div className="flex flex-1 flex-col">
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
                   Resumo Geral do Portfólio
                 </h3>
-                <div className="space-y-4">
+                <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-3">
                   {/* Total Invested */}
-                  <div className="flex items-center justify-between py-2 border-b border-border/50">
+                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
                     <div className="flex items-center gap-2">
                       <div className="size-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
                         <DollarSign className="size-4" />
@@ -1396,7 +1365,7 @@ export default function PortfolioPage() {
                   </div>
 
                   {/* Lucro / Prejuizo */}
-                  <div className="flex items-center justify-between py-2 border-b border-border/50">
+                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
@@ -1434,7 +1403,7 @@ export default function PortfolioPage() {
                   </div>
 
                   {/* ROI */}
-                  <div className="flex items-center justify-between py-2 border-b border-border/50">
+                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
                     <div className="flex items-center gap-2">
                       <div className="size-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
                         <ArrowUpDown className="size-4" />
@@ -1461,7 +1430,7 @@ export default function PortfolioPage() {
                   </div>
 
                   {/* Total de Cartas */}
-                  <div className="flex items-center justify-between py-2 border-b border-border/50">
+                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
                     <div className="flex items-center gap-2">
                       <div className="size-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
                         <Package className="size-4" />
