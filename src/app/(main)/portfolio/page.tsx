@@ -59,7 +59,16 @@ import { useCollectionStats, useShowcase } from "@/lib/queries";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  CheckboxFilterList,
+  FilterSection,
+  PriceRangeFilter,
+  ProductTypeFilter,
+  type ProductTypeValue,
+  facetOptions,
+  toggleValue,
+} from "@/app/components/filters";
+import { Eye, EyeOff, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
@@ -766,6 +775,12 @@ export default function PortfolioPage() {
   );
 
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
+  // Filtros da coleção (mesmos do showcase) — sidebar + busca.
+  const [search, setSearch] = useState("");
+  const [productType, setProductType] = useState<ProductTypeValue>("all");
+  const [filterTcgs, setFilterTcgs] = useState<string[]>([]);
+  const [filterRarities, setFilterRarities] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [activePortfolioId, setActivePortfolioId] = useState<string | null>(
     null,
@@ -1096,6 +1111,36 @@ export default function PortfolioPage() {
 
   const totalCards = items.reduce((acc, item) => acc + item.quantity, 0);
   const activePortfolio = portfolios.find((p) => p.id === activePortfolioId);
+
+  // Facetas + filtragem da coleção (sidebar). Mesma lógica do showcase.
+  const tcgFacets = facetOptions(items, (i) => i.card.tcg?.name);
+  const rarityFacets = facetOptions(items, (i) => i.card.rarity);
+  const priceCeil = Math.max(
+    50,
+    ...items.map((i) => Math.ceil(i.card.prices[0]?.value ?? 0)),
+  );
+  const filteredItems = items.filter((i) => {
+    const pt = i.card.productType ?? "SINGLE";
+    if (productType === "single" && pt !== "SINGLE") return false;
+    if (productType === "sealed" && pt !== "SEALED") return false;
+    if (
+      filterTcgs.length > 0 &&
+      (!i.card.tcg?.name || !filterTcgs.includes(i.card.tcg.name))
+    )
+      return false;
+    if (filterRarities.length > 0 && !filterRarities.includes(i.card.rarity))
+      return false;
+    const unit = i.card.prices[0]?.value ?? 0;
+    if (priceRange && (unit < priceRange[0] || unit > priceRange[1]))
+      return false;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      const hay =
+        `${i.card.name} ${i.card.setName ?? ""} ${i.card.setCode} ${i.card.rarity}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   const u = session.user as {
     name?: string | null;
@@ -1531,85 +1576,174 @@ export default function PortfolioPage() {
               </Button>
             </div>
           ) : (
-            <>
-              <div className="flex items-center justify-between animate-in fade-in duration-300">
-                <p className="text-xs text-muted-foreground">
-                  {totalCards} {totalCards === 1 ? "carta" : "cartas"} em &quot;
-                  {activePortfolio.name}&quot;
-                </p>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant={isSelectionMode ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      if (isSelectionMode) {
-                        setSelectedIds(new Set());
-                      }
-                      setIsSelectionMode(!isSelectionMode);
-                    }}
-                    className={cn(
-                      "h-8 px-3 rounded-lg text-xs gap-1.5 cursor-pointer font-semibold transition-all",
-                      isSelectionMode
-                        ? "bg-primary text-primary-foreground hover:bg-primary/95"
-                        : "border-border text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    <Check className="size-3.5" />
-                    {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    <GlassPill
-                      active={viewType === "grid"}
-                      onClick={() => setViewType("grid")}
-                      className="px-2.5 py-1.5"
-                      aria-label="Visualizar em grade"
+            <div className="space-y-4">
+              {/* Busca — pill de vidro (igual showcase) */}
+              <div className="relative w-full">
+                <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
+                  <Search className="size-4 shrink-0 text-muted-foreground" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar nesta coleção..."
+                    className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                  />
+                  {search.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      <IconLayoutGrid className="size-4" />
-                    </GlassPill>
-                    <GlassPill
-                      active={viewType === "list"}
-                      onClick={() => setViewType("list")}
-                      className="px-2.5 py-1.5"
-                      aria-label="Visualizar em lista"
-                    >
-                      <IconListDetails className="size-4" />
-                    </GlassPill>
-                  </div>
+                      <X className="size-4" />
+                    </button>
+                  )}
                 </div>
               </div>
-              {viewType === "grid" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {items.map((item) => (
-                    <PortfolioItemCard
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedIds.has(item.id)}
-                      onSelectToggle={() => toggleSelect(item.id)}
-                      onUpdate={updateItem}
-                      onRemove={removeItem}
-                      isSelectionMode={isSelectionMode}
-                      portfolioId={activePortfolioId}
+
+              <div className="flex gap-6">
+                {/* Sidebar de filtros (igual showcase) */}
+                <aside className="hidden w-60 shrink-0 lg:block">
+                  <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+                    <ProductTypeFilter
+                      value={productType}
+                      onChange={setProductType}
                     />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {items.map((item) => (
-                    <PortfolioItemRow
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedIds.has(item.id)}
-                      onSelectToggle={() => toggleSelect(item.id)}
-                      onUpdate={updateItem}
-                      onRemove={removeItem}
-                      isSelectionMode={isSelectionMode}
-                      portfolioId={activePortfolioId}
+                    {tcgFacets.length > 0 && (
+                      <FilterSection title="Jogo / Categoria">
+                        <CheckboxFilterList
+                          idPrefix="pf-tcg"
+                          options={tcgFacets.map((f) => ({
+                            value: f.value,
+                            label: f.value,
+                            count: f.count,
+                          }))}
+                          selected={filterTcgs}
+                          onToggle={(v) =>
+                            setFilterTcgs((prev) => toggleValue(prev, v))
+                          }
+                        />
+                      </FilterSection>
+                    )}
+                    {rarityFacets.length > 0 && (
+                      <FilterSection title="Raridade">
+                        <CheckboxFilterList
+                          idPrefix="pf-rarity"
+                          options={rarityFacets.map((f) => ({
+                            value: f.value,
+                            label: f.value,
+                            count: f.count,
+                          }))}
+                          selected={filterRarities}
+                          onToggle={(v) =>
+                            setFilterRarities((prev) => toggleValue(prev, v))
+                          }
+                        />
+                      </FilterSection>
+                    )}
+                    <PriceRangeFilter
+                      isPro
+                      value={priceRange}
+                      ceil={priceCeil}
+                      onChange={setPriceRange}
+                      onUpsell={() => {}}
                     />
-                  ))}
+                  </div>
+                </aside>
+
+                {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
+                <div className="min-w-0 flex-1 space-y-4">
+                  <div className="flex items-center justify-between animate-in fade-in duration-300">
+                    <p className="text-xs text-muted-foreground">
+                      {filteredItems.length}{" "}
+                      {filteredItems.length === 1 ? "carta" : "cartas"}
+                      {filteredItems.length !== items.length
+                        ? ` de ${items.length}`
+                        : ""}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant={isSelectionMode ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          if (isSelectionMode) {
+                            setSelectedIds(new Set());
+                          }
+                          setIsSelectionMode(!isSelectionMode);
+                        }}
+                        className={cn(
+                          "h-8 px-3 rounded-lg text-xs gap-1.5 cursor-pointer font-semibold transition-all",
+                          isSelectionMode
+                            ? "bg-primary text-primary-foreground hover:bg-primary/95"
+                            : "border-border text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <Check className="size-3.5" />
+                        {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
+                      </Button>
+
+                      <div className="flex items-center gap-1">
+                        <GlassPill
+                          active={viewType === "grid"}
+                          onClick={() => setViewType("grid")}
+                          className="px-2.5 py-1.5"
+                          aria-label="Visualizar em grade"
+                        >
+                          <IconLayoutGrid className="size-4" />
+                        </GlassPill>
+                        <GlassPill
+                          active={viewType === "list"}
+                          onClick={() => setViewType("list")}
+                          className="px-2.5 py-1.5"
+                          aria-label="Visualizar em lista"
+                        >
+                          <IconListDetails className="size-4" />
+                        </GlassPill>
+                      </div>
+                    </div>
+                  </div>
+
+                  {filteredItems.length === 0 ? (
+                    <div className="glass-card !rounded-2xl p-12 text-center">
+                      <p className="text-sm font-semibold text-foreground">
+                        Nenhuma carta encontrada.
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Ajuste a busca ou os filtros.
+                      </p>
+                    </div>
+                  ) : viewType === "grid" ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {filteredItems.map((item) => (
+                        <PortfolioItemCard
+                          key={item.id}
+                          item={item}
+                          isSelected={selectedIds.has(item.id)}
+                          onSelectToggle={() => toggleSelect(item.id)}
+                          onUpdate={updateItem}
+                          onRemove={removeItem}
+                          isSelectionMode={isSelectionMode}
+                          portfolioId={activePortfolioId}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredItems.map((item) => (
+                        <PortfolioItemRow
+                          key={item.id}
+                          item={item}
+                          isSelected={selectedIds.has(item.id)}
+                          onSelectToggle={() => toggleSelect(item.id)}
+                          onUpdate={updateItem}
+                          onRemove={removeItem}
+                          isSelectionMode={isSelectionMode}
+                          portfolioId={activePortfolioId}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </>
+              </div>
+            </div>
           )}
         </>
       )}
