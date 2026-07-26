@@ -60,6 +60,13 @@ import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CheckboxFilterList,
   FilterSection,
   PriceRangeFilter,
@@ -777,6 +784,9 @@ export default function PortfolioPage() {
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   // Filtros da coleção (mesmos do showcase) — sidebar + busca.
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<
+    "value-desc" | "value-asc" | "name" | "qty-desc"
+  >("value-desc");
   const [productType, setProductType] = useState<ProductTypeValue>("all");
   const [filterTcgs, setFilterTcgs] = useState<string[]>([]);
   const [filterRarities, setFilterRarities] = useState<string[]>([]);
@@ -1140,6 +1150,20 @@ export default function PortfolioPage() {
       if (!hay.includes(q)) return false;
     }
     return true;
+  });
+  filteredItems.sort((a, b) => {
+    const av = (a.card.prices[0]?.value ?? 0) * a.quantity;
+    const bv = (b.card.prices[0]?.value ?? 0) * b.quantity;
+    switch (sort) {
+      case "value-asc":
+        return av - bv;
+      case "name":
+        return a.card.name.localeCompare(b.card.name);
+      case "qty-desc":
+        return b.quantity - a.quantity;
+      default:
+        return bv - av;
+    }
   });
 
   const u = session.user as {
@@ -1679,6 +1703,25 @@ export default function PortfolioPage() {
                         <Check className="size-3.5" />
                         {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
                       </Button>
+
+                      <Select
+                        value={sort}
+                        onValueChange={(v) => setSort(v as typeof sort)}
+                      >
+                        <SelectTrigger
+                          size="sm"
+                          className="glass-pill cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
+                        >
+                          <ArrowUpDown className="size-3.5 text-muted-foreground" />
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="value-desc">Maior valor</SelectItem>
+                          <SelectItem value="value-asc">Menor valor</SelectItem>
+                          <SelectItem value="name">Nome: A → Z</SelectItem>
+                          <SelectItem value="qty-desc">Quantidade</SelectItem>
+                        </SelectContent>
+                      </Select>
 
                       <div className="flex items-center gap-1">
                         <GlassPill
