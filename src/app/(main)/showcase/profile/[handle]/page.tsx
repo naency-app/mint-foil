@@ -82,13 +82,16 @@ export default async function ShowcaseProfilePage({
 
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
-      {/* Faixa "seu perfil público" — só para o dono (client, viewer-aware) */}
-      <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
-
-      {/* Header estilo Collectr: banner + card centralizado sobreposto */}
+      {/* Header estilo Collectr: banner esticado + card centralizado sobreposto */}
       <section className="relative">
-        <div className="h-32 w-full rounded-2xl bg-gradient-to-br from-primary/25 via-primary/5 to-tertiary/20 sm:h-40" />
-        <div className="relative mx-auto -mt-16 w-full max-w-sm">
+        <div className="h-48 w-full rounded-3xl bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25 sm:h-60" />
+
+        {/* Ações do dono (compartilhar) — sobrepostas no canto do banner */}
+        <div className="absolute right-4 top-4 z-10">
+          <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
+        </div>
+
+        <div className="relative mx-auto -mt-24 w-full max-w-sm">
           <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center">
             <div className="-mt-16 mb-3 flex size-24 items-center justify-center overflow-hidden rounded-full bg-primary/15 ring-4 ring-background">
               {data.image ? (

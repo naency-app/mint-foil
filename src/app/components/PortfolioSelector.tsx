@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import {
   Check,
   ChevronDown,
+  ChevronsUpDown,
   Edit2,
   Folder,
   Loader2,
@@ -36,6 +37,11 @@ interface PortfolioSelectorProps {
    * mexeriam na conta do usuário LOGADO — não do dono do perfil.
    */
   readOnly?: boolean;
+  /**
+   * "pill" (padrão) = gatilho em glass-pill. "inline" = texto destacado sem
+   * fundo, com o nome do portfólio em primary (deixa claro qual está ativo).
+   */
+  variant?: "pill" | "inline";
 }
 
 export function PortfolioSelector({
@@ -45,6 +51,7 @@ export function PortfolioSelector({
   onRefresh,
   labelPrefix = "Portfólio:",
   readOnly = false,
+  variant = "pill",
 }: PortfolioSelectorProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -217,19 +224,39 @@ export function PortfolioSelector({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="glass-pill flex min-w-0 cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-muted/40"
-        >
-          <span className="size-[7px] shrink-0 rounded-full bg-primary" />
-          <span className="shrink-0 text-xs font-medium text-muted-foreground">
-            {labelPrefix}
-          </span>
-          <span className="truncate text-xs font-bold text-foreground">
-            {activePortfolio?.name ?? "Selecionar portfólio"}
-          </span>
-          <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
-        </button>
+        {variant === "inline" ? (
+          <button
+            type="button"
+            className="flex min-w-0 cursor-pointer items-center gap-1.5"
+          >
+            <span className="shrink-0 text-sm font-medium text-muted-foreground">
+              {labelPrefix}
+            </span>
+            <span className="truncate text-sm font-bold text-primary">
+              {activePortfolio?.name ?? "Selecionar portfólio"}
+            </span>
+            {activePortfolio?._count != null && (
+              <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                ({activePortfolio._count.items})
+              </span>
+            )}
+            <ChevronsUpDown className="size-4 shrink-0 text-primary" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="glass-pill flex min-w-0 cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-muted/40"
+          >
+            <span className="size-[7px] shrink-0 rounded-full bg-primary" />
+            <span className="shrink-0 text-xs font-medium text-muted-foreground">
+              {labelPrefix}
+            </span>
+            <span className="truncate text-xs font-bold text-foreground">
+              {activePortfolio?.name ?? "Selecionar portfólio"}
+            </span>
+            <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+          </button>
+        )}
       </PopoverTrigger>
 
       <PopoverContent className="w-80 p-0 overflow-hidden bg-background border-border shadow-xl rounded-xl z-50">

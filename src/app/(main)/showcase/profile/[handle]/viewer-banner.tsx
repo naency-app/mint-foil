@@ -1,14 +1,13 @@
 "use client";
 
-import { Check, Share2 } from "lucide-react";
+import { Check, Eye, Share2 } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
 
 /**
- * Faixa que só aparece para o DONO do perfil, deixando claro que aquilo é a
- * visão pública (como os outros veem ao receber o link compartilhado) e dando
- * um atalho para compartilhar. Visitantes não veem nada — para eles o perfil
- * já é a visão de share, com o CTA de cadastro no rodapé da página.
+ * Só aparece para o DONO do perfil: um chip discreto indicando que é a visão
+ * pública + botão de compartilhar. Fica sobreposto no canto do banner (o page
+ * posiciona), em vez de uma faixa grande no topo.
  */
 export function ViewerBanner({
   handle,
@@ -43,17 +42,15 @@ export function ViewerBanner({
   }
 
   return (
-    <div className="glass-card !rounded-xl p-3.5 flex items-center justify-between gap-4">
-      <p className="text-xs text-muted-foreground">
-        <span className="text-foreground font-semibold">
-          Este é o seu perfil público.
-        </span>{" "}
-        É assim que ele aparece quando você compartilha.
-      </p>
+    <div className="flex items-center gap-2">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur">
+        <Eye className="size-3.5" />
+        Seu perfil público
+      </span>
       <button
         type="button"
         onClick={handleShare}
-        className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3.5 py-1.5 hover:bg-primary/90 transition-colors shrink-0 cursor-pointer"
+        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
       >
         {copied ? (
           <>
