@@ -270,13 +270,13 @@ export function ShowcaseBrowser({
                   href={`/card/${item.cardId}`}
                   className="glass-card group flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30"
                 >
-                  <div className="size-12 shrink-0 overflow-hidden rounded-md">
+                  <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
                     <Image
                       src={item.imageUrl}
                       alt={item.name}
                       width={48}
-                      height={48}
-                      className="h-full w-full object-cover"
+                      height={64}
+                      className="h-full w-full object-contain"
                     />
                   </div>
                   <div className="min-w-0 flex-1">

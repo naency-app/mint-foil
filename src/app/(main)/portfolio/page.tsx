@@ -235,14 +235,14 @@ function PortfolioItemRow({
               onSelectToggle();
             }
           }}
-          className="shrink-0 size-14 rounded-md overflow-hidden"
+          className="shrink-0 h-16 w-12 rounded-md overflow-hidden flex items-center justify-center bg-muted/30"
         >
           <Image
             src={item.card.imageUrl}
             alt={item.card.name}
-            width={56}
-            height={56}
-            className="w-full h-full object-cover"
+            width={48}
+            height={64}
+            className="w-full h-full object-contain"
           />
         </Link>
         <div className="flex-1 min-w-0">
