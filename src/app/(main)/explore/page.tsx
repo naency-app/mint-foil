@@ -67,6 +67,7 @@ import {
   type Portfolio,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { cardName } from "@/lib/utils";
 import {
   useCardSets,
   useCards,
@@ -347,7 +348,7 @@ function ListRow({
 
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-foreground truncate">
-            {card.name}
+            {cardName(card)}
           </h3>
         </div>
 
@@ -1112,6 +1113,7 @@ function ExplorePageContent() {
                 <TcgCard
                   key={card.id}
                   name={card.name}
+                  namePt={card.namePt}
                   price={formatPrice(getLatestPrice(card))}
                   priceChange={
                     card.prices.length >= 2

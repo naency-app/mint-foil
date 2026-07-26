@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
   name: string;
+  /** Nome PT oficial (BR): exibido no lugar do EN quando presente. */
+  namePt?: string | null;
   price: string;
   priceChange?: number;
   imageUrl: string;
@@ -44,6 +46,7 @@ function formatPrice(value: number) {
 
 export function TcgCard({
   name,
+  namePt,
   price,
   priceChange,
   imageUrl,
@@ -59,6 +62,7 @@ export function TcgCard({
   defaultPortfolioId,
   onAdd,
 }: TcgCardProps) {
+  const displayName = namePt?.trim() || name;
   const isPositive = change >= 0;
   const [localQty, setLocalQty] = useState(quantity);
   const [success, setSuccess] = useState(false);
@@ -139,7 +143,7 @@ export function TcgCard({
           <Link href={cardHref} className="block overflow-hidden p-2">
             <Image
               src={imageUrl}
-              alt={name}
+              alt={displayName}
               className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
@@ -149,7 +153,7 @@ export function TcgCard({
           <div className="overflow-hidden p-2">
             <Image
               src={imageUrl}
-              alt={name}
+              alt={displayName}
               className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
@@ -162,12 +166,12 @@ export function TcgCard({
         {cardHref ? (
           <Link href={cardHref}>
             <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
-              {name}
+              {displayName}
             </h3>
           </Link>
         ) : (
           <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem]">
-            {name}
+            {displayName}
           </h3>
         )}
         {setName && (

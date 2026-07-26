@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api, type CollectionItem, type Portfolio } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { useCardDetail } from "@/lib/queries";
-import { cn } from "@/lib/utils";
+import { cardName, cn } from "@/lib/utils";
 
 function getSearchUrls(
   cardName: string,
@@ -452,14 +452,14 @@ export default function CardDetailPage({
           </>
         )}
         <ChevronRight className="size-3" />
-        <span className="text-foreground truncate max-w-50">{card.name}</span>
+        <span className="text-foreground truncate max-w-50">{cardName(card)}</span>
       </nav>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {card.name}{" "}
+            {cardName(card)}{" "}
             <span className="text-muted-foreground font-normal text-lg">
               ({card.rarity})
             </span>
@@ -540,7 +540,7 @@ export default function CardDetailPage({
           <div className="glass-card sticky top-20 !rounded-2xl p-2">
             <Image
               src={card.imageUrl}
-              alt={card.name}
+              alt={cardName(card)}
               width={400}
               height={560}
               sizes="(max-width: 1024px) 90vw, 22vw"

@@ -81,7 +81,7 @@ import {
   IconEyeOff as EyeOff,
   IconSearch as Search,
 } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
+import { cardName, cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -190,7 +190,7 @@ function PortfolioItemRow({
     setRemoving(true);
     try {
       await onRemove(item.id);
-      toast.success(`${item.card.name} removido da coleção`);
+      toast.success(`${cardName(item.card)} removido da coleção`);
     } catch {
       toast.error("Erro ao remover item");
     } finally {
@@ -251,7 +251,7 @@ function PortfolioItemRow({
         >
           <Image
             src={item.card.imageUrl}
-            alt={item.card.name}
+            alt={cardName(item.card)}
             width={48}
             height={64}
             className="w-full h-full object-contain"
@@ -273,7 +273,7 @@ function PortfolioItemRow({
             }}
           >
             <h3 className="text-sm font-semibold text-foreground truncate hover:text-primary transition-colors">
-              {item.card.name}
+              {cardName(item.card)}
             </h3>
           </Link>
           <p className="text-xs text-muted-foreground truncate">
@@ -388,7 +388,7 @@ function PortfolioItemRow({
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover <strong>{item.card.name}</strong>{" "}
+              Tem certeza que deseja remover <strong>{cardName(item.card)}</strong>{" "}
               da sua coleção? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
@@ -454,7 +454,7 @@ function PortfolioItemCard({
     setRemoving(true);
     try {
       await onRemove(item.id);
-      toast.success(`${item.card.name} removido da coleção`);
+      toast.success(`${cardName(item.card)} removido da coleção`);
     } catch {
       toast.error("Erro ao remover item");
     } finally {
@@ -534,7 +534,7 @@ function PortfolioItemCard({
           >
             <Image
               src={item.card.imageUrl}
-              alt={item.card.name}
+              alt={cardName(item.card)}
               className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
               height={200}
@@ -565,7 +565,7 @@ function PortfolioItemCard({
             }}
           >
             <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
-              {item.card.name}
+              {cardName(item.card)}
             </h3>
           </Link>
           {item.card.setName && (
@@ -664,7 +664,7 @@ function PortfolioItemCard({
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover <strong>{item.card.name}</strong>{" "}
+              Tem certeza que deseja remover <strong>{cardName(item.card)}</strong>{" "}
               da sua coleção? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
@@ -2059,7 +2059,7 @@ export default function PortfolioPage() {
                         className="flex items-center justify-between py-2 text-xs"
                       >
                         <span className="font-medium text-foreground truncate max-w-[70%]">
-                          {item.card.name}
+                          {cardName(item.card)}
                         </span>
                         <div className="flex items-center gap-1.5">
                           {status === "pending" && (

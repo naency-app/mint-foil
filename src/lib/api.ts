@@ -51,6 +51,7 @@ export interface RarityExample {
 export interface Card {
   id: string;
   name: string;
+  namePt?: string | null; // nome oficial em PT (BR): exibir quando houver
   setCode: string;
   setName: string | null;
   imageUrl: string;
