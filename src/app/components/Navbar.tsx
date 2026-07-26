@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  IconMenu,
-  IconMoon,
-  IconSearch,
-  IconSun,
-  IconX,
-} from "@tabler/icons-react";
+import { IconMenu, IconMoon, IconSun, IconX } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { UserMenu } from "@/components/UserMenu";
-import { Kbd } from "@/components/ui/kbd";
 import {
   Sheet,
   SheetClose,
@@ -23,7 +16,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { CommandK } from "./CommandK";
 
 const navLinks = [
   { label: "Explorar", href: "/explore" },
@@ -65,7 +57,6 @@ function ThemeToggle() {
 
 export function Navbar() {
   const pathname = usePathname();
-  const [commandOpen, setCommandOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   // Padrão da nav da landing: parada no topo, vira pill flutuante ao rolar
   const [scrolled, setScrolled] = useState(false);
@@ -241,21 +232,8 @@ export function Navbar() {
             })}
           </div>
 
-          {/* ── Direita: busca ⌘K, tema, usuário ── */}
+          {/* ── Direita: tema, usuário ── */}
           <div className="flex items-center gap-2 md:justify-self-end">
-            <button
-              type="button"
-              id="search-button"
-              onClick={() => setCommandOpen(true)}
-              className="glass-pill flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label="Buscar"
-            >
-              <IconSearch className="size-3.5" />
-              <Kbd className="hidden h-4 min-w-4 bg-transparent px-1 text-[10px] text-muted-foreground sm:inline-flex">
-                ⌘K
-              </Kbd>
-            </button>
-
             <div className="hidden md:block">
               <ThemeToggle />
             </div>
@@ -264,8 +242,6 @@ export function Navbar() {
           </div>
         </div>
       </nav>
-
-      <CommandK open={commandOpen} onOpenChange={setCommandOpen} />
     </>
   );
 }
