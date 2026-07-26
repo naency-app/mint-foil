@@ -28,12 +28,20 @@ export interface ShowcasePortfolio {
   items: ShowcaseItem[];
 }
 
+export type CoverType = "gradient" | "color" | "image";
+
+export interface Cover {
+  type: CoverType;
+  value: string | null;
+}
+
 export interface Showcase {
   handle: string;
   displayName: string;
   image: string | null;
   isPro: boolean;
   memberSince: string;
+  cover: Cover;
   totalCards: number;
   totalSealed: number;
   totalValue: number;

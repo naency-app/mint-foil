@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Crown } from "lucide-react";
 import { ViewerBanner } from "./viewer-banner";
 import { ShowcaseBrowser } from "./showcase-browser";
+import { ProfileCover } from "./profile-cover";
 import type { Showcase } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
@@ -81,17 +82,15 @@ export default async function ShowcaseProfilePage({
   const hasCards = data.portfolios.some((p) => p.items.length > 0);
 
   return (
-    <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
-      {/* Header estilo Collectr: gradiente cobre TODO o header, card flutua no centro */}
-      <section className="relative overflow-hidden rounded-3xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25" />
-
-        {/* Ações do dono (compartilhar) — sobrepostas no canto do banner */}
-        <div className="absolute right-4 top-4 z-10">
+    <>
+      {/* Capa full-bleed (config. no futuro: cor/imagem/gif) + card do perfil */}
+      <ProfileCover cover={data.cover}>
+        {/* Ações do dono (compartilhar) — sobrepostas no canto da capa */}
+        <div className="absolute right-4 top-4 z-10 sm:right-6">
           <ViewerBanner handle={data.handle} shareUrl={shareUrl} />
         </div>
 
-        <div className="relative mx-auto w-full max-w-sm px-4 py-14 sm:py-20">
+        <div className="mx-auto w-full max-w-sm">
           <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center">
             <div className="-mt-16 mb-3 flex size-24 items-center justify-center overflow-hidden rounded-full bg-primary/15 ring-4 ring-background">
               {data.image ? (
@@ -155,21 +154,23 @@ export default async function ShowcaseProfilePage({
             </p>
           </div>
         </div>
-      </section>
+      </ProfileCover>
 
       {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}
-      {hasCards ? (
-        <ShowcaseBrowser portfolios={data.portfolios} />
-      ) : (
-        <div className="glass-card !rounded-2xl p-12 text-center">
-          <p className="text-sm font-semibold text-foreground">
-            Esta coleção ainda não tem cartas.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Quando {data.displayName} adicionar cartas, elas aparecem aqui.
-          </p>
-        </div>
-      )}
-    </main>
+      <main className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6">
+        {hasCards ? (
+          <ShowcaseBrowser portfolios={data.portfolios} />
+        ) : (
+          <div className="glass-card !rounded-2xl p-12 text-center">
+            <p className="text-sm font-semibold text-foreground">
+              Esta coleção ainda não tem cartas.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Quando {data.displayName} adicionar cartas, elas aparecem aqui.
+            </p>
+          </div>
+        )}
+      </main>
+    </>
   );
 }
