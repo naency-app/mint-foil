@@ -703,72 +703,73 @@ function PortfolioItemCard({
 
 function PortfolioPageSkeleton() {
   return (
-    <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <Skeleton className="h-8 w-44" />
-          <Skeleton className="h-4 w-20 mt-2" />
-        </div>
-        <Skeleton className="h-9 w-36 rounded-md" />
-      </div>
-
-      <div className="flex items-center gap-6 pb-1 border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
-        <Skeleton className="h-5 w-20 mb-1" />
-        <Skeleton className="h-5 w-24 mb-1" />
-        <Skeleton className="h-5 w-16 mb-1" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-8 border border-border rounded-xl p-5 flex flex-col gap-4 min-h-[380px]">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-3 w-48" />
-              <Skeleton className="h-8 w-36" />
+    <>
+      {/* Capa + card do perfil (mesma estrutura do ProfileHeader) */}
+      <div className="relative -mt-14 w-full md:-mt-16">
+        <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background" />
+        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+          <div className="mx-auto w-full max-w-sm">
+            <div className="glass-card flex flex-col items-center gap-3 !rounded-2xl p-6">
+              <Skeleton className="-mt-16 size-24 rounded-full" />
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-3 h-8 w-48" />
+              <div className="mt-3 flex gap-10">
+                <Skeleton className="h-11 w-14" />
+                <Skeleton className="h-11 w-14" />
+              </div>
             </div>
-            <Skeleton className="h-8 w-32 rounded-lg self-start" />
           </div>
-          <Skeleton className="flex-1 rounded-xl min-h-[220px]" />
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-[1480px] space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
+        {/* Seletor de portfólio + Novo portfólio */}
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="h-8 w-36 rounded-md" />
         </div>
 
-        <div className="lg:col-span-4 border border-border rounded-xl p-5 flex flex-col justify-between min-h-[380px]">
-          <div className="flex flex-col gap-0">
-            <Skeleton className="h-3 w-44 mb-4" />
+        {/* Chart + resumo */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="flex min-h-[380px] flex-col gap-4 rounded-xl border border-border p-5 lg:col-span-8">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-8 w-36" />
+              </div>
+              <Skeleton className="h-8 w-32 self-start rounded-lg" />
+            </div>
+            <Skeleton className="min-h-[220px] flex-1 rounded-xl" />
+          </div>
+          <div className="grid min-h-[380px] grid-cols-2 gap-3 rounded-xl border border-border p-5 lg:col-span-4">
             {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between py-3 border-b border-border/50"
-              >
-                <div className="flex items-center gap-2">
-                  <Skeleton className="size-8 rounded-lg" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-                <Skeleton className="h-4 w-20" />
+              <Skeleton key={i} className="rounded-xl" />
+            ))}
+          </div>
+        </div>
+
+        {/* Busca */}
+        <Skeleton className="h-11 w-full rounded-2xl" />
+
+        {/* Sidebar de filtros + grid */}
+        <div className="flex gap-6">
+          <div className="hidden w-60 shrink-0 lg:block">
+            <Skeleton className="h-[420px] rounded-2xl" />
+          </div>
+          <div className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: placeholders estáticos
+              <div key={i} className="space-y-2">
+                <Skeleton className="aspect-5/7 w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
               </div>
             ))}
           </div>
-          <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between">
-            <Skeleton className="h-3 w-28" />
-            <Skeleton className="h-3 w-32" />
-          </div>
         </div>
-      </div>
-
-      <Separator />
-
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-3 w-36" />
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-36 rounded-lg" />
-          <Skeleton className="h-8 w-16 rounded-lg" />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 rounded-lg" />
-        ))}
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
