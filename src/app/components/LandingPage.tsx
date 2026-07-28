@@ -2823,7 +2823,7 @@ function ProBanner() {
           >
             Lojista ou coleção grande?{" "}
             <a
-              href="mailto:contato@mintfoil.app?subject=Plano%20para%20lojas"
+              href="mailto:contato@mintfoil.com?subject=Plano%20para%20lojas"
               style={{
                 color: "#F856A7",
                 fontWeight: 700,
@@ -3250,7 +3250,7 @@ function FooterSection() {
           {[
             { lbl: "Privacidade", href: "/privacidade" },
             { lbl: "Termos", href: "/termos" },
-            { lbl: "Suporte", href: "mailto:contato@mintfoil.app" },
+            { lbl: "Suporte", href: "/suporte" },
             { lbl: "Loja", href: "/loja" },
           ].map(({ lbl, href }) => (
             <SmartLink

@@ -167,8 +167,8 @@ export default function TermosPage() {
           comarca de São Paulo/SP para dirimir controvérsias.
           <br />
           Contato:{" "}
-          <a href="mailto:contato@mintfoil.app" style={{ color: "#F856A7" }}>
-            contato@mintfoil.app
+          <a href="mailto:contato@mintfoil.com" style={{ color: "#F856A7" }}>
+            contato@mintfoil.com
           </a>
         </p>
       </div>

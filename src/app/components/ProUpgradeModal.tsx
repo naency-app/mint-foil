@@ -21,7 +21,7 @@ const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=app.mintfoil";
 
 // URL universal de download — redireciona para a store correta conforme o dispositivo
-const DOWNLOAD_URL = "https://mintfoil.app/download";
+const DOWNLOAD_URL = "https://mintfoil.com/download";
 
 const features = [
   {

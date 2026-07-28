@@ -855,10 +855,10 @@ function SettingsContent() {
                       </span>
                     </div>
                     <a
-                      href="mailto:support@mintfoil.app"
+                      href="mailto:contato@mintfoil.com"
                       className="text-xs font-semibold text-primary hover:underline"
                     >
-                      support@mintfoil.app
+                      contato@mintfoil.com
                     </a>
                   </div>
                   <div className="flex items-center justify-between py-3">

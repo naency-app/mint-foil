@@ -259,10 +259,10 @@ export default function PrivacyPage() {
               Para esclarecer dúvidas ou enviar solicitações sobre a sua
               privacidade, fale conosco em:{" "}
               <a
-                href="mailto:support@mintfoil.app"
+                href="mailto:contato@mintfoil.com"
                 className="text-primary hover:underline font-semibold"
               >
-                support@mintfoil.app
+                contato@mintfoil.com
               </a>
               .
             </p>

@@ -171,10 +171,10 @@ export default function TermsPage() {
               Para dúvidas sobre estes termos, entre em contato pelo email
               disponível na plataforma:{" "}
               <a
-                href="mailto:support@mintfoil.app"
+                href="mailto:contato@mintfoil.com"
                 className="text-primary hover:underline font-semibold"
               >
-                support@mintfoil.app
+                contato@mintfoil.com
               </a>
               .
             </p>

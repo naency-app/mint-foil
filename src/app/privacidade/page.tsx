@@ -168,8 +168,8 @@ export default function PrivacidadePage() {
           Controlador: Mint Foil · São Paulo, Brasil.
           <br />
           Encarregado de dados (DPO):{" "}
-          <a href="mailto:contato@mintfoil.app" style={{ color: "#F856A7" }}>
-            contato@mintfoil.app
+          <a href="mailto:contato@mintfoil.com" style={{ color: "#F856A7" }}>
+            contato@mintfoil.com
           </a>
         </p>
       </div>
