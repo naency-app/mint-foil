@@ -67,6 +67,7 @@ import {
   type Portfolio,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { TCG_CATALOG } from "@/lib/tcg-catalog";
 import { cardName } from "@/lib/utils";
 import {
   useCardSets,
@@ -80,24 +81,23 @@ import {
 type CollectionMap = Record<string, number>;
 type SetProgressMap = Record<string, SetProgress>;
 
-// Mesmo catálogo suportado do mobile (mint-foil-app/lib/tcg-catalog.ts);
-// `chip` é o nome curto usado nos chips de telas pequenas
-const SUPPORTED_TCGS = [
-  { slug: "pokemon", name: "Pokémon", chip: "Pokémon" },
-  { slug: "magic", name: "Magic: The Gathering", chip: "Magic" },
-  { slug: "yugioh", name: "Yu-Gi-Oh!", chip: "Yu-Gi-Oh!" },
-  { slug: "onepiece", name: "One Piece", chip: "One Piece" },
-];
+// Derivado do catálogo compartilhado (src/lib/tcg-catalog.ts, espelho do
+// mobile): habilitar um TCG lá já o coloca aqui. `chip` é o nome curto usado
+// nos chips de telas pequenas.
+const CHIP_LABEL: Record<string, string> = {
+  magic: "Magic",
+  lorcana: "Lorcana",
+};
 
-const COMING_SOON_TCGS = [
-  "Lorcana",
-  "Flesh and Blood",
-  "Dragon Ball Super",
-  "Digimon",
-  "Star Wars Unlimited",
-  "Weiß Schwarz",
-  "Union Arena",
-];
+const SUPPORTED_TCGS = TCG_CATALOG.filter((t) => t.supported && t.slug).map(
+  (t) => ({
+    slug: t.slug as string,
+    name: t.name,
+    chip: CHIP_LABEL[t.slug as string] ?? t.name,
+  }),
+);
+
+const COMING_SOON_TCGS = TCG_CATALOG.filter((t) => !t.supported).map((t) => t.name);
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {

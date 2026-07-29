@@ -163,8 +163,11 @@ export default function TermosPage() {
 
         <h2 style={S.h2}>10. Foro e contato</h2>
         <p style={S.p}>
-          Estes termos são regidos pelas leis brasileiras. Fica eleito o foro da
-          comarca de São Paulo/SP para dirimir controvérsias.
+          O Mint Foil é operado por Wihards Analysis &amp; Development Ltda
+          (CNPJ 48.905.063/0001-13), Curitiba/PR, Brasil. Estes termos são
+          regidos pelas leis brasileiras. Fica eleito o foro da comarca de
+          Curitiba/PR, ressalvado o direito do consumidor de demandar no foro de
+          seu domicílio, nos termos do Código de Defesa do Consumidor.
           <br />
           Contato:{" "}
           <a href="mailto:contato@mintfoil.com" style={{ color: "#F856A7" }}>

@@ -33,12 +33,29 @@ import { useSession } from "@/lib/auth-client";
 import { useCardDetail } from "@/lib/queries";
 import { cardName, cn } from "@/lib/utils";
 
+// Código utilizável na busca da Liga: precisa ser prefixado por set
+// ("JUSH-EN022", "OP12-108"). Fração/número solto (Pokémon "094/162", Magic
+// "135", Lorcana "41/204") não identifica a carta — nesses o nome é melhor.
+// Digimon traz a raridade colada ("BT10-030 C"); o sufixo sai.
+// Espelha ligaSearchCode do backend (price-sources.const.ts).
+function ligaSearchCode(collectorNumber?: string | null): string | null {
+  const raw = collectorNumber?.trim();
+  if (!raw) return null;
+  const code = raw.split(/\s+/)[0];
+  return /^[A-Za-z0-9]+-[A-Za-z0-9]+$/.test(code) ? code.toUpperCase() : null;
+}
+
+function ligaUrl(baseUrl: string, cardName: string, code: string | null): string {
+  if (code) return `${baseUrl}/?view=cards%2Fsearch&card=${encodeURIComponent(code)}&tipo=1`;
+  return `${baseUrl}/?view=cards/card&card=${encodeURIComponent(cardName)}`;
+}
+
 function getSearchUrls(
   cardName: string,
   tcgSlug?: string,
   collectorNumber?: string | null,
 ) {
-  const encoded = encodeURIComponent(cardName);
+  const ligaCode = ligaSearchCode(collectorNumber);
   const urls: {
     name: string;
     url: string;
@@ -52,7 +69,7 @@ function getSearchUrls(
   if (!tcgSlug || tcgSlug === "magic") {
     urls.push({
       name: "LigaMagic",
-      url: `https://www.ligamagic.com.br/?view=cards/card&card=${encoded}`,
+      url: ligaUrl("https://www.ligamagic.com.br", cardName, ligaCode),
       color: "text-blue-400",
       label: "Buscar no LigaMagic",
       logo: "/logos/sites/favicons/ligamagic.png",
@@ -61,7 +78,7 @@ function getSearchUrls(
   if (!tcgSlug || tcgSlug === "pokemon") {
     urls.push({
       name: "LigaPokemon",
-      url: `https://www.ligapokemon.com.br/?view=cards/card&card=${encoded}`,
+      url: ligaUrl("https://www.ligapokemon.com.br", cardName, ligaCode),
       color: "text-yellow-400",
       label: "Buscar no LigaPokemon",
       logo: "/logos/sites/favicons/ligapokemon.png",
@@ -70,7 +87,7 @@ function getSearchUrls(
   if (!tcgSlug || tcgSlug === "yugioh") {
     urls.push({
       name: "LigaYugioh",
-      url: `https://www.ligayugioh.com.br/?view=cards/card&card=${encoded}`,
+      url: ligaUrl("https://www.ligayugioh.com.br", cardName, ligaCode),
       color: "text-purple-400",
       label: "Buscar no LigaYugioh",
       logo: "/logos/sites/favicons/ligayugioh.png",
@@ -79,10 +96,28 @@ function getSearchUrls(
   if (!tcgSlug || tcgSlug === "onepiece") {
     urls.push({
       name: "LigaOnePiece",
-      url: `https://www.ligaonepiece.com.br/?view=cards/card&card=${encoded}`,
+      url: ligaUrl("https://www.ligaonepiece.com.br", cardName, ligaCode),
       color: "text-red-400",
       label: "Buscar no LigaOnePiece",
       logo: "/logos/sites/favicons/ligaonepiece.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "lorcana") {
+    urls.push({
+      name: "LigaLorcana",
+      url: ligaUrl("https://www.ligalorcana.com.br", cardName, ligaCode),
+      color: "text-amber-400",
+      label: "Buscar no LigaLorcana",
+      logo: "/logos/sites/favicons/ligalorcana.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "digimon") {
+    urls.push({
+      name: "LigaDigimon",
+      url: ligaUrl("https://www.ligadigimon.com.br", cardName, ligaCode),
+      color: "text-sky-400",
+      label: "Buscar no LigaDigimon",
+      logo: "/logos/sites/favicons/ligadigimon.png",
     });
   }
   // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)

@@ -1,5 +1,5 @@
 // Catálogo dos TCGs exibidos na grade da tela Explorar.
-// Imagens vêm do getcollectr (public CDN). Apenas os 4 com `supported: true`
+// Imagens vêm do getcollectr (public CDN). Apenas os 6 com `supported: true`
 // têm dados no backend; os demais aparecem como "Em breve".
 
 export interface TcgCatalogEntry {
@@ -43,14 +43,22 @@ export const TCG_CATALOG: TcgCatalogEntry[] = [
     image: `${IMG}/f8946b76-5018-4e2b-9ae2-ecaf91c08f39.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
   },
 
-  // ── Em breve (sem dados no backend) ─────────────────────────
+  {
+    categoryId: 71,
+    name: "Disney Lorcana",
+    slug: "lorcana",
+    supported: true,
+    image: `${IMG}/1da72a37-7edb-45ee-a6df-91bb41493dba.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
+  },
   {
     categoryId: 63,
     name: "Digimon",
-    slug: null,
-    supported: false,
+    slug: "digimon",
+    supported: true,
     image: `${IMG}/c26565ab-b555-483e-9e1f-ab53baa26329.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
   },
+
+  // ── Em breve (sem dados no backend) ─────────────────────────
   {
     categoryId: 27,
     name: "Dragon Ball Super",
@@ -99,13 +107,6 @@ export const TCG_CATALOG: TcgCatalogEntry[] = [
     slug: null,
     supported: false,
     image: `${IMG}/d4acbe32-2c03-459c-8c2c-bf5fe28b884c.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
-  },
-  {
-    categoryId: 71,
-    name: "Lorcana",
-    slug: null,
-    supported: false,
-    image: `${IMG}/1da72a37-7edb-45ee-a6df-91bb41493dba.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
   },
   {
     categoryId: 66,

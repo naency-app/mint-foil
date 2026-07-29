@@ -12,13 +12,14 @@ import {
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { api, type Card, type RarityExample } from "@/lib/api";
+import { TCG_CATALOG } from "@/lib/tcg-catalog";
 
-const TCGS: { slug: string; name: string }[] = [
-  { slug: "yugioh", name: "Yu-Gi-Oh!" },
-  { slug: "pokemon", name: "Pokémon" },
-  { slug: "magic", name: "Magic" },
-  { slug: "onepiece", name: "One Piece" },
-];
+// Derivado do catálogo para não ficar pra trás quando um TCG é habilitado.
+const SHORT_NAME: Record<string, string> = { magic: "Magic", lorcana: "Lorcana" };
+
+const TCGS: { slug: string; name: string }[] = TCG_CATALOG.filter(
+  (t) => t.supported && t.slug,
+).map((t) => ({ slug: t.slug as string, name: SHORT_NAME[t.slug as string] ?? t.name }));
 
 /**
  * Imagem de carta com tilt 3D no cursor + brilho (glare). `object-contain` +

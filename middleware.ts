@@ -8,6 +8,15 @@ const publicRoutes = [
   "/card",
   "/scan",
   "/showcase", // perfil público compartilhável — não pode exigir login
+  // Páginas legais e de suporte: a App Store e a Play Console exigem que a
+  // Privacy Policy URL e a Support URL abram sem autenticação. Atrás do login,
+  // o revisor cai na tela de entrar e a submissão é rejeitada.
+  "/privacidade",
+  "/termos",
+  "/suporte",
+  "/privacy",
+  "/terms",
+  "/loja",
 ];
 
 export async function middleware(request: NextRequest) {

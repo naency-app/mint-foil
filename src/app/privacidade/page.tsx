@@ -165,7 +165,9 @@ export default function PrivacidadePage() {
 
         <h2 style={S.h2}>10. Contato</h2>
         <p style={S.p}>
-          Controlador: Mint Foil · São Paulo, Brasil.
+          Controlador: Wihards Analysis &amp; Development Ltda (CNPJ
+          48.905.063/0001-13), Curitiba/PR, Brasil — responsável pelo aplicativo
+          Mint Foil.
           <br />
           Encarregado de dados (DPO):{" "}
           <a href="mailto:contato@mintfoil.com" style={{ color: "#F856A7" }}>
