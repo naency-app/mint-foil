@@ -2599,7 +2599,7 @@ const FOIL_CSS =
 function ProBanner() {
   const isMobile = useIsMobile();
   const router = useRouter();
-  // Slider embutido: até 30 scans/dia = Grátis (R$ 0); acima = PRO 19,90.
+  // Slider embutido: até 30 scans/dia = Grátis (R$ 0); acima = PRO 9,90.
   // Nasce em 31 (PRO): mexendo pra baixo a pessoa descobre que zera
   const [scans, setScans] = useState(31);
   const isPro = scans > 30;
@@ -2807,7 +2807,7 @@ function ProBanner() {
             </button>
             <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.55)" }}>
               <strong style={{ color: "#FFFFFF", fontSize: "16px" }}>
-                {isPro ? "R$ 19,90" : "R$ 0"}
+                {isPro ? "R$ 9,90" : "R$ 0"}
               </strong>
               /mês{isPro && " · cancele quando quiser"}
             </span>
@@ -2875,7 +2875,7 @@ function ProBanner() {
   );
 }
 
-// ── Calculadora de plano: até 30 scans/dia = Grátis; acima = PRO 19,90 ────────
+// ── Calculadora de plano: até 30 scans/dia = Grátis; acima = PRO 9,90 ────────
 
 const RANGE_THUMB_CSS = `
 .mf-range { -webkit-appearance: none; appearance: none; outline: none; }

@@ -8,9 +8,10 @@ import {
   IconPlus,
   IconX,
 } from "@tabler/icons-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { RollingNumber } from "@/app/components/RollingNumber";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -60,7 +61,6 @@ export function AddToPortfolioButton({
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState("");
   const [creatingPortfolio, setCreatingPortfolio] = useState(false);
-  const qtyDelta = useRef(0);
 
   useEffect(() => {
     if (defaultPortfolioId) setSelectedPortfolioId(defaultPortfolioId);
@@ -115,12 +115,10 @@ export function AddToPortfolioButton({
 
   function decQty() {
     if (quantity <= 1) return;
-    qtyDelta.current = -1;
     setQuantity((q) => Math.max(1, q - 1));
   }
 
   function incQty() {
-    qtyDelta.current = 1;
     setQuantity((q) => q + 1);
   }
 
@@ -266,25 +264,13 @@ export function AddToPortfolioButton({
                     <IconMinus className="size-3" strokeWidth={2.5} />
                   </motion.button>
 
+                  {/* Algarismos rolantes: mesma peça do card e do app */}
                   <div className="flex-1 flex items-center justify-center overflow-hidden h-7">
-                    <AnimatePresence mode="popLayout" initial={false}>
-                      <motion.span
-                        key={quantity}
-                        initial={{
-                          y: qtyDelta.current > 0 ? 10 : -10,
-                          opacity: 0,
-                        }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{
-                          y: qtyDelta.current > 0 ? -10 : 10,
-                          opacity: 0,
-                        }}
-                        transition={{ duration: 0.13 }}
-                        className="text-sm font-bold text-foreground font-mono tabular-nums"
-                      >
-                        {quantity}
-                      </motion.span>
-                    </AnimatePresence>
+                    <RollingNumber
+                      value={quantity}
+                      fontSize={14}
+                      className="font-bold text-foreground font-mono"
+                    />
                   </div>
 
                   <motion.button

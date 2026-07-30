@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { RollingNumber } from "@/app/components/RollingNumber";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
@@ -193,9 +194,7 @@ export function TcgCard({
         )}
 
         <p className="text-[10px] leading-tight">
-          {rarity && (
-            <span className="text-muted-foreground">{rarity}</span>
-          )}
+          {rarity && <span className="text-muted-foreground">{rarity}</span>}
           {rarity && collectorNumber && (
             <span className="text-muted-foreground"> • </span>
           )}
@@ -231,8 +230,10 @@ export function TcgCard({
                   : `${isPositive ? "+" : ""}${change.toFixed(2)}%`}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-mono">
-              Quant. {localQty}
+            {/* O rótulo fica parado; só os algarismos rolam */}
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
+              Quant.
+              <RollingNumber value={localQty} fontSize={10} />
             </span>
           </div>
 

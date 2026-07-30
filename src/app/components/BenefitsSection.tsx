@@ -90,7 +90,7 @@ const TAB_DATA: Record<string, TabData> = {
       },
       {
         icon: IconCurrencyDollar,
-        title: "PRO por R$ 19,90/mês",
+        title: "PRO por R$ 9,90/mês",
         description:
           "Scans ilimitados, portfólio completo e gráficos de valorização. Menos que um booster pack. Cancela quando quiser.",
       },

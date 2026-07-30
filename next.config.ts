@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // Os logos de set do Magic vêm do Scryfall em SVG. Sem isto o otimizador
+    // recusa com 400 ("image type is not allowed") e toda capa de Magic cai no
+    // fallback. SVG remoto é servido em sandbox e sem script, como manda a doc.
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy:
+      "default-src 'self'; script-src 'none'; sandbox; style-src 'unsafe-inline'",
     remotePatterns: [
       {
         protocol: "https",

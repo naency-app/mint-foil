@@ -79,7 +79,7 @@ export default function TermosPage() {
             necessidade de conta.
           </li>
           <li style={S.li}>
-            O plano <strong>PRO</strong> (R$ 19,90/mês) libera scans ilimitados,
+            O plano <strong>PRO</strong> (R$ 9,90/mês) libera scans ilimitados,
             portfólio completo, gráficos e histórico de preços. A assinatura
             pode ser cancelada a qualquer momento, sem multa; o acesso permanece
             até o fim do período pago.

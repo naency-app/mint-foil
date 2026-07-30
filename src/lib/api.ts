@@ -14,6 +14,8 @@ export interface CardSet {
   name: string;
   slug: string;
   imageUrl: string | null;
+  /** Capa de reserva (carta do set), usada quando `imageUrl` falha ao carregar */
+  coverFallbackUrl?: string | null;
   releaseDate: string | null;
   totalCards: number | null;
   tcgId: string;
