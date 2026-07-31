@@ -30,6 +30,11 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type CollectionItem, type Portfolio } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import {
+  resolveActiveId,
+  sortByFavorite,
+  usePortfolioStore,
+} from "@/lib/portfolio-store";
 import { useCardDetail } from "@/lib/queries";
 import { cardName, cn } from "@/lib/utils";
 
@@ -45,8 +50,13 @@ function ligaSearchCode(collectorNumber?: string | null): string | null {
   return /^[A-Za-z0-9]+-[A-Za-z0-9]+$/.test(code) ? code.toUpperCase() : null;
 }
 
-function ligaUrl(baseUrl: string, cardName: string, code: string | null): string {
-  if (code) return `${baseUrl}/?view=cards%2Fsearch&card=${encodeURIComponent(code)}&tipo=1`;
+function ligaUrl(
+  baseUrl: string,
+  cardName: string,
+  code: string | null,
+): string {
+  if (code)
+    return `${baseUrl}/?view=cards%2Fsearch&card=${encodeURIComponent(code)}&tipo=1`;
   return `${baseUrl}/?view=cards/card&card=${encodeURIComponent(cardName)}`;
 }
 
@@ -250,7 +260,13 @@ export default function CardDetailPage({
   const { data: session } = useSession();
   const router = useRouter();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [activePortfolioId, setActivePortfolioId] = useState<string>("");
+  // Contexto compartilhado: a escolha feita aqui vale nas outras telas e
+  // sobrevive à navegação (ver lib/portfolio-store)
+  const storeActiveId = usePortfolioStore((s) => s.activeId);
+  const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
+  const setActive = usePortfolioStore((s) => s.setActive);
+  const activePortfolioId = storeActiveId ?? "";
+  const setActivePortfolioId = setActive;
   const [ownedItems, setOwnedItems] = useState<CollectionItem[]>([]);
   const lastDelta = useRef(1);
   // Stepper controla direto a quantidade no portfólio ativo: cada clique
@@ -264,50 +280,17 @@ export default function CardDetailPage({
     api.collection
       .portfolios()
       .then((data) => {
-        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-        let favs: string[] = [];
-        if (favsStr) {
-          try {
-            favs = JSON.parse(favsStr) as string[];
-          } catch {}
-        } else {
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          if (oldDefault) favs = [oldDefault];
-        }
-
-        const sortedPortfolios = [...data].sort((a, b) => {
-          const aFav = favs.includes(a.id);
-          const bFav = favs.includes(b.id);
-          if (aFav && !bFav) return -1;
-          if (!aFav && bFav) return 1;
-          return 0;
-        });
+        const sortedPortfolios = sortByFavorite(data, favoriteIds);
 
         setPortfolios(sortedPortfolios);
 
         if (sortedPortfolios.length > 0) {
-          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some(
-            (p) => p.id === oldDefault,
+          const alvo = resolveActiveId(
+            sortedPortfolios,
+            storeActiveId,
+            favoriteIds,
           );
-
-          const nextActive =
-            queryPortfolioId &&
-            sortedPortfolios.some((p) => p.id === queryPortfolioId)
-              ? queryPortfolioId
-              : foundFav
-                ? foundFav.id
-                : hasOldStored && oldDefault
-                  ? oldDefault
-                  : sortedPortfolios[0].id;
-
-          setActivePortfolioId((prev) => {
-            if (prev && sortedPortfolios.some((p) => p.id === prev)) {
-              return prev;
-            }
-            return nextActive;
-          });
+          if (alvo && alvo !== storeActiveId) setActivePortfolioId(alvo);
         }
       })
       .catch(() => {});
@@ -487,7 +470,9 @@ export default function CardDetailPage({
           </>
         )}
         <ChevronRight className="size-3" />
-        <span className="text-foreground truncate max-w-50">{cardName(card)}</span>
+        <span className="text-foreground truncate max-w-50">
+          {cardName(card)}
+        </span>
       </nav>
 
       {/* Header */}

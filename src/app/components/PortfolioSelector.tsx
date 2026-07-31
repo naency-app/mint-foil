@@ -1,14 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { api, type Portfolio } from "@/lib/api";
-import { cn } from "@/lib/utils";
 import {
   Check,
   ChevronDown,
@@ -24,6 +15,16 @@ import {
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { api, type Portfolio } from "@/lib/api";
+import { usePortfolioStore } from "@/lib/portfolio-store";
+import { cn } from "@/lib/utils";
 
 interface PortfolioSelectorProps {
   portfolios: Portfolio[];
@@ -67,26 +68,9 @@ export function PortfolioSelector({
   const editInputRef = useRef<HTMLInputElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
-  // Local storage persistence for favorite portfolios
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("minty_favorite_portfolio_ids");
-        if (stored) {
-          setFavoriteIds(JSON.parse(stored));
-        } else {
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          if (oldDefault) {
-            setFavoriteIds([oldDefault]);
-          }
-        }
-      } catch {
-        setFavoriteIds([]);
-      }
-    }
-  }, []);
+  // Favoritos vivem no store (persistido), compartilhados com as outras telas
+  const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
+  const toggleFavorite = usePortfolioStore((s) => s.toggleFavorite);
 
   useEffect(() => {
     if (editingId && editInputRef.current) {
@@ -118,23 +102,14 @@ export function PortfolioSelector({
 
   const handleToggleDefault = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    let nextFavorites: string[];
-    const isFav = favoriteIds.includes(id);
-    if (isFav) {
-      nextFavorites = favoriteIds.filter((favId) => favId !== id);
+    const eraFavorito = favoriteIds.includes(id);
+    toggleFavorite(id);
+    if (eraFavorito) {
       toast.success("Removido dos favoritos");
     } else {
-      nextFavorites = [...favoriteIds, id];
       toast.success("Adicionado aos favoritos!");
-      if (id !== activePortfolioId) {
-        onSelect(id);
-      }
+      if (id !== activePortfolioId) onSelect(id);
     }
-    setFavoriteIds(nextFavorites);
-    localStorage.setItem(
-      "minty_favorite_portfolio_ids",
-      JSON.stringify(nextFavorites),
-    );
   };
 
   const handleCreatePortfolio = async (e: React.FormEvent) => {

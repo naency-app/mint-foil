@@ -42,6 +42,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Card as CardType, Portfolio } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
+  resolveActiveId,
+  sortByFavorite,
+  usePortfolioStore,
+} from "@/lib/portfolio-store";
+import {
   useCards,
   useCollectionStats,
   useInvalidateCollection,
@@ -182,7 +187,13 @@ function SetCardsPageContent() {
   const [sortBy, setSortBy] = useQueryState("sort", { defaultValue: "number" });
 
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [activePortfolioId, setActivePortfolioId] = useState("");
+  // Contexto compartilhado: a escolha feita aqui vale nas outras telas e
+  // sobrevive à navegação (ver lib/portfolio-store)
+  const storeActiveId = usePortfolioStore((s) => s.activeId);
+  const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
+  const setActive = usePortfolioStore((s) => s.setActive);
+  const activePortfolioId = storeActiveId ?? "";
+  const setActivePortfolioId = setActive;
   const [setImgFailed, setSetImgFailed] = useState(false);
 
   // Filtros da sidebar (mesmo padrão marketplace do Explore)
@@ -218,44 +229,17 @@ function SetCardsPageContent() {
     const data = portfoliosQuery.data;
     if (!data) return;
 
-    const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-    let favs: string[] = [];
-    if (favsStr) {
-      try {
-        favs = JSON.parse(favsStr) as string[];
-      } catch {}
-    } else {
-      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-      if (oldDefault) favs = [oldDefault];
-    }
-
-    const sortedPortfolios = [...data].sort((a, b) => {
-      const aFav = favs.includes(a.id);
-      const bFav = favs.includes(b.id);
-      if (aFav && !bFav) return -1;
-      if (!aFav && bFav) return 1;
-      return 0;
-    });
+    const sortedPortfolios = sortByFavorite(data, favoriteIds);
 
     setPortfolios(sortedPortfolios);
 
     if (sortedPortfolios.length > 0) {
-      const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-      const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
-
-      const nextActive = foundFav
-        ? foundFav.id
-        : hasOldStored && oldDefault
-          ? oldDefault
-          : sortedPortfolios[0].id;
-
-      setActivePortfolioId((prev) => {
-        if (prev && sortedPortfolios.some((p) => p.id === prev)) {
-          return prev;
-        }
-        return nextActive;
-      });
+      const alvo = resolveActiveId(
+        sortedPortfolios,
+        storeActiveId,
+        favoriteIds,
+      );
+      if (alvo && alvo !== storeActiveId) setActivePortfolioId(alvo);
     }
   }, [portfoliosQuery.data]);
 

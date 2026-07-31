@@ -7,6 +7,8 @@ import {
   IconChevronLeft as ChevronLeft,
   IconCopy as Copy,
   IconCurrencyDollar as DollarSign,
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
   IconFolderPlus as FolderPlus,
   IconLayoutGrid,
   IconListDetails,
@@ -14,6 +16,7 @@ import {
   IconMinus as Minus,
   IconPackage as Package,
   IconPlus as Plus,
+  IconSearch as Search,
   IconShare as Share2,
   IconTrash as Trash2,
   IconTrendingDown as TrendingDown,
@@ -26,7 +29,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import {
+  CheckboxFilterList,
+  FilterSection,
+  facetOptions,
+  PriceRangeFilter,
+  ProductTypeFilter,
+  type ProductTypeValue,
+  toggleValue,
+} from "@/app/components/filters";
+import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
@@ -46,6 +61,13 @@ import {
 } from "@/components/ui/dialog";
 import { GlassPill } from "@/components/ui/glass";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,31 +78,12 @@ import {
   type PortfolioMetrics,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import {
+  resolveActiveId,
+  sortByFavorite,
+  usePortfolioStore,
+} from "@/lib/portfolio-store";
 import { useCollectionStats, useShowcase } from "@/lib/queries";
-import { ProfileHeader } from "@/app/components/ProfileHeader";
-import { PortfolioSelector } from "@/app/components/PortfolioSelector";
-import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  CheckboxFilterList,
-  FilterSection,
-  PriceRangeFilter,
-  ProductTypeFilter,
-  type ProductTypeValue,
-  facetOptions,
-  toggleValue,
-} from "@/app/components/filters";
-import {
-  IconEye as Eye,
-  IconEyeOff as EyeOff,
-  IconSearch as Search,
-} from "@tabler/icons-react";
 import { cardName, cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
@@ -89,6 +92,13 @@ function formatPrice(value: number) {
     maximumFractionDigits: 2,
   });
 }
+
+/**
+ * Posição da rolagem, por sessão. O navegador não consegue restaurar sozinho:
+ * a grade é carregada por fetch no cliente, então no momento em que ele tenta
+ * a página ainda não tem altura nenhuma.
+ */
+const SCROLL_KEY = "minty_portfolio_scroll";
 
 const defaultMetrics: PortfolioMetrics = {
   totalInvested: 0,
@@ -388,8 +398,9 @@ function PortfolioItemRow({
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover <strong>{cardName(item.card)}</strong>{" "}
-              da sua coleção? Esta ação não pode ser desfeita.
+              Tem certeza que deseja remover{" "}
+              <strong>{cardName(item.card)}</strong> da sua coleção? Esta ação
+              não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -664,8 +675,9 @@ function PortfolioItemCard({
           <DialogHeader>
             <DialogTitle>Remover da coleção?</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover <strong>{cardName(item.card)}</strong>{" "}
-              da sua coleção? Esta ação não pode ser desfeita.
+              Tem certeza que deseja remover{" "}
+              <strong>{cardName(item.card)}</strong> da sua coleção? Esta ação
+              não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -798,12 +810,46 @@ export default function PortfolioPage() {
   const [filterRarities, setFilterRarities] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [activePortfolioId, setActivePortfolioId] = useState<string | null>(
-    null,
-  );
+  // Contexto vem do store: sobrevive a sair para a carta e voltar
+  const activeId = usePortfolioStore((s) => s.activeId);
+  const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
+  const setActivePortfolioId = usePortfolioStore((s) => s.setActive);
+  const activePortfolioId = activeId;
   const [items, setItems] = useState<CollectionItem[]>([]);
+  // Ordem congelada da grade — ver `compareItems` mais abaixo. Guarda os ids na
+  // sequência exibida e a assinatura dos critérios que a produziram.
+  const orderRef = useRef<{ signature: string; ids: string[] }>({
+    signature: "",
+    ids: [],
+  });
   const [metrics, setMetrics] = useState<PortfolioMetrics>(defaultMetrics);
   const [loading, setLoading] = useState(true);
+  const scrollYRef = useRef(0);
+  const scrollRestauradoRef = useRef(false);
+
+  // Acompanha a rolagem sem escrever a cada evento; grava só ao desmontar,
+  // que é quando o usuário sai para a tela da carta.
+  useEffect(() => {
+    const acompanhar = () => {
+      scrollYRef.current = window.scrollY;
+    };
+    window.addEventListener("scroll", acompanhar, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", acompanhar);
+      sessionStorage.setItem(SCROLL_KEY, String(scrollYRef.current));
+    };
+  }, []);
+
+  // Restaura só depois que a grade renderizou — antes disso a página não tem
+  // altura suficiente e o scrollTo não teria para onde ir.
+  useEffect(() => {
+    if (scrollRestauradoRef.current || loading || items.length === 0) return;
+    scrollRestauradoRef.current = true;
+    const salvo = Number(sessionStorage.getItem(SCROLL_KEY) ?? 0);
+    if (salvo > 0) {
+      requestAnimationFrame(() => window.scrollTo({ top: salvo }));
+    }
+  }, [loading, items.length]);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
@@ -899,39 +945,13 @@ export default function PortfolioPage() {
     try {
       const data = await api.collection.portfolios();
 
-      const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-      let favs: string[] = [];
-      if (favsStr) {
-        try {
-          favs = JSON.parse(favsStr) as string[];
-        } catch {}
-      } else {
-        const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-        if (oldDefault) favs = [oldDefault];
-      }
-
-      const sortedPortfolios = [...data].sort((a, b) => {
-        const aFav = favs.includes(a.id);
-        const bFav = favs.includes(b.id);
-        if (aFav && !bFav) return -1;
-        if (!aFav && bFav) return 1;
-        return 0;
-      });
-
+      const sortedPortfolios = sortByFavorite(data, favoriteIds);
       setPortfolios(sortedPortfolios);
 
-      if (sortedPortfolios.length > 0 && !activePortfolioId) {
-        const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-        if (foundFav) {
-          setActivePortfolioId(foundFav.id);
-        } else {
-          const stored = localStorage.getItem("minty_default_portfolio_id");
-          const hasStored = sortedPortfolios.some((p) => p.id === stored);
-          setActivePortfolioId(
-            hasStored && stored ? stored : sortedPortfolios[0].id,
-          );
-        }
-      }
+      // Só define quando não há contexto válido — uma escolha do usuário que
+      // ainda exista na lista nunca é sobrescrita por um refetch.
+      const alvo = resolveActiveId(sortedPortfolios, activeId, favoriteIds);
+      if (alvo && alvo !== activeId) setActivePortfolioId(alvo);
       if (sortedPortfolios.length === 0) setLoading(false);
     } catch {
       /* ignore for now */
@@ -1162,7 +1182,7 @@ export default function PortfolioPage() {
     }
     return true;
   });
-  filteredItems.sort((a, b) => {
+  function compareItems(a: CollectionItem, b: CollectionItem) {
     const av = (a.card.prices[0]?.value ?? 0) * a.quantity;
     const bv = (b.card.prices[0]?.value ?? 0) * b.quantity;
     switch (sort) {
@@ -1175,7 +1195,51 @@ export default function PortfolioPage() {
       default:
         return bv - av;
     }
+  }
+
+  /**
+   * A ordem exibida é congelada enquanto o usuário mexe nas quantidades.
+   *
+   * "Maior valor" e "quantidade" dependem de `quantity`, então reordenar a cada
+   * alteração faz o card pular de posição embaixo do cursor — e o clique
+   * seguinte cai no card errado. A lista só se reorganiza quando muda o
+   * critério, um filtro, a busca ou o portfólio.
+   */
+  const orderSignature = JSON.stringify({
+    sort,
+    productType,
+    filterTcgs,
+    filterRarities,
+    priceRange,
+    search: search.trim(),
+    activePortfolioId,
   });
+
+  if (orderRef.current.signature !== orderSignature) {
+    orderRef.current = {
+      signature: orderSignature,
+      ids: [...filteredItems].sort(compareItems).map((i) => i.id),
+    };
+  } else {
+    // Itens que entraram depois (uma carta recém-adicionada) ainda não estão na
+    // ordem congelada; posiciona-os agora para não sumirem da lista.
+    const conhecidos = new Set(orderRef.current.ids);
+    const novos = filteredItems.filter((i) => !conhecidos.has(i.id));
+    if (novos.length > 0) {
+      orderRef.current = {
+        signature: orderSignature,
+        ids: [
+          ...novos.sort(compareItems).map((i) => i.id),
+          ...orderRef.current.ids,
+        ],
+      };
+    }
+  }
+
+  const posicao = new Map(orderRef.current.ids.map((id, i) => [id, i]));
+  filteredItems.sort(
+    (a, b) => (posicao.get(a.id) ?? 0) - (posicao.get(b.id) ?? 0),
+  );
 
   const u = session.user as {
     name?: string | null;
@@ -1269,835 +1333,868 @@ export default function PortfolioPage() {
           )}
         </main>
       ) : (
-      <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
-      {/* Seletor de portfólio (dropdown) — substitui as tabs */}
-      {portfolios.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <PortfolioSelector
-            portfolios={portfolios}
-            activePortfolioId={activePortfolioId ?? ""}
-            onSelect={setActivePortfolioId}
-            onRefresh={fetchPortfolios}
-            variant="inline"
-          />
-          <Button onClick={openNewPortfolioOrPaywall} variant="outline" size="sm">
-            <FolderPlus className="size-4" />
-            Novo Portfólio
-          </Button>
-        </div>
-      )}
+        <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
+          {/* Seletor de portfólio (dropdown) — substitui as tabs */}
+          {portfolios.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <PortfolioSelector
+                portfolios={portfolios}
+                activePortfolioId={activePortfolioId ?? ""}
+                onSelect={setActivePortfolioId}
+                onRefresh={fetchPortfolios}
+                variant="inline"
+              />
+              <Button
+                onClick={openNewPortfolioOrPaywall}
+                variant="outline"
+                size="sm"
+              >
+                <FolderPlus className="size-4" />
+                Novo Portfólio
+              </Button>
+            </div>
+          )}
 
-      {activePortfolio && (
-        <>
-          {/* Dashboard Metrics and Chart Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Left Card: Value Chart (col-span-8) */}
-            <Card className="lg:col-span-8 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div>
-                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    Histórico de Valor da Coleção
-                  </h3>
-                  <div className="flex items-baseline gap-2 mt-1">
+          {activePortfolio && (
+            <>
+              {/* Dashboard Metrics and Chart Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left Card: Value Chart (col-span-8) */}
+                <Card className="lg:col-span-8 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Histórico de Valor da Coleção
+                      </h3>
+                      <div className="flex items-baseline gap-2 mt-1">
+                        {loading ? (
+                          <Skeleton className="h-8 w-36" />
+                        ) : (
+                          <>
+                            <span className="text-2xl font-extrabold text-foreground font-mono">
+                              R$ {formatPrice(metrics.currentEstimatedValue)}
+                            </span>
+                            {historyData.length >= 2 && (
+                              <div className="flex items-center gap-1">
+                                {chartDiffPercent >= 0 ? (
+                                  <TrendingUp className="size-3 text-emerald-400" />
+                                ) : (
+                                  <TrendingDown className="size-3 text-red-400" />
+                                )}
+                                <span
+                                  className={cn(
+                                    "text-xs font-bold font-mono",
+                                    chartDiffPercent >= 0
+                                      ? "text-emerald-400"
+                                      : "text-red-400",
+                                  )}
+                                >
+                                  {chartDiffPercent >= 0 ? "+" : ""}
+                                  {chartDiffPercent.toFixed(2)}% (
+                                  {chartDiffValue >= 0 ? "+" : ""}R${" "}
+                                  {formatPrice(chartDiffValue)})
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Range Selector */}
+                    <Tabs
+                      value={historyRange}
+                      onValueChange={(v) =>
+                        setHistoryRange(v as typeof historyRange)
+                      }
+                      className="self-start sm:self-auto"
+                    >
+                      <TabsList>
+                        {(["7d", "1m", "3m", "6m"] as const).map((r) => (
+                          <TabsTrigger
+                            key={r}
+                            value={r}
+                            className="text-xs font-bold px-2.5"
+                          >
+                            {r.toUpperCase()}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+                  </div>
+
+                  {/* Chart container */}
+                  <div className="flex-1 w-full relative min-h-[220px]">
                     {loading ? (
-                      <Skeleton className="h-8 w-36" />
+                      <Skeleton className="absolute inset-0 rounded-xl" />
                     ) : (
                       <>
-                        <span className="text-2xl font-extrabold text-foreground font-mono">
-                          R$ {formatPrice(metrics.currentEstimatedValue)}
-                        </span>
-                        {historyData.length >= 2 && (
-                          <div className="flex items-center gap-1">
-                            {chartDiffPercent >= 0 ? (
-                              <TrendingUp className="size-3 text-emerald-400" />
-                            ) : (
-                              <TrendingDown className="size-3 text-red-400" />
-                            )}
-                            <span
-                              className={cn(
-                                "text-xs font-bold font-mono",
-                                chartDiffPercent >= 0
-                                  ? "text-emerald-400"
-                                  : "text-red-400",
-                              )}
-                            >
-                              {chartDiffPercent >= 0 ? "+" : ""}
-                              {chartDiffPercent.toFixed(2)}% (
-                              {chartDiffValue >= 0 ? "+" : ""}R${" "}
-                              {formatPrice(chartDiffValue)})
-                            </span>
+                        {historyLoading && (
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/25 backdrop-blur-xs rounded-xl">
+                            <Loader2 className="size-8 animate-spin text-primary" />
+                          </div>
+                        )}
+                        {historyData.length > 1 ? (
+                          <AreaChart
+                            data={historyData as any[]}
+                            xDataKey="date"
+                            margin={{
+                              top: 10,
+                              right: 10,
+                              bottom: 25,
+                              left: 10,
+                            }}
+                            aspectRatio="2.8 / 1"
+                            className="w-full h-full"
+                          >
+                            <Grid
+                              horizontal
+                              vertical={false}
+                              numTicksRows={4}
+                              stroke="var(--chart-grid)"
+                              strokeDasharray="4,4"
+                            />
+                            <Area
+                              dataKey="value"
+                              fill="var(--primary)" // vibrant primary brand pink
+                              fillOpacity={0.15}
+                              stroke="var(--primary)"
+                              strokeWidth={2.5}
+                              gradientToOpacity={0.01}
+                            />
+                            <ChartTooltip
+                              rows={(point) => [
+                                {
+                                  color: "var(--primary)",
+                                  label: "Valor Total",
+                                  value: `R$ ${formatPrice(Number(point.value))}`,
+                                },
+                              ]}
+                            />
+                            <XAxis numTicks={6} />
+                          </AreaChart>
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                            <TrendingUp className="size-10 text-muted-foreground/30 mb-2" />
+                            <p className="text-sm text-muted-foreground font-medium">
+                              Histórico em construção
+                            </p>
+                            <p className="text-xs text-muted-foreground/60 max-w-xs mt-1">
+                              O gráfico de evolução histórica será desenhado à
+                              medida que sua coleção for atualizada nos próximos
+                              dias.
+                            </p>
                           </div>
                         )}
                       </>
                     )}
                   </div>
-                </div>
+                </Card>
 
-                {/* Range Selector */}
-                <Tabs
-                  value={historyRange}
-                  onValueChange={(v) =>
-                    setHistoryRange(v as typeof historyRange)
-                  }
-                  className="self-start sm:self-auto"
-                >
-                  <TabsList>
-                    {(["7d", "1m", "3m", "6m"] as const).map((r) => (
-                      <TabsTrigger
-                        key={r}
-                        value={r}
-                        className="text-xs font-bold px-2.5"
-                      >
-                        {r.toUpperCase()}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              </div>
-
-              {/* Chart container */}
-              <div className="flex-1 w-full relative min-h-[220px]">
-                {loading ? (
-                  <Skeleton className="absolute inset-0 rounded-xl" />
-                ) : (
-                  <>
-                    {historyLoading && (
-                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/25 backdrop-blur-xs rounded-xl">
-                        <Loader2 className="size-8 animate-spin text-primary" />
-                      </div>
-                    )}
-                    {historyData.length > 1 ? (
-                      <AreaChart
-                        data={historyData as any[]}
-                        xDataKey="date"
-                        margin={{ top: 10, right: 10, bottom: 25, left: 10 }}
-                        aspectRatio="2.8 / 1"
-                        className="w-full h-full"
-                      >
-                        <Grid
-                          horizontal
-                          vertical={false}
-                          numTicksRows={4}
-                          stroke="var(--chart-grid)"
-                          strokeDasharray="4,4"
-                        />
-                        <Area
-                          dataKey="value"
-                          fill="var(--primary)" // vibrant primary brand pink
-                          fillOpacity={0.15}
-                          stroke="var(--primary)"
-                          strokeWidth={2.5}
-                          gradientToOpacity={0.01}
-                        />
-                        <ChartTooltip
-                          rows={(point) => [
-                            {
-                              color: "var(--primary)",
-                              label: "Valor Total",
-                              value: `R$ ${formatPrice(Number(point.value))}`,
-                            },
-                          ]}
-                        />
-                        <XAxis numTicks={6} />
-                      </AreaChart>
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                        <TrendingUp className="size-10 text-muted-foreground/30 mb-2" />
-                        <p className="text-sm text-muted-foreground font-medium">
-                          Histórico em construção
-                        </p>
-                        <p className="text-xs text-muted-foreground/60 max-w-xs mt-1">
-                          O gráfico de evolução histórica será desenhado à
-                          medida que sua coleção for atualizada nos próximos
-                          dias.
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </Card>
-
-            {/* Right Card: Summary Metrics (col-span-4) */}
-            <Card className="lg:col-span-4 glass-card shadow-none p-5 flex flex-col justify-between min-h-[380px]">
-              <div className="flex flex-1 flex-col">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                  Resumo Geral do Portfólio
-                </h3>
-                <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-3">
-                  {/* Total Invested */}
-                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="size-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                        <DollarSign className="size-4" />
-                      </div>
-                      <span className="text-xs text-muted-foreground font-medium">
-                        Total Investido
-                      </span>
-                    </div>
-                    {loading ? (
-                      <Skeleton className="h-4 w-20" />
-                    ) : (
-                      <span className="text-sm font-bold text-foreground font-mono">
-                        R$ {formatPrice(metrics.totalInvested)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Lucro / Prejuizo */}
-                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "size-8 rounded-lg flex items-center justify-center",
-                          metrics.profitOrLoss >= 0
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-red-500/10 text-red-400",
-                        )}
-                      >
-                        {metrics.profitOrLoss >= 0 ? (
-                          <TrendingUp className="size-4" />
+                {/* Right Card: Summary Metrics (col-span-4) */}
+                <Card className="lg:col-span-4 glass-card shadow-none p-5 flex flex-col justify-between min-h-[380px]">
+                  <div className="flex flex-1 flex-col">
+                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
+                      Resumo Geral do Portfólio
+                    </h3>
+                    <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-3">
+                      {/* Total Invested */}
+                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="size-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                            <DollarSign className="size-4" />
+                          </div>
+                          <span className="text-xs text-muted-foreground font-medium">
+                            Total Investido
+                          </span>
+                        </div>
+                        {loading ? (
+                          <Skeleton className="h-4 w-20" />
                         ) : (
-                          <TrendingDown className="size-4" />
+                          <span className="text-sm font-bold text-foreground font-mono">
+                            R$ {formatPrice(metrics.totalInvested)}
+                          </span>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground font-medium">
-                        Lucro / Prejuízo
-                      </span>
-                    </div>
-                    {loading ? (
-                      <Skeleton className="h-4 w-20" />
-                    ) : (
-                      <span
-                        className={cn(
-                          "text-sm font-bold font-mono",
-                          metrics.profitOrLoss >= 0
-                            ? "text-emerald-400"
-                            : "text-red-400",
+
+                      {/* Lucro / Prejuizo */}
+                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "size-8 rounded-lg flex items-center justify-center",
+                              metrics.profitOrLoss >= 0
+                                ? "bg-emerald-500/10 text-emerald-400"
+                                : "bg-red-500/10 text-red-400",
+                            )}
+                          >
+                            {metrics.profitOrLoss >= 0 ? (
+                              <TrendingUp className="size-4" />
+                            ) : (
+                              <TrendingDown className="size-4" />
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground font-medium">
+                            Lucro / Prejuízo
+                          </span>
+                        </div>
+                        {loading ? (
+                          <Skeleton className="h-4 w-20" />
+                        ) : (
+                          <span
+                            className={cn(
+                              "text-sm font-bold font-mono",
+                              metrics.profitOrLoss >= 0
+                                ? "text-emerald-400"
+                                : "text-red-400",
+                            )}
+                          >
+                            {metrics.profitOrLoss >= 0 ? "+" : ""}
+                            R$ {formatPrice(metrics.profitOrLoss)}
+                          </span>
                         )}
-                      >
-                        {metrics.profitOrLoss >= 0 ? "+" : ""}
-                        R$ {formatPrice(metrics.profitOrLoss)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* ROI */}
-                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="size-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-                        <ArrowUpDown className="size-4" />
                       </div>
-                      <span className="text-xs text-muted-foreground font-medium">
-                        ROI (Retorno)
-                      </span>
-                    </div>
-                    {loading ? (
-                      <Skeleton className="h-4 w-20" />
-                    ) : (
-                      <span
-                        className={cn(
-                          "text-sm font-bold font-mono",
-                          metrics.roi >= 0
-                            ? "text-emerald-400"
-                            : "text-red-400",
+
+                      {/* ROI */}
+                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="size-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                            <ArrowUpDown className="size-4" />
+                          </div>
+                          <span className="text-xs text-muted-foreground font-medium">
+                            ROI (Retorno)
+                          </span>
+                        </div>
+                        {loading ? (
+                          <Skeleton className="h-4 w-20" />
+                        ) : (
+                          <span
+                            className={cn(
+                              "text-sm font-bold font-mono",
+                              metrics.roi >= 0
+                                ? "text-emerald-400"
+                                : "text-red-400",
+                            )}
+                          >
+                            {metrics.roi >= 0 ? "+" : ""}
+                            {formatPrice(metrics.roi)}%
+                          </span>
                         )}
-                      >
-                        {metrics.roi >= 0 ? "+" : ""}
-                        {formatPrice(metrics.roi)}%
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Total de Cartas */}
-                  <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="size-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
-                        <Package className="size-4" />
                       </div>
-                      <span className="text-xs text-muted-foreground font-medium">
-                        Total de Cartas
-                      </span>
+
+                      {/* Total de Cartas */}
+                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="size-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
+                            <Package className="size-4" />
+                          </div>
+                          <span className="text-xs text-muted-foreground font-medium">
+                            Total de Cartas
+                          </span>
+                        </div>
+                        {loading ? (
+                          <Skeleton className="h-4 w-16" />
+                        ) : (
+                          <span className="text-sm font-bold text-foreground font-mono">
+                            {totalCards}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Bottom Quick Stats */}
+                  <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
                     {loading ? (
-                      <Skeleton className="h-4 w-16" />
+                      <>
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-3 w-32" />
+                      </>
                     ) : (
-                      <span className="text-sm font-bold text-foreground font-mono">
-                        {totalCards}
-                      </span>
+                      <>
+                        <span>
+                          Itens únicos:{" "}
+                          <strong className="text-foreground">
+                            {items.length}
+                          </strong>
+                        </span>
+                        <span>
+                          Última atualização:{" "}
+                          <strong className="text-foreground">
+                            {activePortfolio?.updatedAt
+                              ? new Date(
+                                  activePortfolio.updatedAt,
+                                ).toLocaleDateString("pt-BR")
+                              : "Hoje"}
+                          </strong>
+                        </span>
+                      </>
                     )}
                   </div>
-                </div>
+                </Card>
               </div>
 
-              {/* Bottom Quick Stats */}
-              <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-                {loading ? (
-                  <>
-                    <Skeleton className="h-3 w-28" />
-                    <Skeleton className="h-3 w-32" />
-                  </>
-                ) : (
-                  <>
-                    <span>
-                      Itens únicos:{" "}
-                      <strong className="text-foreground">
-                        {items.length}
-                      </strong>
-                    </span>
-                    <span>
-                      Última atualização:{" "}
-                      <strong className="text-foreground">
-                        {activePortfolio?.updatedAt
-                          ? new Date(
-                              activePortfolio.updatedAt,
-                            ).toLocaleDateString("pt-BR")
-                          : "Hoje"}
-                      </strong>
-                    </span>
-                  </>
-                )}
-              </div>
-            </Card>
-          </div>
+              <Separator />
 
-          <Separator />
-
-          {/* Collection Items */}
-          {loading ? (
-            <>
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-3 w-36" />
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-36 rounded-lg" />
-                  <Skeleton className="h-8 w-16 rounded-lg" />
-                </div>
-              </div>
-              {viewType === "grid" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="w-full rounded-lg aspect-2/3" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
+              {/* Collection Items */}
+              {loading ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-3 w-36" />
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-8 w-36 rounded-lg" />
+                      <Skeleton className="h-8 w-16 rounded-lg" />
                     </div>
-                  ))}
+                  </div>
+                  {viewType === "grid" ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="space-y-2">
+                          <Skeleton className="w-full rounded-lg aspect-2/3" />
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <Skeleton key={i} className="h-20 rounded-lg" />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Package className="size-16 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    Portfólio vazio
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                    Explore o catálogo e adicione cartas a este portfólio.
+                  </p>
+                  <Button
+                    asChild
+                    className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
+                  >
+                    <Link href="/explore">
+                      <Plus className="size-4" />
+                      Explorar Cartas
+                    </Link>
+                  </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-20 rounded-lg" />
-                  ))}
+                <div className="space-y-4">
+                  {/* Busca — pill de vidro (igual showcase) */}
+                  <div className="relative w-full">
+                    <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
+                      <Search className="size-4 shrink-0 text-muted-foreground" />
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Buscar nesta coleção..."
+                        className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                      />
+                      {search.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setSearch("")}
+                          className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-6">
+                    {/* Sidebar de filtros (igual showcase) */}
+                    <aside className="hidden w-60 shrink-0 lg:block">
+                      <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+                        <ProductTypeFilter
+                          value={productType}
+                          onChange={setProductType}
+                        />
+                        {tcgFacets.length > 0 && (
+                          <FilterSection title="Jogo / Categoria">
+                            <CheckboxFilterList
+                              idPrefix="pf-tcg"
+                              options={tcgFacets.map((f) => ({
+                                value: f.value,
+                                label: f.value,
+                                count: f.count,
+                              }))}
+                              selected={filterTcgs}
+                              onToggle={(v) =>
+                                setFilterTcgs((prev) => toggleValue(prev, v))
+                              }
+                            />
+                          </FilterSection>
+                        )}
+                        {rarityFacets.length > 0 && (
+                          <FilterSection title="Raridade">
+                            <CheckboxFilterList
+                              idPrefix="pf-rarity"
+                              options={rarityFacets.map((f) => ({
+                                value: f.value,
+                                label: f.value,
+                                count: f.count,
+                              }))}
+                              selected={filterRarities}
+                              onToggle={(v) =>
+                                setFilterRarities((prev) =>
+                                  toggleValue(prev, v),
+                                )
+                              }
+                            />
+                          </FilterSection>
+                        )}
+                        <PriceRangeFilter
+                          isPro
+                          value={priceRange}
+                          ceil={priceCeil}
+                          onChange={setPriceRange}
+                          onUpsell={() => {}}
+                        />
+                      </div>
+                    </aside>
+
+                    {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
+                    <div className="min-w-0 flex-1 space-y-4">
+                      <div className="flex items-center justify-between animate-in fade-in duration-300">
+                        <p className="text-xs text-muted-foreground">
+                          {filteredItems.length}{" "}
+                          {filteredItems.length === 1 ? "carta" : "cartas"}
+                          {filteredItems.length !== items.length
+                            ? ` de ${items.length}`
+                            : ""}
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <GlassPill
+                            active={isSelectionMode}
+                            onClick={() => {
+                              if (isSelectionMode) {
+                                setSelectedIds(new Set());
+                              }
+                              setIsSelectionMode(!isSelectionMode);
+                            }}
+                            className="h-8 gap-1.5 px-3 text-xs font-bold"
+                          >
+                            <Check className="size-3.5" />
+                            {isSelectionMode
+                              ? `Sair da Seleção`
+                              : "Selecionar Vários"}
+                          </GlassPill>
+
+                          <Select
+                            value={sort}
+                            onValueChange={(v) => setSort(v as typeof sort)}
+                          >
+                            <SelectTrigger
+                              size="sm"
+                              className="glass-pill h-8 cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
+                            >
+                              <ArrowUpDown className="size-3.5 text-muted-foreground" />
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="value-desc">
+                                Maior valor
+                              </SelectItem>
+                              <SelectItem value="value-asc">
+                                Menor valor
+                              </SelectItem>
+                              <SelectItem value="name">Nome: A → Z</SelectItem>
+                              <SelectItem value="qty-desc">
+                                Quantidade
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <div className="flex items-center gap-1">
+                            <GlassPill
+                              active={viewType === "grid"}
+                              onClick={() => setViewType("grid")}
+                              className="h-8 px-2.5"
+                              aria-label="Visualizar em grade"
+                            >
+                              <IconLayoutGrid className="size-4" />
+                            </GlassPill>
+                            <GlassPill
+                              active={viewType === "list"}
+                              onClick={() => setViewType("list")}
+                              className="h-8 px-2.5"
+                              aria-label="Visualizar em lista"
+                            >
+                              <IconListDetails className="size-4" />
+                            </GlassPill>
+                          </div>
+                        </div>
+                      </div>
+
+                      {filteredItems.length === 0 ? (
+                        <div className="glass-card !rounded-2xl p-12 text-center">
+                          <p className="text-sm font-semibold text-foreground">
+                            Nenhuma carta encontrada.
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Ajuste a busca ou os filtros.
+                          </p>
+                        </div>
+                      ) : viewType === "grid" ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {filteredItems.map((item) => (
+                            <PortfolioItemCard
+                              key={item.id}
+                              item={item}
+                              isSelected={selectedIds.has(item.id)}
+                              onSelectToggle={() => toggleSelect(item.id)}
+                              onUpdate={updateItem}
+                              onRemove={removeItem}
+                              isSelectionMode={isSelectionMode}
+                              portfolioId={activePortfolioId}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {filteredItems.map((item) => (
+                            <PortfolioItemRow
+                              key={item.id}
+                              item={item}
+                              isSelected={selectedIds.has(item.id)}
+                              onSelectToggle={() => toggleSelect(item.id)}
+                              onUpdate={updateItem}
+                              onRemove={removeItem}
+                              isSelectionMode={isSelectionMode}
+                              portfolioId={activePortfolioId}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </>
-          ) : items.length === 0 ? (
+          )}
+
+          {portfolios.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Package className="size-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-1">
-                Portfólio vazio
+                Nenhum portfólio criado
               </h3>
               <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                Explore o catálogo e adicione cartas a este portfólio.
+                Crie seu primeiro portfólio para começar a rastrear sua coleção
+                de cartas.
               </p>
               <Button
-                asChild
+                onClick={openNewPortfolioOrPaywall}
                 className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
               >
-                <Link href="/explore">
-                  <Plus className="size-4" />
-                  Explorar Cartas
-                </Link>
+                <FolderPlus className="size-4" />
+                Criar Portfólio
               </Button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Busca — pill de vidro (igual showcase) */}
-              <div className="relative w-full">
-                <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
-                  <Search className="size-4 shrink-0 text-muted-foreground" />
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar nesta coleção..."
-                    className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                  />
-                  {search.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setSearch("")}
-                      className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-6">
-                {/* Sidebar de filtros (igual showcase) */}
-                <aside className="hidden w-60 shrink-0 lg:block">
-                  <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
-                    <ProductTypeFilter
-                      value={productType}
-                      onChange={setProductType}
-                    />
-                    {tcgFacets.length > 0 && (
-                      <FilterSection title="Jogo / Categoria">
-                        <CheckboxFilterList
-                          idPrefix="pf-tcg"
-                          options={tcgFacets.map((f) => ({
-                            value: f.value,
-                            label: f.value,
-                            count: f.count,
-                          }))}
-                          selected={filterTcgs}
-                          onToggle={(v) =>
-                            setFilterTcgs((prev) => toggleValue(prev, v))
-                          }
-                        />
-                      </FilterSection>
-                    )}
-                    {rarityFacets.length > 0 && (
-                      <FilterSection title="Raridade">
-                        <CheckboxFilterList
-                          idPrefix="pf-rarity"
-                          options={rarityFacets.map((f) => ({
-                            value: f.value,
-                            label: f.value,
-                            count: f.count,
-                          }))}
-                          selected={filterRarities}
-                          onToggle={(v) =>
-                            setFilterRarities((prev) => toggleValue(prev, v))
-                          }
-                        />
-                      </FilterSection>
-                    )}
-                    <PriceRangeFilter
-                      isPro
-                      value={priceRange}
-                      ceil={priceCeil}
-                      onChange={setPriceRange}
-                      onUpsell={() => {}}
-                    />
-                  </div>
-                </aside>
-
-                {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
-                <div className="min-w-0 flex-1 space-y-4">
-                  <div className="flex items-center justify-between animate-in fade-in duration-300">
-                    <p className="text-xs text-muted-foreground">
-                      {filteredItems.length}{" "}
-                      {filteredItems.length === 1 ? "carta" : "cartas"}
-                      {filteredItems.length !== items.length
-                        ? ` de ${items.length}`
-                        : ""}
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <GlassPill
-                        active={isSelectionMode}
-                        onClick={() => {
-                          if (isSelectionMode) {
-                            setSelectedIds(new Set());
-                          }
-                          setIsSelectionMode(!isSelectionMode);
-                        }}
-                        className="h-8 gap-1.5 px-3 text-xs font-bold"
-                      >
-                        <Check className="size-3.5" />
-                        {isSelectionMode ? `Sair da Seleção` : "Selecionar Vários"}
-                      </GlassPill>
-
-                      <Select
-                        value={sort}
-                        onValueChange={(v) => setSort(v as typeof sort)}
-                      >
-                        <SelectTrigger
-                          size="sm"
-                          className="glass-pill h-8 cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
-                        >
-                          <ArrowUpDown className="size-3.5 text-muted-foreground" />
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="value-desc">Maior valor</SelectItem>
-                          <SelectItem value="value-asc">Menor valor</SelectItem>
-                          <SelectItem value="name">Nome: A → Z</SelectItem>
-                          <SelectItem value="qty-desc">Quantidade</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <div className="flex items-center gap-1">
-                        <GlassPill
-                          active={viewType === "grid"}
-                          onClick={() => setViewType("grid")}
-                          className="h-8 px-2.5"
-                          aria-label="Visualizar em grade"
-                        >
-                          <IconLayoutGrid className="size-4" />
-                        </GlassPill>
-                        <GlassPill
-                          active={viewType === "list"}
-                          onClick={() => setViewType("list")}
-                          className="h-8 px-2.5"
-                          aria-label="Visualizar em lista"
-                        >
-                          <IconListDetails className="size-4" />
-                        </GlassPill>
-                      </div>
-                    </div>
-                  </div>
-
-                  {filteredItems.length === 0 ? (
-                    <div className="glass-card !rounded-2xl p-12 text-center">
-                      <p className="text-sm font-semibold text-foreground">
-                        Nenhuma carta encontrada.
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Ajuste a busca ou os filtros.
-                      </p>
-                    </div>
-                  ) : viewType === "grid" ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {filteredItems.map((item) => (
-                        <PortfolioItemCard
-                          key={item.id}
-                          item={item}
-                          isSelected={selectedIds.has(item.id)}
-                          onSelectToggle={() => toggleSelect(item.id)}
-                          onUpdate={updateItem}
-                          onRemove={removeItem}
-                          isSelectionMode={isSelectionMode}
-                          portfolioId={activePortfolioId}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {filteredItems.map((item) => (
-                        <PortfolioItemRow
-                          key={item.id}
-                          item={item}
-                          isSelected={selectedIds.has(item.id)}
-                          onSelectToggle={() => toggleSelect(item.id)}
-                          onUpdate={updateItem}
-                          onRemove={removeItem}
-                          isSelectionMode={isSelectionMode}
-                          portfolioId={activePortfolioId}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {portfolios.length === 0 && !loading && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Package className="size-16 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-1">
-            Nenhum portfólio criado
-          </h3>
-          <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-            Crie seu primeiro portfólio para começar a rastrear sua coleção de
-            cartas.
-          </p>
-          <Button
-            onClick={openNewPortfolioOrPaywall}
-            className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
-          >
-            <FolderPlus className="size-4" />
-            Criar Portfólio
-          </Button>
-        </div>
-      )}
-
-      {/* New Portfolio Dialog */}
-      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo Portfólio</DialogTitle>
-            <DialogDescription>
-              Dê um nome para seu portfólio. Contas gratuitas podem ter até 5
-              portfólios.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Ex: Minha coleção Pokémon"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreatePortfolio();
-            }}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCreatePortfolio}
-              disabled={creating || !newName.trim()}
-              className="bg-emerald-500 hover:bg-emerald-400 text-black"
-            >
-              {creating ? (
-                <Loader2 className="size-4 animate-spin mr-2" />
-              ) : (
-                <FolderPlus className="size-4 mr-2" />
-              )}
-              Criar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <ProUpgradeModal
-        open={proModalOpen}
-        onClose={() => setProModalOpen(false)}
-      />
-
-      {/* Floating Bulk Action Bar */}
-      {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 glass-card !rounded-full border-primary/30 shadow-[0_0_30px_rgba(248,86,167,0.2)] px-6 py-3.5 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300">
-          <span className="text-xs font-bold text-foreground whitespace-nowrap">
-            {selectedIds.size}{" "}
-            {selectedIds.size === 1 ? "item selecionado" : "itens selecionados"}
-          </span>
-          <Separator orientation="vertical" className="h-5 bg-border" />
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => openBulkAction("copy")}
-              className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
-            >
-              <Plus className="size-3.5" /> Copiar
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => openBulkAction("move")}
-              className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
-            >
-              <ArrowUpDown className="size-3.5" /> Mover
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => openBulkAction("delete")}
-              className="text-xs gap-1.5 h-8 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/30 transition-all cursor-pointer rounded-full px-3.5"
-            >
-              <Trash2 className="size-3.5" /> Excluir
-            </Button>
-          </div>
-          <Separator orientation="vertical" className="h-5 bg-border" />
-          <Button
-            size="sm"
-            onClick={() => setSelectedIds(new Set())}
-            className="text-xs h-8 bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border cursor-pointer rounded-full px-4"
-          >
-            Limpar
-          </Button>
-        </div>
-      )}
-
-      {/* Bulk Action Dialog */}
-      <Dialog
-        open={bulkAction !== null}
-        onOpenChange={(open) => !open && setBulkAction(null)}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {bulkAction === "delete" && "Excluir cartas em lote"}
-              {bulkAction === "copy" && "Copiar cartas em lote"}
-              {bulkAction === "move" && "Mover cartas em lote"}
-            </DialogTitle>
-            <DialogDescription>
-              {bulkAction === "delete" &&
-                `Você está prestes a excluir ${selectedIds.size} cartas. Essa ação não pode ser desfeita.`}
-              {bulkAction === "copy" &&
-                `Escolha o portfólio de destino para copiar as ${selectedIds.size} cartas selecionadas.`}
-              {bulkAction === "move" &&
-                `As ${selectedIds.size} cartas selecionadas serão movidas para o portfólio de destino e retiradas deste.`}
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Phase 1: Target Selection */}
-          {bulkPhase === "select" && (
-            <div className="space-y-4 py-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Selecionar Portfólio
-              </p>
-              <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border">
-                {portfolios
-                  .filter((p) => p.id !== activePortfolioId)
-                  .map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setBulkTargetId(p.id)}
-                      className={cn(
-                        "w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-muted/40 transition-colors cursor-pointer",
-                        bulkTargetId === p.id && "bg-primary/5 text-primary",
-                      )}
-                    >
-                      <div>
-                        <p className="font-semibold">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {p._count?.items ?? 0} cartas
-                        </p>
-                      </div>
-                      {bulkTargetId === p.id && (
-                        <Check className="size-4 text-primary" />
-                      )}
-                    </button>
-                  ))}
-                {portfolios.filter((p) => p.id !== activePortfolioId).length ===
-                  0 && (
-                  <p className="text-sm text-muted-foreground text-center py-6">
-                    Nenhum outro portfólio disponível.
-                  </p>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setBulkAction(null)}>
-                  <X className="size-4" />
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={() => setBulkPhase("confirm")}
-                  disabled={!bulkTargetId}
-                  className="bg-primary hover:bg-primary/95 text-white"
-                >
-                  <ArrowRight className="size-4" />
-                  Continuar
-                </Button>
-              </DialogFooter>
-            </div>
           )}
 
-          {/* Phase 2: Confirmation */}
-          {bulkPhase === "confirm" && (
-            <div className="space-y-4 py-2">
-              <p className="text-sm text-muted-foreground">
-                {bulkAction === "delete" &&
-                  `Tem certeza que deseja excluir permanentemente essas ${selectedIds.size} cartas?`}
-                {bulkAction === "copy" &&
-                  `Confirmar a cópia de ${selectedIds.size} cartas para o portfólio "${portfolios.find((p) => p.id === bulkTargetId)?.name}"?`}
-                {bulkAction === "move" &&
-                  `Confirmar a transferência de ${selectedIds.size} cartas para o portfólio "${portfolios.find((p) => p.id === bulkTargetId)?.name}"?`}
-              </p>
+          {/* New Portfolio Dialog */}
+          <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Novo Portfólio</DialogTitle>
+                <DialogDescription>
+                  Dê um nome para seu portfólio. Contas gratuitas podem ter até
+                  5 portfólios.
+                </DialogDescription>
+              </DialogHeader>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Ex: Minha coleção Pokémon"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreatePortfolio();
+                }}
+              />
               <DialogFooter>
                 <Button
                   variant="outline"
-                  onClick={() =>
-                    setBulkPhase(bulkAction === "delete" ? "confirm" : "select")
-                  }
+                  onClick={() => setShowNewDialog(false)}
                 >
-                  {bulkAction === "delete" ? (
-                    <X className="size-4" />
-                  ) : (
-                    <ChevronLeft className="size-4" />
-                  )}
-                  {bulkAction === "delete" ? "Cancelar" : "Voltar"}
+                  Cancelar
                 </Button>
                 <Button
-                  onClick={executeBulkAction}
-                  className={cn(
-                    "text-white",
-                    bulkAction === "delete"
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-primary hover:bg-primary/95",
-                  )}
+                  onClick={handleCreatePortfolio}
+                  disabled={creating || !newName.trim()}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-black"
                 >
-                  {bulkAction === "delete" && <Trash2 className="size-4" />}
-                  {bulkAction === "copy" && <Copy className="size-4" />}
-                  {bulkAction === "move" && <ArrowRight className="size-4" />}
-                  Confirmar e Executar
+                  {creating ? (
+                    <Loader2 className="size-4 animate-spin mr-2" />
+                  ) : (
+                    <FolderPlus className="size-4 mr-2" />
+                  )}
+                  Criar
                 </Button>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <ProUpgradeModal
+            open={proModalOpen}
+            onClose={() => setProModalOpen(false)}
+          />
+
+          {/* Floating Bulk Action Bar */}
+          {selectedIds.size > 0 && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 glass-card !rounded-full border-primary/30 shadow-[0_0_30px_rgba(248,86,167,0.2)] px-6 py-3.5 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300">
+              <span className="text-xs font-bold text-foreground whitespace-nowrap">
+                {selectedIds.size}{" "}
+                {selectedIds.size === 1
+                  ? "item selecionado"
+                  : "itens selecionados"}
+              </span>
+              <Separator orientation="vertical" className="h-5 bg-border" />
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => openBulkAction("copy")}
+                  className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
+                >
+                  <Plus className="size-3.5" /> Copiar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => openBulkAction("move")}
+                  className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
+                >
+                  <ArrowUpDown className="size-3.5" /> Mover
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => openBulkAction("delete")}
+                  className="text-xs gap-1.5 h-8 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/30 transition-all cursor-pointer rounded-full px-3.5"
+                >
+                  <Trash2 className="size-3.5" /> Excluir
+                </Button>
+              </div>
+              <Separator orientation="vertical" className="h-5 bg-border" />
+              <Button
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+                className="text-xs h-8 bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border cursor-pointer rounded-full px-4"
+              >
+                Limpar
+              </Button>
             </div>
           )}
 
-          {/* Phase 3: Progress & Done */}
-          {(bulkPhase === "progress" || bulkPhase === "done") && (
-            <div className="space-y-4 py-2">
-              {/* Progress bar */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-muted-foreground">
-                    {bulkPhase === "progress"
-                      ? "Processando cartas..."
-                      : "Concluído!"}
-                  </span>
-                  <span className="font-mono">
-                    {
-                      Object.values(bulkStatus).filter((s) => s !== "pending")
-                        .length
-                    }{" "}
-                    / {selectedIds.size}
-                  </span>
-                </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{
-                      width: `${(Object.values(bulkStatus).filter((s) => s !== "pending").length / selectedIds.size) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
+          {/* Bulk Action Dialog */}
+          <Dialog
+            open={bulkAction !== null}
+            onOpenChange={(open) => !open && setBulkAction(null)}
+          >
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {bulkAction === "delete" && "Excluir cartas em lote"}
+                  {bulkAction === "copy" && "Copiar cartas em lote"}
+                  {bulkAction === "move" && "Mover cartas em lote"}
+                </DialogTitle>
+                <DialogDescription>
+                  {bulkAction === "delete" &&
+                    `Você está prestes a excluir ${selectedIds.size} cartas. Essa ação não pode ser desfeita.`}
+                  {bulkAction === "copy" &&
+                    `Escolha o portfólio de destino para copiar as ${selectedIds.size} cartas selecionadas.`}
+                  {bulkAction === "move" &&
+                    `As ${selectedIds.size} cartas selecionadas serão movidas para o portfólio de destino e retiradas deste.`}
+                </DialogDescription>
+              </DialogHeader>
 
-              {/* Status List */}
-              <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border px-3 py-1 bg-background/50">
-                {items
-                  .filter((item) => selectedIds.has(item.id))
-                  .map((item) => {
-                    const status = bulkStatus[item.id] ?? "pending";
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between py-2 text-xs"
-                      >
-                        <span className="font-medium text-foreground truncate max-w-[70%]">
-                          {cardName(item.card)}
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          {status === "pending" && (
-                            <Loader2 className="size-3.5 text-muted-foreground animate-spin" />
+              {/* Phase 1: Target Selection */}
+              {bulkPhase === "select" && (
+                <div className="space-y-4 py-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Selecionar Portfólio
+                  </p>
+                  <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border">
+                    {portfolios
+                      .filter((p) => p.id !== activePortfolioId)
+                      .map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setBulkTargetId(p.id)}
+                          className={cn(
+                            "w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-muted/40 transition-colors cursor-pointer",
+                            bulkTargetId === p.id &&
+                              "bg-primary/5 text-primary",
                           )}
-                          {status === "done" && (
-                            <span className="text-emerald-500 font-bold">
-                              ✓ Pronto
-                            </span>
+                        >
+                          <div>
+                            <p className="font-semibold">{p.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {p._count?.items ?? 0} cartas
+                            </p>
+                          </div>
+                          {bulkTargetId === p.id && (
+                            <Check className="size-4 text-primary" />
                           )}
-                          {status === "error" && (
-                            <span className="text-red-500 font-bold">
-                              ✗ Erro
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-
-              {bulkPhase === "done" && (
-                <DialogFooter>
-                  <Button
-                    onClick={finishBulkAction}
-                    className="bg-primary hover:bg-primary/95 text-white w-full"
-                  >
-                    <Check className="size-4" />
-                    Concluído
-                  </Button>
-                </DialogFooter>
+                        </button>
+                      ))}
+                    {portfolios.filter((p) => p.id !== activePortfolioId)
+                      .length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-6">
+                        Nenhum outro portfólio disponível.
+                      </p>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setBulkAction(null)}
+                    >
+                      <X className="size-4" />
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() => setBulkPhase("confirm")}
+                      disabled={!bulkTargetId}
+                      className="bg-primary hover:bg-primary/95 text-white"
+                    >
+                      <ArrowRight className="size-4" />
+                      Continuar
+                    </Button>
+                  </DialogFooter>
+                </div>
               )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-      </main>
+
+              {/* Phase 2: Confirmation */}
+              {bulkPhase === "confirm" && (
+                <div className="space-y-4 py-2">
+                  <p className="text-sm text-muted-foreground">
+                    {bulkAction === "delete" &&
+                      `Tem certeza que deseja excluir permanentemente essas ${selectedIds.size} cartas?`}
+                    {bulkAction === "copy" &&
+                      `Confirmar a cópia de ${selectedIds.size} cartas para o portfólio "${portfolios.find((p) => p.id === bulkTargetId)?.name}"?`}
+                    {bulkAction === "move" &&
+                      `Confirmar a transferência de ${selectedIds.size} cartas para o portfólio "${portfolios.find((p) => p.id === bulkTargetId)?.name}"?`}
+                  </p>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setBulkPhase(
+                          bulkAction === "delete" ? "confirm" : "select",
+                        )
+                      }
+                    >
+                      {bulkAction === "delete" ? (
+                        <X className="size-4" />
+                      ) : (
+                        <ChevronLeft className="size-4" />
+                      )}
+                      {bulkAction === "delete" ? "Cancelar" : "Voltar"}
+                    </Button>
+                    <Button
+                      onClick={executeBulkAction}
+                      className={cn(
+                        "text-white",
+                        bulkAction === "delete"
+                          ? "bg-red-500 hover:bg-red-600"
+                          : "bg-primary hover:bg-primary/95",
+                      )}
+                    >
+                      {bulkAction === "delete" && <Trash2 className="size-4" />}
+                      {bulkAction === "copy" && <Copy className="size-4" />}
+                      {bulkAction === "move" && (
+                        <ArrowRight className="size-4" />
+                      )}
+                      Confirmar e Executar
+                    </Button>
+                  </DialogFooter>
+                </div>
+              )}
+
+              {/* Phase 3: Progress & Done */}
+              {(bulkPhase === "progress" || bulkPhase === "done") && (
+                <div className="space-y-4 py-2">
+                  {/* Progress bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="text-muted-foreground">
+                        {bulkPhase === "progress"
+                          ? "Processando cartas..."
+                          : "Concluído!"}
+                      </span>
+                      <span className="font-mono">
+                        {
+                          Object.values(bulkStatus).filter(
+                            (s) => s !== "pending",
+                          ).length
+                        }{" "}
+                        / {selectedIds.size}
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all duration-300"
+                        style={{
+                          width: `${(Object.values(bulkStatus).filter((s) => s !== "pending").length / selectedIds.size) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Status List */}
+                  <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border px-3 py-1 bg-background/50">
+                    {items
+                      .filter((item) => selectedIds.has(item.id))
+                      .map((item) => {
+                        const status = bulkStatus[item.id] ?? "pending";
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between py-2 text-xs"
+                          >
+                            <span className="font-medium text-foreground truncate max-w-[70%]">
+                              {cardName(item.card)}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {status === "pending" && (
+                                <Loader2 className="size-3.5 text-muted-foreground animate-spin" />
+                              )}
+                              {status === "done" && (
+                                <span className="text-emerald-500 font-bold">
+                                  ✓ Pronto
+                                </span>
+                              )}
+                              {status === "error" && (
+                                <span className="text-red-500 font-bold">
+                                  ✗ Erro
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {bulkPhase === "done" && (
+                    <DialogFooter>
+                      <Button
+                        onClick={finishBulkAction}
+                        className="bg-primary hover:bg-primary/95 text-white w-full"
+                      >
+                        <Check className="size-4" />
+                        Concluído
+                      </Button>
+                    </DialogFooter>
+                  )}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </main>
       )}
     </>
   );

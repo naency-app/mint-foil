@@ -36,6 +36,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
+import {
+  resolveActiveId,
+  sortByFavorite,
+  usePortfolioStore,
+} from "@/lib/portfolio-store";
 import { cn } from "@/lib/utils";
 
 interface AddToPortfolioButtonProps {
@@ -62,6 +67,9 @@ export function AddToPortfolioButton({
   // Troca a cada confirmação para remontar a animação e ela rodar de novo
   const [successId, setSuccessId] = useState(0);
   const [portfoliosLoading, setPortfoliosLoading] = useState(false);
+  // Mesmo contexto de portfólio das telas (ver lib/portfolio-store)
+  const storeActiveId = usePortfolioStore((s) => s.activeId);
+  const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState("");
   const [creatingPortfolio, setCreatingPortfolio] = useState(false);
@@ -76,41 +84,16 @@ export function AddToPortfolioButton({
     api.collection
       .portfolios()
       .then((data) => {
-        const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-        let favs: string[] = [];
-        if (favsStr) {
-          try {
-            favs = JSON.parse(favsStr) as string[];
-          } catch {}
-        } else {
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          if (oldDefault) favs = [oldDefault];
-        }
-
-        const sortedPortfolios = [...data].sort((a, b) => {
-          const aFav = favs.includes(a.id);
-          const bFav = favs.includes(b.id);
-          if (aFav && !bFav) return -1;
-          if (!aFav && bFav) return 1;
-          return 0;
-        });
-
+        const sortedPortfolios = sortByFavorite(data, favoriteIds);
         setPortfolios(sortedPortfolios);
 
-        if (!selectedPortfolioId && sortedPortfolios.length > 0) {
-          const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-          const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-          const hasOldStored = sortedPortfolios.some(
-            (p) => p.id === oldDefault,
+        if (!selectedPortfolioId) {
+          const alvo = resolveActiveId(
+            sortedPortfolios,
+            storeActiveId,
+            favoriteIds,
           );
-
-          setSelectedPortfolioId(
-            foundFav
-              ? foundFav.id
-              : hasOldStored && oldDefault
-                ? oldDefault
-                : sortedPortfolios[0].id,
-          );
+          if (alvo) setSelectedPortfolioId(alvo);
         }
       })
       .catch(() => toast.error("Erro ao carregar portfólios"))

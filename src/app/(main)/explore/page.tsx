@@ -67,8 +67,11 @@ import {
   type Portfolio,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
-import { TCG_CATALOG } from "@/lib/tcg-catalog";
-import { cardName } from "@/lib/utils";
+import {
+  resolveActiveId,
+  sortByFavorite,
+  usePortfolioStore,
+} from "@/lib/portfolio-store";
 import {
   useCardSets,
   useCards,
@@ -77,6 +80,8 @@ import {
   usePortfolioDetail,
   usePortfolios,
 } from "@/lib/queries";
+import { TCG_CATALOG } from "@/lib/tcg-catalog";
+import { cardName } from "@/lib/utils";
 
 type CollectionMap = Record<string, number>;
 type SetProgressMap = Record<string, SetProgress>;
@@ -97,7 +102,9 @@ const SUPPORTED_TCGS = TCG_CATALOG.filter((t) => t.supported && t.slug).map(
   }),
 );
 
-const COMING_SOON_TCGS = TCG_CATALOG.filter((t) => !t.supported).map((t) => t.name);
+const COMING_SOON_TCGS = TCG_CATALOG.filter((t) => !t.supported).map(
+  (t) => t.name,
+);
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -237,8 +244,9 @@ function CarouselSetItem({
       type="button"
       onClick={onClick}
       title={set.name}
-      className={`group/item glass-card w-32 shrink-0 cursor-pointer overflow-hidden !rounded-2xl text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${selected ? "ring-2 ring-primary" : ""
-        }`}
+      className={`group/item glass-card w-32 shrink-0 cursor-pointer overflow-hidden !rounded-2xl text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        selected ? "ring-2 ring-primary" : ""
+      }`}
     >
       {/* Painel de imagem com fundo neutro — logos claros aparecem no light */}
       <div className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-2 dark:from-white/[0.06] dark:to-white/[0.02]">
@@ -405,7 +413,13 @@ function ExplorePageContent() {
   const [searchInput, setSearchInput] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [activePortfolioId, setActivePortfolioId] = useState("");
+  // Contexto compartilhado: a escolha feita aqui vale nas outras telas e
+  // sobrevive à navegação (ver lib/portfolio-store)
+  const storeActiveId = usePortfolioStore((s) => s.activeId);
+  const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
+  const setActive = usePortfolioStore((s) => s.setActive);
+  const activePortfolioId = storeActiveId ?? "";
+  const setActivePortfolioId = setActive;
 
   // Jogos ativos: multi-select estilo marketplace (funcionalidade própria do
   // web — o mobile usa escolha única). "Todos" = lista vazia.
@@ -498,7 +512,7 @@ function ExplorePageContent() {
     if (stored) {
       try {
         setRecentSearches(JSON.parse(stored));
-      } catch { }
+      } catch {}
     }
   }, []);
 
@@ -521,44 +535,17 @@ function ExplorePageContent() {
     const data = portfoliosQuery.data;
     if (!data) return;
 
-    const favsStr = localStorage.getItem("minty_favorite_portfolio_ids");
-    let favs: string[] = [];
-    if (favsStr) {
-      try {
-        favs = JSON.parse(favsStr) as string[];
-      } catch { }
-    } else {
-      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-      if (oldDefault) favs = [oldDefault];
-    }
-
-    const sortedPortfolios = [...data].sort((a, b) => {
-      const aFav = favs.includes(a.id);
-      const bFav = favs.includes(b.id);
-      if (aFav && !bFav) return -1;
-      if (!aFav && bFav) return 1;
-      return 0;
-    });
+    const sortedPortfolios = sortByFavorite(data, favoriteIds);
 
     setPortfolios(sortedPortfolios);
 
     if (sortedPortfolios.length > 0) {
-      const foundFav = sortedPortfolios.find((p) => favs.includes(p.id));
-      const oldDefault = localStorage.getItem("minty_default_portfolio_id");
-      const hasOldStored = sortedPortfolios.some((p) => p.id === oldDefault);
-
-      const nextActive = foundFav
-        ? foundFav.id
-        : hasOldStored && oldDefault
-          ? oldDefault
-          : sortedPortfolios[0].id;
-
-      setActivePortfolioId((prev) => {
-        if (prev && sortedPortfolios.some((p) => p.id === prev)) {
-          return prev;
-        }
-        return nextActive;
-      });
+      const alvo = resolveActiveId(
+        sortedPortfolios,
+        storeActiveId,
+        favoriteIds,
+      );
+      if (alvo && alvo !== storeActiveId) setActivePortfolioId(alvo);
     }
   }, [portfoliosQuery.data]);
 
@@ -727,9 +714,9 @@ function ExplorePageContent() {
     : null;
   const selectedSetRelDate = selectedSet?.releaseDate
     ? new Date(selectedSet.releaseDate).toLocaleDateString("pt-BR", {
-      month: "short",
-      year: "numeric",
-    })
+        month: "short",
+        year: "numeric",
+      })
     : null;
   const selectedSetImg = selectedSet ? getSetImageUrl(selectedSet) : null;
 
@@ -975,10 +962,11 @@ function ExplorePageContent() {
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger
                   size="sm"
-                  className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${sortActive
-                    ? "border-primary/25 bg-primary/10 text-primary"
-                    : "glass-pill text-foreground"
-                    }`}
+                  className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+                    sortActive
+                      ? "border-primary/25 bg-primary/10 text-primary"
+                      : "glass-pill text-foreground"
+                  }`}
                 >
                   <ArrowUpDown
                     className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
