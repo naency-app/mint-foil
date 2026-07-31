@@ -11,6 +11,7 @@ import {
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 interface AddToPortfolioButtonProps {
   cardId: string;
@@ -57,6 +59,8 @@ export function AddToPortfolioButton({
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Troca a cada confirmação para remontar a animação e ela rodar de novo
+  const [successId, setSuccessId] = useState(0);
   const [portfoliosLoading, setPortfoliosLoading] = useState(false);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState("");
@@ -150,6 +154,7 @@ export function AddToPortfolioButton({
         portfolioId: selectedPortfolioId,
       });
       setSuccess(true);
+      setSuccessId((n) => n + 1);
       if (onSuccess) onSuccess();
       const portfolio = portfolios.find((p) => p.id === selectedPortfolioId);
       toast.success(`Adicionado ao portfólio "${portfolio?.name ?? ""}"`);
@@ -171,14 +176,16 @@ export function AddToPortfolioButton({
         <PopoverTrigger asChild>
           <Button
             type="button"
-            className={
+            className={cn(
+              "relative",
               triggerClassName ??
-              "absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-            }
+                "absolute bottom-2 right-2 z-10 size-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer",
+            )}
             onClick={(e) => e.stopPropagation()}
           >
             {success ? (
-              <IconCheck className="size-3.5" />
+              // key nova a cada confirmação → remonta e roda de novo
+              <AnimatedCheck key={successId} size={28} />
             ) : (
               <IconPlus className="size-3.5" />
             )}

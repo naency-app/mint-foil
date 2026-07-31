@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  IconCheck,
   IconPlus,
   IconTrendingDown,
   IconTrendingUp,
@@ -11,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,6 +67,8 @@ export function TcgCard({
   const isPositive = change >= 0;
   const [localQty, setLocalQty] = useState(quantity);
   const [success, setSuccess] = useState(false);
+  // Troca a cada confirmação para remontar a animação e ela rodar de novo
+  const [successId, setSuccessId] = useState(0);
   const router = useRouter();
   const { data: session } = useSession();
   // Cliques acumulam num contador e só viram 1 request + 1 animação depois que
@@ -105,12 +107,20 @@ export function TcgCard({
     pendingRef.current += 1;
     const portfolioId = defaultPortfolioId;
 
-    // Reagenda o commit a cada clique — só dispara após ~500ms sem clicar
+    // Reagenda o commit a cada clique — só dispara após ~320ms sem clicar
     if (commitTimer.current) clearTimeout(commitTimer.current);
     commitTimer.current = setTimeout(async () => {
       const qty = pendingRef.current;
       pendingRef.current = 0;
       if (qty <= 0) return;
+
+      // Antes do await, de propósito: a confirmação acompanha o gesto (parou de
+      // clicar → animou), não a latência da rede. O número já subiu de forma
+      // otimista; se a gravação falhar, o catch desfaz.
+      setSuccess(true);
+      setSuccessId((n) => n + 1);
+      setTimeout(() => setSuccess(false), 1700);
+
       try {
         await api.collection.add({
           cardId,
@@ -118,8 +128,6 @@ export function TcgCard({
           condition: "NM",
           portfolioId,
         });
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 1200);
         if (onAdd) onAdd();
         toast.success(
           qty > 1
@@ -129,9 +137,10 @@ export function TcgCard({
       } catch {
         // Falhou: desfaz o incremento otimista
         setLocalQty((prev) => Math.max(0, prev - qty));
+        setSuccess(false);
         toast.error("Erro ao adicionar carta");
       }
-    }, 500);
+    }, 320);
   }
 
   const setHref =
@@ -243,15 +252,18 @@ export function TcgCard({
                 variant="outline"
                 size="icon"
                 className={cn(
-                  "shrink-0 size-7 rounded-full duration-200 transition-all cursor-pointer",
+                  // relative: a animação de confirmação se ancora neste botão
+                  "relative shrink-0 size-7 rounded-full duration-200 transition-all cursor-pointer p-0",
                   success
-                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
+                    ? // Na confirmação quem desenha o disco verde é a animação
+                      "border-transparent bg-transparent hover:bg-transparent"
                     : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent",
                 )}
                 onClick={handleAdd}
               >
                 {success ? (
-                  <IconCheck className="size-3.5 animate-in zoom-in-50 duration-200" />
+                  // key nova a cada confirmação → remonta e roda de novo
+                  <AnimatedCheck key={successId} size={28} />
                 ) : (
                   <IconPlus className="size-3.5" />
                 )}
