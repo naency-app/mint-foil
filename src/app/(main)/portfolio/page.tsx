@@ -30,8 +30,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
+import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
-import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -192,6 +192,10 @@ function PortfolioItemRow({
     setOptimisticQty(newQty);
     try {
       await onUpdate(item.id, { quantity: newQty });
+      // Mesmo aviso do card do Explorar: a ação sempre se anuncia
+      toast.success(
+        delta > 0 ? "Adicionado ao portfólio!" : "Removido do portfólio",
+      );
     } catch {
       setOptimisticQty(optimisticQty);
       toast.error("Erro ao atualizar quantidade");
@@ -494,6 +498,9 @@ function PortfolioItemCard({
     }
     try {
       await onUpdate(item.id, { quantity: newQty });
+      toast.success(
+        delta > 0 ? "Adicionado ao portfólio!" : "Removido do portfólio",
+      );
     } catch {
       toast.error("Erro ao atualizar quantidade");
     }
@@ -658,25 +665,15 @@ function PortfolioItemCard({
                     className="font-bold text-foreground font-mono"
                   />
                 </div>
-                <button
-                  type="button"
+                <AddIconButton
                   onClick={(e) => {
                     e.stopPropagation();
                     handleQuantityChange(1);
                   }}
-                  className={`relative size-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                    success
-                      ? "border border-transparent"
-                      : "border border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400"
-                  }`}
-                >
-                  {success ? (
-                    // key nova a cada confirmação → remonta e roda de novo
-                    <AnimatedCheck key={successId} size={28} />
-                  ) : (
-                    <Plus className="size-3" />
-                  )}
-                </button>
+                  success={success}
+                  successId={successId}
+                  title="Adicionar uma cópia"
+                />
               </div>
               <button
                 type="button"

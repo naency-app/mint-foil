@@ -10,6 +10,7 @@ import {
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AddIconButton } from "@/app/components/AddIconButton";
 import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Button } from "@/components/ui/button";
@@ -262,15 +263,12 @@ export function AddToPortfolioButton({
                     />
                   </div>
 
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.78 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                  <AddIconButton
                     onClick={incQty}
-                    className="size-7 rounded-full border border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 flex items-center justify-center transition-colors cursor-pointer"
-                  >
-                    <IconPlus className="size-3" strokeWidth={2.5} />
-                  </motion.button>
+                    success={false}
+                    successId={0}
+                    title="Aumentar quantidade"
+                  />
                 </div>
               </div>
 

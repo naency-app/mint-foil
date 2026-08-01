@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AnimatedCheck } from "@/app/components/AnimatedCheck";
+import { AddIconButton } from "@/app/components/AddIconButton";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
@@ -388,6 +388,15 @@ export default function CardDetailPage({
       }
       fetchOwnedItems();
       fetchPortfolios();
+      // Mesmo aviso do card do Explorar: a ação sempre se anuncia
+      const nome = portfolios.find((p) => p.id === activePortfolioId)?.name;
+      if (target <= 0) {
+        toast.success("Removido do portfólio");
+      } else {
+        toast.success(
+          nome ? `Atualizado em "${nome}"` : "Atualizado no portfólio",
+        );
+      }
     } catch {
       toast.error("Erro ao atualizar o portfólio");
       setOptimisticQty(ownedQtyActive); // desfaz o otimista
@@ -790,28 +799,13 @@ export default function CardDetailPage({
                       />
                     </div>
 
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.78 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 18,
-                      }}
+                    <AddIconButton
                       onClick={() => handleQtyChange(1)}
-                      className={`relative size-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                        success
-                          ? "border border-transparent"
-                          : "border border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400"
-                      }`}
-                    >
-                      {success ? (
-                        // key nova a cada confirmação → remonta e roda de novo
-                        <AnimatedCheck key={successId} size={32} />
-                      ) : (
-                        <Plus className="size-3.5" strokeWidth={2.5} />
-                      )}
-                    </motion.button>
+                      success={success}
+                      successId={successId}
+                      size={32}
+                      title="Adicionar uma cópia"
+                    />
                   </div>
 
                   <div className="text-right shrink-0">

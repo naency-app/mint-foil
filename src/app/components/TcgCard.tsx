@@ -1,18 +1,13 @@
 "use client";
 
-import {
-  IconPlus,
-  IconTrendingDown,
-  IconTrendingUp,
-} from "@tabler/icons-react";
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AnimatedCheck } from "@/app/components/AnimatedCheck";
+import { AddIconButton } from "@/app/components/AddIconButton";
 import { RollingNumber } from "@/app/components/RollingNumber";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
@@ -248,26 +243,12 @@ export function TcgCard({
 
           <div className="flex items-end">
             {cardId && (
-              <Button
-                variant="outline"
-                size="icon"
-                className={cn(
-                  // relative: a animação de confirmação se ancora neste botão
-                  "relative shrink-0 size-7 rounded-full duration-200 transition-all cursor-pointer p-0",
-                  success
-                    ? // Na confirmação quem desenha o disco verde é a animação
-                      "border-transparent bg-transparent hover:bg-transparent"
-                    : "border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 hover:bg-transparent",
-                )}
+              <AddIconButton
                 onClick={handleAdd}
-              >
-                {success ? (
-                  // key nova a cada confirmação → remonta e roda de novo
-                  <AnimatedCheck key={successId} size={28} />
-                ) : (
-                  <IconPlus className="size-3.5" />
-                )}
-              </Button>
+                success={success}
+                successId={successId}
+                title="Adicionar ao portfólio"
+              />
             )}
           </div>
         </div>
