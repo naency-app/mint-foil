@@ -8,10 +8,10 @@ import { useMemo, useState } from "react";
 import {
   CheckboxFilterList,
   FilterSection,
+  facetOptions,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
-  facetOptions,
   toggleValue,
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
@@ -191,11 +191,13 @@ export function ShowcaseBrowser({
               activePortfolioId={activeId}
               onSelect={setActiveId}
               readOnly
-              variant="inline"
             />
 
             <div className="flex items-center gap-2">
-              <Select value={sort} onValueChange={(v) => setSort(v as SortValue)}>
+              <Select
+                value={sort}
+                onValueChange={(v) => setSort(v as SortValue)}
+              >
                 <SelectTrigger
                   size="sm"
                   className="glass-pill cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"

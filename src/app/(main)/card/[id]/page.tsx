@@ -12,13 +12,15 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
@@ -269,6 +271,9 @@ export default function CardDetailPage({
   const setActivePortfolioId = setActive;
   const [ownedItems, setOwnedItems] = useState<CollectionItem[]>([]);
   const lastDelta = useRef(1);
+  // Confirmação visual: mesmo check animado dos cards
+  const [success, setSuccess] = useState(false);
+  const [successId, setSuccessId] = useState(0);
   // Stepper controla direto a quantidade no portfólio ativo: cada clique
   // atualiza otimista e um único request (add/update/remove) sai ~500ms depois
   // do último clique. Sem botão separado de "Adicionar".
@@ -400,7 +405,15 @@ export default function CardDetailPage({
     setOptimisticQty(next);
     pendingTargetRef.current = next;
     if (commitTimer.current) clearTimeout(commitTimer.current);
-    commitTimer.current = setTimeout(() => commitQty(next), 500);
+    commitTimer.current = setTimeout(() => {
+      // Só confirma visualmente quando está somando — remover não é "sucesso"
+      if (delta > 0) {
+        setSuccess(true);
+        setSuccessId((n) => n + 1);
+        setTimeout(() => setSuccess(false), 1700);
+      }
+      commitQty(next);
+    }, 320);
   };
 
   if (loading) return <CardDetailSkeleton />;
@@ -716,7 +729,7 @@ export default function CardDetailPage({
                     activePortfolioId={activePortfolioId}
                     onSelect={setActivePortfolioId}
                     onRefresh={handleRefresh}
-                    labelPrefix="Adicionar a:"
+                    labelPrefix="Adicionando em"
                   />
                 ) : (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -770,24 +783,11 @@ export default function CardDetailPage({
                     </motion.button>
 
                     <div className="w-8 flex items-center justify-center overflow-hidden">
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        <motion.span
-                          key={optimisticQty}
-                          initial={{
-                            y: lastDelta.current > 0 ? 10 : -10,
-                            opacity: 0,
-                          }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{
-                            y: lastDelta.current > 0 ? -10 : 10,
-                            opacity: 0,
-                          }}
-                          transition={{ duration: 0.13 }}
-                          className="text-sm font-bold text-foreground font-mono"
-                        >
-                          {optimisticQty}
-                        </motion.span>
-                      </AnimatePresence>
+                      <RollingNumber
+                        value={optimisticQty}
+                        fontSize={14}
+                        className="font-bold text-foreground font-mono"
+                      />
                     </div>
 
                     <motion.button
@@ -799,9 +799,18 @@ export default function CardDetailPage({
                         damping: 18,
                       }}
                       onClick={() => handleQtyChange(1)}
-                      className="size-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className={`relative size-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                        success
+                          ? "border border-transparent"
+                          : "border border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400"
+                      }`}
                     >
-                      <Plus className="size-3.5" strokeWidth={2.5} />
+                      {success ? (
+                        // key nova a cada confirmação → remonta e roda de novo
+                        <AnimatedCheck key={successId} size={32} />
+                      ) : (
+                        <Plus className="size-3.5" strokeWidth={2.5} />
+                      )}
                     </motion.button>
                   </div>
 

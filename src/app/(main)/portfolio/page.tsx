@@ -31,6 +31,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -43,6 +44,7 @@ import {
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
@@ -453,6 +455,10 @@ function PortfolioItemCard({
   isSelectionMode: boolean;
   portfolioId: string | null;
 }) {
+  // Confirmação visual do "+", igual aos outros pontos de adição
+  const [success, setSuccess] = useState(false);
+  const [successId, setSuccessId] = useState(0);
+
   const currentPrice = item.card.prices[0]?.value ?? 0;
   const totalValue = currentPrice * item.quantity;
   const invested = (item.buyPrice ?? 0) * item.quantity;
@@ -479,6 +485,12 @@ function PortfolioItemCard({
     if (newQty < 1) {
       setConfirmDelete(true);
       return;
+    }
+    // Só somar confirma; remover não é "sucesso"
+    if (delta > 0) {
+      setSuccess(true);
+      setSuccessId((n) => n + 1);
+      setTimeout(() => setSuccess(false), 1700);
     }
     try {
       await onUpdate(item.id, { quantity: newQty });
@@ -585,9 +597,11 @@ function PortfolioItemCard({
             </p>
           )}
           <p className="text-[10px] text-muted-foreground leading-tight">
-            {item.card.rarity
-              ? `${item.card.rarity} • ${item.card.collectorNumber}`
-              : item.card.collectorNumber}
+            {/* filter: sem isto, carta com raridade e sem número virava
+                "Promo • null" na tela */}
+            {[item.card.rarity, item.card.collectorNumber]
+              .filter(Boolean)
+              .join(" • ")}
           </p>
 
           <div className="pt-1.5 border-t border-border space-y-2">
@@ -625,21 +639,24 @@ function PortfolioItemCard({
               className="flex items-center justify-between gap-1 pt-1"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-0">
+              {/* Mesmo par de botões redondos da tela da carta e dos cards */}
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleQuantityChange(-1);
                   }}
-                  className="size-7 rounded-l-md border border-border bg-muted hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  className="size-7 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <Minus className="size-3" />
                 </button>
-                <div className="h-7 px-3 border-y border-border bg-muted/50 flex items-center justify-center min-w-[32px]">
-                  <span className="text-xs font-mono text-foreground font-bold">
-                    {item.quantity}
-                  </span>
+                <div className="w-7 flex items-center justify-center overflow-hidden">
+                  <RollingNumber
+                    value={item.quantity}
+                    fontSize={12}
+                    className="font-bold text-foreground font-mono"
+                  />
                 </div>
                 <button
                   type="button"
@@ -647,9 +664,18 @@ function PortfolioItemCard({
                     e.stopPropagation();
                     handleQuantityChange(1);
                   }}
-                  className="size-7 rounded-r-md border border-border bg-muted hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  className={`relative size-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                    success
+                      ? "border border-transparent"
+                      : "border border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400"
+                  }`}
                 >
-                  <Plus className="size-3" />
+                  {success ? (
+                    // key nova a cada confirmação → remonta e roda de novo
+                    <AnimatedCheck key={successId} size={28} />
+                  ) : (
+                    <Plus className="size-3" />
+                  )}
                 </button>
               </div>
               <button
@@ -1342,7 +1368,6 @@ export default function PortfolioPage() {
                 activePortfolioId={activePortfolioId ?? ""}
                 onSelect={setActivePortfolioId}
                 onRefresh={fetchPortfolios}
-                variant="inline"
               />
               <Button
                 onClick={openNewPortfolioOrPaywall}

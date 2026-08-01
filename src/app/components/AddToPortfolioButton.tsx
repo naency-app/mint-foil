@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  IconCheck,
   IconFolderPlus,
   IconLoader2,
   IconMinus,
@@ -268,7 +267,7 @@ export function AddToPortfolioButton({
                     whileTap={{ scale: 0.78 }}
                     transition={{ type: "spring", stiffness: 500, damping: 18 }}
                     onClick={incQty}
-                    className="size-7 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    className="size-7 rounded-full border border-emerald-500/50 text-muted-foreground hover:text-emerald-400 hover:border-emerald-400 flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <IconPlus className="size-3" strokeWidth={2.5} />
                   </motion.button>
@@ -285,7 +284,8 @@ export function AddToPortfolioButton({
                 {loading ? (
                   <IconLoader2 className="size-3.5 animate-spin" />
                 ) : success ? (
-                  <IconCheck className="size-3.5" />
+                  // key nova a cada confirmação → remonta e roda de novo
+                  <AnimatedCheck key={successId} size={18} />
                 ) : (
                   <IconPlus className="size-3.5" />
                 )}
