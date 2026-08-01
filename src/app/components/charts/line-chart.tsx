@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  ChartProvider,
-  type LineConfig,
-  type Margin,
-} from "@/components/charts/chart-context";
-import { cn } from "@/lib/utils";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { bisector } from "d3-array";
@@ -20,6 +14,12 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  ChartProvider,
+  type LineConfig,
+  type Margin,
+} from "@/components/charts/chart-context";
+import { cn } from "@/lib/utils";
 import Line, { type LineProps } from "./line";
 import { useChartInteraction } from "./use-chart-interaction";
 
@@ -196,9 +196,9 @@ function ChartInner({
   const dateLabels = useMemo(
     () =>
       data.map((d) =>
-        xAccessor(d).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
+        xAccessor(d).toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
         }),
       ),
     [data, xAccessor],

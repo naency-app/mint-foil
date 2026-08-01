@@ -1,8 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { useChart } from "./chart-context";
 
 export interface XAxisProps {
@@ -89,8 +89,11 @@ export function XAxis({ numTicks = 5, tickerHalfWidth = 50 }: XAxisProps) {
     const endTime = endDate.getTime();
     const timeRange = endTime - startTime;
 
-    // Create evenly spaced dates from start to end
-    const tickCount = Math.max(2, numTicks); // At least first and last
+    // Os ticks saem da divisão do INTERVALO, não dos pontos. Pedir mais ticks
+    // que dias faz dois caírem no mesmo dia (29 às 08h e 29 às 20h) e o eixo
+    // repete o rótulo — por isso o teto é a quantidade de dias do domínio.
+    const diasNoDominio = Math.floor(timeRange / 86_400_000) + 1;
+    const tickCount = Math.max(2, Math.min(numTicks, diasNoDominio));
     const dates: Date[] = [];
 
     for (let i = 0; i < tickCount; i++) {
@@ -99,14 +102,22 @@ export function XAxis({ numTicks = 5, tickerHalfWidth = 50 }: XAxisProps) {
       dates.push(new Date(time));
     }
 
-    return dates.map((date) => ({
+    const marcados = dates.map((date) => ({
       date,
       x: (xScale(date) ?? 0) + margin.left,
-      label: date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
+      label: date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
       }),
     }));
+
+    // Rede de segurança: arredondamento ainda pode empatar dois rótulos
+    const vistos = new Set<string>();
+    return marcados.filter((m) => {
+      if (vistos.has(m.label)) return false;
+      vistos.add(m.label);
+      return true;
+    });
   }, [xScale, margin.left, numTicks]);
 
   const isHovering = tooltipData !== null;

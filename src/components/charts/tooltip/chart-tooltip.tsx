@@ -111,10 +111,10 @@ export function ChartTooltip({
       return barXAccessor(tooltipData.point);
     }
     // For line/area charts, use the date
-    return xAccessor(tooltipData.point).toLocaleDateString("en-US", {
+    return xAccessor(tooltipData.point).toLocaleDateString("pt-BR", {
       weekday: "short",
+      day: "2-digit",
       month: "short",
-      day: "numeric",
     });
   }, [tooltipData, barXAccessor, xAccessor]);
 
