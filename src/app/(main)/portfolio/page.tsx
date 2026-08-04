@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   IconArrowRight as ArrowRight,
   IconArrowsUpDown as ArrowUpDown,
@@ -76,7 +77,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   api,
   type CollectionItem,
-  type Portfolio,
   type PortfolioMetrics,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
@@ -85,7 +85,15 @@ import {
   sortByFavorite,
   usePortfolioStore,
 } from "@/lib/portfolio-store";
-import { useCollectionStats, useShowcase } from "@/lib/queries";
+import {
+  queryKeys,
+  useCollectionHistory,
+  useCollectionStats,
+  useInvalidateCollection,
+  usePortfolioDetail,
+  usePortfolios,
+  useShowcase,
+} from "@/lib/queries";
 import { cardName, cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
@@ -832,21 +840,38 @@ export default function PortfolioPage() {
   const [filterTcgs, setFilterTcgs] = useState<string[]>([]);
   const [filterRarities, setFilterRarities] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  // Lista e detalhe vêm do TanStack Query, com as MESMAS chaves que Explore e a
+  // página da carta usam — navegar entre elas não refaz busca nenhuma.
+  const portfoliosQuery = usePortfolios(!!session?.user);
+  const queryClient = useQueryClient();
+  const invalidateCollection = useInvalidateCollection();
+  // O que `/collection/portfolios/:id` devolve — usado no patch otimista.
+  type PortfolioDetalhe = Awaited<
+    ReturnType<typeof api.collection.getPortfolio>
+  >;
   // Contexto vem do store: sobrevive a sair para a carta e voltar
   const activeId = usePortfolioStore((s) => s.activeId);
   const favoriteIds = usePortfolioStore((s) => s.favoriteIds);
   const setActivePortfolioId = usePortfolioStore((s) => s.setActive);
   const activePortfolioId = activeId;
-  const [items, setItems] = useState<CollectionItem[]>([]);
+  const portfolios = useMemo(
+    () => sortByFavorite(portfoliosQuery.data ?? [], favoriteIds),
+    [portfoliosQuery.data, favoriteIds],
+  );
+  const detailQuery = usePortfolioDetail(activePortfolioId || undefined);
+  const items: CollectionItem[] = detailQuery.data?.items ?? [];
+  const metrics: PortfolioMetrics = detailQuery.data?.metrics ?? defaultMetrics;
   // Ordem congelada da grade — ver `compareItems` mais abaixo. Guarda os ids na
   // sequência exibida e a assinatura dos critérios que a produziram.
   const orderRef = useRef<{ signature: string; ids: string[] }>({
     signature: "",
     ids: [],
   });
-  const [metrics, setMetrics] = useState<PortfolioMetrics>(defaultMetrics);
-  const [loading, setLoading] = useState(true);
+  // Skeleton enquanto a lista não chegou, ou enquanto o detalhe do portfólio
+  // ativo está vindo pela primeira vez.
+  const loading =
+    portfoliosQuery.isPending ||
+    (!!activePortfolioId && detailQuery.isPending);
   const scrollYRef = useRef(0);
   const scrollRestauradoRef = useRef(false);
 
@@ -878,18 +903,27 @@ export default function PortfolioPage() {
   const [creating, setCreating] = useState(false);
   const [proModalOpen, setProModalOpen] = useState(false);
 
-  const [portfoliosLoaded, setPortfoliosLoaded] = useState(false);
-  const [historyData, setHistoryData] = useState<
-    { date: Date; value: number }[]
-  >([]);
+  const portfoliosLoaded = !portfoliosQuery.isPending;
   const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "6m">(
     "1m",
   );
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
-  const historyCache = useRef<Record<string, { date: Date; value: number }[]>>(
-    {},
+  // Substitui o cache artesanal em useRef, que a cada acerto ainda disparava um
+  // "silent background update" — ou seja, requisitava sempre.
+  const historyQuery = useCollectionHistory(
+    historyRange,
+    activePortfolioId || undefined,
+    !!session?.user && !!activePortfolioId,
+  );
+  const historyLoading = historyQuery.isPending;
+  const historyData = useMemo(
+    () =>
+      (historyQuery.data ?? []).map((d) => ({
+        date: new Date(d.date),
+        value: d.value,
+      })),
+    [historyQuery.data],
   );
 
   const { chartDiffValue, chartDiffPercent } = useMemo(() => {
@@ -901,55 +935,6 @@ export default function PortfolioPage() {
     const diffPct = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
     return { chartDiffValue: diffVal, chartDiffPercent: diffPct };
   }, [historyData]);
-
-  const fetchHistory = useCallback(
-    async (
-      range: "7d" | "1m" | "3m" | "6m",
-      portfolioId: string,
-      forceRefresh = false,
-    ) => {
-      const cacheKey = `${portfolioId}:${range}`;
-      const cached = historyCache.current[cacheKey];
-      if (cached && !forceRefresh) {
-        setHistoryData(cached);
-        // Silent background update to keep data fresh without blocking UI
-        api.collection
-          .history(range, portfolioId)
-          .then((data) => {
-            const mapped = data.map((d) => ({
-              date: new Date(d.date),
-              value: d.value,
-            }));
-            historyCache.current[cacheKey] = mapped;
-            setHistoryData(mapped);
-          })
-          .catch(() => {});
-        return;
-      }
-
-      setHistoryLoading(true);
-      try {
-        const data = await api.collection.history(range, portfolioId);
-        const mapped = data.map((d) => ({
-          date: new Date(d.date),
-          value: d.value,
-        }));
-        historyCache.current[cacheKey] = mapped;
-        setHistoryData(mapped);
-      } catch {
-        setHistoryData([]);
-      } finally {
-        setHistoryLoading(false);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (session?.user && activePortfolioId) {
-      fetchHistory(historyRange, activePortfolioId);
-    }
-  }, [session, historyRange, activePortfolioId, fetchHistory]);
 
   function openNewPortfolioOrPaywall() {
     // Grátis: até 5 portfólios. Pro: ilimitado (o backend aplica a mesma regra).
@@ -964,64 +949,33 @@ export default function PortfolioPage() {
     }
   }
 
-  const fetchPortfolios = useCallback(async () => {
-    try {
-      const data = await api.collection.portfolios();
-
-      const sortedPortfolios = sortByFavorite(data, favoriteIds);
-      setPortfolios(sortedPortfolios);
-
-      // Só define quando não há contexto válido — uma escolha do usuário que
-      // ainda exista na lista nunca é sobrescrita por um refetch.
-      const alvo = resolveActiveId(sortedPortfolios, activeId, favoriteIds);
-      if (alvo && alvo !== activeId) setActivePortfolioId(alvo);
-      if (sortedPortfolios.length === 0) setLoading(false);
-    } catch {
-      /* ignore for now */
-    } finally {
-      setPortfoliosLoaded(true);
-    }
-  }, [activePortfolioId]);
-
-  const fetchPortfolioItems = useCallback(async (portfolioId: string) => {
-    setLoading(true);
-    setSelectedIds(new Set());
-    try {
-      const data = await api.collection.getPortfolio(portfolioId);
-      setItems(data.items);
-      setMetrics(data.metrics);
-    } catch {
-      setItems([]);
-      setMetrics(defaultMetrics);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     if (!sessionLoading && !session?.user) {
       router.push("/login?redirect=/portfolio");
     }
   }, [session, sessionLoading, router]);
 
+  // Qual portfólio fica ativo quando a lista chega. Só define quando não há
+  // contexto válido — escolha do usuário que ainda exista na lista nunca é
+  // sobrescrita por um refetch.
   useEffect(() => {
-    if (session?.user) {
-      fetchPortfolios();
-    }
-  }, [session, fetchPortfolios]);
+    if (portfolios.length === 0) return;
+    const alvo = resolveActiveId(portfolios, activeId, favoriteIds);
+    if (alvo && alvo !== activeId) setActivePortfolioId(alvo);
+  }, [portfolios, activeId, favoriteIds, setActivePortfolioId]);
 
+  // Trocar de portfólio zera a seleção múltipla — ids de outro portfólio não
+  // fazem sentido na grade nova.
   useEffect(() => {
-    if (activePortfolioId) {
-      fetchPortfolioItems(activePortfolioId);
-    }
-  }, [activePortfolioId, fetchPortfolioItems]);
+    setSelectedIds(new Set());
+  }, [activePortfolioId]);
 
   async function handleCreatePortfolio() {
     if (!newName.trim()) return;
     setCreating(true);
     try {
       const p = await api.collection.createPortfolio(newName.trim());
-      setPortfolios((prev) => [...prev, p]);
+      await invalidateCollection();
       setActivePortfolioId(p.id);
       setShowNewDialog(false);
       setNewName("");
@@ -1035,45 +989,57 @@ export default function PortfolioPage() {
     }
   }
 
+  /**
+   * Aplica a mudança no cache antes da resposta do servidor — é o que faz o
+   * stepper responder na hora. Devolve o estado anterior para desfazer se o
+   * request falhar.
+   */
+  const patchItemsOtimista = useCallback(
+    (mudar: (prev: CollectionItem[]) => CollectionItem[]) => {
+      if (!activePortfolioId) return undefined;
+      const key = queryKeys.portfolioDetail(activePortfolioId);
+      const anterior = queryClient.getQueryData<PortfolioDetalhe>(key);
+      if (anterior) {
+        queryClient.setQueryData<PortfolioDetalhe>(key, {
+          ...anterior,
+          items: mudar(anterior.items),
+        });
+      }
+      return () => queryClient.setQueryData(key, anterior);
+    },
+    [activePortfolioId, queryClient],
+  );
+
   const updateItem = useCallback(
     async (id: string, data: { quantity: number }) => {
-      setItems((prev) =>
+      const desfazer = patchItemsOtimista((prev) =>
         prev.map((item) => (item.id === id ? { ...item, ...data } : item)),
       );
       try {
         await api.collection.update(id, data);
-        if (activePortfolioId) {
-          api.collection
-            .getPortfolio(activePortfolioId)
-            .then((d) => setMetrics(d.metrics))
-            .catch(() => {});
-          fetchHistory(historyRange, activePortfolioId, true);
-        }
+        // Uma invalidação repõe itens, métricas, histórico e stats.
+        await invalidateCollection();
       } catch (err) {
-        if (activePortfolioId) fetchPortfolioItems(activePortfolioId);
+        desfazer?.();
         throw err;
       }
     },
-    [activePortfolioId, fetchPortfolioItems, fetchHistory, historyRange],
+    [patchItemsOtimista, invalidateCollection],
   );
 
   const removeItem = useCallback(
     async (id: string) => {
-      setItems((prev) => prev.filter((item) => item.id !== id));
+      const desfazer = patchItemsOtimista((prev) =>
+        prev.filter((item) => item.id !== id),
+      );
       try {
         await api.collection.remove(id);
-        if (activePortfolioId) {
-          api.collection
-            .getPortfolio(activePortfolioId)
-            .then((d) => setMetrics(d.metrics))
-            .catch(() => {});
-          fetchHistory(historyRange, activePortfolioId, true);
-        }
+        await invalidateCollection();
       } catch {
-        if (activePortfolioId) fetchPortfolioItems(activePortfolioId);
+        desfazer?.();
       }
     },
-    [activePortfolioId, fetchPortfolioItems, fetchHistory, historyRange],
+    [patchItemsOtimista, invalidateCollection],
   );
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -1161,10 +1127,8 @@ export default function PortfolioPage() {
   const finishBulkAction = () => {
     setBulkAction(null);
     setSelectedIds(new Set());
-    if (activePortfolioId) {
-      fetchPortfolioItems(activePortfolioId);
-      fetchHistory(historyRange, activePortfolioId);
-    }
+    // Copiar/mover mexe em outros portfólios também — invalida a coleção toda.
+    invalidateCollection();
   };
 
   if (sessionLoading || (session?.user && !portfoliosLoaded)) {
@@ -1364,7 +1328,7 @@ export default function PortfolioPage() {
                 portfolios={portfolios}
                 activePortfolioId={activePortfolioId ?? ""}
                 onSelect={setActivePortfolioId}
-                onRefresh={fetchPortfolios}
+                onRefresh={invalidateCollection}
               />
               <Button
                 onClick={openNewPortfolioOrPaywall}

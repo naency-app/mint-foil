@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { ViewerBanner } from "./viewer-banner";
 import { ShowcaseBrowser } from "./showcase-browser";
@@ -13,19 +14,28 @@ function cleanHandle(raw: string): string {
   return decodeURIComponent(raw).replace(/^@+/, "").toLowerCase();
 }
 
-async function fetchShowcase(handle: string): Promise<Showcase | null> {
-  try {
-    // Sem cache: o perfil precisa refletir na hora quando o dono adiciona cartas.
-    const res = await fetch(
-      `${API_URL}/users/showcase/${encodeURIComponent(handle)}`,
-      { cache: "no-store" },
-    );
-    if (!res.ok) return null;
-    return (await res.json()) as Showcase;
-  } catch {
-    return null;
-  }
-}
+/**
+ * `cache()` deduplica dentro de UM request: `generateMetadata` e a página
+ * chamam isto com o mesmo handle e o backend é consultado uma vez só — antes
+ * eram duas viagens idênticas para renderizar um perfil.
+ *
+ * Continua `no-store`: o perfil precisa refletir na hora quando o dono
+ * adiciona cartas. A dedupe é por request, não cache entre requests.
+ */
+const fetchShowcase = cache(
+  async (handle: string): Promise<Showcase | null> => {
+    try {
+      const res = await fetch(
+        `${API_URL}/users/showcase/${encodeURIComponent(handle)}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) return null;
+      return (await res.json()) as Showcase;
+    } catch {
+      return null;
+    }
+  },
+);
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {

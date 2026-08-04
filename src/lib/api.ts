@@ -190,12 +190,16 @@ export const api = {
       setId?: string,
       // 'single' (padrão no back) esconde selados; 'sealed' só selados; 'all' tudo
       productType?: "single" | "sealed" | "all",
+      /** Scroll infinito: página de `limit` cartas a partir de `offset`. */
+      page?: { limit?: number; offset?: number },
     ) => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (tcg) params.set("tcg", tcg);
       if (setId) params.set("setId", setId);
       if (productType) params.set("productType", productType);
+      if (page?.limit) params.set("limit", String(page.limit));
+      if (page?.offset) params.set("offset", String(page.offset));
       const qs = params.toString();
       return apiFetch<Card[]>(`/cards${qs ? `?${qs}` : ""}`);
     },
@@ -206,8 +210,13 @@ export const api = {
         `/cards/rarities?tcg=${encodeURIComponent(tcg)}`,
       ),
     /** Maiores variações do dia na série internacional (ver adr/0002) */
-    trending: (limit?: number) =>
-      apiFetch<Card[]>(`/cards/trending${limit ? `?limit=${limit}` : ""}`),
+    trending: (limit?: number, offset?: number) => {
+      const params = new URLSearchParams();
+      if (limit) params.set("limit", String(limit));
+      if (offset) params.set("offset", String(offset));
+      const qs = params.toString();
+      return apiFetch<Card[]>(`/cards/trending${qs ? `?${qs}` : ""}`);
+    },
     tcgs: () => apiFetch<Tcg[]>("/cards/tcgs"),
     sets: (tcg?: string) => {
       const qs = tcg ? `?tcg=${encodeURIComponent(tcg)}` : "";
@@ -237,6 +246,23 @@ export const api = {
       apiFetch<CollectionResponse & { portfolio: Portfolio }>(
         `/collection/portfolios/${id}`,
       ),
+    /**
+     * Em quais portfólios uma carta está. Uma requisição no lugar de baixar o
+     * conteúdo completo de cada portfólio só para filtrar um item.
+     */
+    itemsForCard: (cardId: string) =>
+      apiFetch<
+        Pick<
+          CollectionItem,
+          | "id"
+          | "quantity"
+          | "condition"
+          | "buyPrice"
+          | "notes"
+          | "cardId"
+          | "portfolioId"
+        >[]
+      >(`/collection/items?cardId=${encodeURIComponent(cardId)}`),
     add: (data: {
       cardId: string;
       quantity: number;

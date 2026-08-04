@@ -74,8 +74,8 @@ import {
 } from "@/lib/portfolio-store";
 import {
   useCardSets,
-  useCards,
   useCollectionStats,
+  useInfiniteCards,
   useInvalidateCollection,
   usePortfolioDetail,
   usePortfolios,
@@ -461,7 +461,7 @@ function ExplorePageContent() {
   const portfoliosQuery = usePortfolios();
   const portfolioDetail = usePortfolioDetail(activePortfolioId || undefined);
   const setsQuery = useCardSets(carouselTcg);
-  const cardsQuery = useCards(
+  const cardsQuery = useInfiniteCards(
     search.trim() || undefined,
     activeTcgs.length > 0 ? activeTcgs.join(",") : undefined,
     selectedSet?.id,
@@ -471,8 +471,28 @@ function ExplorePageContent() {
 
   const sets = setsQuery.data ?? [];
   const setsLoading = setsQuery.isPending;
-  const cards = cardsQuery.data ?? [];
+  const cards = useMemo(
+    () => cardsQuery.data?.pages.flat() ?? [],
+    [cardsQuery.data],
+  );
   const cardsLoading = cardsQuery.isPending;
+
+  // Scroll infinito: um observador na sentinela do fim da grade. `rootMargin`
+  // generoso para a próxima página chegar antes de o usuário ver o vazio.
+  const sentinelaRef = useRef<HTMLDivElement | null>(null);
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = cardsQuery;
+  useEffect(() => {
+    const alvo = sentinelaRef.current;
+    if (!alvo || !hasNextPage) return;
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        if (entrada.isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { rootMargin: "600px" },
+    );
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   const error = cardsQuery.error
     ? (cardsQuery.error.message ?? "Erro ao buscar cartas")
     : null;
@@ -1133,6 +1153,20 @@ function ExplorePageContent() {
                   onAdd={invalidateCollection}
                 />
               ))}
+            </div>
+          )}
+
+          {/* Sentinela do scroll infinito: entrar no campo de visão (com folga
+              de 600px) puxa a próxima página. */}
+          {cardsQuery.hasNextPage && (
+            <div
+              ref={sentinelaRef}
+              className="flex justify-center py-8"
+              aria-hidden
+            >
+              {cardsQuery.isFetchingNextPage && (
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              )}
             </div>
           )}
         </div>

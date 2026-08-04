@@ -16,7 +16,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
@@ -30,14 +30,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type CollectionItem, type Portfolio } from "@/lib/api";
+import { api, type CollectionItem } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
   sortByFavorite,
   usePortfolioStore,
 } from "@/lib/portfolio-store";
-import { useCardDetail } from "@/lib/queries";
+import {
+  useCardDetail,
+  useCardOwnership,
+  useInvalidateCollection,
+  usePortfolios,
+} from "@/lib/queries";
 import { cardName, cn } from "@/lib/utils";
 
 // Código utilizável na busca da Liga: precisa ser prefixado por set
@@ -246,14 +251,10 @@ function CardDetailSkeleton() {
 
 export default function CardDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ portfolioId?: string }>;
 }) {
   const { id } = use(params);
-  const sParams = use(searchParams);
-  const queryPortfolioId = sParams?.portfolioId;
 
   const cardQuery = useCardDetail(id);
   const card = cardQuery.data ?? null;
@@ -261,7 +262,10 @@ export default function CardDetailPage({
   const error = cardQuery.error ? cardQuery.error.message : null;
   const { data: session } = useSession();
   const router = useRouter();
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  // Lista compartilhada com Explore/Portfólio pela chave ['portfolios'] — antes
+  // esta página buscava a mesma lista DUAS vezes (aqui e dentro do fetch de
+  // itens), a cada montagem e a cada mudança de quantidade.
+  const { data: portfoliosData } = usePortfolios(!!session?.user);
   // Contexto compartilhado: a escolha feita aqui vale nas outras telas e
   // sobrevive à navegação (ver lib/portfolio-store)
   const storeActiveId = usePortfolioStore((s) => s.activeId);
@@ -269,7 +273,19 @@ export default function CardDetailPage({
   const setActive = usePortfolioStore((s) => s.setActive);
   const activePortfolioId = storeActiveId ?? "";
   const setActivePortfolioId = setActive;
-  const [ownedItems, setOwnedItems] = useState<CollectionItem[]>([]);
+  const portfolios = useMemo(
+    () => sortByFavorite(portfoliosData ?? [], favoriteIds),
+    [portfoliosData, favoriteIds],
+  );
+
+  // Onde esta carta está, em qualquer portfólio: UMA requisição. Antes eram N —
+  // o portfólio inteiro de cada um dos portfólios do usuário, baixado só para
+  // filtrar um item no cliente, e refeito a cada mudança de quantidade.
+  const { data: ownershipData } = useCardOwnership(id, !!session?.user);
+  const ownedItems = useMemo(
+    () => (ownershipData ?? []) as unknown as CollectionItem[],
+    [ownershipData],
+  );
   const lastDelta = useRef(1);
   // Confirmação visual: mesmo check animado dos cards
   const [success, setSuccess] = useState(false);
@@ -281,61 +297,15 @@ export default function CardDetailPage({
   const pendingTargetRef = useRef<number | null>(null);
   const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchPortfolios = useCallback(() => {
-    api.collection
-      .portfolios()
-      .then((data) => {
-        const sortedPortfolios = sortByFavorite(data, favoriteIds);
-
-        setPortfolios(sortedPortfolios);
-
-        if (sortedPortfolios.length > 0) {
-          const alvo = resolveActiveId(
-            sortedPortfolios,
-            storeActiveId,
-            favoriteIds,
-          );
-          if (alvo && alvo !== storeActiveId) setActivePortfolioId(alvo);
-        }
-      })
-      .catch(() => {});
-  }, [queryPortfolioId]);
-
-  const fetchOwnedItems = useCallback(async () => {
-    try {
-      const portfs = await api.collection.portfolios();
-      const results = await Promise.all(
-        portfs.map(async (p) => {
-          try {
-            const res = await api.collection.getPortfolio(p.id);
-            return {
-              items: (res.items || []).map((item) => ({
-                ...item,
-                portfolioId: p.id,
-              })),
-            };
-          } catch {
-            return { items: [] };
-          }
-        }),
-      );
-      const allItems = results.flatMap((r) => r.items);
-      const filtered = allItems.filter((item) => item.cardId === id);
-      setOwnedItems(filtered);
-    } catch {}
-  }, [id]);
-
-  const handleRefresh = useCallback(() => {
-    fetchPortfolios();
-    fetchOwnedItems();
-  }, [fetchPortfolios, fetchOwnedItems]);
-
+  // Qual portfólio fica ativo quando a lista chega (favorito > salvo > primeiro).
   useEffect(() => {
-    if (session?.user) {
-      fetchPortfolios();
-      fetchOwnedItems();
-    }
-  }, [session, fetchPortfolios, fetchOwnedItems]);
+    if (portfolios.length === 0) return;
+    const alvo = resolveActiveId(portfolios, storeActiveId, favoriteIds);
+    if (alvo && alvo !== storeActiveId) setActivePortfolioId(alvo);
+  }, [portfolios, storeActiveId, favoriteIds, setActivePortfolioId]);
+
+  const invalidateCollection = useInvalidateCollection();
+  const handleRefresh = invalidateCollection;
 
   // Quantidade que o usuário já tem no portfólio ativo (condição NM) + o item
   // correspondente (pra update/remove).
@@ -386,8 +356,9 @@ export default function CardDetailPage({
           portfolioId: activePortfolioId || undefined,
         });
       }
-      fetchOwnedItems();
-      fetchPortfolios();
+      // Uma invalidação cobre lista, detalhes, stats e histórico — antes eram
+      // dois fetches manuais que rebaixavam TODA a coleção a cada clique.
+      await invalidateCollection();
       // Mesmo aviso do card do Explorar: a ação sempre se anuncia
       const nome = portfolios.find((p) => p.id === activePortfolioId)?.name;
       if (target <= 0) {

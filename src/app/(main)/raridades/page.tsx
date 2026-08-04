@@ -1,5 +1,7 @@
 "use client";
 
+import { useQueries } from "@tanstack/react-query";
+
 import { IconSparkles, IconX } from "@tabler/icons-react";
 import {
   AnimatePresence,
@@ -10,8 +12,9 @@ import {
   useTransform,
 } from "motion/react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { api, type Card, type RarityExample } from "@/lib/api";
+import { queryKeys, useCardDetail } from "@/lib/queries";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
 
 // Derivado do catálogo para não ficar pra trás quando um TCG é habilitado.
@@ -289,20 +292,12 @@ function CardModal({
   item: RarityExample;
   onClose: () => void;
 }) {
-  const [card, setCard] = useState<Card | null>(null);
   const [step, setStep] = useState(0);
 
-  useEffect(() => {
-    if (!item.exampleCardId) return;
-    let alive = true;
-    api.cards
-      .get(item.exampleCardId)
-      .then((c) => alive && setCard(c))
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [item.exampleCardId]);
+  // Mesma chave da página da carta: abrir a carta depois de ver o guia (ou o
+  // contrário) não refaz a busca.
+  const { data: cardData } = useCardDetail(item.exampleCardId ?? undefined);
+  const card = cardData ?? null;
 
   const steps = buildTour(item, card);
   const idx = Math.min(step, steps.length - 1);
@@ -400,23 +395,24 @@ function CardModal({
 }
 
 export default function RaridadesPage() {
-  const [data, setData] = useState<Record<string, RarityExample[] | "loading">>(
-    Object.fromEntries(TCGS.map((t) => [t.slug, "loading"])),
-  );
   const [selected, setSelected] = useState<RarityExample | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    for (const t of TCGS) {
-      api.cards
-        .rarities(t.slug)
-        .then((rows) => alive && setData((p) => ({ ...p, [t.slug]: rows })))
-        .catch(() => alive && setData((p) => ({ ...p, [t.slug]: [] })));
-    }
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // Uma query por TCG, chaveadas por slug — reabrir a página sai do cache. O
+  // guia é catálogo puro: só muda quando a sync roda.
+  const data = useQueries({
+    queries: TCGS.map((t) => ({
+      queryKey: queryKeys.rarities(t.slug),
+      queryFn: () => api.cards.rarities(t.slug),
+      staleTime: 30 * 60_000,
+    })),
+    combine: (results) =>
+      Object.fromEntries(
+        TCGS.map((t, i) => [
+          t.slug,
+          results[i].isPending ? "loading" : (results[i].data ?? []),
+        ]),
+      ) as Record<string, RarityExample[] | "loading">,
+  });
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
