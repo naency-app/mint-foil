@@ -102,7 +102,7 @@ export default async function ShowcaseProfilePage({
       />
 
       {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}
-      <main className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 pt-6 pb-8 sm:px-6">
         {hasCards ? (
           <ShowcaseBrowser portfolios={data.portfolios} />
         ) : (
