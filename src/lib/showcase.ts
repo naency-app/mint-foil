@@ -39,6 +39,9 @@ export interface Showcase {
   isPro: boolean;
   memberSince: string;
   cover: Cover;
+  bio: string | null;
+  /** Links por rede: { instagram: "https://…" }. Chaves do SOCIAL_LINKS. */
+  socials: Record<string, string>;
   totalCards: number;
   totalSealed: number;
   totalValue: number;

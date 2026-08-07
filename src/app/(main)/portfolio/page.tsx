@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import {
   IconArrowRight as ArrowRight,
   IconArrowsUpDown as ArrowUpDown,
@@ -24,6 +23,7 @@ import {
   IconTrendingUp as TrendingUp,
   IconX as X,
 } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -74,11 +74,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  api,
-  type CollectionItem,
-  type PortfolioMetrics,
-} from "@/lib/api";
+import { api, type CollectionItem, type PortfolioMetrics } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -870,8 +866,7 @@ export default function PortfolioPage() {
   // Skeleton enquanto a lista não chegou, ou enquanto o detalhe do portfólio
   // ativo está vindo pela primeira vez.
   const loading =
-    portfoliosQuery.isPending ||
-    (!!activePortfolioId && detailQuery.isPending);
+    portfoliosQuery.isPending || (!!activePortfolioId && detailQuery.isPending);
   const scrollYRef = useRef(0);
   const scrollRestauradoRef = useRef(false);
 
@@ -1320,7 +1315,7 @@ export default function PortfolioPage() {
           )}
         </main>
       ) : (
-        <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
+        <main className="mx-auto max-w-[1480px] space-y-6 px-4 pt-6 pb-6 sm:px-6 lg:px-8">
           {/* Seletor de portfólio (dropdown) — substitui as tabs */}
           {portfolios.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3">
