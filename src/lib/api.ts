@@ -182,6 +182,35 @@ export const api = {
       apiFetch<import("./showcase").Showcase>(
         `/users/showcase/${encodeURIComponent(handle)}`,
       ),
+    /** Disponibilidade/validade de um @handle (para o formulário, com debounce). */
+    checkHandle: (handle: string) =>
+      apiFetch<{ handle: string; available: boolean; reason?: string }>(
+        `/users/handle/check?handle=${encodeURIComponent(handle)}`,
+      ),
+    /** Troca o @handle (1ª grátis, depois Pro → erro HANDLE_EDIT_REQUIRES_PRO). */
+    updateHandle: (handle: string) =>
+      apiFetch<{ handle: string; handleEditCount: number; isPro: boolean }>(
+        "/users/handle",
+        { method: "POST", body: JSON.stringify({ handle }) },
+      ),
+    /** Fundo do perfil (gradient | color | preset | image). */
+    updateCover: (
+      type: "gradient" | "color" | "preset" | "image",
+      value?: string | null,
+    ) =>
+      apiFetch<{ type: string; value: string | null }>("/users/cover", {
+        method: "POST",
+        body: JSON.stringify({ type, value }),
+      }),
+    /** Descrição e links do perfil público. Campo omitido fica como está. */
+    updateProfile: (input: {
+      bio?: string | null;
+      socials?: Record<string, string>;
+    }) =>
+      apiFetch<{ bio: string | null; socials: Record<string, string> }>(
+        "/users/profile",
+        { method: "POST", body: JSON.stringify(input) },
+      ),
   },
   cards: {
     list: (

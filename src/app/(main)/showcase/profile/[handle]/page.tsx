@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
-import { ViewerBanner } from "./viewer-banner";
 import { ShowcaseBrowser } from "./showcase-browser";
 import type { Showcase } from "./types";
+import { ViewerBanner } from "./viewer-banner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mintfoil.com";
@@ -96,11 +96,13 @@ export default async function ShowcaseProfilePage({
         totalSealed={data.totalSealed}
         totalValue={data.totalValue}
         cover={data.cover}
+        bio={data.bio}
+        socials={data.socials}
         actions={<ViewerBanner handle={data.handle} shareUrl={shareUrl} />}
       />
 
       {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}
-      <main className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 pt-6 pb-8 sm:px-6">
         {hasCards ? (
           <ShowcaseBrowser portfolios={data.portfolios} />
         ) : (

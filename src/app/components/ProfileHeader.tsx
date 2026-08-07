@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
-import Image from "next/image";
 import { Crown } from "lucide-react";
+import Image from "next/image";
+import type { ReactNode } from "react";
+import { faviconFor, SOCIAL_LINKS, toDisplay } from "@/lib/social-links";
 import { type Cover, ProfileCover } from "./ProfileCover";
 
 function formatPrice(value: number) {
@@ -34,6 +35,8 @@ export function ProfileHeader({
   totalSealed,
   totalValue,
   cover,
+  bio,
+  socials,
   actions,
 }: {
   displayName: string;
@@ -45,9 +48,17 @@ export function ProfileHeader({
   totalSealed: number;
   totalValue: number;
   cover: Cover;
+  bio?: string | null;
+  socials?: Record<string, string>;
   actions?: ReactNode;
 }) {
   const initial = displayName.charAt(0).toUpperCase();
+  // Ordem do catálogo, não a do objeto vindo da API: duas visitas ao mesmo
+  // perfil têm que mostrar os links na mesma ordem.
+  const links = SOCIAL_LINKS.flatMap((link) => {
+    const url = socials?.[link.key];
+    return url ? [{ link, url }] : [];
+  });
 
   return (
     <ProfileCover cover={cover} actions={actions}>
@@ -63,12 +74,16 @@ export function ProfileHeader({
                 className="size-24 object-cover"
               />
             ) : (
-              <span className="text-4xl font-black text-primary">{initial}</span>
+              <span className="text-4xl font-black text-primary">
+                {initial}
+              </span>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-black text-foreground">{displayName}</h1>
+            <h1 className="text-xl font-black text-foreground">
+              {displayName}
+            </h1>
             {isPro && (
               <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
                 <Crown className="size-3" />
@@ -77,6 +92,46 @@ export function ProfileHeader({
             )}
           </div>
           <p className="text-sm font-medium text-muted-foreground">@{handle}</p>
+
+          {bio && (
+            <p className="mt-3 text-sm leading-relaxed text-foreground">
+              {bio}
+            </p>
+          )}
+
+          {links.length > 0 && (
+            /* Tudo numa linha só, rolando na horizontal quando não couber —
+               nove redes empilhadas empurrariam a coleção para fora da tela.
+               `justify-center` centra enquanto cabe; passando disso, rola. */
+            <div className="-mx-6 mt-3 flex w-[calc(100%+3rem)] snap-x justify-center gap-4 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {links.map(({ link, url }) => (
+                <a
+                  key={link.key}
+                  href={url}
+                  target="_blank"
+                  // Link de terceiro em página pública: sem isto, a aba aberta
+                  // ganha acesso a window.opener e o referrer vaza o perfil.
+                  rel="noopener noreferrer nofollow ugc"
+                  className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition hover:opacity-70"
+                >
+                  {/* <img> e não next/image: favicon de 20px não ganha nada com
+                      o otimizador, e evita liberar o host no next.config. */}
+                  {/* biome-ignore lint/performance/noImgElement: favicon 20px */}
+                  <img
+                    src={faviconFor(link, url)}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="size-3.5 shrink-0 rounded-[3px]"
+                    loading="lazy"
+                  />
+                  <span className="max-w-[180px] truncate">
+                    {toDisplay(link, url)}
+                  </span>
+                </a>
+              ))}
+            </div>
+          )}
 
           <p className="mt-4 text-[11px] uppercase tracking-wider text-muted-foreground">
             Valor estimado do portfólio

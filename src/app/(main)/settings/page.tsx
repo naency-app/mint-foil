@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Crown,
+  ExternalLink,
   Info,
   LogOut,
   Mail,
@@ -32,7 +33,11 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
+import { findCoverPreset } from "@/lib/cover-catalog";
 import { cn } from "@/lib/utils";
+import { CoverPicker } from "./cover-picker";
+import { DeleteAccount } from "./delete-account";
+import { ProfileForm } from "./profile-form";
 
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
@@ -236,6 +241,30 @@ function ThemeSelector() {
   );
 }
 
+/**
+ * Fundo da capa no cabeçalho da conta — mesma leitura do `ProfileCover`, para o
+ * usuário ver aqui exatamente o que o perfil público mostra.
+ */
+function coverStyle(
+  type: string | undefined,
+  value: string | null | undefined,
+): React.CSSProperties {
+  if (type === "image" && value) {
+    return { backgroundImage: `url(${value})`, backgroundSize: "cover" };
+  }
+  if (type === "color" && value) return { background: value };
+  const preset = type === "preset" ? findCoverPreset(value) : null;
+  if (preset) {
+    return {
+      background: `linear-gradient(to bottom, ${preset.colors.join(", ")})`,
+    };
+  }
+  return {
+    background:
+      "linear-gradient(to bottom, color-mix(in oklab, var(--primary) 40%, transparent), color-mix(in oklab, var(--primary) 10%, transparent))",
+  };
+}
+
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
     style: "currency",
@@ -370,7 +399,7 @@ function StatsSkeleton() {
 }
 
 function SettingsContent() {
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending, refetch: refetchSession } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [proModalOpen, setProModalOpen] = useState(false);
@@ -379,6 +408,22 @@ function SettingsContent() {
   >("stats");
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  /**
+   * O que o usuário acabou de salvar, ainda não refletido na sessão.
+   *
+   * `authClient.getSession()` refaz a requisição mas não reemite para o
+   * `useSession` já montado, e `router.refresh()` só revalida Server Component —
+   * esta página é client. Sem isto, escolher um fundo salvava no banco e o
+   * cabeçalho aqui em cima continuava com o antigo até dar F5.
+   */
+  const [novoCover, setNovoCover] = useState<{
+    type: string;
+    value: string | null;
+  } | null>(null);
+  const [novoPerfil, setNovoPerfil] = useState<{
+    nickname: string;
+    handle: string;
+  } | null>(null);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -407,6 +452,21 @@ function SettingsContent() {
       .catch(() => {})
       .finally(() => setStatsLoading(false));
   }, [session]);
+
+  // Depois de salvar perfil ou fundo, a sessão em cache ainda tem os valores
+  // antigos — o cabeçalho desta própria tela mostra nome, @ e capa.
+  /**
+   * Recarrega a sessão de verdade.
+   *
+   * `authClient.getSession()` refaz a requisição mas NÃO reemite para o store
+   * reativo — o `useSession` de outras telas continua com o valor antigo. É o
+   * `refetch` do próprio hook que notifica todo mundo. Sem ele, trocar o fundo
+   * aqui e navegar para /portfolio mostrava a capa anterior, porque aquela
+   * página lê `session.user.coverType`.
+   */
+  function refreshUser() {
+    refetchSession?.();
+  }
 
   async function handleLogout() {
     await signOut();
@@ -442,6 +502,13 @@ function SettingsContent() {
   if (!session) return null;
 
   const user = session.user as any;
+  const cover = novoCover ?? {
+    type: user.coverType ?? "gradient",
+    value: user.coverValue ?? null,
+  };
+  const nomeExibido =
+    novoPerfil?.nickname ?? user.nickname ?? user.name ?? "Colecionador";
+  const handleExibido = novoPerfil?.handle ?? user.handle ?? "";
 
   return (
     <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -680,7 +747,8 @@ function SettingsContent() {
                                 {card.name}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {card.collectorNumber ?? card.setCode} • Qtd: {card.quantity}
+                                {card.collectorNumber ?? card.setCode} • Qtd:{" "}
+                                {card.quantity}
                               </p>
                             </div>
                             <div className="text-right">
@@ -705,49 +773,96 @@ function SettingsContent() {
             <div className="space-y-6 animate-in fade-in duration-300">
               {/* Profile Card Info */}
               <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-                <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/5 to-muted/80" />
-                <div className="px-6 pb-6 relative">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-10 mb-2">
-                    <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 text-center sm:text-left">
-                      {user.image ? (
-                        <Image
-                          src={user.image}
-                          alt={user.name ?? "Avatar"}
-                          width={80}
-                          height={80}
-                          className="h-20 w-20 rounded-full border-4 border-card object-cover bg-background shadow-md"
-                        />
-                      ) : (
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-muted text-2xl font-bold text-foreground shadow-md">
-                          {(user.name ?? user.email ?? "?")
-                            .charAt(0)
-                            .toUpperCase()}
-                        </div>
-                      )}
-                      <div className="space-y-0.5">
-                        <div className="flex items-center justify-center sm:justify-start gap-2">
-                          <h2 className="text-xl font-bold text-foreground">
-                            {user.name ?? "Treinador"}
-                          </h2>
-                          {(stats?.isPro || user.isPro) && (
-                            <Badge className="bg-primary hover:bg-primary/95 text-white gap-1 py-0.5 px-2 text-[10px] font-bold">
-                              <Crown className="size-3" /> PRO
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {user.email}
-                        </p>
+                {/* Capa real do usuário, a mesma do perfil público */}
+                <div
+                  className="h-24"
+                  style={coverStyle(cover.type, cover.value)}
+                />
+                <div className="relative px-6 pb-6">
+                  {/* Só o avatar sobrepõe a capa. O texto fica abaixo dela: com
+                      o nome, o @ e o e-mail o bloco tem três linhas e, alinhado
+                      à base do avatar, invadia a capa — ilegível em fundo
+                      escuro. */}
+                  <div className="-mt-10 mb-3 flex items-end justify-between gap-4">
+                    {user.image ? (
+                      <Image
+                        src={user.image}
+                        alt={user.name ?? "Avatar"}
+                        width={80}
+                        height={80}
+                        className="h-20 w-20 rounded-full border-4 border-card bg-background object-cover shadow-md"
+                      />
+                    ) : (
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-muted font-bold text-2xl text-foreground shadow-md">
+                        {(user.name ?? user.email ?? "?")
+                          .charAt(0)
+                          .toUpperCase()}
                       </div>
-                    </div>
-                    {stats?.memberSince && (
-                      <span className="text-xs text-muted-foreground sm:mb-1">
-                        Membro desde {formatDate(stats.memberSince)}
-                      </span>
                     )}
+
+                    {/* mt-10 anula o -mt-10 da linha (só o avatar sobe, senão o
+                        botão fica por cima da capa); o resto é respiro para o
+                        botão não encostar na borda da capa. */}
+                    <div className="mt-14 flex flex-col items-end gap-2">
+                      {handleExibido && (
+                        <Link
+                          href={`/showcase/profile/@${handleExibido}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-semibold text-xs transition hover:bg-muted"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          Ver perfil público
+                        </Link>
+                      )}
+                      {stats?.memberSince && (
+                        <span className="text-muted-foreground text-xs">
+                          Membro desde {formatDate(stats.memberSince)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-bold text-foreground text-xl">
+                        {nomeExibido}
+                      </h2>
+                      {(stats?.isPro || user.isPro) && (
+                        <Badge className="gap-1 bg-primary px-2 py-0.5 font-bold text-[10px] text-white hover:bg-primary/95">
+                          <Crown className="size-3" /> PRO
+                        </Badge>
+                      )}
+                    </div>
+                    {handleExibido && (
+                      <p className="font-medium text-muted-foreground text-sm">
+                        @{handleExibido}
+                      </p>
+                    )}
+                    <p className="text-muted-foreground text-xs">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
               </div>
+
+              <ProfileForm
+                currentName={user.nickname ?? user.name ?? ""}
+                currentHandle={user.handle ?? ""}
+                handleEditCount={user.handleEditCount ?? 0}
+                isPro={!!(stats?.isPro || user.isPro)}
+                onSaved={(perfil) => {
+                  setNovoPerfil(perfil);
+                  refreshUser();
+                }}
+              />
+
+              <CoverPicker
+                currentType={cover.type}
+                currentValue={cover.value}
+                onChange={(type, value) => setNovoCover({ type, value })}
+                onSaved={refreshUser}
+                isPro={!!(stats?.isPro || user.isPro)}
+                onUpgrade={() => setProModalOpen(true)}
+              />
 
               {/* Appearance */}
               <section className="glass-card !rounded-2xl p-6 space-y-4">
@@ -791,6 +906,8 @@ function SettingsContent() {
                   </Button>
                 </div>
               </section>
+
+              <DeleteAccount handle={handleExibido} />
 
               {/* PRO Promo banner */}
               {!stats?.isPro && !user.isPro && (

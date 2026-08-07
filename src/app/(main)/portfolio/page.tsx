@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import {
   IconArrowRight as ArrowRight,
   IconArrowsUpDown as ArrowUpDown,
@@ -8,22 +7,23 @@ import {
   IconChevronLeft as ChevronLeft,
   IconCopy as Copy,
   IconCurrencyDollar as DollarSign,
-  IconEye as Eye,
-  IconEyeOff as EyeOff,
   IconFolderPlus as FolderPlus,
+  IconEye,
+  IconEyeCancel,
   IconLayoutGrid,
   IconListDetails,
+  IconShare2,
   IconLoader2 as Loader2,
   IconMinus as Minus,
   IconPackage as Package,
   IconPlus as Plus,
   IconSearch as Search,
-  IconShare as Share2,
   IconTrash as Trash2,
   IconTrendingDown as TrendingDown,
   IconTrendingUp as TrendingUp,
   IconX as X,
 } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -74,11 +74,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  api,
-  type CollectionItem,
-  type PortfolioMetrics,
-} from "@/lib/api";
+import { api, type CollectionItem, type PortfolioMetrics } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -870,8 +866,7 @@ export default function PortfolioPage() {
   // Skeleton enquanto a lista não chegou, ou enquanto o detalhe do portfólio
   // ativo está vindo pela primeira vez.
   const loading =
-    portfoliosQuery.isPending ||
-    (!!activePortfolioId && detailQuery.isPending);
+    portfoliosQuery.isPending || (!!activePortfolioId && detailQuery.isPending);
   const scrollYRef = useRef(0);
   const scrollRestauradoRef = useRef(false);
 
@@ -1274,15 +1269,16 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setPreview((p) => !p)}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+              className="inline-flex cursor-pointer h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
             >
               {preview ? (
                 <>
-                  <EyeOff className="size-3.5" /> Sair da pré-visualização
+                  <IconEyeCancel className="size-3.5" /> Sair da
+                  pré-visualização
                 </>
               ) : (
                 <>
-                  <Eye className="size-3.5" /> Ver como visitante
+                  <IconEye className="size-3.5" /> Ver como visitante
                 </>
               )}
             </button>
@@ -1290,9 +1286,9 @@ export default function PortfolioPage() {
               <button
                 type="button"
                 onClick={handleShareProfile}
-                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-primary px-3.5 text-[11px] font-bold text-white transition-colors hover:bg-primary/90"
               >
-                <Share2 className="size-3.5" /> Compartilhar
+                <IconShare2 className="size-3.5" /> Compartilhar
               </button>
             )}
           </div>
@@ -1320,7 +1316,7 @@ export default function PortfolioPage() {
           )}
         </main>
       ) : (
-        <main className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
+        <main className="mx-auto max-w-[1480px] space-y-6 px-4 pt-6 pb-6 sm:px-6 lg:px-8">
           {/* Seletor de portfólio (dropdown) — substitui as tabs */}
           {portfolios.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3">

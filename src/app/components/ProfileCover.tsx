@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 
-export type CoverType = "gradient" | "color" | "image";
+import { findCoverPreset } from "@/lib/cover-catalog";
+
+export type CoverType = "gradient" | "color" | "preset" | "image";
 
 export interface Cover {
   type: CoverType;
@@ -9,13 +11,35 @@ export interface Cover {
 
 /**
  * Capa full-bleed do perfil (compartilhada por /showcase e /portfolio).
+ *
  * Renderiza o fundo conforme a escolha do usuário e faz degradê para o fundo
- * da página. Futuro: o editor de perfil grava cover.type/value (cor, imagem ou
- * gif) — este componente já cobre os três casos, então nada muda aqui.
+ * da página.
  *
  * Full-bleed: renderizado FORA do <main> central, direto no content do layout
  * (viewport inteira). Sobe atrás da navbar (-mt) que é transparente no topo.
  */
+/**
+ * Fundo da capa a partir das cores do catálogo, esmaecidas até sumir.
+ *
+ * Aqui o fundo é decorativo — o conteúdo mora num card com fundo próprio —,
+ * então a cor entra como véu sobre a página, não em força total: cor saturada
+ * cheia terminando no branco do tema claro vira uma faixa lavada, e no escuro
+ * fica pesada demais. Com transparência, o mesmo preset se resolve nos dois
+ * temas, porque quem aparece por baixo é o fundo da página.
+ *
+ * No app é o oposto: lá o texto fica direto sobre a capa e ela precisa da cor
+ * cheia para o contraste funcionar.
+ */
+function veu(cores: string[]): string {
+  const inicio = 60;
+  const passo = cores.length > 1 ? inicio / cores.length : inicio / 2;
+  const paradas = cores.map(
+    (c, i) =>
+      `color-mix(in oklab, ${c} ${Math.round(inicio - i * passo)}%, transparent)`,
+  );
+  return `linear-gradient(to bottom, ${paradas.join(", ")}, transparent)`;
+}
+
 export function ProfileCover({
   cover,
   actions,
@@ -25,12 +49,18 @@ export function ProfileCover({
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  let bgClass = "bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25";
+  let bgClass =
+    "bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25";
   let bgStyle: CSSProperties | undefined;
+
+  const preset = cover.type === "preset" ? findCoverPreset(cover.value) : null;
 
   if (cover.type === "color" && cover.value) {
     bgClass = "";
-    bgStyle = { background: cover.value };
+    bgStyle = { background: veu([cover.value]) };
+  } else if (preset) {
+    bgClass = "";
+    bgStyle = { background: veu(preset.colors) };
   } else if (cover.type === "image" && cover.value) {
     bgClass = "bg-cover bg-center";
     bgStyle = { backgroundImage: `url(${cover.value})` };
