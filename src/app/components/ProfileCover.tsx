@@ -12,9 +12,8 @@ export interface Cover {
 /**
  * Capa full-bleed do perfil (compartilhada por /showcase e /portfolio).
  *
- * Fundo sempre de CIMA para BAIXO — mesma decisão do `CoverBackground` do app:
- * um degradê diagonal ou com parada no meio lê como se saísse do centro para as
- * pontas, e a capa tem que descer contínua até fundir no fundo da página.
+ * Renderiza o fundo conforme a escolha do usuário e faz degradê para o fundo
+ * da página.
  *
  * Full-bleed: renderizado FORA do <main> central, direto no content do layout
  * (viewport inteira). Sobe atrás da navbar (-mt) que é transparente no topo.
@@ -50,10 +49,8 @@ export function ProfileCover({
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  // Gradiente da marca — o padrão de quem não escolheu fundo. Vertical e
-  // terminando em transparente, na mesma linguagem dos fundos do catálogo.
   let bgClass =
-    "bg-gradient-to-b from-primary/30 via-primary/10 to-transparent";
+    "bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25";
   let bgStyle: CSSProperties | undefined;
 
   const preset = cover.type === "preset" ? findCoverPreset(cover.value) : null;
@@ -71,10 +68,10 @@ export function ProfileCover({
 
   return (
     <div className="relative -mt-14 w-full md:-mt-16">
-      {/* Fundo da capa. Termina em transparente e o fundo da página aparece
-          por baixo — sem faixa de fusão extra, que era justamente quem deixava
-          a emenda clara visível no tema claro. */}
+      {/* Fundo da capa */}
       <div className={`absolute inset-0 ${bgClass}`} style={bgStyle} />
+      {/* Degradê para o fundo da página */}
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
 
       {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa */}
       <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
