@@ -50,11 +50,10 @@ export function ProfileCover({
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  // Gradiente da marca — o padrão de quem não escolheu fundo. Diagonal e com o
-  // tertiary no fim, exatamente como sempre foi: a mudança para vertical veio
-  // de uma decisão sobre a capa do app e não tinha por que valer aqui.
+  // Gradiente da marca — o padrão de quem não escolheu fundo. Vertical e
+  // terminando em transparente, na mesma linguagem dos fundos do catálogo.
   let bgClass =
-    "bg-gradient-to-br from-primary/30 via-primary/10 to-tertiary/25";
+    "bg-gradient-to-b from-primary/30 via-primary/10 to-transparent";
   let bgStyle: CSSProperties | undefined;
 
   const preset = cover.type === "preset" ? findCoverPreset(cover.value) : null;
