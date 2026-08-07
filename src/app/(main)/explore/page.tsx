@@ -471,10 +471,21 @@ function ExplorePageContent() {
 
   const sets = setsQuery.data ?? [];
   const setsLoading = setsQuery.isPending;
-  const cards = useMemo(
-    () => cardsQuery.data?.pages.flat() ?? [],
-    [cardsQuery.data],
-  );
+  // Dedupe por id ao juntar as páginas: o ranking do "Em Alta" é volátil (preço
+  // novo entre uma página e outra, ou refetch da página 1 quando o cache vence)
+  // e a mesma carta pode voltar em duas páginas. Sem isto vira key duplicada no
+  // React. Só afeta a exibição — o offset da próxima página continua contando as
+  // páginas cruas do servidor, senão ele desalinharia e passaria a pular cartas.
+  const cards = useMemo(() => {
+    const vistos = new Set<string>();
+    const unicas: CardType[] = [];
+    for (const card of cardsQuery.data?.pages.flat() ?? []) {
+      if (vistos.has(card.id)) continue;
+      vistos.add(card.id);
+      unicas.push(card);
+    }
+    return unicas;
+  }, [cardsQuery.data]);
   const cardsLoading = cardsQuery.isPending;
 
   // Scroll infinito: um observador na sentinela do fim da grade. `rootMargin`
