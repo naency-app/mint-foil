@@ -86,6 +86,7 @@ import {
   useCollectionHistory,
   useCollectionStats,
   useInvalidateCollection,
+  useMyProfile,
   usePortfolioDetail,
   usePortfolios,
   useShowcase,
@@ -825,6 +826,10 @@ export default function PortfolioPage() {
     previewHandle,
     preview,
   );
+  // Descrição e links do dono: o cabeçalho é o mesmo do perfil público, então
+  // mostra o mesmo que o visitante vê. Endpoint leve — o showcase traria a
+  // coleção inteira só para ler dois campos.
+  const { data: meuPerfil } = useMyProfile(!!session?.user);
 
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   // Filtros da coleção (mesmos do showcase) — sidebar + busca.
@@ -1261,9 +1266,15 @@ export default function PortfolioPage() {
         totalSealed={stats?.totalSealed ?? 0}
         totalValue={stats?.totalValue ?? 0}
         cover={{
-          type: (u.coverType ?? "gradient") as "gradient" | "color" | "image",
+          type: (u.coverType ?? "gradient") as
+            | "gradient"
+            | "color"
+            | "preset"
+            | "image",
           value: u.coverValue ?? null,
         }}
+        bio={meuPerfil?.bio}
+        socials={meuPerfil?.socials}
         actions={
           <div className="flex items-center gap-2">
             <button
