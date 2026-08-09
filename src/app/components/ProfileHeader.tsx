@@ -100,10 +100,10 @@ export function ProfileHeader({
           )}
 
           {links.length > 0 && (
-            /* Tudo numa linha só, rolando na horizontal quando não couber —
-               nove redes empilhadas empurrariam a coleção para fora da tela.
-               `justify-center` centra enquanto cabe; passando disso, rola. */
-            <div className="-mx-6 mt-3 flex w-[calc(100%+3rem)] snap-x justify-center gap-4 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            /* Quebra em linhas em vez de rolar: o card tem largura fixa, e
+               rolagem horizontal aqui não tem affordance nenhuma — o terceiro
+               link simplesmente sumia cortado na borda. */
+            <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2">
               {links.map(({ link, url }) => (
                 <a
                   key={link.key}

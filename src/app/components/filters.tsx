@@ -13,12 +13,6 @@ import { Slider } from "@/components/ui/slider";
  * decorativos e o clique chama onUpsell (abre o ProUpgradeModal).
  */
 
-export const FILTER_LANGUAGES = [
-  { code: "en", name: "Inglês" },
-  { code: "ja", name: "Japonês" },
-  { code: "zh", name: "Chinês" },
-];
-
 /**
  * Deriva facetas (valores + contagem) de uma característica das cartas —
  * raridade, tipo, atributo… Mais frequentes primeiro. Alimenta os filtros
@@ -249,70 +243,6 @@ export function PriceRangeFilter({
             <span>R$ 25</span>
             <span>R$ 50</span>
           </div>
-        </div>
-      )}
-    </FilterSection>
-  );
-}
-
-export function LanguageFilter({
-  isPro,
-  value,
-  onChange,
-  onUpsell,
-}: {
-  isPro: boolean;
-  value: string[];
-  onChange: (v: string[]) => void;
-  onUpsell: () => void;
-}) {
-  return (
-    <FilterSection title="Idioma" badge="PRO">
-      {isPro ? (
-        <div className="space-y-2 pt-2">
-          {FILTER_LANGUAGES.map((lang) => (
-            <div key={lang.code} className="flex items-center gap-2">
-              <Checkbox
-                id={`lang-${lang.code}`}
-                checked={value.includes(lang.code)}
-                onCheckedChange={() =>
-                  onChange(
-                    value.includes(lang.code)
-                      ? value.filter((x) => x !== lang.code)
-                      : [...value, lang.code],
-                  )
-                }
-              />
-              <label
-                htmlFor={`lang-${lang.code}`}
-                className="cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                {lang.name}
-              </label>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={onUpsell}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onUpsell();
-            }
-          }}
-          className="block w-full cursor-pointer space-y-2 rounded pt-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        >
-          {FILTER_LANGUAGES.map((lang) => (
-            <div key={lang.code} className="flex items-center gap-2">
-              <Checkbox id={`lang-${lang.code}`} disabled />
-              <span className="text-xs font-medium text-muted-foreground">
-                {lang.name}
-              </span>
-            </div>
-          ))}
         </div>
       )}
     </FilterSection>

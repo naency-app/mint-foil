@@ -202,6 +202,11 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ type, value }),
       }),
+    /** Descrição e links do próprio usuário (leve — não traz a coleção). */
+    profile: () =>
+      apiFetch<{ bio: string | null; socials: Record<string, string> }>(
+        "/users/profile",
+      ),
     /** Descrição e links do perfil público. Campo omitido fica como está. */
     updateProfile: (input: {
       bio?: string | null;

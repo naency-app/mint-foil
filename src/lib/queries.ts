@@ -87,6 +87,20 @@ export function useCollectionStats(enabled: boolean) {
 }
 
 /** Perfil público (showcase) por handle — usado no "Ver como" do dono. */
+/**
+ * Descrição e links do próprio usuário.
+ *
+ * Endpoint separado do showcase de propósito: o showcase carrega a coleção
+ * inteira, e o cabeçalho do dono precisa só de dois campos.
+ */
+export function useMyProfile(enabled: boolean) {
+  return useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => api.users.profile(),
+    enabled,
+  });
+}
+
 export function useShowcase(handle: string, enabled: boolean) {
   return useQuery({
     queryKey: ["showcase", handle],

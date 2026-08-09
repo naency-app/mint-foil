@@ -143,7 +143,7 @@ export function ShowcaseBrowser({
       {/* Marketplace: sidebar de filtros + conteúdo (padrão do /explore) */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
             <ProductTypeFilter value={productType} onChange={setProductType} />
             {tcgFacets.length > 0 && (
               <FilterSection title="Jogo / Categoria">

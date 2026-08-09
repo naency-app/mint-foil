@@ -19,7 +19,6 @@ import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import {
   CheckboxFilterList,
   FilterSection,
-  LanguageFilter,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -199,7 +198,6 @@ function SetCardsPageContent() {
   // Filtros da sidebar (mesmo padrão marketplace do Explore)
   const [proModalOpen, setProModalOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [proLanguages, setProLanguages] = useState<string[]>([]);
   const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
   const [productType, setProductType] = useState<ProductTypeValue>("single");
 
@@ -304,9 +302,6 @@ function SetCardsPageContent() {
           return p >= min && p <= max;
         });
       }
-      if (proLanguages.length > 0) {
-        result = result.filter((c) => proLanguages.includes(c.language));
-      }
     }
 
     return [...result].sort((a, b) => {
@@ -327,15 +322,7 @@ function SetCardsPageContent() {
           return a.setCode.localeCompare(b.setCode);
       }
     });
-  }, [
-    cards,
-    search,
-    sortBy,
-    selectedRarities,
-    isPro,
-    priceRange,
-    proLanguages,
-  ]);
+  }, [cards, search, sortBy, selectedRarities, isPro, priceRange]);
 
   const tcgName = setInfo?.tcg?.name ?? tcgSlug;
   const sortActive = sortBy !== "number";
@@ -516,7 +503,7 @@ function SetCardsPageContent() {
           estica na linha e o sticky acompanha o scroll) */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
             <ProductTypeFilter value={productType} onChange={setProductType} />
 
             <PriceRangeFilter
@@ -524,13 +511,6 @@ function SetCardsPageContent() {
               value={priceRange}
               ceil={priceCeil}
               onChange={setPriceRange}
-              onUpsell={() => setProModalOpen(true)}
-            />
-
-            <LanguageFilter
-              isPro={isPro}
-              value={proLanguages}
-              onChange={setProLanguages}
               onUpsell={() => setProModalOpen(true)}
             />
 
