@@ -1,3 +1,4 @@
+import { BackToTop } from "@/app/components/BackToTop";
 import { Navbar } from "@/app/components/Navbar";
 
 export default function MainLayout({
@@ -19,6 +20,8 @@ export default function MainLayout({
           </p>
         </div>
       </footer>
+
+      <BackToTop />
     </div>
   );
 }
