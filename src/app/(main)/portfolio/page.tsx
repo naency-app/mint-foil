@@ -1703,7 +1703,7 @@ export default function PortfolioPage() {
                   <div className="flex gap-6">
                     {/* Sidebar de filtros (igual showcase) */}
                     <aside className="hidden w-60 shrink-0 lg:block">
-                      <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+                      <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
                         <ProductTypeFilter
                           value={productType}
                           onChange={setProductType}

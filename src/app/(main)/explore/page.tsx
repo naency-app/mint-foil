@@ -36,7 +36,6 @@ import {
   CheckboxFilterList,
   FilterSection,
   facetOptions,
-  LanguageFilter,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -436,7 +435,6 @@ function ExplorePageContent() {
   const [proModalOpen, setProModalOpen] = useState(false);
   // null = faixa intocada (sem filtro); o teto acompanha o resultado carregado
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [proLanguages, setProLanguages] = useState<string[]>([]);
   // Tipo de produto: cartas (padrão), selados ou ambos — filtra no backend
   const [productType, setProductType] = useState<ProductTypeValue>("single");
   // Facetas derivadas do resultado — livres, valem pra todos os TCGs
@@ -678,8 +676,6 @@ function ExplorePageContent() {
           return p >= min && p <= max;
         });
       }
-      if (proLanguages.length > 0)
-        list = list.filter((c) => proLanguages.includes(c.language));
     }
     return list;
   }, [
@@ -689,7 +685,6 @@ function ExplorePageContent() {
     selectedAttributes,
     isPro,
     priceRange,
-    proLanguages,
   ]);
 
   // Teto do slider: maior preço do resultado, arredondado pra cima
@@ -818,10 +813,15 @@ function ExplorePageContent() {
 
       {/* ── Marketplace: sidebar de filtros aparente + conteúdo ── */}
       {/* Sem items-start: o aside precisa esticar na altura da linha para o
-          sticky interno ter percurso e acompanhar o scroll */}
+          sticky interno ter percurso e acompanhar o scroll.
+          O max-h do card reserva 12rem, não 6rem: com `top-20` (5rem) o card
+          precisa caber entre o topo grudado e o fim do aside. Como o aside
+          termina antes do fim da página (padding do main + rodapé), um card de
+          `100vh-6rem` não cabia lá no fim e o sticky recuava — a sidebar subia
+          para trás da navbar ao carregar a última página do scroll infinito. */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="glass-card sticky top-20 max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto p-4">
+          <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
             <ProductTypeFilter value={productType} onChange={setProductType} />
 
             <PriceRangeFilter
@@ -829,13 +829,6 @@ function ExplorePageContent() {
               value={priceRange}
               ceil={priceCeil}
               onChange={setPriceRange}
-              onUpsell={() => setProModalOpen(true)}
-            />
-
-            <LanguageFilter
-              isPro={isPro}
-              value={proLanguages}
-              onChange={setProLanguages}
               onUpsell={() => setProModalOpen(true)}
             />
 
