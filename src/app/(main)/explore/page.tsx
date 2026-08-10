@@ -40,6 +40,7 @@ import {
 import { toast } from "sonner";
 import {
   CheckboxFilterList,
+  facetOptions,
   FilterSection,
   PriceRangeFilter,
   ProductTypeFilter,
@@ -772,21 +773,39 @@ function ExplorePageContent() {
   // descrevem o conjunto filtrado INTEIRO, não a página carregada. Antes saíam
   // das cartas já na tela, e uma raridade que não caísse nas primeiras 60 nem
   // aparecia como opção — o usuário não tinha como filtrar por ela.
+  //
+  // Mas depender SÓ da request era frágil: enquanto ela não chega — ou se falha,
+  // ou se o backend ainda não tem /cards/facets — as seções Raridade e Tipo
+  // desapareciam da tela sem explicação, e o slider de preço colapsava para
+  // R$ 0–10. Sumir é pior do que ser aproximado, então o resultado carregado
+  // serve de rede: filtro degradado continua sendo filtro.
   const facets = facetsQuery.data;
-  const rarityOptions = facets?.rarity ?? [];
-  const typeOptions = facets?.cardType ?? [];
-  const attributeOptions = facets?.attribute ?? [];
+  const rarityOptions = useMemo(
+    () => facets?.rarity ?? facetOptions(cards, (c) => c.rarity),
+    [facets?.rarity, cards],
+  );
+  const typeOptions = useMemo(
+    () => facets?.cardType ?? facetOptions(cards, (c) => c.cardType),
+    [facets?.cardType, cards],
+  );
+  const attributeOptions = useMemo(
+    () => facets?.attribute ?? facetOptions(cards, (c) => c.attribute),
+    [facets?.attribute, cards],
+  );
 
   // Teto do slider: maior preço do catálogo filtrado. Arredondado para cima
   // numa "casa redonda" da própria grandeza — o catálogo vai de R$ 0,05 a
   // grails de seis dígitos, e arredondar tudo na dezena daria um passo
-  // inutilizável no topo da faixa.
+  // inutilizável no topo da faixa. Sem as facetas, cai no maior preço carregado
+  // em vez de travar num teto de R$ 10 que corta o catálogo inteiro.
   const priceCeil = useMemo(() => {
-    const top = facets?.priceMax ?? 0;
+    const top =
+      facets?.priceMax ??
+      cards.reduce((m, c) => Math.max(m, getLatestPrice(c)), 0);
     if (top <= 0) return 10;
     const escala = 10 ** Math.floor(Math.log10(top) - 1);
     return Math.max(10, Math.ceil(top / escala) * escala);
-  }, [facets?.priceMax]);
+  }, [facets?.priceMax, cards]);
 
   // O grid mostra o que o backend devolveu, na ordem em que devolveu. Ordenar
   // ou filtrar aqui reintroduziria o bug: só as cartas já carregadas
