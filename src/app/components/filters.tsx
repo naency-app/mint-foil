@@ -116,18 +116,43 @@ export function CheckboxFilterList({
       ))}
 
       {(hiddenCount > 0 || expanded) && options.length > limit && (
-        <button
-          type="button"
-          onClick={() => setExpanded((e) => !e)}
-          className="flex cursor-pointer items-center gap-1 text-[11px] font-bold text-primary transition-colors hover:text-tertiary-hover"
-        >
-          {expanded ? "Ver menos" : `Ver mais (${hiddenCount})`}
-          <ChevronDown
-            className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`}
-          />
-        </button>
+        <ShowMoreToggle
+          expanded={expanded}
+          hiddenCount={hiddenCount}
+          onToggle={() => setExpanded((e) => !e)}
+        />
       )}
     </div>
+  );
+}
+
+/**
+ * "Ver mais / Ver menos" da sidebar de filtros.
+ *
+ * Extraído porque a lista de jogos precisa do mesmo controle sem ser uma
+ * `CheckboxFilterList` (ela mistura jogos ativos com os "Em breve", que são
+ * desabilitados e têm badge). Um só lugar define a aparência do controle.
+ */
+export function ShowMoreToggle({
+  expanded,
+  hiddenCount,
+  onToggle,
+}: {
+  expanded: boolean;
+  hiddenCount: number;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex cursor-pointer items-center gap-1 text-[11px] font-bold text-primary transition-colors hover:text-tertiary-hover"
+    >
+      {expanded ? "Ver menos" : `Ver mais (${hiddenCount})`}
+      <ChevronDown
+        className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`}
+      />
+    </button>
   );
 }
 

@@ -44,6 +44,7 @@ import {
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
+  ShowMoreToggle,
   toggleValue,
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
@@ -113,6 +114,9 @@ const SUPPORTED_TCGS = TCG_CATALOG.filter((t) => t.supported && t.slug).map(
 const COMING_SOON_TCGS = TCG_CATALOG.filter((t) => !t.supported).map(
   (t) => t.name,
 );
+
+/** Quantos "Em breve" aparecem antes do "Ver mais". */
+const EM_BREVE_VISIVEIS = 3;
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -446,6 +450,12 @@ function ExplorePageContent() {
 
   // Filtro PRO
   const [proModalOpen, setProModalOpen] = useState(false);
+
+  // Estado só de exibição da sidebar — não é filtro, então não vai para a URL.
+  const [verTodosJogos, setVerTodosJogos] = useState(false);
+  const jogosEmBreveVisiveis = verTodosJogos
+    ? COMING_SOON_TCGS
+    : COMING_SOON_TCGS.slice(0, EM_BREVE_VISIVEIS);
 
   // TODO filtro vive na URL, não em useState. Dois motivos: o estado sobrevive
   // a sair da página e voltar (era o que se perdia ao navegar pela navbar), e
@@ -927,7 +937,11 @@ function ExplorePageContent() {
                   </div>
                 ))}
 
-                {COMING_SOON_TCGS.map((name) => (
+                {/* Os "Em breve" são um paredão de 13 itens desabilitados que
+                    empurrava Raridade e Tipo para fora da tela. Mostra uns
+                    poucos — o suficiente para comunicar "vem mais aí" — e
+                    guarda o resto atrás do mesmo controle das outras listas. */}
+                {jogosEmBreveVisiveis.map((name) => (
                   <div
                     key={name}
                     className="flex select-none items-center justify-between gap-2 opacity-50"
@@ -949,6 +963,14 @@ function ExplorePageContent() {
                     </Badge>
                   </div>
                 ))}
+
+                {COMING_SOON_TCGS.length > EM_BREVE_VISIVEIS && (
+                  <ShowMoreToggle
+                    expanded={verTodosJogos}
+                    hiddenCount={COMING_SOON_TCGS.length - EM_BREVE_VISIVEIS}
+                    onToggle={() => setVerTodosJogos((v) => !v)}
+                  />
+                )}
               </div>
             </FilterSection>
 
