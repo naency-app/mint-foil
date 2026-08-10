@@ -35,7 +35,6 @@ import { toast } from "sonner";
 import {
   CheckboxFilterList,
   FilterSection,
-  facetOptions,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -61,7 +60,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   api,
+  type CardQuery,
   type CardSet,
+  type CardSort,
   type Card as CardType,
   type Portfolio,
 } from "@/lib/api";
@@ -72,6 +73,7 @@ import {
   usePortfolioStore,
 } from "@/lib/portfolio-store";
 import {
+  useCardFacets,
   useCardSets,
   useCollectionStats,
   useInfiniteCards,
@@ -431,13 +433,15 @@ function ExplorePageContent() {
 
   const [selectedSet, setSelectedSet] = useState<CardSet | null>(null);
 
-  // Filtros PRO (client-side sobre o resultado carregado)
+  // Filtro PRO
   const [proModalOpen, setProModalOpen] = useState(false);
-  // null = faixa intocada (sem filtro); o teto acompanha o resultado carregado
+  // null = faixa intocada (sem filtro); o teto vem das facetas do backend
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  // Tipo de produto: cartas (padrão), selados ou ambos — filtra no backend
+  // Tipo de produto: cartas (padrão), selados ou ambos
   const [productType, setProductType] = useState<ProductTypeValue>("single");
-  // Facetas derivadas do resultado — livres, valem pra todos os TCGs
+  // Facetas — livres, valem pra todos os TCGs. Todo filtro deste bloco viaja
+  // para o backend via `cardQuery` e é resolvido no banco, sobre o catálogo
+  // inteiro. Nenhum deles refina o resultado no cliente.
   const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedAttributes, setSelectedAttributes] = useState<string[]>([]);
@@ -459,12 +463,42 @@ function ExplorePageContent() {
   const portfoliosQuery = usePortfolios();
   const portfolioDetail = usePortfolioDetail(activePortfolioId || undefined);
   const setsQuery = useCardSets(carouselTcg);
-  const cardsQuery = useInfiniteCards(
-    search.trim() || undefined,
-    activeTcgs.length > 0 ? activeTcgs.join(",") : undefined,
-    selectedSet?.id,
-    productType,
+
+  // A consulta do catálogo, inteira. Tudo que o usuário escolhe — busca, jogos,
+  // coleção, ordenação, raridade, tipo, atributo, faixa de preço — vai junto
+  // para o backend e é resolvido no banco sobre o catálogo completo. Nada aqui
+  // é refinado depois no cliente: era exatamente isso que fazia "Preço: maior →
+  // menor" devolver a carta mais cara entre as 60 já carregadas.
+  const cardQuery: CardQuery = useMemo(
+    () => ({
+      search: search.trim() || undefined,
+      tcg: activeTcgs.length > 0 ? activeTcgs.join(",") : undefined,
+      setId: selectedSet?.id,
+      productType,
+      sort: sortBy as CardSort,
+      rarity: selectedRarities,
+      cardType: selectedTypes,
+      attribute: selectedAttributes,
+      // Faixa de preço é PRO: sem assinatura o filtro nem viaja.
+      minPrice: isPro ? priceRange?.[0] : undefined,
+      maxPrice: isPro ? priceRange?.[1] : undefined,
+    }),
+    [
+      search,
+      activeTcgs,
+      selectedSet?.id,
+      productType,
+      sortBy,
+      selectedRarities,
+      selectedTypes,
+      selectedAttributes,
+      isPro,
+      priceRange,
+    ],
   );
+
+  const cardsQuery = useInfiniteCards(cardQuery);
+  const facetsQuery = useCardFacets(cardQuery);
   const invalidateCollection = useInvalidateCollection();
 
   const sets = setsQuery.data ?? [];
@@ -518,11 +552,17 @@ function ExplorePageContent() {
 
   // Nova busca/jogo/set → zera as facetas: uma raridade/tipo selecionado do
   // resultado anterior sumiria no novo e deixaria o grid vazio "do nada".
+  //
+  // A faixa de preço entra no reset agora que ela filtra no banco: o teto é do
+  // conjunto atual, e as grandezas não se parecem entre jogos (Magic termina na
+  // casa dos milhares, Yu-Gi-Oh passa de R$ 1 milhão). Um máximo herdado do
+  // jogo anterior cortaria o novo resultado sem o usuário entender por quê.
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset intencional ao mudar o contexto de resultado
   useEffect(() => {
     setSelectedRarities([]);
     setSelectedTypes([]);
     setSelectedAttributes([]);
+    setPriceRange(null);
   }, [search, selectedTcg, selectedSet?.id]);
 
   // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
@@ -635,82 +675,30 @@ function ExplorePageContent() {
     saveRecentSearch(term);
   }
 
-  // Facetas derivadas do resultado carregado (raridade, tipo, atributo) — com
-  // contagem, mais frequentes primeiro. Aparecem conforme a busca, pra TODOS
-  // os TCGs (Yu-Gi-Oh tem atributo, Pokémon tem tipo, etc.).
-  const rarityOptions = useMemo(
-    () => facetOptions(cards, (c) => c.rarity),
-    [cards],
-  );
-  const typeOptions = useMemo(
-    () => facetOptions(cards, (c) => c.cardType),
-    [cards],
-  );
-  const attributeOptions = useMemo(
-    () => facetOptions(cards, (c) => c.attribute),
-    [cards],
-  );
+  // Facetas (raridade, tipo, atributo) com contagem, vindas do backend: elas
+  // descrevem o conjunto filtrado INTEIRO, não a página carregada. Antes saíam
+  // das cartas já na tela, e uma raridade que não caísse nas primeiras 60 nem
+  // aparecia como opção — o usuário não tinha como filtrar por ela.
+  const facets = facetsQuery.data;
+  const rarityOptions = facets?.rarity ?? [];
+  const typeOptions = facets?.cardType ?? [];
+  const attributeOptions = facets?.attribute ?? [];
 
-  // Filtros aplicados client-side sobre o resultado carregado.
-  const filteredCards = useMemo(() => {
-    let list = cards;
-    // Facetas — livres, pra todos
-    if (selectedRarities.length > 0)
-      list = list.filter(
-        (c) => c.rarity && selectedRarities.includes(c.rarity),
-      );
-    if (selectedTypes.length > 0)
-      list = list.filter(
-        (c) => c.cardType && selectedTypes.includes(c.cardType),
-      );
-    if (selectedAttributes.length > 0)
-      list = list.filter(
-        (c) => c.attribute && selectedAttributes.includes(c.attribute),
-      );
-    // PRO
-    if (isPro) {
-      if (priceRange) {
-        const [min, max] = priceRange;
-        list = list.filter((c) => {
-          const p = getLatestPrice(c);
-          return p >= min && p <= max;
-        });
-      }
-    }
-    return list;
-  }, [
-    cards,
-    selectedRarities,
-    selectedTypes,
-    selectedAttributes,
-    isPro,
-    priceRange,
-  ]);
-
-  // Teto do slider: maior preço do resultado, arredondado pra cima
+  // Teto do slider: maior preço do catálogo filtrado. Arredondado para cima
+  // numa "casa redonda" da própria grandeza — o catálogo vai de R$ 0,05 a
+  // grails de seis dígitos, e arredondar tudo na dezena daria um passo
+  // inutilizável no topo da faixa.
   const priceCeil = useMemo(() => {
-    const top = cards.reduce((m, c) => Math.max(m, getLatestPrice(c)), 0);
-    return Math.max(10, Math.ceil(top / 10) * 10);
-  }, [cards]);
+    const top = facets?.priceMax ?? 0;
+    if (top <= 0) return 10;
+    const escala = 10 ** Math.floor(Math.log10(top) - 1);
+    return Math.max(10, Math.ceil(top / escala) * escala);
+  }, [facets?.priceMax]);
 
-  const sortedCards = useMemo(() => {
-    return [...filteredCards].sort((a, b) => {
-      const priceA = getLatestPrice(a);
-      const priceB = getLatestPrice(b);
-      switch (sortBy) {
-        case "price-asc":
-          return priceA - priceB;
-        case "price-desc":
-          return priceB - priceA;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "name-desc":
-          return b.name.localeCompare(a.name);
-        default:
-          return 0;
-      }
-    });
-  }, [filteredCards, sortBy]);
+  // O grid mostra o que o backend devolveu, na ordem em que devolveu. Ordenar
+  // ou filtrar aqui reintroduziria o bug: só as cartas já carregadas
+  // participariam, e o topo da lista descreveria uma amostra.
+  const sortedCards = cards;
 
   // Sets com imagem primeiro (getcollectr > ygoprodeck), preservando a ordem
   // de lançamento do backend dentro de cada grupo (sort estável) — como no mobile
@@ -724,10 +712,16 @@ function ExplorePageContent() {
     return [...sets].sort((a, b) => rank(a) - rank(b));
   }, [sets]);
 
+  // O grid pagina, então `sortedCards.length` é quanto já foi CARREGADO, não
+  // quanto existe. Enquanto houver próxima página, o número sai com "+" — dizer
+  // "60 resultados" quando existem milhares é a mesma classe de mentira que o
+  // filtro client-side contava.
+  const parcial = cardsQuery.hasNextPage ? "+" : "";
+  const contagem = `${sortedCards.length}${parcial}`;
   const contentLabel = selectedSet
-    ? `${selectedSet.name} — ${sortedCards.length} carta${sortedCards.length !== 1 ? "s" : ""}`
+    ? `${selectedSet.name} — ${contagem} carta${sortedCards.length !== 1 || parcial ? "s" : ""}`
     : searching
-      ? `${sortedCards.length} resultado${sortedCards.length !== 1 ? "s" : ""}`
+      ? `${contagem} resultado${sortedCards.length !== 1 || parcial ? "s" : ""}`
       : activeTcgs.length === 1
         ? `Em Alta · ${activeTcgLabel}`
         : "Em Alta";
@@ -875,8 +869,9 @@ function ExplorePageContent() {
               </div>
             </FilterSection>
 
-            {/* Facetas dinâmicas — derivadas do resultado da busca, pra todos
-                os TCGs. Só aparecem quando há valores no resultado atual. */}
+            {/* Facetas dinâmicas, contadas no banco sobre o conjunto filtrado
+                inteiro — valem pra todos os TCGs (Yu-Gi-Oh tem atributo,
+                Pokémon tem tipo…). Só aparecem quando o conjunto tem valores. */}
             {rarityOptions.length > 0 && (
               <FilterSection title="Raridade">
                 <CheckboxFilterList

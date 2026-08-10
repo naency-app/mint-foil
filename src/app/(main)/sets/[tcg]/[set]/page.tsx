@@ -63,6 +63,21 @@ function formatPrice(value: number) {
   });
 }
 
+/**
+ * Esta tela mostra UMA coleção por inteiro, e é isso que legitima ordenar e
+ * filtrar no cliente aqui — ao contrário do Explore, que é uma janela paginada
+ * sobre o catálogo e por isso resolve tudo no banco.
+ *
+ * Só vale enquanto o set couber na resposta. O padrão do backend eram 500, e 12
+ * coleções passam disso — a maior, "One Piece Promotion Cards", tem 1326. Com
+ * 500, essas 12 carregavam uma fatia por ordem de UUID e ordenavam a fatia:
+ * "maior → menor" devolvia a mais cara de um pedaço arbitrário do set.
+ *
+ * Se alguma coleção passar deste teto, esta tela precisa paginar e mandar a
+ * ordenação para o backend, como o Explore faz.
+ */
+const SET_CARDS_LIMIT = 2000;
+
 function getLatestPrice(card: CardType) {
   return card.prices[0]?.value ?? 0;
 }
@@ -211,7 +226,12 @@ function SetCardsPageContent() {
   // Dados via TanStack Query — mesmo cache do Explore (['cards', ..., setId])
   const setQuery = useSetBySlug(tcgSlug, setSlug);
   const setInfo = setQuery.data ?? null;
-  const cardsQuery = useCards(undefined, tcgSlug, setInfo?.id, productType);
+  const cardsQuery = useCards({
+    tcg: tcgSlug,
+    setId: setInfo?.id,
+    productType,
+    limit: SET_CARDS_LIMIT,
+  });
   const cards = useMemo(
     () => (setInfo ? (cardsQuery.data ?? []) : []),
     [setInfo, cardsQuery.data],
@@ -293,7 +313,8 @@ function SetCardsPageContent() {
       );
     }
 
-    // Filtros PRO client-side (mesma regra do Explore)
+    // Filtros PRO. Client-side aqui é correto: `cards` é a coleção COMPLETA
+    // (ver SET_CARDS_LIMIT), não uma página dela.
     if (isPro) {
       if (priceRange) {
         const [min, max] = priceRange;
