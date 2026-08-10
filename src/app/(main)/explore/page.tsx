@@ -21,8 +21,14 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useQueryState } from "nuqs";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  parseAsArrayOf,
+  parseAsFloat,
+  parseAsString,
+  parseAsStringEnum,
+  useQueryState,
+} from "nuqs";
 import {
   Suspense,
   useCallback,
@@ -67,6 +73,7 @@ import {
   type Portfolio,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { lembrarExplore } from "@/lib/explore-href";
 import {
   resolveActiveId,
   sortByFavorite,
@@ -406,6 +413,7 @@ function ListRow({
 }
 
 function ExplorePageContent() {
+  const searchParams = useSearchParams();
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useQueryState("sort", {
     defaultValue: "best-match",
@@ -431,20 +439,59 @@ function ExplorePageContent() {
   );
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
-  const [selectedSet, setSelectedSet] = useState<CardSet | null>(null);
+  // A coleção aberta mora na URL como id; o objeto é derivado da lista de sets
+  // mais abaixo. O id é o que alimenta a busca, então o grid não espera o
+  // carrossel carregar para filtrar certo.
+  const [selectedSetId, setSelectedSetId] = useQueryState("set");
 
   // Filtro PRO
   const [proModalOpen, setProModalOpen] = useState(false);
-  // null = faixa intocada (sem filtro); o teto vem das facetas do backend
-  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  // Tipo de produto: cartas (padrão), selados ou ambos
-  const [productType, setProductType] = useState<ProductTypeValue>("single");
+
+  // TODO filtro vive na URL, não em useState. Dois motivos: o estado sobrevive
+  // a sair da página e voltar (era o que se perdia ao navegar pela navbar), e
+  // uma busca filtrada vira link — dá para mandar "olha essas Illustration Rare
+  // de Pokémon acima de R$ 500" para alguém.
+  const [productType, setProductType] = useQueryState(
+    "tipo",
+    parseAsStringEnum<ProductTypeValue>([
+      "single",
+      "sealed",
+      "all",
+    ]).withDefault("single"),
+  );
+  // Faixa de preço como dois params: espelha o que a API recebe e fica legível
+  // na URL. Os dois nulos = faixa intocada, que é diferente de "faixa 0–0".
+  const [minPrice, setMinPrice] = useQueryState("min", parseAsFloat);
+  const [maxPrice, setMaxPrice] = useQueryState("max", parseAsFloat);
   // Facetas — livres, valem pra todos os TCGs. Todo filtro deste bloco viaja
   // para o backend via `cardQuery` e é resolvido no banco, sobre o catálogo
   // inteiro. Nenhum deles refina o resultado no cliente.
-  const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedAttributes, setSelectedAttributes] = useState<string[]>([]);
+  const [selectedRarities, setSelectedRarities] = useQueryState(
+    "raridade",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const [selectedTypes, setSelectedTypes] = useQueryState(
+    "tipoCarta",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const [selectedAttributes, setSelectedAttributes] = useQueryState(
+    "atributo",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+
+  // A UI trabalha com uma tupla; a URL, com dois campos.
+  const priceRange = useMemo<[number, number] | null>(
+    () =>
+      minPrice !== null && maxPrice !== null ? [minPrice, maxPrice] : null,
+    [minPrice, maxPrice],
+  );
+  const setPriceRange = useCallback(
+    (faixa: [number, number] | null) => {
+      setMinPrice(faixa ? faixa[0] : null);
+      setMaxPrice(faixa ? faixa[1] : null);
+    },
+    [setMinPrice, setMaxPrice],
+  );
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -464,6 +511,14 @@ function ExplorePageContent() {
   const portfolioDetail = usePortfolioDetail(activePortfolioId || undefined);
   const setsQuery = useCardSets(carouselTcg);
 
+  // Objeto da coleção aberta, derivado do id da URL. Só serve para exibição
+  // (nome, capa, progresso) — a busca usa `selectedSetId` direto, então um
+  // reload com ?set= já filtra certo antes de o carrossel terminar de carregar.
+  const selectedSet = useMemo(
+    () => (setsQuery.data ?? []).find((s) => s.id === selectedSetId) ?? null,
+    [setsQuery.data, selectedSetId],
+  );
+
   // A consulta do catálogo, inteira. Tudo que o usuário escolhe — busca, jogos,
   // coleção, ordenação, raridade, tipo, atributo, faixa de preço — vai junto
   // para o backend e é resolvido no banco sobre o catálogo completo. Nada aqui
@@ -473,7 +528,7 @@ function ExplorePageContent() {
     () => ({
       search: search.trim() || undefined,
       tcg: activeTcgs.length > 0 ? activeTcgs.join(",") : undefined,
-      setId: selectedSet?.id,
+      setId: selectedSetId ?? undefined,
       productType,
       sort: sortBy as CardSort,
       rarity: selectedRarities,
@@ -486,7 +541,7 @@ function ExplorePageContent() {
     [
       search,
       activeTcgs,
-      selectedSet?.id,
+      selectedSetId,
       productType,
       sortBy,
       selectedRarities,
@@ -550,25 +605,53 @@ function ExplorePageContent() {
     setSearchInput(search || "");
   }, [search]);
 
+  // Guarda a busca atual para a navbar reencontrar. Lê de `useSearchParams` e
+  // não de `window.location`: é reativo, então cobre qualquer mudança de filtro
+  // sem precisar listar todos eles como dependência.
+  useEffect(() => {
+    const qs = searchParams.toString();
+    lembrarExplore(qs ? `?${qs}` : "");
+  }, [searchParams]);
+
   // Nova busca/jogo/set → zera as facetas: uma raridade/tipo selecionado do
   // resultado anterior sumiria no novo e deixaria o grid vazio "do nada".
   //
-  // A faixa de preço entra no reset agora que ela filtra no banco: o teto é do
+  // A faixa de preço entra no reset porque ela filtra no banco: o teto é do
   // conjunto atual, e as grandezas não se parecem entre jogos (Magic termina na
   // casa dos milhares, Yu-Gi-Oh passa de R$ 1 milhão). Um máximo herdado do
   // jogo anterior cortaria o novo resultado sem o usuário entender por quê.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset intencional ao mudar o contexto de resultado
+  //
+  // A guarda do ref não é paranoia: agora que os filtros moram na URL, um
+  // efeito sem ela rodaria na montagem e apagaria justamente o que veio no
+  // link — abrir uma busca compartilhada mostraria o resultado sem filtro.
+  // Só zera quando o contexto MUDA depois de montado.
+  const contextoRef = useRef<string | null>(null);
   useEffect(() => {
+    const contexto = `${search}|${selectedTcg ?? ""}|${selectedSetId ?? ""}`;
+    if (contextoRef.current === null) {
+      contextoRef.current = contexto;
+      return;
+    }
+    if (contextoRef.current === contexto) return;
+    contextoRef.current = contexto;
     setSelectedRarities([]);
     setSelectedTypes([]);
     setSelectedAttributes([]);
     setPriceRange(null);
-  }, [search, selectedTcg, selectedSet?.id]);
+  }, [
+    search,
+    selectedTcg,
+    selectedSetId,
+    setSelectedRarities,
+    setSelectedTypes,
+    setSelectedAttributes,
+    setPriceRange,
+  ]);
 
   // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
   function handleChangeQuery(value: string) {
     setSearchInput(value);
-    if (value) setSelectedSet(null);
+    if (value) setSelectedSetId(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setSearch(value);
@@ -650,26 +733,26 @@ function ExplorePageContent() {
         : [...current, slug];
       return next.length > 0 ? next.join(",") : null;
     });
-    setSelectedSet(null);
+    setSelectedSetId(null);
   }
 
   function clearTcgs() {
     setSelectedTcg(null);
-    setSelectedSet(null);
+    setSelectedSetId(null);
   }
 
   // Carrossel: clicar no set selecionado de novo desmarca (toggle)
   function handleSelectSet(set: CardSet) {
-    if (selectedSet?.id === set.id) {
-      setSelectedSet(null);
+    if (selectedSetId === set.id) {
+      setSelectedSetId(null);
       return;
     }
     handleClear();
-    setSelectedSet(set);
+    setSelectedSetId(set.id);
   }
 
   function applyRecentSearch(term: string) {
-    setSelectedSet(null);
+    setSelectedSetId(null);
     setSearchInput(term);
     setSearch(term);
     saveRecentSearch(term);
@@ -1034,7 +1117,7 @@ function ExplorePageContent() {
             {selectedSet && (
               <button
                 type="button"
-                onClick={() => setSelectedSet(null)}
+                onClick={() => setSelectedSetId(null)}
                 className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/15"
               >
                 Limpar

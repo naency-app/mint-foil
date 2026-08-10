@@ -15,6 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useExploreHref } from "@/lib/explore-href";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -74,6 +75,12 @@ export function Navbar() {
   // Pill desliza pro link com hover; sem hover, marca o ativo
   const pillOn = hovered ?? activeHref;
 
+  // "Explorar" volta para a última busca filtrada, não para o Explore vazio.
+  // A identidade do link continua sendo o href base (`/explore`) — é ele que
+  // governa pill, hover e estado ativo; só o destino da navegação muda.
+  const exploreHref = useExploreHref();
+  const destino = (href: string) => (href === "/explore" ? exploreHref : href);
+
   return (
     <>
       <nav
@@ -131,7 +138,7 @@ export function Navbar() {
                     return (
                       <SheetClose key={link.label} asChild>
                         <Link
-                          href={link.href}
+                          href={destino(link.href)}
                           className={cn(
                             "relative flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors",
                             active
@@ -169,7 +176,7 @@ export function Navbar() {
             </Sheet>
 
             <Link
-              href="/explore"
+              href={exploreHref}
               className="flex items-center gap-2"
               aria-label="Mint Foil — Explorar"
             >
@@ -207,7 +214,7 @@ export function Navbar() {
               return (
                 <Link
                   key={link.href}
-                  href={link.href}
+                  href={destino(link.href)}
                   onMouseEnter={() => setHovered(link.href)}
                   className={cn(
                     "relative rounded-full px-3.5 py-2 font-medium transition-colors duration-150",
