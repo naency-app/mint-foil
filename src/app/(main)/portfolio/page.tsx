@@ -233,8 +233,8 @@ function PortfolioItemRow({
         className={cn(
           "flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-card hover:bg-background/50 transition-all group",
           isSelected &&
-            isSelectionMode &&
-            "ring-2 ring-primary border-transparent bg-primary/5",
+          isSelectionMode &&
+          "ring-2 ring-primary border-transparent bg-primary/5",
           isSelectionMode && "cursor-pointer select-none",
         )}
       >
@@ -524,8 +524,8 @@ function PortfolioItemCard({
         className={cn(
           "group w-full h-full overflow-hidden glass-card !rounded-2xl shadow-none hover:bg-muted/30 transition-all duration-300 hover:-translate-y-1 py-0 relative",
           isSelected &&
-            isSelectionMode &&
-            "ring-2 ring-primary border-transparent bg-primary/5",
+          isSelectionMode &&
+          "ring-2 ring-primary border-transparent bg-primary/5",
           isSelectionMode && "cursor-pointer select-none",
         )}
       >
@@ -1115,7 +1115,7 @@ export default function PortfolioPage() {
           if (bulkStatus[item.id] !== "error") {
             try {
               await api.collection.remove(item.id);
-            } catch {}
+            } catch { }
           }
         }
       }
@@ -1327,7 +1327,7 @@ export default function PortfolioPage() {
           )}
         </main>
       ) : (
-        <main className="mx-auto max-w-[1480px] space-y-6 px-4 pt-6 pb-6 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-370 space-y-6 px-4 pt-6 pb-6 sm:px-6 lg:px-8">
           {/* Seletor de portfólio (dropdown) — substitui as tabs */}
           {portfolios.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1616,8 +1616,8 @@ export default function PortfolioPage() {
                           <strong className="text-foreground">
                             {activePortfolio?.updatedAt
                               ? new Date(
-                                  activePortfolio.updatedAt,
-                                ).toLocaleDateString("pt-BR")
+                                activePortfolio.updatedAt,
+                              ).toLocaleDateString("pt-BR")
                               : "Hoje"}
                           </strong>
                         </span>
@@ -1747,7 +1747,7 @@ export default function PortfolioPage() {
                           value={priceRange}
                           ceil={priceCeil}
                           onChange={setPriceRange}
-                          onUpsell={() => {}}
+                          onUpsell={() => { }}
                         />
                       </div>
                     </aside>
@@ -2020,7 +2020,7 @@ export default function PortfolioPage() {
                           className={cn(
                             "w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-muted/40 transition-colors cursor-pointer",
                             bulkTargetId === p.id &&
-                              "bg-primary/5 text-primary",
+                            "bg-primary/5 text-primary",
                           )}
                         >
                           <div>
@@ -2036,10 +2036,10 @@ export default function PortfolioPage() {
                       ))}
                     {portfolios.filter((p) => p.id !== activePortfolioId)
                       .length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-6">
-                        Nenhum outro portfólio disponível.
-                      </p>
-                    )}
+                        <p className="text-sm text-muted-foreground text-center py-6">
+                          Nenhum outro portfólio disponível.
+                        </p>
+                      )}
                   </div>
                   <DialogFooter>
                     <Button
