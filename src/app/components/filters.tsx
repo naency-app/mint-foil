@@ -143,10 +143,15 @@ export function ShowMoreToggle({
   onToggle: () => void;
 }) {
   return (
+    // O anel de foco fica arredondado e com respiro: sem isso ele desenha um
+    // retângulo colado no texto, e como o botão MUDA de posição ao recolher a
+    // lista, o anel sobe junto e salta na cara. Mantido (e não removido) porque
+    // é a única pista de onde se está ao navegar por teclado — e este botão
+    // altera a lista inteira.
     <button
       type="button"
       onClick={onToggle}
-      className="flex cursor-pointer items-center gap-1 text-[11px] font-bold text-primary transition-colors hover:text-tertiary-hover"
+      className="flex cursor-pointer items-center gap-1 rounded-md text-[11px] font-bold text-primary transition-colors hover:text-tertiary-hover focus-visible:outline-offset-2"
     >
       {expanded ? "Ver menos" : `Ver mais (${hiddenCount})`}
       <ChevronDown
