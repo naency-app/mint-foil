@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { api } from "./api";
+import { api, type CardQuery } from "./api";
 
 /**
  * Hooks de dados compartilhados entre páginas (TanStack Query) — espelho de
@@ -35,8 +35,9 @@ export const queryKeys = {
   stats: ["collection-stats"] as const,
   trending: (limit: number) => ["cards-trending", limit] as const,
   sets: (tcg?: string) => ["card-sets", tcg ?? "all"] as const,
-  cards: (search?: string, tcg?: string, setId?: string) =>
-    ["cards", search ?? "", tcg ?? "", setId ?? ""] as const,
+  // A chave do catálogo mora em `cardsQueryKey`, junto de `CardQuery`: ela tem
+  // de listar TODO filtro que muda o resultado, e uma segunda definição aqui
+  // envelheceria em silêncio a cada filtro novo.
   rarities: (tcg: string) => ["rarities", tcg] as const,
 };
 
@@ -190,36 +191,62 @@ export function useCardSets(tcg?: string) {
  */
 export const CARDS_PAGE_SIZE = 60;
 
-export function useInfiniteCards(
-  search?: string,
-  tcg?: string,
-  setId?: string,
-  productType?: "single" | "sealed" | "all",
-) {
-  const ehDescoberta =
-    !setId && !search && !tcg && (!productType || productType === "single");
+/**
+ * "Em Alta" só faz sentido como estado de descoberta: sem busca, sem jogo, sem
+ * coleção, sem filtro e sem ordenação pedida. Qualquer intenção explícita do
+ * usuário — inclusive só escolher uma ordenação — tem de ir para o catálogo,
+ * senão ele pede "mais caras" e recebe o ranking de variação do dia.
+ */
+function ehDescoberta(q: CardQuery): boolean {
+  return (
+    !q.setId &&
+    !q.search &&
+    !q.tcg &&
+    (!q.productType || q.productType === "single") &&
+    (!q.sort || q.sort === "best-match") &&
+    !q.rarity?.length &&
+    !q.cardType?.length &&
+    !q.attribute?.length &&
+    q.minPrice === undefined &&
+    q.maxPrice === undefined
+  );
+}
+
+/**
+ * Chave de cache da consulta. TODO campo que muda o resultado precisa entrar —
+ * um campo esquecido faz o TanStack servir a lista de outro filtro sem refazer
+ * a busca, que é um bug silencioso e difícil de ligar à causa.
+ */
+function cardsQueryKey(q: CardQuery) {
+  return [
+    q.search ?? "",
+    q.tcg ?? "",
+    q.setId ?? "",
+    q.productType ?? "single",
+    q.sort ?? "best-match",
+    q.rarity?.join(",") ?? "",
+    q.cardType?.join(",") ?? "",
+    q.attribute?.join(",") ?? "",
+    q.minPrice ?? "",
+    q.maxPrice ?? "",
+  ] as const;
+}
+
+export function useInfiniteCards(query: CardQuery) {
+  const descoberta = ehDescoberta(query);
 
   return useInfiniteQuery({
     // Prefixo próprio: uma infinite query guarda `{ pages, pageParams }`, o
     // useCards guarda um array. Compartilhar a chave faria os dois brigarem
     // pelo mesmo slot do cache.
-    queryKey: [
-      "cards-infinite",
-      ...queryKeys.cards(search, tcg, setId),
-      productType ?? "single",
-    ],
+    queryKey: ["cards-infinite", ...cardsQueryKey(query)],
     queryFn: ({ pageParam = 0 }) => {
-      const page = { limit: CARDS_PAGE_SIZE, offset: pageParam };
-      if (setId)
-        return api.cards.list(undefined, undefined, setId, productType, page);
-      if (ehDescoberta) return api.cards.trending(CARDS_PAGE_SIZE, pageParam);
-      return api.cards.list(
-        search || undefined,
-        tcg || undefined,
-        undefined,
-        productType,
-        page,
-      );
+      if (descoberta) return api.cards.trending(CARDS_PAGE_SIZE, pageParam);
+      return api.cards.list({
+        ...query,
+        limit: CARDS_PAGE_SIZE,
+        offset: pageParam,
+      });
     },
     initialPageParam: 0,
     getNextPageParam: (ultima, todas) =>
@@ -231,29 +258,41 @@ export function useInfiniteCards(
 }
 
 /**
+ * Opções de filtro do conjunto atual (raridade/tipo/atributo com contagem) e
+ * teto de preço. Só o backend enxerga o catálogo inteiro — derivar isso das
+ * cartas carregadas descrevia uma amostra e escondia opções do usuário.
+ *
+ * O próprio filtro de facetas fica FORA da chave: o backend já ignora essas
+ * seleções ao contar, então incluí-las só causaria refetch idêntico a cada
+ * clique numa raridade.
+ */
+export function useCardFacets(query: CardQuery) {
+  const facetQuery: CardQuery = {
+    search: query.search,
+    tcg: query.tcg,
+    setId: query.setId,
+    productType: query.productType,
+  };
+  return useQuery({
+    queryKey: ["card-facets", ...cardsQueryKey(facetQuery)],
+    queryFn: () => api.cards.facets(facetQuery),
+    staleTime: CATALOGO_STALE_MS,
+    // Trocar de jogo mantém as opções anteriores enquanto as novas chegam, em
+    // vez de colapsar a barra de filtros e empurrar o grid para cima.
+    placeholderData: keepPreviousData,
+  });
+}
+
+/**
  * Grid de cartas do Explore: busca / por jogo / por set.
  * Estado puro (sem busca/jogo/set) = descoberta → "Em Alta" real
  * (maiores variações do dia). Ver adr/0002.
  */
-export function useCards(
-  search?: string,
-  tcg?: string,
-  setId?: string,
-  productType?: "single" | "sealed" | "all",
-) {
+export function useCards(query: CardQuery = {}) {
   return useQuery({
-    queryKey: [...queryKeys.cards(search, tcg, setId), productType ?? "single"],
+    queryKey: ["cards", ...cardsQueryKey(query)],
     queryFn: () =>
-      setId
-        ? api.cards.list(undefined, undefined, setId, productType)
-        : !search && !tcg && (!productType || productType === "single")
-          ? api.cards.trending(60)
-          : api.cards.list(
-              search || undefined,
-              tcg || undefined,
-              undefined,
-              productType,
-            ),
+      ehDescoberta(query) ? api.cards.trending(60) : api.cards.list(query),
     // Sem keepPreviousData de propósito: toda troca de contexto mostra
     // skeleton previsível em vez de conteúdo antigo sendo trocado "do nada"
     // (mesmo comportamento do resetGrid() do explore mobile). Voltar a um

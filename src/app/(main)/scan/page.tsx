@@ -411,7 +411,7 @@ export default function ScanPage() {
 
       for (const term of termsToTry) {
         if (!term.trim()) continue;
-        const found = await api.cards.list(term.trim());
+        const found = await api.cards.list({ search: term.trim() });
         if (found.length > 0) {
           cards = found;
           break;
