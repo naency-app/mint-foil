@@ -1754,7 +1754,7 @@ const WHY_POINTS = [
     id: "semconta",
     icon: <ScanLine size={17} />,
     title: "Comece sem conta",
-    desc: "30 scans grátis por dia — sem cadastro, sem cartão.",
+    desc: "10 scans grátis por dia — sem cadastro, sem cartão.",
   },
   {
     id: "portfolio",
@@ -2557,19 +2557,30 @@ function KeyFeatures() {
 
 // ── Pricing ───────────────────────────────────────────────────────────────────
 
+// Espelha BENEFITS do paywall do app (components/paywall-sheet.tsx). Cada item
+// precisa ter um gate real no código — saíram daqui "Gráficos de valorização" e
+// "Histórico completo de preços" (o gráfico é o mesmo para free e PRO), além de
+// "Novos TCGs prioritários" e "Suporte prioritário", que não existem em lugar
+// nenhum. Vender na landing o que o produto não entrega é problema com o
+// assinante antes de ser problema de review.
 const PRO_FEATURES = [
   "Scans ilimitados",
-  "Portfólio completo",
-  "Gráficos de valorização",
-  "Histórico completo de preços",
-  "Novos TCGs prioritários",
-  "Suporte prioritário",
+  "Portfólios ilimitados",
+  "Filtros e ordenação exclusivos",
+  "Exportar a coleção em planilha",
+  "Fundos de perfil exclusivos",
 ];
+
+// Teto diário do plano grátis. Espelha FREE_DAILY_LIMIT do backend
+// (scan.service.ts) — se mudar lá, mude aqui: é este número que a calculadora
+// usa como divisor entre Grátis e PRO.
+const FREE_SCANS_PER_DAY = 10;
+const SCANS_SLIDER_MAX = FREE_SCANS_PER_DAY * 4;
 
 // Vantagens reais do plano grátis (o sistema limita só a quantidade de scans/dia
 // — todo o resto o free já tem). Mostradas quando o slider está na faixa grátis.
 const FREE_FEATURES = [
-  "30 scans grátis por dia",
+  `${FREE_SCANS_PER_DAY} scans grátis por dia`,
   "Preços de referência em R$",
   "Link de conferência na loja",
   "Carteira da sua coleção",
@@ -2599,11 +2610,13 @@ const FOIL_CSS =
 function ProBanner() {
   const isMobile = useIsMobile();
   const router = useRouter();
-  // Slider embutido: até 30 scans/dia = Grátis (R$ 0); acima = PRO 9,90.
-  // Nasce em 31 (PRO): mexendo pra baixo a pessoa descobre que zera
-  const [scans, setScans] = useState(31);
-  const isPro = scans > 30;
-  const pct = (scans / 100) * 100;
+  // Slider embutido: até FREE_SCANS_PER_DAY = Grátis (R$ 0); acima = PRO 9,90.
+  // Nasce um passo acima do teto (PRO): mexendo pra baixo a pessoa descobre que
+  // zera. O máximo do slider é 4x o teto grátis — com um máximo muito maior, a
+  // faixa gratuita virava um fiapo do trilho e ninguém a encontrava arrastando.
+  const [scans, setScans] = useState(FREE_SCANS_PER_DAY + 1);
+  const isPro = scans > FREE_SCANS_PER_DAY;
+  const pct = (scans / SCANS_SLIDER_MAX) * 100;
   return (
     <div
       style={{
@@ -2689,8 +2702,8 @@ function ProBanner() {
             }}
           >
             {isPro
-              ? "Scans ilimitados, histórico completo de preços e os novos TCGs chegando primeiro pra você."
-              : "Preços de referência em real, a carteira da sua coleção e 30 scans grátis por dia — sem pagar nada."}
+              ? "Scans e portfólios ilimitados, filtros exclusivos e a coleção exportável em planilha."
+              : `Preços de referência em real, a carteira da sua coleção e ${FREE_SCANS_PER_DAY} scans grátis por dia — sem pagar nada.`}
           </p>
           {/* Features em 2 colunas */}
           <div
@@ -2742,14 +2755,14 @@ function ProBanner() {
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                {scans >= 100 ? "100+" : scans}
+                {scans >= SCANS_SLIDER_MAX ? `${SCANS_SLIDER_MAX}+` : scans}
               </span>
             </div>
             <input
               type="range"
               className="mf-range"
               min={0}
-              max={100}
+              max={SCANS_SLIDER_MAX}
               step={1}
               value={scans}
               onChange={(e) => setScans(Number(e.target.value))}
@@ -2775,8 +2788,10 @@ function ProBanner() {
             <button
               type="button"
               onClick={() => {
-                // Grátis → scan direto (30/dia sem conta); PRO → login
-                router.push(isPro ? "/login" : "/scan");
+                // Grátis → scan direto (sem conta). PRO → download do app: a
+                // assinatura só existe como compra in-app, então mandar pro
+                // /login era prometer uma compra que a web não sabe fazer.
+                router.push(isPro ? "/download" : "/scan");
               }}
               style={{
                 padding: "13px 30px",
@@ -2803,13 +2818,13 @@ function ProBanner() {
                   "0 6px 22px rgba(248,86,167,0.35)";
               }}
             >
-              {isPro ? "Assinar PRO" : "Começar grátis"}
+              {isPro ? "Assinar PRO no app" : "Começar grátis"}
             </button>
             <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.55)" }}>
               <strong style={{ color: "#FFFFFF", fontSize: "16px" }}>
                 {isPro ? "R$ 9,90" : "R$ 0"}
               </strong>
-              /mês{isPro && " · cancele quando quiser"}
+              /mês{isPro && " · ou R$ 79,90/ano · cancele quando quiser"}
             </span>
           </div>
 
@@ -2875,7 +2890,7 @@ function ProBanner() {
   );
 }
 
-// ── Calculadora de plano: até 30 scans/dia = Grátis; acima = PRO 9,90 ────────
+// ── Calculadora de plano: até FREE_SCANS_PER_DAY = Grátis; acima = PRO ───────
 
 const RANGE_THUMB_CSS = `
 .mf-range { -webkit-appearance: none; appearance: none; outline: none; }
