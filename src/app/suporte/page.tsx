@@ -125,7 +125,7 @@ export default function SuportePage() {
 
         <p style={S.q}>Quantos scans eu tenho?</p>
         <p style={S.p}>
-          O plano gratuito inclui 30 scans por dia. Cada carta identificada
+          O plano gratuito inclui 10 scans por dia. Cada carta identificada
           consome um scan — uma foto com 8 cartas consome 8 scans. A cota
           reinicia todo dia.
         </p>

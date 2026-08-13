@@ -1882,11 +1882,15 @@ export default function PortfolioPage() {
                 Crie seu primeiro portfólio para começar a rastrear sua coleção
                 de cartas.
               </p>
+              {/*
+                Variante padrão do Button (bg-primary), sem override de cor: o
+                verde hardcoded que estava aqui não vem de token nenhum e
+                destoava do resto do produto.
+              */}
               <Button
                 onClick={openNewPortfolioOrPaywall}
-                className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
+                icon={<FolderPlus />}
               >
-                <FolderPlus className="size-4" />
                 Criar Portfólio
               </Button>
             </div>

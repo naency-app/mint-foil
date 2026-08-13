@@ -75,14 +75,15 @@ export default function TermosPage() {
         <h2 style={S.h2}>2. Conta e planos</h2>
         <ul style={{ paddingLeft: 20, margin: 0 }}>
           <li style={S.li}>
-            O plano <strong>Gratuito</strong> permite até 30 scans por dia, sem
+            O plano <strong>Gratuito</strong> permite até 10 scans por dia, sem
             necessidade de conta.
           </li>
           <li style={S.li}>
-            O plano <strong>PRO</strong> (R$ 9,90/mês) libera scans ilimitados,
-            portfólio completo, gráficos e histórico de preços. A assinatura
-            pode ser cancelada a qualquer momento, sem multa; o acesso permanece
-            até o fim do período pago.
+            O plano <strong>PRO</strong> (R$ 9,90/mês ou R$ 79,90/ano) libera
+            scans ilimitados, portfólios ilimitados, filtros exclusivos e
+            exportação da coleção em planilha. A assinatura pode ser cancelada a
+            qualquer momento, sem multa; o acesso permanece até o fim do período
+            pago.
           </li>
           <li style={S.li}>
             Você é responsável por manter a segurança da sua conta e pela

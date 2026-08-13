@@ -84,7 +84,7 @@ const TAB_DATA: Record<string, TabData> = {
     items: [
       {
         icon: IconCards,
-        title: "30 scans por dia sem criar conta",
+        title: "10 scans por dia sem criar conta",
         description:
           "Baixe o app e já começa a escanear. Sem cadastro, sem cartão, sem compromisso. Resultado na hora.",
       },
@@ -92,7 +92,7 @@ const TAB_DATA: Record<string, TabData> = {
         icon: IconCurrencyDollar,
         title: "PRO por R$ 9,90/mês",
         description:
-          "Scans ilimitados, portfólio completo e gráficos de valorização. Menos que um booster pack. Cancela quando quiser.",
+          "Ou R$ 79,90 no ano. Scans e portfólios ilimitados, filtros exclusivos e a coleção exportável em planilha. Menos que um booster pack. Cancela quando quiser.",
       },
       {
         icon: IconScan,

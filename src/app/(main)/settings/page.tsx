@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Crown,
+  Download,
   ExternalLink,
   Info,
   LogOut,
@@ -863,6 +864,45 @@ function SettingsContent() {
                 isPro={!!(stats?.isPro || user.isPro)}
                 onUpgrade={() => setProModalOpen(true)}
               />
+
+              {/* Exportar coleção (PRO) */}
+              <section className="glass-card !rounded-2xl p-6 space-y-4">
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Download className="size-4 text-primary" />
+                  Exportar coleção
+                </h2>
+                <Separator />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Baixe todos os seus portfólios em uma planilha (.csv), com
+                    quantidade, condição, preço de compra e valor de referência.
+                  </p>
+                  {stats?.isPro || user.isPro ? (
+                    <Button asChild size="sm" className="shrink-0">
+                      {/*
+                        Link direto, e não fetch + createObjectURL: o endpoint
+                        depende do cookie de sessão, que a navegação do próprio
+                        browser já manda, e o Content-Disposition do backend
+                        cuida do nome do arquivo.
+                      */}
+                      <a href={`${API_URL}/collection/export.csv`}>
+                        <Download className="size-4" />
+                        Baixar .csv
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 cursor-pointer"
+                      onClick={() => setProModalOpen(true)}
+                    >
+                      <Sparkles className="size-4" />
+                      Recurso PRO
+                    </Button>
+                  )}
+                </div>
+              </section>
 
               {/* Appearance */}
               <section className="glass-card !rounded-2xl p-6 space-y-4">

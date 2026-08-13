@@ -9,9 +9,9 @@ import {
 import { QRCode } from "@/components/ui/qrcode";
 import {
   Camera,
+  FileDown,
   FolderOpen,
   SlidersHorizontal,
-  TrendingUp,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -40,9 +40,9 @@ const features = [
     description: "Encontre cartas dentro do seu orçamento",
   },
   {
-    icon: TrendingUp,
-    title: "Acompanhamento de P&L",
-    description: "Veja ganhos e perdas com dados históricos de preços",
+    icon: FileDown,
+    title: "Exportar em Planilha",
+    description: "Baixe a coleção inteira em .csv, pronta pro Excel",
   },
 ];
 
