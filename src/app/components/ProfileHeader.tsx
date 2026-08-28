@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { faviconFor, SOCIAL_LINKS, toDisplay } from "@/lib/social-links";
@@ -84,11 +84,20 @@ export function ProfileHeader({
             <h1 className="text-xl font-black text-foreground">
               {displayName}
             </h1>
+            {/*
+              Selo de assinante. Diz Pro, não "identidade verificada" — decisão
+              de produto tomada de olhos abertos, porque o símbolo é lido como
+              verificação em qualquer lugar. Se um dia existir verificação de
+              verdade, ela precisa de outro símbolo.
+              O azul não sai da paleta por acaso: um check rosa não seria
+              entendido. Mesmo tom do app (PRO_BADGE_BLUE).
+            */}
             {isPro && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
-                <Crown className="size-3" />
-                PRO
-              </span>
+              <IconRosetteDiscountCheckFilled
+                className="size-5 shrink-0"
+                style={{ color: "#1D9BF0" }}
+                aria-label="Assinante Pro"
+              />
             )}
           </div>
           <p className="text-sm font-medium text-muted-foreground">@{handle}</p>

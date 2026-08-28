@@ -7,6 +7,7 @@ import {
   IconChevronLeft as ChevronLeft,
   IconCopy as Copy,
   IconCurrencyDollar as DollarSign,
+  IconFileSpreadsheet as FileSpreadsheet,
   IconFolderPlus as FolderPlus,
   IconEye,
   IconEyeCancel,
@@ -18,6 +19,7 @@ import {
   IconPackage as Package,
   IconPlus as Plus,
   IconSearch as Search,
+  IconSparkles as Sparkles,
   IconTrash as Trash2,
   IconTrendingDown as TrendingDown,
   IconTrendingUp as TrendingUp,
@@ -813,10 +815,16 @@ function PortfolioPageSkeleton() {
   );
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+
 export default function PortfolioPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
   const { data: stats } = useCollectionStats(!!session?.user);
+  const isPro =
+    stats?.isPro ??
+    (session?.user as { isPro?: boolean } | undefined)?.isPro ??
+    false;
 
   // "Ver como visitante": pré-visualiza o perfil público (read-only) na mesma tela.
   const [preview, setPreview] = useState(false);
@@ -1763,6 +1771,37 @@ export default function PortfolioPage() {
                             : ""}
                         </p>
                         <div className="flex items-center gap-3">
+                          {/*
+                            Exportar mora aqui, e não só em settings: é
+                            benefício de Pro, e benefício que a pessoa não vê
+                            não vende. Fica no cabeçalho da lista que o arquivo
+                            representa, por isso exporta ESTE portfólio — a
+                            coleção inteira continua em settings.
+                          */}
+                          {!!activePortfolioId &&
+                            items.length > 0 &&
+                            (isPro ? (
+                              // Link direto pelo mesmo motivo do export em
+                              // settings: o endpoint depende do cookie de
+                              // sessão que a navegação do browser já manda.
+                              <a
+                                href={`${API_URL}/collection/export.xlsx?portfolioId=${activePortfolioId}`}
+                                className="glass-pill inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 px-3 text-xs font-bold text-foreground transition-colors"
+                              >
+                                <FileSpreadsheet className="size-3.5" />
+                                Exportar
+                              </a>
+                            ) : (
+                              <GlassPill
+                                onClick={() => setProModalOpen(true)}
+                                className="h-8 gap-1.5 px-3 text-xs font-bold"
+                              >
+                                <FileSpreadsheet className="size-3.5" />
+                                Exportar
+                                <Sparkles className="size-3 text-primary" />
+                              </GlassPill>
+                            ))}
+
                           <GlassPill
                             active={isSelectionMode}
                             onClick={() => {

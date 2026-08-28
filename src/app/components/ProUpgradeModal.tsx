@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { QRCode } from "@/components/ui/qrcode";
 import {
+  BadgeCheck,
   Camera,
   FileDown,
   FolderOpen,
@@ -40,9 +41,15 @@ const features = [
     description: "Encontre cartas dentro do seu orçamento",
   },
   {
+    icon: BadgeCheck,
+    title: "Selo de Assinante",
+    description: "Check azul no seu nome, no perfil, nas listas e no showcase",
+  },
+  {
     icon: FileDown,
     title: "Exportar em Planilha",
-    description: "Baixe a coleção inteira em .csv, pronta pro Excel",
+    description:
+      "Baixe a coleção inteira em .xlsx, uma aba por portfólio, pronta pro Excel",
   },
 ];
 
