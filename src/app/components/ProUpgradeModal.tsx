@@ -42,7 +42,8 @@ const features = [
   {
     icon: FileDown,
     title: "Exportar em Planilha",
-    description: "Baixe a coleção inteira em .csv, pronta pro Excel",
+    description:
+      "Baixe a coleção inteira em .xlsx, uma aba por portfólio, pronta pro Excel",
   },
 ];
 

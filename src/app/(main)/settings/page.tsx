@@ -874,22 +874,31 @@ function SettingsContent() {
                 <Separator />
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <p className="text-sm text-muted-foreground">
-                    Baixe todos os seus portfólios em uma planilha (.csv), com
+                    Baixe todos os seus portfólios em uma planilha, com
                     quantidade, condição, preço de compra e valor de referência.
+                    O .xlsx vem com uma aba por portfólio e um resumo, e os
+                    valores já como número — dá para somar sem converter nada.
                   </p>
                   {stats?.isPro || user.isPro ? (
-                    <Button asChild size="sm" className="shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
                       {/*
                         Link direto, e não fetch + createObjectURL: o endpoint
                         depende do cookie de sessão, que a navegação do próprio
                         browser já manda, e o Content-Disposition do backend
                         cuida do nome do arquivo.
                       */}
-                      <a href={`${API_URL}/collection/export.csv`}>
-                        <Download className="size-4" />
-                        Baixar .csv
-                      </a>
-                    </Button>
+                      <Button asChild size="sm">
+                        <a href={`${API_URL}/collection/export.xlsx`}>
+                          <Download className="size-4" />
+                          Baixar .xlsx
+                        </a>
+                      </Button>
+                      {/* O .csv fica como alternativa: quem já importa em outra
+                          ferramenta ou no Sheets não perde o caminho. */}
+                      <Button asChild size="sm" variant="outline">
+                        <a href={`${API_URL}/collection/export.csv`}>.csv</a>
+                      </Button>
+                    </div>
                   ) : (
                     <Button
                       size="sm"
