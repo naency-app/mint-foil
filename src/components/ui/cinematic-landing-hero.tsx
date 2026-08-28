@@ -368,7 +368,7 @@ export function CinematicHero({
           ".mf-main-card",
           {
             width: isMobile ? "92vw" : "82vw",
-            height: isMobile ? "90vh" : "82vh",
+            height: isMobile ? "90svh" : "82svh",
             borderRadius: isMobile ? "28px" : "36px",
             ease: "expo.inOut",
             duration: 1.6,
@@ -396,7 +396,10 @@ export function CinematicHero({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-screen h-screen overflow-hidden flex items-center justify-center antialiased",
+        // h-svh (não h-screen/100vh): o GSAP pina medindo window.innerHeight
+        // em px. No iOS o vh é a viewport large e os dois discordam pela
+        // altura da barra do Safari — ver marginBottom em LandingPage
+        "relative w-screen h-svh overflow-hidden flex items-center justify-center antialiased",
         className,
       )}
       style={{
@@ -464,7 +467,7 @@ export function CinematicHero({
       >
         <div
           ref={mainCardRef}
-          className="mf-main-card mf-depth-card relative overflow-hidden flex items-center justify-center pointer-events-auto w-[92vw] md:w-[82vw] h-[88vh] md:h-[82vh] rounded-[28px] md:rounded-[36px]"
+          className="mf-main-card mf-depth-card relative overflow-hidden flex items-center justify-center pointer-events-auto w-[92vw] md:w-[82vw] h-[88svh] md:h-[82svh] rounded-[28px] md:rounded-[36px]"
         >
           <div className="mf-card-sheen" aria-hidden="true" />
 

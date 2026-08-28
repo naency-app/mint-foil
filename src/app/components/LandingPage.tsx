@@ -1469,6 +1469,10 @@ function RevealItem({
   const [hoveredRaw, setHovered] = useState(false);
   // Jogos "em breve" ficam desativados: sem reveal, apagados
   const hovered = hoveredRaw && !soon;
+  // O iOS sintetiza mouseenter (e foca o botão) no PRIMEIRO toque; se o
+  // click também alternasse, o mesmo toque ligava e desligava — as cartas
+  // só apareciam no segundo. Mouse revela no hover; toque, no click.
+  const pointer = useRef<string>("mouse");
 
   return (
     <div style={{ padding: "16px 0" }}>
@@ -1476,11 +1480,23 @@ function RevealItem({
       <div style={{ position: "relative", display: "inline-block" }}>
         <button
           type="button"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          onFocus={() => setHovered(true)}
+          onPointerDown={(e) => {
+            pointer.current = e.pointerType;
+          }}
+          onPointerEnter={(e) => {
+            if (e.pointerType === "mouse") setHovered(true);
+          }}
+          onPointerLeave={(e) => {
+            if (e.pointerType === "mouse") setHovered(false);
+          }}
+          // Só foco de teclado revela: no toque o foco vem junto do tap
+          onFocus={(e) => {
+            if (e.target.matches(":focus-visible")) setHovered(true);
+          }}
           onBlur={() => setHovered(false)}
-          onClick={() => setHovered((h) => !h)}
+          onClick={() => {
+            if (pointer.current !== "mouse") setHovered((h) => !h);
+          }}
           style={{
             background: "none",
             border: "none",
@@ -3402,6 +3418,11 @@ export function LandingPage({
     // html/body pintados junto (o body tem bg claro vindo do globals.css)
     r.style.backgroundColor = bg;
     document.body.style.backgroundColor = bg;
+    // theme-color acompanha o toggle: é ele que pinta a faixa do iOS atrás
+    // da barra do Safari (o padrão dela é branco)
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", bg);
   }, [isDark]);
 
   const handleThemeToggle = (
@@ -3482,7 +3503,11 @@ export function LandingPage({
           style={{
             position: "relative",
             zIndex: 30,
-            marginBottom: "-100vh",
+            // svh, NÃO vh: o pin-spacer do ScrollTrigger é montado em px a
+            // partir de window.innerHeight (viewport small). No iOS o vh é a
+            // viewport LARGE — 135pt maior no 14 Pro — e a diferença virava
+            // uma faixa que ninguém pintava no fim da seção
+            marginBottom: "-100svh",
           }}
         >
           <CinematicHero
