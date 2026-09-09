@@ -2,7 +2,7 @@
 
 import { IconArrowLeft, IconInfoCircle } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { signIn } from "@/lib/auth-client";
@@ -10,6 +10,29 @@ import { signIn } from "@/lib/auth-client";
 // Mesma cara do wordmark da landing/navbar
 const WORDMARK_FONT =
   '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif';
+
+// O callback do OAuth volta pro backend, não pro site. Quando dá errado, o
+// better-auth manda o usuário pra cá com `?error=<código>` (ver onAPIError.errorURL
+// no backend). Traduzimos os que dá para explicar; o resto cai num texto genérico
+// que ao menos diz o que fazer.
+const ERROS_LOGIN: Record<string, string> = {
+  invalid_code:
+    "Não foi possível concluir o login com o Google. Tente de novo — se persistir, fale com a gente pelo suporte.",
+  access_denied:
+    "Você cancelou o acesso na tela do Google. Se foi sem querer, é só tentar de novo.",
+  state_mismatch:
+    "A sessão de login expirou no meio do caminho. Tente novamente.",
+  state_not_found:
+    "A sessão de login expirou no meio do caminho. Tente novamente.",
+};
+
+function mensagemDeErro(codigo: string | null): string {
+  if (!codigo) return "";
+  return (
+    ERROS_LOGIN[codigo] ??
+    "Não foi possível entrar. Tente de novo — se persistir, fale com a gente pelo suporte."
+  );
+}
 
 export default function LoginPage() {
   return (
@@ -21,7 +44,10 @@ export default function LoginPage() {
 
 function LoginContent() {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const [error, setError] = useState(() =>
+    mensagemDeErro(searchParams.get("error")),
+  );
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
   const frontendURL =
