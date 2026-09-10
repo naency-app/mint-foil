@@ -266,6 +266,11 @@ export function CinematicHero({
           pin: true,
           scrub: 1,
           anticipatePin: 1,
+          // NÃO pintar o pin-spacer: a faixa de sobreposição criada pelo
+          // marginBottom negativo em LandingPage é justamente ele, e é por
+          // ela que a VideoSection aparece quando a animação some. Opaco
+          // aqui = vídeo tapado. Quem garante a cobertura é o min-height
+          // do container, logo abaixo.
         },
       });
 
@@ -368,7 +373,7 @@ export function CinematicHero({
           ".mf-main-card",
           {
             width: isMobile ? "92vw" : "82vw",
-            height: isMobile ? "90svh" : "82svh",
+            height: isMobile ? "90vh" : "82vh",
             borderRadius: isMobile ? "28px" : "36px",
             ease: "expo.inOut",
             duration: 1.6,
@@ -389,20 +394,47 @@ export function CinematicHero({
         });
     }, containerRef);
 
-    return () => ctx.revert();
+    // No iOS o Safari esconde a barra depois do load e a viewport CRESCE
+    // (medido no mesmo iPhone: 659 -> 759 -> 839). O ScrollTrigger ignora esse
+    // resize de propósito, pra não dar solavanco enquanto a barra anima — mas
+    // aí o pin e os alvos das tweens ("100%", "90vh") ficam congelados na
+    // medida do load: o card para antes da borda e sobra faixa em volta. No
+    // desktop e no DevTools isso nunca aparece, porque lá a viewport não muda.
+    // Refaz as contas só quando a variação é grande o bastante pra ser real.
+    let alturaAnterior = window.innerHeight;
+    let pendente: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      if (Math.abs(window.innerHeight - alturaAnterior) < 40) return;
+      alturaAnterior = window.innerHeight;
+      clearTimeout(pendente);
+      pendente = setTimeout(() => ScrollTrigger.refresh(), 150);
+    };
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+
+    return () => {
+      clearTimeout(pendente);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+      ctx.revert();
+    };
   }, []);
 
   return (
     <div
       ref={containerRef}
       className={cn(
-        // h-svh (não h-screen/100vh): o GSAP pina medindo window.innerHeight
-        // em px. No iOS o vh é a viewport large e os dois discordam pela
-        // altura da barra do Safari — ver marginBottom em LandingPage
-        "relative w-screen h-svh overflow-hidden flex items-center justify-center antialiased",
+        "relative w-screen h-screen overflow-hidden flex items-center justify-center antialiased",
         className,
       )}
       style={{
+        // Ao pinar, o ScrollTrigger grava height em px inline: o innerHeight
+        // do load, com a barra do Safari à mostra. Quando a barra some, a
+        // viewport cresce e o elemento fica travado no valor velho — sobravam
+        // 100px de pin-spacer transparente no rodapé. O GSAP escreve height,
+        // nunca min-height, então é o min-height que garante a cobertura; e
+        // inline pra não depender do Tailwind gerar a utility.
+        minHeight: "100dvh",
         perspective: "1500px",
         fontFamily: '"Circular Std", "DM Sans", system-ui, sans-serif',
         backgroundColor: sectionBg,
@@ -467,7 +499,7 @@ export function CinematicHero({
       >
         <div
           ref={mainCardRef}
-          className="mf-main-card mf-depth-card relative overflow-hidden flex items-center justify-center pointer-events-auto w-[92vw] md:w-[82vw] h-[88svh] md:h-[82svh] rounded-[28px] md:rounded-[36px]"
+          className="mf-main-card mf-depth-card relative overflow-hidden flex items-center justify-center pointer-events-auto w-[92vw] md:w-[82vw] h-[88vh] md:h-[82vh] rounded-[28px] md:rounded-[36px]"
         >
           <div className="mf-card-sheen" aria-hidden="true" />
 

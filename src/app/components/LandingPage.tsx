@@ -1460,15 +1460,21 @@ function RevealItem({
   text,
   imgs,
   soon = false,
+  active,
+  onChange,
 }: {
   text: string;
   imgs: string[];
   soon?: boolean;
+  // Quem manda é a seção: só um nome revelado por vez, igual ao mouse,
+  // que nunca consegue estar sobre dois
+  active: boolean;
+  onChange: (on: boolean) => void;
 }) {
   const t = useTheme();
-  const [hoveredRaw, setHovered] = useState(false);
+  const setHovered = onChange;
   // Jogos "em breve" ficam desativados: sem reveal, apagados
-  const hovered = hoveredRaw && !soon;
+  const hovered = active && !soon;
   // O iOS sintetiza mouseenter (e foca o botão) no PRIMEIRO toque; se o
   // click também alternasse, o mesmo toque ligava e desligava — as cartas
   // só apareciam no segundo. Mouse revela no hover; toque, no click.
@@ -1495,7 +1501,7 @@ function RevealItem({
           }}
           onBlur={() => setHovered(false)}
           onClick={() => {
-            if (pointer.current !== "mouse") setHovered((h) => !h);
+            if (pointer.current !== "mouse") setHovered(!active);
           }}
           style={{
             background: "none",
@@ -1614,6 +1620,8 @@ function RevealItem({
 function RevealSection() {
   const t = useTheme();
   const isMobile = useIsMobile();
+  // Um nome de cada vez: abrir o próximo fecha o anterior
+  const [active, setActive] = useState<string | null>(null);
   return (
     <section
       id="colecoes"
@@ -1668,7 +1676,18 @@ function RevealSection() {
           </FadeIn>
         </div>
         {REVEAL_ITEMS.map(({ text, imgs, soon }) => (
-          <RevealItem key={text} text={text} imgs={imgs} soon={soon} />
+          <RevealItem
+            key={text}
+            text={text}
+            imgs={imgs}
+            soon={soon}
+            active={active === text}
+            // Fechar só vale pra quem está aberto: o blur do nome anterior
+            // chega depois do clique no próximo e apagaria a seleção nova
+            onChange={(on) =>
+              setActive((cur) => (on ? text : cur === text ? null : cur))
+            }
+          />
         ))}
       </div>
     </section>
@@ -3363,7 +3382,6 @@ export function LandingPage({
 }) {
   const [isDark, setIsDark] = useState(initialDark);
   const theme = isDark ? DARK : LIGHT;
-
   // No load: escolha salva do usuário > tema do sistema. Lido pós-mount
   // (não no estado inicial) pra não divergir do SSR na hidratação;
   // useLayoutEffect: o flip acontece ANTES do paint pós-hidratação
@@ -3423,6 +3441,48 @@ export function LandingPage({
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute("content", bg);
+  }, [isDark]);
+
+  // ...mas o fundo da PÁGINA não é o fundo de toda seção: o hero é #F6F6F6 no
+  // claro, e com theme-color em #FFFFFF os dois brancos encostam e viram uma
+  // faixa visível no rodapé do iOS. Amostra a cor real que está na borda de
+  // baixo (mesma ideia do sampleBehind da navbar) e segue ela.
+  // isDark não é lido aqui, mas é o gatilho: trocar o tema muda a cor a amostrar
+  // biome-ignore lint/correctness/useExhaustiveDependencies: gatilho intencional
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    let raf = 0;
+    const sample = () => {
+      raf = 0;
+      let node = document.elementFromPoint(
+        window.innerWidth / 2,
+        window.innerHeight - 2,
+      );
+      while (node) {
+        const m = getComputedStyle(node).backgroundColor.match(
+          /^rgba?\(([^)]+)\)/,
+        );
+        if (m) {
+          const c = m[1].split(",").map(Number);
+          // Só cor opaca serve: translúcida deixa passar o que está atrás
+          if (c.length < 4 || c[3] > 0.9) {
+            meta.setAttribute("content", `rgb(${c[0]},${c[1]},${c[2]})`);
+            return;
+          }
+        }
+        node = node.parentElement;
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(sample);
+    };
+    sample();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, [isDark]);
 
   const handleThemeToggle = (
@@ -3503,11 +3563,7 @@ export function LandingPage({
           style={{
             position: "relative",
             zIndex: 30,
-            // svh, NÃO vh: o pin-spacer do ScrollTrigger é montado em px a
-            // partir de window.innerHeight (viewport small). No iOS o vh é a
-            // viewport LARGE — 135pt maior no 14 Pro — e a diferença virava
-            // uma faixa que ninguém pintava no fim da seção
-            marginBottom: "-100svh",
+            marginBottom: "-100vh",
           }}
         >
           <CinematicHero

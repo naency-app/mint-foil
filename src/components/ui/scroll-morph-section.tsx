@@ -361,7 +361,12 @@ export default function ScrollMorphSection({
               translateY: `${exitValue * -50}%`,
               scale: 1 + exitValue * 0.12,
             }}
-            className="pointer-events-none absolute z-30 flex flex-col items-center justify-center px-4 text-center"
+            // left-0 w-full: sem largura o bloco absoluto encolhe pro
+            // conteúdo, e o max-w-lg do <p> (512px) estoura a tela de 393.
+            // px-7 no mobile: o scale de 1.12 da saída amplia o texto junto,
+            // e 16px de padding não absorviam os 12% — a frase passava 5px
+            // de cada lado e a seção (overflow-hidden) cortava
+            className="pointer-events-none absolute left-0 z-30 flex w-full flex-col items-center justify-center px-7 text-center md:px-4"
           >
             <h2
               className="mb-3 text-4xl font-extrabold tracking-tight md:text-6xl"

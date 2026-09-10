@@ -149,7 +149,12 @@ export default function SuportePage() {
           reembolso também são tratados pela loja onde a compra foi feita.
         </p>
 
-        <p style={S.q}>Como excluo minha conta e meus dados?</p>
+        {/* id: a Play Console pede uma URL que aponte direto para os passos
+            de exclusão de conta (campo "Delete account URL" do Data safety).
+            É /suporte#excluir-conta — não mude o id sem trocar lá também. */}
+        <p style={S.q} id="excluir-conta">
+          Como excluo minha conta e meus dados?
+        </p>
         <p style={S.p}>
           Direto no app, em <strong>Perfil → Config → Excluir conta</strong>. A
           exclusão é imediata e permanente: remove sua conta, seus portfólios, suas
