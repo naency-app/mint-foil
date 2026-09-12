@@ -122,16 +122,16 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const portfolios = await api.collection.portfolios();
+        // Sem portfólio, manda sem `portfolioId`: o servidor resolve (toda
+        // conta nasce com o "Principal", e o que não tiver ganha um na hora).
+        // Pedir "crie um portfólio" era empurrar burocracia para quem acabou
+        // de criar a conta só para guardar uma carta.
         const alvo = resolveActiveId(portfolios, storeActiveId, favoriteIds);
-        if (!alvo) {
-          toast.error("Crie um portfólio para guardar suas cartas");
-          return;
-        }
         await api.collection.add({
           cardId: pendente.cardId,
           quantity: 1,
           condition: "NM",
-          portfolioId: alvo,
+          ...(alvo ? { portfolioId: alvo } : {}),
         });
         await invalidateCollection();
         toast.success(`${pendente.nome} adicionada ao portfólio!`);
