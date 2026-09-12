@@ -186,6 +186,7 @@
 
 @layer components {
   .glass-card,
+  .glass-input,
   .glass-pill {
     border: 1px solid rgba(2, 6, 23, 0.08);
     background-color: rgba(255, 255, 255, 0.6);
@@ -198,7 +199,15 @@
   .glass-pill {
     border-radius: 9999px;
   }
+  /* Campo de texto: mesma superfície das pills, mas cantos de campo. A pílula
+     é a forma dos controles curtos (chips, toggles); um input de linha inteira
+     arredondado por completo fica com o texto nadando longe da borda e tira do
+     formulário a cara de formulário. */
+  .glass-input {
+    border-radius: 12px;
+  }
   .dark .glass-card,
+  .dark .glass-input,
   .dark .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
     /* Navy dos cards (#0D1121) semi-transparente */

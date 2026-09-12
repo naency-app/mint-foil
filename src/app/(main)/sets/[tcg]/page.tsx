@@ -256,7 +256,7 @@ function TcgSetsPageContent() {
             flex-1: sem isto a coluna encolhe no conteúdo e o w-full do input
             não chega a lugar nenhum. */}
         <div className="flex w-full flex-col items-start gap-2 sm:flex-1">
-          <div className="glass-pill flex h-10 w-full items-center gap-2.5 px-4">
+          <div className="glass-input flex h-11 w-full items-center gap-2.5 px-4">
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
               value={search}

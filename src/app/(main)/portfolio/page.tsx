@@ -1688,7 +1688,7 @@ export default function PortfolioPage() {
                 <div className="space-y-4">
                   {/* Busca — pill de vidro (igual showcase) */}
                   <div className="relative w-full">
-                    <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
+                    <div className="glass-input flex h-11 items-center gap-2.5 px-4">
                       <Search className="size-4 shrink-0 text-muted-foreground" />
                       <input
                         value={search}

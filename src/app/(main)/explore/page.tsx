@@ -360,7 +360,7 @@ function ListRow({
       <div className="glass-card flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30 group">
         <div className="shrink-0 size-12 rounded-md overflow-hidden">
           <Image
-            src={imagemDaCarta(card, 'grade') ?? card.imageUrl}
+            src={imagemDaCarta(card, "grade") ?? card.imageUrl}
             alt={card.name}
             width={48}
             height={48}
@@ -864,7 +864,7 @@ function ExplorePageContent() {
           Buscar cartas
         </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="glass-pill flex h-12 flex-1 items-center gap-2.5 px-4">
+          <div className="glass-input flex h-12 flex-1 items-center gap-2.5 px-4">
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
               value={searchInput}
@@ -879,7 +879,7 @@ function ExplorePageContent() {
             <button
               type="button"
               onClick={handleClear}
-              className="h-12 shrink-0 cursor-pointer rounded-full px-5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              className="h-12 shrink-0 cursor-pointer rounded-xl px-5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
               Limpar
             </button>
@@ -904,6 +904,67 @@ function ExplorePageContent() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Adicionando em (esquerda) + ordenação e visualização (direita) ──
+          Fica logo abaixo da busca, fora da coluna de conteúdo: são controles
+          da tela inteira (para onde vai a carta, como a lista é ordenada e
+          exibida), não do bloco de resultados. Dentro da coluna eles nasciam
+          desalinhados da sidebar e o olho lia duas barras de ferramentas. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {portfolios.length > 0 && (
+          <PortfolioSelector
+            portfolios={portfolios}
+            activePortfolioId={activePortfolioId}
+            onSelect={setActivePortfolioId}
+            onRefresh={invalidateCollection}
+            labelPrefix="Adicionando em"
+          />
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger
+              size="sm"
+              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+                sortActive
+                  ? "border-primary/25 bg-primary/10 text-primary"
+                  : "glass-pill text-foreground"
+              }`}
+            >
+              <ArrowUpDown
+                className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
+              />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="best-match">Melhor Resultado</SelectItem>
+              <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
+              <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
+              <SelectItem value="name-asc">Nome: A → Z</SelectItem>
+              <SelectItem value="name-desc">Nome: Z → A</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-1">
+            <GlassPill
+              active={viewType === "grid"}
+              onClick={() => setViewType("grid")}
+              className="px-2.5 py-1.5"
+              aria-label="Visualizar em grade"
+            >
+              <IconLayoutGrid className="size-4" />
+            </GlassPill>
+            <GlassPill
+              active={viewType === "list"}
+              onClick={() => setViewType("list")}
+              className="px-2.5 py-1.5"
+              aria-label="Visualizar em lista"
+            >
+              <IconListDetails className="size-4" />
+            </GlassPill>
+          </div>
+        </div>
       </div>
 
       {/* ── Chips de jogo — só em telas pequenas; no desktop o filtro mora
@@ -1097,67 +1158,6 @@ function ExplorePageContent() {
               )}
             </section>
           )}
-
-          {/* ── Adicionando em (esquerda) + ordenação e visualização (direita) ── */}
-          <div className="flex flex-wrap items-center gap-2">
-            {portfolios.length > 0 && (
-              <PortfolioSelector
-                portfolios={portfolios}
-                activePortfolioId={activePortfolioId}
-                onSelect={setActivePortfolioId}
-                onRefresh={invalidateCollection}
-                labelPrefix="Adicionando em"
-              />
-            )}
-
-            <div className="ml-auto flex items-center gap-2">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger
-                  size="sm"
-                  className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
-                    sortActive
-                      ? "border-primary/25 bg-primary/10 text-primary"
-                      : "glass-pill text-foreground"
-                  }`}
-                >
-                  <ArrowUpDown
-                    className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
-                  />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="best-match">Melhor Resultado</SelectItem>
-                  <SelectItem value="price-asc">
-                    Preço: Menor → Maior
-                  </SelectItem>
-                  <SelectItem value="price-desc">
-                    Preço: Maior → Menor
-                  </SelectItem>
-                  <SelectItem value="name-asc">Nome: A → Z</SelectItem>
-                  <SelectItem value="name-desc">Nome: Z → A</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex items-center gap-1">
-                <GlassPill
-                  active={viewType === "grid"}
-                  onClick={() => setViewType("grid")}
-                  className="px-2.5 py-1.5"
-                  aria-label="Visualizar em grade"
-                >
-                  <IconLayoutGrid className="size-4" />
-                </GlassPill>
-                <GlassPill
-                  active={viewType === "list"}
-                  onClick={() => setViewType("list")}
-                  className="px-2.5 py-1.5"
-                  aria-label="Visualizar em lista"
-                >
-                  <IconListDetails className="size-4" />
-                </GlassPill>
-              </div>
-            </div>
-          </div>
 
           {/* ── Label da seção + limpar set selecionado ── */}
           <div className="flex items-center justify-between gap-2">

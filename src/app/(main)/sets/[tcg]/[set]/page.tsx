@@ -147,7 +147,7 @@ function ListRow({
       <div className="glass-card flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30 group">
         <div className="shrink-0 size-12 rounded-md overflow-hidden">
           <Image
-            src={imagemDaCarta(card, 'grade') ?? card.imageUrl}
+            src={imagemDaCarta(card, "grade") ?? card.imageUrl}
             alt={card.name}
             width={48}
             height={48}
@@ -444,90 +444,97 @@ function SetCardsPageContent() {
         </h1>
       )}
 
-      {/* Toolbar: busca em pill + Adicionando em + ordenação e visualização */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="glass-pill flex h-10 w-full max-w-xs items-center gap-2.5 px-4">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar cartas desta coleção..."
-            className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
+      {/* Busca em cima, controles embaixo — mesma ordem do Explore: primeiro o
+          campo em linha própria, depois "Adicionando em" com ordenação e
+          visualização. Tudo na mesma linha espremia o campo num canto e ele
+          deixava de parecer a ação principal da tela. */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="glass-input flex h-11 w-full max-w-md items-center gap-2.5 px-4">
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filtrar cartas desta coleção..."
+              className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            {search.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Mesmo COM resultados, a carta procurada pode ser de outra coleção —
+            o caminho para o catálogo fica sempre visível, não só no vazio. */}
           {search.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            <Link
+              href={`/explore?q=${encodeURIComponent(search)}`}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
             >
-              <X className="size-4" />
-            </button>
+              Buscar em todo o catálogo →
+            </Link>
           )}
         </div>
 
-        {/* Mesmo COM resultados, a carta procurada pode ser de outra coleção —
-            o caminho para o catálogo fica sempre visível, não só no vazio. */}
-        {search.length > 0 && (
-          <Link
-            href={`/explore?q=${encodeURIComponent(search)}`}
-            className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-          >
-            Buscar em todo o catálogo →
-          </Link>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {portfolios.length > 0 && (
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={invalidateCollection}
+              labelPrefix="Adicionando em"
+            />
+          )}
 
-        {portfolios.length > 0 && (
-          <PortfolioSelector
-            portfolios={portfolios}
-            activePortfolioId={activePortfolioId}
-            onSelect={setActivePortfolioId}
-            onRefresh={invalidateCollection}
-            labelPrefix="Adicionando em"
-          />
-        )}
+          <div className="ml-auto flex items-center gap-2">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger
+                size="sm"
+                className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+                  sortActive
+                    ? "border-primary/25 bg-primary/10 text-primary"
+                    : "glass-pill text-foreground"
+                }`}
+              >
+                <ArrowUpDown
+                  className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
+                />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="number">Número</SelectItem>
+                <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
+                <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
+                <SelectItem value="name-asc">Nome: A → Z</SelectItem>
+                <SelectItem value="name-desc">Nome: Z → A</SelectItem>
+                <SelectItem value="rarity">Raridade</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger
-              size="sm"
-              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
-                sortActive
-                  ? "border-primary/25 bg-primary/10 text-primary"
-                  : "glass-pill text-foreground"
-              }`}
-            >
-              <ArrowUpDown
-                className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
-              />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="number">Número</SelectItem>
-              <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
-              <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
-              <SelectItem value="name-asc">Nome: A → Z</SelectItem>
-              <SelectItem value="name-desc">Nome: Z → A</SelectItem>
-              <SelectItem value="rarity">Raridade</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center gap-1">
-            <GlassPill
-              active={viewType === "grid"}
-              onClick={() => setViewType("grid")}
-              className="px-2.5 py-1.5"
-              aria-label="Visualizar em grade"
-            >
-              <IconLayoutGrid className="size-4" />
-            </GlassPill>
-            <GlassPill
-              active={viewType === "list"}
-              onClick={() => setViewType("list")}
-              className="px-2.5 py-1.5"
-              aria-label="Visualizar em lista"
-            >
-              <IconListDetails className="size-4" />
-            </GlassPill>
+            <div className="flex items-center gap-1">
+              <GlassPill
+                active={viewType === "grid"}
+                onClick={() => setViewType("grid")}
+                className="px-2.5 py-1.5"
+                aria-label="Visualizar em grade"
+              >
+                <IconLayoutGrid className="size-4" />
+              </GlassPill>
+              <GlassPill
+                active={viewType === "list"}
+                onClick={() => setViewType("list")}
+                className="px-2.5 py-1.5"
+                aria-label="Visualizar em lista"
+              >
+                <IconListDetails className="size-4" />
+              </GlassPill>
+            </div>
           </div>
         </div>
       </div>
