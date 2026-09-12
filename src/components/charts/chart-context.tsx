@@ -1,7 +1,7 @@
 "use client";
 
-import type { ChartSelection } from "@/app/components/charts/use-chart-interaction";
 import type { scaleBand, scaleLinear, scaleTime } from "@visx/scale";
+import type { ChartSelection } from "@/app/components/charts/use-chart-interaction";
 
 type ScaleLinear<Output, _Input = number> = ReturnType<
   typeof scaleLinear<Output>

@@ -1,8 +1,7 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
-
 import { IconSparkles, IconX } from "@tabler/icons-react";
+import { useQueries } from "@tanstack/react-query";
 import {
   AnimatePresence,
   motion,
@@ -13,17 +12,23 @@ import {
 } from "motion/react";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { CardImage } from "@/app/components/CardImage";
 import { api, type Card, type RarityExample } from "@/lib/api";
 import { queryKeys, useCardDetail } from "@/lib/queries";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
-import { imagemDaCarta } from "@/lib/card-image";
 
 // Derivado do catálogo para não ficar pra trás quando um TCG é habilitado.
-const SHORT_NAME: Record<string, string> = { magic: "Magic", lorcana: "Lorcana" };
+const SHORT_NAME: Record<string, string> = {
+  magic: "Magic",
+  lorcana: "Lorcana",
+};
 
 const TCGS: { slug: string; name: string }[] = TCG_CATALOG.filter(
   (t) => t.supported && t.slug,
-).map((t) => ({ slug: t.slug as string, name: SHORT_NAME[t.slug as string] ?? t.name }));
+).map((t) => ({
+  slug: t.slug as string,
+  name: SHORT_NAME[t.slug as string] ?? t.name,
+}));
 
 /**
  * Imagem de carta com tilt 3D no cursor + brilho (glare). `object-contain` +
@@ -50,8 +55,16 @@ function TiltImage({
   const py = useMotionValue(0);
   const mx = useSpring(px, { stiffness: 220, damping: 18 });
   const my = useSpring(py, { stiffness: 220, damping: 18 });
-  const rotateX = useTransform(my, [-0.5, 0.5], [`${strength}deg`, `${-strength}deg`]);
-  const rotateY = useTransform(mx, [-0.5, 0.5], [`${-strength}deg`, `${strength}deg`]);
+  const rotateX = useTransform(
+    my,
+    [-0.5, 0.5],
+    [`${strength}deg`, `${-strength}deg`],
+  );
+  const rotateY = useTransform(
+    mx,
+    [-0.5, 0.5],
+    [`${-strength}deg`, `${strength}deg`],
+  );
   const glareX = useTransform(mx, [-0.5, 0.5], ["0%", "100%"]);
   const glareY = useTransform(my, [-0.5, 0.5], ["0%", "100%"]);
   const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.28), transparent 55%)`;
@@ -127,7 +140,11 @@ function RarityCard({
         onClick={onOpen}
         className="group block w-full cursor-pointer text-left"
       >
-        <TiltImage imageUrl={item.imageUrl} rarity={item.rarity} sizes="(max-width: 640px) 45vw, 220px" />
+        <TiltImage
+          imageUrl={item.imageUrl}
+          rarity={item.rarity}
+          sizes="(max-width: 640px) 45vw, 220px"
+        />
         <div className="mt-2.5 px-0.5">
           <p className="truncate text-sm font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
             {item.rarity}
@@ -153,23 +170,41 @@ type TourStep = {
 // mais genérico (casamos por "inclui a chave").
 const RARITY_HELP: Record<string, { key: string; text: string }[]> = {
   yugioh: [
-    { key: "quarter century", text: "Selo do 25º aniversário (prata) + nome holográfico." },
-    { key: "starlight", text: "A carta INTEIRA é cristalizada (efeito diamante)." },
+    {
+      key: "quarter century",
+      text: "Selo do 25º aniversário (prata) + nome holográfico.",
+    },
+    {
+      key: "starlight",
+      text: "A carta INTEIRA é cristalizada (efeito diamante).",
+    },
     { key: "collector", text: "Holografia escura e metálica em toda a carta." },
     { key: "ultimate", text: "Detalhes em ALTO-RELEVO na arte e bordas." },
     { key: "ghost", text: "Arte prateada 3D 'fantasma'." },
-    { key: "prismatic secret", text: "Holo prismático (linhas) + nome arco-íris." },
+    {
+      key: "prismatic secret",
+      text: "Holo prismático (linhas) + nome arco-íris.",
+    },
     { key: "secret", text: "Nome em holo ARCO-ÍRIS (diagonal, várias cores)." },
     { key: "ultra", text: "Nome em DOURADO + arte holográfica." },
     { key: "super", text: "Arte holográfica (foil), nome em prata." },
     { key: "gold", text: "Nome e bordas DOURADOS." },
     { key: "platinum", text: "Efeito platina prateado texturizado." },
-    { key: "rare", text: "Nome em PRATA (letras prateadas), sem holo na arte." },
+    {
+      key: "rare",
+      text: "Nome em PRATA (letras prateadas), sem holo na arte.",
+    },
     { key: "common", text: "Sem foil, nome em preto — a versão mais comum." },
   ],
   pokemon: [
-    { key: "special illustration", text: "Arte alternativa em full art (fundo todo ilustrado)." },
-    { key: "illustration", text: "Arte que estende além do quadro tradicional." },
+    {
+      key: "special illustration",
+      text: "Arte alternativa em full art (fundo todo ilustrado).",
+    },
+    {
+      key: "illustration",
+      text: "Arte que estende além do quadro tradicional.",
+    },
     { key: "hyper", text: "Textura e nome DOURADOS (gold), no fim do set." },
     { key: "double rare", text: "Duas estrelas pretas — as cartas ex atuais." },
     { key: "ultra", text: "Full Art (V, ex, VMAX, VSTAR...)." },
@@ -185,7 +220,10 @@ const RARITY_HELP: Record<string, { key: string; text: string }[]> = {
     { key: "common", text: "Símbolo de expansão PRETO." },
   ],
   onepiece: [
-    { key: "special", text: "Estrela ★ acima da sigla (arte alternativa/parallel)." },
+    {
+      key: "special",
+      text: "Estrela ★ acima da sigla (arte alternativa/parallel).",
+    },
     { key: "secret", text: "Sigla SEC — arte especial rara." },
     { key: "super", text: "Sigla SR — foil forte." },
     { key: "leader", text: "Sigla L — carta de Líder." },
@@ -331,8 +369,9 @@ function CardModal({
 
         {/* Carta com spotlight na parte do passo atual */}
         <div className="relative aspect-[5/7] w-56 shrink-0 overflow-hidden rounded-xl border border-border bg-gradient-to-b from-muted/60 to-muted sm:w-64">
-          <Image
-            src={imagemDaCarta(item, 'cheia') ?? item.imageUrl}
+          <CardImage
+            carta={item}
+            tamanho="cheia"
             alt={item.rarity}
             fill
             sizes="300px"
@@ -427,8 +466,8 @@ export default function RaridadesPage() {
         </h1>
         <p className="mt-3 text-sm text-muted-foreground sm:text-base">
           Passe o mouse nas cartas para vê-las em 3D e clique para abrir os
-          detalhes. Cada jogo marca a raridade de um jeito — compare os exemplos,
-          da mais comum à mais rara.
+          detalhes. Cada jogo marca a raridade de um jeito — compare os
+          exemplos, da mais comum à mais rara.
         </p>
       </div>
 

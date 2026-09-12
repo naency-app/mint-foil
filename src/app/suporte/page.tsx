@@ -104,8 +104,8 @@ export default function SuportePage() {
 
         <p style={S.q}>O preço que aparece é o preço da loja brasileira?</p>
         <p style={S.p}>
-          Não. O valor exibido é um <strong>preço de referência</strong>: o preço
-          internacional daquela edição, convertido para real pelo câmbio
+          Não. O valor exibido é um <strong>preço de referência</strong>: o
+          preço internacional daquela edição, convertido para real pelo câmbio
           comercial. É uma estimativa de mercado, sempre rotulada como tal — a
           tela da carta mostra a fonte, o valor original em dólar e o câmbio
           usado. Para conferir o preço real praticado no Brasil, use o link
@@ -116,8 +116,8 @@ export default function SuportePage() {
         <p style={S.q}>O scan não reconheceu minha carta. O que faço?</p>
         <p style={S.p}>
           Fotografe a carta inteira, com boa luz e sem reflexo — o código de
-          colecionador impresso (ex.: <code>LOB-001</code>, <code>4/102</code>) é
-          o que identifica a edição. Se ainda assim não encontrar, você pode
+          colecionador impresso (ex.: <code>LOB-001</code>, <code>4/102</code>)
+          é o que identifica a edição. Se ainda assim não encontrar, você pode
           buscar a carta manualmente pelo nome e escolher a edição correta. Se
           for uma carta que não existe no catálogo, nos avise por e-mail com uma
           foto.
@@ -140,8 +140,8 @@ export default function SuportePage() {
             Mint Foil.
           </li>
           <li style={S.li}>
-            <strong>Android:</strong> Google Play → foto de perfil → Pagamentos e
-            assinaturas → Assinaturas.
+            <strong>Android:</strong> Google Play → foto de perfil → Pagamentos
+            e assinaturas → Assinaturas.
           </li>
         </ul>
         <p style={S.p}>
@@ -157,21 +157,23 @@ export default function SuportePage() {
         </p>
         <p style={S.p}>
           Direto no app, em <strong>Perfil → Config → Excluir conta</strong>. A
-          exclusão é imediata e permanente: remove sua conta, seus portfólios, suas
-          cartas, seus snapshots e seu histórico de scans. Se preferir, envie o
-          pedido para {CONTATO} a partir do e-mail cadastrado e processamos em até
-          15 dias, conforme a LGPD.
+          exclusão é imediata e permanente: remove sua conta, seus portfólios,
+          suas cartas, seus snapshots e seu histórico de scans. Se preferir,
+          envie o pedido para {CONTATO} a partir do e-mail cadastrado e
+          processamos em até 15 dias, conforme a LGPD.
         </p>
         <p style={S.p}>
           Atenção: excluir a conta não cancela uma assinatura ativa — cancele-a
           também na loja, como descrito acima.
         </p>
 
-        <p style={S.q}>Encontrei um preço ou uma carta com informação errada.</p>
+        <p style={S.q}>
+          Encontrei um preço ou uma carta com informação errada.
+        </p>
         <p style={S.p}>
-          Mande o nome da carta, a edição e um print para {CONTATO}. O catálogo e
-          os preços são atualizados diariamente, e correções pontuais entram na
-          próxima atualização.
+          Mande o nome da carta, a edição e um print para {CONTATO}. O catálogo
+          e os preços são atualizados diariamente, e correções pontuais entram
+          na próxima atualização.
         </p>
 
         <h2 style={S.h2}>Documentos</h2>

@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
+import { CardImage } from "@/app/components/CardImage";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
@@ -44,7 +45,6 @@ import {
   usePortfolios,
 } from "@/lib/queries";
 import { cardName, cn } from "@/lib/utils";
-import { imagemDaCarta } from "@/lib/card-image";
 
 // Código utilizável na busca da Liga: precisa ser prefixado por set
 // ("JUSH-EN022", "OP12-108"). Fração/número solto (Pokémon "094/162", Magic
@@ -552,8 +552,9 @@ export default function CardDetailPage({
             aspect fixo com cover. */}
         <div className="lg:col-span-3">
           <div className="glass-card sticky top-20 !rounded-2xl p-2">
-            <Image
-              src={imagemDaCarta(card, 'cheia') ?? card.imageUrl}
+            <CardImage
+              carta={card}
+              tamanho="cheia"
               alt={cardName(card)}
               width={400}
               height={560}

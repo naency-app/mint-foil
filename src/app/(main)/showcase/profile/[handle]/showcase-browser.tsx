@@ -2,9 +2,9 @@
 
 import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import { ArrowUpDown, Search, X } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { CardImage } from "@/app/components/CardImage";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/select";
 import type { Portfolio } from "@/lib/api";
 import type { ShowcasePortfolio } from "./types";
-import { imagemDaCarta } from "@/lib/card-image";
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -274,11 +273,13 @@ export function ShowcaseBrowser({
                   className="glass-card group flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30"
                 >
                   <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
-                    <Image
-                      src={imagemDaCarta(item, 'grade') ?? item.imageUrl}
+                    <CardImage
+                      carta={item}
+                      tamanho="grade"
                       alt={item.name}
                       width={48}
                       height={64}
+                      rotulo={false}
                       className="h-full w-full object-contain"
                     />
                   </div>

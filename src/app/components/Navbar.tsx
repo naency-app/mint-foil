@@ -34,7 +34,6 @@ function isLinkActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -162,7 +161,7 @@ export function Navbar() {
                     <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Tema
                     </span>
-                          </div>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -233,8 +232,7 @@ export function Navbar() {
 
           {/* ── Direita: tema, usuário ── */}
           <div className="flex items-center gap-2 md:justify-self-end">
-            <div className="hidden md:block">
-                </div>
+            <div className="hidden md:block"></div>
 
             <UserMenu />
           </div>

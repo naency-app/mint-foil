@@ -1,6 +1,12 @@
 "use client";
 
-import { IconLogin, IconLogout, IconMoon, IconSettings, IconSun } from "@tabler/icons-react";
+import {
+  IconLogin,
+  IconLogout,
+  IconMoon,
+  IconSettings,
+  IconSun,
+} from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

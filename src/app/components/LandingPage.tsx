@@ -2117,9 +2117,11 @@ function SolutionSection() {
                         transform: "translateY(-50%)",
                         width: "480px",
                         height: "300px",
-                        background: `radial-gradient(ellipse at left center, rgba(248,86,167,${t.isDark ? 0.28 : 0.18
-                          }) 0%, rgba(248,86,167,${t.isDark ? 0.1 : 0.06
-                          }) 45%, transparent 75%)`,
+                        background: `radial-gradient(ellipse at left center, rgba(248,86,167,${
+                          t.isDark ? 0.28 : 0.18
+                        }) 0%, rgba(248,86,167,${
+                          t.isDark ? 0.1 : 0.06
+                        }) 45%, transparent 75%)`,
                         filter: "blur(40px)",
                         pointerEvents: "none",
                       }}
@@ -2204,49 +2206,49 @@ const FEATURE_TABS: {
   mockupIcon: ReactNode;
   video?: string;
 }[] = [
-    {
-      value: "scan",
-      icon: <Camera size={15} />,
-      label: "Scan Inteligente",
-      desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
-      mockupIcon: <ScanLine size={40} />,
-    },
-    {
-      value: "precos",
-      icon: <DollarSign size={15} />,
-      label: "Preços em Reais",
-      desc: "Valor de referência convertido pra reais e atualizado todos os dias — com o link das lojas BR na tela da carta.",
-      mockupIcon: <TrendingUp size={40} />,
-    },
-    {
-      value: "portfolio",
-      icon: <BarChart3 size={15} />,
-      label: "Portfólio Inteligente",
-      desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
-      mockupIcon: <BarChart3 size={40} />,
-    },
-    {
-      value: "historico",
-      icon: <TrendingUp size={15} />,
-      label: "Histórico de Preços",
-      desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
-      mockupIcon: <TrendingUp size={40} />,
-    },
-    {
-      value: "alertas",
-      icon: <Star size={15} />,
-      label: "Alertas de Valorização",
-      desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
-      mockupIcon: <Star size={40} />,
-    },
-    {
-      value: "multi-tcg",
-      icon: <Gamepad2 size={15} />,
-      label: "4 Jogos, 1 App",
-      desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
-      mockupIcon: <Gamepad2 size={40} />,
-    },
-  ];
+  {
+    value: "scan",
+    icon: <Camera size={15} />,
+    label: "Scan Inteligente",
+    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
+    mockupIcon: <ScanLine size={40} />,
+  },
+  {
+    value: "precos",
+    icon: <DollarSign size={15} />,
+    label: "Preços em Reais",
+    desc: "Valor de referência convertido pra reais e atualizado todos os dias — com o link das lojas BR na tela da carta.",
+    mockupIcon: <TrendingUp size={40} />,
+  },
+  {
+    value: "portfolio",
+    icon: <BarChart3 size={15} />,
+    label: "Portfólio Inteligente",
+    desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
+    mockupIcon: <BarChart3 size={40} />,
+  },
+  {
+    value: "historico",
+    icon: <TrendingUp size={15} />,
+    label: "Histórico de Preços",
+    desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
+    mockupIcon: <TrendingUp size={40} />,
+  },
+  {
+    value: "alertas",
+    icon: <Star size={15} />,
+    label: "Alertas de Valorização",
+    desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
+    mockupIcon: <Star size={40} />,
+  },
+  {
+    value: "multi-tcg",
+    icon: <Gamepad2 size={15} />,
+    label: "4 Jogos, 1 App",
+    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
+    mockupIcon: <Gamepad2 size={40} />,
+  },
+];
 
 const CARD_W = 600;
 const CARD_GAP = 24;
@@ -2407,8 +2409,9 @@ function KeyFeatures() {
                   flexShrink: 0,
                   // No dark, mesma cor dos tiles da Solução (sem o azul navy)
                   background: t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg,
-                  border: `1px solid ${t.isDark ? "rgba(255,255,255,0.08)" : t.border
-                    }`,
+                  border: `1px solid ${
+                    t.isDark ? "rgba(255,255,255,0.08)" : t.border
+                  }`,
                   borderRadius: "16px",
                   overflow: "hidden",
                   cursor: activeIdx === i ? "default" : "pointer",
@@ -3029,15 +3032,15 @@ const SOCIAL_LINKS: {
   label: string;
   href?: string;
 }[] = [
-    {
-      id: "instagram",
-      icon: <Instagram size={15} />,
-      label: "Instagram",
-      href: "https://instagram.com/mintfoil",
-    },
-    { id: "youtube", icon: <Youtube size={15} />, label: "YouTube" },
-    { id: "twitter", icon: <Twitter size={15} />, label: "X / Twitter" },
-  ];
+  {
+    id: "instagram",
+    icon: <Instagram size={15} />,
+    label: "Instagram",
+    href: "https://instagram.com/mintfoil",
+  },
+  { id: "youtube", icon: <Youtube size={15} />, label: "YouTube" },
+  { id: "twitter", icon: <Twitter size={15} />, label: "X / Twitter" },
+];
 
 function FooterSection() {
   const isMobile = useIsMobile();
@@ -3460,9 +3463,8 @@ export function LandingPage({
         window.innerHeight - 2,
       );
       while (node) {
-        const m = getComputedStyle(node).backgroundColor.match(
-          /^rgba?\(([^)]+)\)/,
-        );
+        const m =
+          getComputedStyle(node).backgroundColor.match(/^rgba?\(([^)]+)\)/);
         if (m) {
           const c = m[1].split(",").map(Number);
           // Só cor opaca serve: translúcida deixa passar o que está atrás

@@ -16,6 +16,7 @@ import { useParams } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { CardImage } from "@/app/components/CardImage";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -53,7 +54,6 @@ import {
   usePortfolios,
   useSetBySlug,
 } from "@/lib/queries";
-import { imagemDaCarta } from "@/lib/card-image";
 
 type CollectionMap = Record<string, number>;
 
@@ -146,11 +146,13 @@ function ListRow({
     <Link href={`/card/${card.id}`} className="block">
       <div className="glass-card flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30 group">
         <div className="shrink-0 size-12 rounded-md overflow-hidden">
-          <Image
-            src={imagemDaCarta(card, "grade") ?? card.imageUrl}
+          <CardImage
+            carta={card}
+            tamanho="grade"
             alt={card.name}
             width={48}
             height={48}
+            rotulo={false}
             className="w-full h-full object-cover"
           />
         </div>
@@ -313,17 +315,12 @@ function SetCardsPageContent() {
         (c) => c.rarity && selectedRarities.includes(c.rarity),
       );
     }
-
-    // Client-side aqui é correto: `cards` é a coleção COMPLETA (ver
-    // SET_CARDS_LIMIT), não uma página dela.
-    {
-      if (priceRange) {
-        const [min, max] = priceRange;
-        result = result.filter((c) => {
-          const p = getLatestPrice(c);
-          return p >= min && p <= max;
-        });
-      }
+    if (priceRange) {
+      const [min, max] = priceRange;
+      result = result.filter((c) => {
+        const p = getLatestPrice(c);
+        return p >= min && p <= max;
+      });
     }
 
     return [...result].sort((a, b) => {

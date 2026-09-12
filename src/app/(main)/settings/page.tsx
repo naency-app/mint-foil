@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Suspense, useEffect, useState } from "react";
+import { CardImage } from "@/app/components/CardImage";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,6 @@ import { cn } from "@/lib/utils";
 import { CoverPicker } from "./cover-picker";
 import { DeleteAccount } from "./delete-account";
 import { ProfileForm } from "./profile-form";
-import { imagemDaCarta } from "@/lib/card-image";
 
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
@@ -737,10 +737,12 @@ function SettingsContent() {
                               #{i + 1}
                             </span>
                             <div className="relative size-10 rounded overflow-hidden shrink-0 border border-border bg-muted">
-                              <Image
-                                src={imagemDaCarta(card, 'grade') ?? card.imageUrl}
+                              <CardImage
+                                carta={card}
+                                tamanho="grade"
                                 alt={card.name}
                                 fill
+                                rotulo={false}
                                 className="object-cover"
                               />
                             </div>

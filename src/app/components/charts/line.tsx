@@ -1,8 +1,8 @@
 "use client";
 
-import { chartCssVars, useChart } from "@/components/charts/chart-context";
 import { curveNatural } from "@visx/curve";
 import { LinePath } from "@visx/shape";
+import { chartCssVars, useChart } from "@/components/charts/chart-context";
 
 // CurveFactory type - simplified version compatible with visx
 // biome-ignore lint/suspicious/noExplicitAny: d3 curve factory type

@@ -1,7 +1,7 @@
 "use client";
 
+import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Calendar } from "lucide-react";
 
 export default function TermsPage() {
   return (

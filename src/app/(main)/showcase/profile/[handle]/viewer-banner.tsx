@@ -19,9 +19,8 @@ export function ViewerBanner({
   const { data: session } = useSession();
   const [copied, setCopied] = useState(false);
 
-  const viewerHandle = (
-    session?.user as { handle?: string } | undefined
-  )?.handle;
+  const viewerHandle = (session?.user as { handle?: string } | undefined)
+    ?.handle;
   const isOwner =
     !!viewerHandle && viewerHandle.toLowerCase() === handle.toLowerCase();
 

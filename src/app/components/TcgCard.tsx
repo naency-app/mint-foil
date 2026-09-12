@@ -1,17 +1,16 @@
 "use client";
 
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
+import { CardImage } from "@/app/components/CardImage";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
-import { imagemDaCarta } from "@/lib/card-image";
 
 export interface TcgCardProps {
   name: string;
@@ -144,18 +143,9 @@ export function TcgCard({
   const setHref =
     tcgSlug && setSlug ? `/sets/${tcgSlug}/${setSlug}` : undefined;
 
-  /*
-
-    A grade pede _400w: em tile de ~200px numa tela retina, o _200w que vem do
-
-    TCGCSV é esticado ao dobro e fica borrado. A carta aberta usa a variante
-
-    cheia; aqui 180 KB por tile numa lista longa seria desperdício.
-
-  */
-
-  const imagemDaGrade =
-    imagemDaCarta({ imageUrl, images }, "grade") ?? imageUrl;
+  /* A grade pede _400w: em tile de ~200px numa tela retina, o _200w que vem
+     do TCGCSV é esticado ao dobro e fica borrado. A carta aberta usa a
+     variante cheia; aqui 180 KB por tile numa lista longa seria desperdício. */
 
   return (
     <Card className="group h-full w-full overflow-hidden glass-card !rounded-2xl py-0 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/20">
@@ -167,8 +157,9 @@ export function TcgCard({
             ficam concêntricos errados. */}
         {cardHref ? (
           <Link href={cardHref} className="block overflow-hidden p-1">
-            <Image
-              src={imagemDaGrade}
+            <CardImage
+              carta={{ imageUrl, images }}
+              tamanho="grade"
               alt={displayName}
               className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-300 group-hover:scale-[1.012]"
               width={400}
@@ -177,8 +168,9 @@ export function TcgCard({
           </Link>
         ) : (
           <div className="overflow-hidden p-1">
-            <Image
-              src={imagemDaGrade}
+            <CardImage
+              carta={{ imageUrl, images }}
+              tamanho="grade"
               alt={displayName}
               className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-300 group-hover:scale-[1.012]"
               width={400}

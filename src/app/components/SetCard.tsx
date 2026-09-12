@@ -1,9 +1,9 @@
 "use client";
 
-import { type CardSet } from "@/lib/api";
 import { Layers } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import type { CardSet } from "@/lib/api";
 
 /**
  * Último recurso quando nenhuma capa carrega — mesmo comportamento do app

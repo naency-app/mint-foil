@@ -1,21 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { useCamera, type CameraError } from "@/hooks/use-camera";
-import { useSession } from "@/lib/auth-client";
-import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { api } from "@/lib/api";
-import type { Card as CardType } from "@/lib/api";
 import {
   Camera,
   CameraOff,
@@ -35,6 +19,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { type CameraError, useCamera } from "@/hooks/use-camera";
+import type { Card as CardType } from "@/lib/api";
+import { api } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(true);

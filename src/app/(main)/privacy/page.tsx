@@ -1,7 +1,7 @@
 "use client";
 
+import { ArrowLeft, Calendar, Shield } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Shield, Calendar } from "lucide-react";
 
 export default function PrivacyPage() {
   return (
