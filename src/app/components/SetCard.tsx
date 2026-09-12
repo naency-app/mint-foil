@@ -92,7 +92,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
   return (
     <div
       onClick={onClick}
-      className="glass-card group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden !rounded-2xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+      className="glass-card group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden !rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
     >
       <div>
         <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3 border-b border-border">
@@ -103,7 +103,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
               alt={set.name}
               fill
               sizes="(max-w-768px) 100vw, 300px"
-              className={`transition-transform duration-500 group-hover:scale-105 ${
+              className={`transition-transform duration-300 group-hover:scale-[1.012] ${
                 isCardArtCover(cdnUrl) ? "object-contain p-1" : "object-cover"
               }`}
               loading="lazy"

@@ -52,13 +52,13 @@ export default function SetsPage() {
             <Link
               key={item.categoryId}
               href={`/sets/${item.slug}`}
-              className=" group relative block aspect-[1.6] w-full overflow-hidden  transition-all duration-300 hover:-translate-y-0.5"
+              className=" group relative block aspect-[1.6] w-full overflow-hidden  transition-all duration-200 hover:-translate-y-0.5"
             >
               {/* biome-ignore lint/performance/noImgElement: artes locais dos TCGs, sem otimização necessária */}
               <img
                 src={item.image}
                 alt={item.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.012]"
                 loading="lazy"
               />
             </Link>

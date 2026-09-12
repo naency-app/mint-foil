@@ -240,62 +240,66 @@ function TcgSetsPageContent() {
       </nav>
 
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {tcg?.name ?? tcgSlug}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {loading
-              ? "Carregando..."
-              : `${sets.length} sets • ${setsWithCards.length} com cartas catalogadas`}
-          </p>
-        </div>
-
-        {/* Busca ocupa a linha inteira; o contexto do portfólio vem logo abaixo.
-            flex-1: sem isto a coluna encolhe no conteúdo e o w-full do input
-            não chega a lugar nenhum. */}
-        <div className="flex w-full flex-col items-start gap-2 sm:flex-1">
-          <div className="glass-input flex h-11 w-full items-center gap-2.5 px-4">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filtrar sets pelo nome..."
-              className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
-            {search.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-          {/* Esta busca é de SETS. Quem digita nome de carta aqui não acha e
-              conclui que o app não tem — o catálogo fica a um clique. */}
-          {search.length > 0 && (
-            <Link
-              href={`/explore?q=${encodeURIComponent(search)}`}
-              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-            >
-              Procurando uma carta? Buscar "{search}" no catálogo →
-            </Link>
-          )}
-
-          {portfolios.length > 0 && (
-            <PortfolioSelector
-              portfolios={portfolios}
-              activePortfolioId={activePortfolioId}
-              onSelect={setActivePortfolioId}
-              onRefresh={invalidateCollection}
-              labelPrefix="Adicionando em"
-            />
-          )}
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">
+          {tcg?.name ?? tcgSlug}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {loading
+            ? "Carregando..."
+            : `${sets.length} sets • ${setsWithCards.length} com cartas catalogadas`}
+        </p>
       </div>
+
+      {/* Mesmo painel de busca do Explore e da página da coleção: a busca é a
+          ação principal e não pode dividir a linha com o título, encolhida a
+          meia largura. */}
+      <div className="rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
+        <h2 className="mb-3 text-base font-bold tracking-tight text-foreground">
+          Buscar sets
+        </h2>
+        <div className="glass-input flex h-12 w-full items-center gap-2.5 px-4">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filtrar sets pelo nome..."
+            className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {search.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+        {/* Esta busca é de SETS. Quem digita nome de carta aqui não acha e
+            conclui que o app não tem — o catálogo fica a um clique. */}
+        {search.length > 0 && (
+          <Link
+            href={`/explore?q=${encodeURIComponent(search)}`}
+            className="mt-3 inline-block text-xs font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            Procurando uma carta? Buscar "{search}" no catálogo →
+          </Link>
+        )}
+      </div>
+
+      {/* Controles da tela, fora do painel — mesma posição das outras páginas */}
+      {portfolios.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <PortfolioSelector
+            portfolios={portfolios}
+            activePortfolioId={activePortfolioId}
+            onSelect={setActivePortfolioId}
+            onRefresh={invalidateCollection}
+            labelPrefix="Adicionando em"
+          />
+        </div>
+      )}
 
       {/* Sidebar de filtros aparente + conteúdo (sem items-start: o aside
           estica na linha e o sticky acompanha o scroll) */}
