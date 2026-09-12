@@ -11,8 +11,8 @@ import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
 import { imagemDaCarta } from "@/lib/card-image";
+import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
   name: string;
@@ -155,119 +155,146 @@ export function TcgCard({
 
   */
 
-  const imagemDaGrade = imagemDaCarta({ imageUrl, images }, "grade") ?? imageUrl;
-
+  const imagemDaGrade =
+    imagemDaCarta({ imageUrl, images }, "grade") ?? imageUrl;
 
   return (
-    <Card className="group w-full h-full overflow-hidden glass-card !rounded-2xl shadow-none hover:bg-muted/30 transition-all duration-300 hover:-translate-y-1 py-0">
-      <CardContent className="p-0 flex-1">
+    <Card className="group h-full w-full overflow-hidden glass-card !rounded-2xl py-0 shadow-none transition-all duration-300 hover:-translate-y-1 hover:bg-muted/30">
+      <CardContent className="relative p-0">
+        {/* A arte ocupa o tile inteiro, sem moldura: o padding de 8px encolhia
+            a carta duas vezes (a margem, e a altura que sobrava para ela) e o
+            que o olho batia primeiro era o card da UI, não a carta. */}
         {cardHref ? (
-          <Link href={cardHref} className="block overflow-hidden p-2">
+          <Link href={cardHref} className="block overflow-hidden">
             <Image
               src={imagemDaGrade}
               alt={displayName}
-              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              width={200}
-              height={200}
+              className="aspect-[5/7] w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+              width={400}
+              height={560}
             />
           </Link>
         ) : (
-          <div className="overflow-hidden p-2">
+          <div className="overflow-hidden">
             <Image
               src={imagemDaGrade}
               alt={displayName}
-              className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              width={200}
-              height={200}
+              className="aspect-[5/7] w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+              width={400}
+              height={560}
             />
           </div>
         )}
+
+        {/* Quantidade sobre a arte, não numa linha própria embaixo: o que
+            interessa é "eu tenho?" ao correr o olho pela grade. Só aparece
+            quando o número quer dizer alguma coisa — com portfólio ativo ou
+            com carta já na coleção; para visitante deslogado seria um zero
+            em cima de toda carta da tela. */}
+        {(localQty > 0 || defaultPortfolioId) && (
+          <span
+            className={cn(
+              "absolute left-2 top-2 flex items-center gap-1 rounded-lg px-1.5 py-0.5 font-mono text-[10px] font-bold backdrop-blur-sm",
+              localQty > 0
+                ? "bg-background/85 text-foreground"
+                : "bg-background/60 text-muted-foreground",
+            )}
+            title={`${localQty} na coleção`}
+          >
+            <RollingNumber value={localQty} fontSize={10} />
+            <span className="font-sans font-semibold text-muted-foreground">
+              un.
+            </span>
+          </span>
+        )}
       </CardContent>
 
-      <div className="p-3 space-y-1">
+      <div className="space-y-1 p-2.5">
+        {/* Uma linha só: o min-h de duas linhas reservava espaço vazio em
+            toda carta de nome curto, e era esse espaço que empurrava a arte
+            para cima e a deixava pequena. */}
         {cardHref ? (
           <Link href={cardHref}>
-            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
+            <h3 className="truncate text-sm font-bold leading-snug text-foreground transition-colors hover:text-primary">
               {displayName}
             </h3>
           </Link>
         ) : (
-          <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem]">
+          <h3 className="truncate text-sm font-bold leading-snug text-foreground">
             {displayName}
           </h3>
         )}
-        {setName && (
-          <>
-            {setHref ? (
-              <Link
-                href={setHref}
-                onClick={(e) => e.stopPropagation()}
-                className="text-xs text-tertiary hover:text-tertiary-hover underline underline-offset-2 truncate leading-tight block transition-colors"
-              >
-                {setName}
-              </Link>
-            ) : (
-              <p className="text-xs text-tertiary truncate leading-tight">
-                {setName}
-              </p>
+
+        {setName &&
+          (setHref ? (
+            <Link
+              href={setHref}
+              onClick={(e) => e.stopPropagation()}
+              className="block truncate text-[11px] leading-tight text-tertiary underline underline-offset-2 transition-colors hover:text-tertiary-hover"
+            >
+              {setName}
+            </Link>
+          ) : (
+            <p className="truncate text-[11px] leading-tight text-tertiary">
+              {setName}
+            </p>
+          ))}
+
+        {(rarity || collectorNumber) && (
+          <p className="truncate text-[10px] leading-tight">
+            {rarity && <span className="text-muted-foreground">{rarity}</span>}
+            {rarity && collectorNumber && (
+              <span className="text-muted-foreground"> • </span>
             )}
-          </>
+            {collectorNumber && (
+              <span className="font-mono font-bold tracking-tight text-foreground/85">
+                {collectorNumber}
+              </span>
+            )}
+          </p>
         )}
 
-        <p className="text-[10px] leading-tight">
-          {rarity && <span className="text-muted-foreground">{rarity}</span>}
-          {rarity && collectorNumber && (
-            <span className="text-muted-foreground"> • </span>
-          )}
-          {collectorNumber ? (
-            <span className="font-mono font-bold text-foreground/85 tracking-tight">
-              {collectorNumber}
-            </span>
-          ) : (
-            !rarity && <span className="text-muted-foreground">{setName}</span>
-          )}
-        </p>
-        <div className="pt-1.5 border-t border-border space-y-0.5 flex justify-between">
-          <div className="flex flex-col items-start justify-between gap-2">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-bold text-foreground font-mono">
+        <div className="flex items-end justify-between gap-2 border-t border-border pt-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-sm font-bold text-foreground">
                 R$ {price}
               </span>
-              <span className="text-[9px] text-muted-foreground leading-tight">
-                internacional
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
+              {/* Só o percentual no tile: o valor absoluto junto virava uma
+                  linha longa que truncava em grade de 5 colunas. Ele continua
+                  inteiro na página da carta. */}
+              {/* A seta fica: quem não distingue verde de vermelho lê a
+                  direção pela forma, não só pela cor. */}
               {isPositive ? (
-                <IconTrendingUp className="size-3 text-emerald-400 shrink-0" />
+                <IconTrendingUp className="size-3 shrink-0 text-emerald-400" />
               ) : (
-                <IconTrendingDown className="size-3 text-red-400 shrink-0" />
+                <IconTrendingDown className="size-3 shrink-0 text-red-400" />
               )}
               <span
-                className={`text-[10px] font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                className={`font-mono text-[10px] ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                title={
+                  priceChange !== undefined
+                    ? `${isPositive ? "+" : ""}R$ ${formatPrice(priceChange)}`
+                    : undefined
+                }
               >
-                {priceChange !== undefined
-                  ? `${isPositive ? "+" : ""}R$ ${formatPrice(priceChange)} (${isPositive ? "+" : ""}${change.toFixed(2)}%)`
-                  : `${isPositive ? "+" : ""}${change.toFixed(2)}%`}
+                {isPositive ? "+" : ""}
+                {change.toFixed(2)}%
               </span>
             </div>
-            {/* O rótulo fica parado; só os algarismos rolam */}
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
-              Quant.
-              <RollingNumber value={localQty} fontSize={10} />
+            <span className="text-[9px] leading-tight text-muted-foreground">
+              internacional
             </span>
           </div>
 
-          <div className="flex items-end">
-            {cardId && (
-              <AddIconButton
-                onClick={handleAdd}
-                success={success}
-                successId={successId}
-                title="Adicionar ao portfólio"
-              />
-            )}
-          </div>
+          {cardId && (
+            <AddIconButton
+              onClick={handleAdd}
+              success={success}
+              successId={successId}
+              title="Adicionar ao portfólio"
+            />
+          )}
         </div>
       </div>
     </Card>
