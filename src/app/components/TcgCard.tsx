@@ -158,7 +158,7 @@ export function TcgCard({
     imagemDaCarta({ imageUrl, images }, "grade") ?? imageUrl;
 
   return (
-    <Card className="group h-full w-full overflow-hidden glass-card !rounded-2xl py-0 shadow-none transition-all duration-300 hover:-translate-y-1 hover:bg-muted/30">
+    <Card className="group h-full w-full overflow-hidden glass-card !rounded-2xl py-0 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/20">
       <CardContent className="relative p-0">
         {/* A arte manda no tile: 4px de respiro só para ela não encostar na
             borda do card (os 8px de antes encolhiam a carta duas vezes — a
@@ -170,7 +170,7 @@ export function TcgCard({
             <Image
               src={imagemDaGrade}
               alt={displayName}
-              className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+              className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-300 group-hover:scale-[1.012]"
               width={400}
               height={560}
             />
@@ -180,7 +180,7 @@ export function TcgCard({
             <Image
               src={imagemDaGrade}
               alt={displayName}
-              className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+              className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-300 group-hover:scale-[1.012]"
               width={400}
               height={560}
             />
