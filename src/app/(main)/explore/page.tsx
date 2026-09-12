@@ -39,6 +39,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { CardImage } from "@/app/components/CardImage";
+import { useQuickAdd } from "@/app/components/QuickAdd";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -324,6 +325,7 @@ function ListRow({
   const [adding, setAdding] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+  const { pedirLogin } = useQuickAdd();
 
   async function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
@@ -332,7 +334,18 @@ function ListRow({
     if (!activePortfolioId) {
       // Logado sem portfólio ativo → pede pra selecionar (não chuta pro login)
       if (!session?.user) {
-        router.push("/login");
+        pedirLogin({
+          id: card.id,
+          name: card.name,
+          namePt: card.namePt,
+          imageUrl: card.imageUrl,
+          images: card.images,
+          setName: card.setName,
+          rarity: card.rarity,
+          collectorNumber: card.collectorNumber,
+          price: formatPrice(displayPrice),
+          change: getPriceChange(card),
+        });
       } else {
         toast.error("Selecione um portfólio para adicionar");
       }

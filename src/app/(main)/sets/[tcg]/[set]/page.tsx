@@ -184,6 +184,18 @@ function ListRow({
           cardId={card.id}
           defaultPortfolioId={activePortfolioId}
           onSuccess={onAdd}
+          carta={{
+            id: card.id,
+            name: card.name,
+            namePt: card.namePt,
+            imageUrl: card.imageUrl,
+            images: card.images,
+            setName: card.setName,
+            rarity: card.rarity,
+            collectorNumber: card.collectorNumber,
+            price: formatPrice(getLatestPrice(card)),
+            change: getPriceChange(card),
+          }}
           triggerClassName="shrink-0 size-8 rounded-full border border-emerald-500/50 text-emerald-600 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
         />
       </div>

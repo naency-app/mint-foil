@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
+import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
@@ -68,6 +69,7 @@ export function TcgCard({
   const [successId, setSuccessId] = useState(0);
   const router = useRouter();
   const { data: session } = useSession();
+  const { pedirLogin } = useQuickAdd();
   // Cliques acumulam num contador e só viram 1 request + 1 animação depois que
   // o usuário para de clicar (debounce). Assim dá pra adicionar 3 rápido sem
   // esperar a animação de cada uma.
@@ -92,7 +94,20 @@ export function TcgCard({
     if (!defaultPortfolioId) {
       // Sem portfólio ativo: só é login se realmente não estiver logado.
       if (!session?.user) {
-        router.push("/login");
+        // Mostra a carta escolhida e oferece entrar — jogar direto no /login
+        // faz a pessoa perder de vista o que estava adicionando.
+        pedirLogin({
+          id: cardId,
+          name,
+          namePt,
+          imageUrl,
+          images,
+          setName,
+          rarity,
+          collectorNumber,
+          price,
+          change,
+        });
       } else {
         toast.error("Selecione um portfólio para adicionar");
       }

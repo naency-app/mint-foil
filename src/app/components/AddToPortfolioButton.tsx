@@ -8,10 +8,12 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { AnimatedCheck } from "@/app/components/AnimatedCheck";
+import { type CartaQuickAdd, useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, type Portfolio } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
   sortByFavorite,
@@ -48,6 +51,12 @@ interface AddToPortfolioButtonProps {
   defaultPortfolioId?: string;
   triggerClassName?: string;
   onSuccess?: () => void;
+  /**
+   * Dados da carta para o diálogo de "entrar para adicionar". Sem eles o botão
+   * deslogado só manda para o /login — funciona, mas a pessoa perde de vista o
+   * que estava adicionando.
+   */
+  carta?: CartaQuickAdd;
 }
 
 export function AddToPortfolioButton({
@@ -55,7 +64,11 @@ export function AddToPortfolioButton({
   defaultPortfolioId,
   triggerClassName,
   onSuccess,
+  carta,
 }: AddToPortfolioButtonProps) {
+  const { data: session } = useSession();
+  const { pedirLogin } = useQuickAdd();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [selectedPortfolioId, setSelectedPortfolioId] = useState(
@@ -155,7 +168,19 @@ export function AddToPortfolioButton({
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(aberto) => {
+          // Deslogado o popover não tem o que mostrar — não há portfólio para
+          // escolher. Vira o diálogo de entrar, com a carta à vista.
+          if (aberto && !session?.user) {
+            if (carta) pedirLogin(carta);
+            else router.push("/login");
+            return;
+          }
+          setOpen(aberto);
+        }}
+      >
         <PopoverTrigger asChild>
           <Button
             type="button"

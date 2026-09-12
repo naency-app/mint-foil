@@ -20,6 +20,7 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
+import { useQuickAdd } from "@/app/components/QuickAdd";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
@@ -262,6 +263,7 @@ export default function CardDetailPage({
   const loading = cardQuery.isPending;
   const error = cardQuery.error ? cardQuery.error.message : null;
   const { data: session } = useSession();
+  const { pedirLogin } = useQuickAdd();
   const router = useRouter();
   // Lista compartilhada com Explore/Portfólio pela chave ['portfolios'] — antes
   // esta página buscava a mesma lista DUAS vezes (aqui e dentro do fetch de
@@ -377,7 +379,22 @@ export default function CardDetailPage({
 
   const handleQtyChange = (delta: number) => {
     if (!session?.user) {
-      router.push("/login");
+      // Só faz sentido oferecer login para SOMAR — quem está deslogado não tem
+      // o que remover.
+      if (delta > 0 && card) {
+        pedirLogin({
+          id: card.id,
+          name: card.name,
+          namePt: card.namePt,
+          imageUrl: card.imageUrl,
+          images: card.images,
+          setName: card.setName,
+          rarity: card.rarity,
+          collectorNumber: card.collectorNumber,
+          price: formatPrice(headlineBrl),
+          change: changePercent,
+        });
+      }
       return;
     }
     lastDelta.current = delta;
