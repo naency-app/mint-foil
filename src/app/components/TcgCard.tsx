@@ -160,25 +160,27 @@ export function TcgCard({
   return (
     <Card className="group h-full w-full overflow-hidden glass-card !rounded-2xl py-0 shadow-none transition-all duration-300 hover:-translate-y-1 hover:bg-muted/30">
       <CardContent className="relative p-0">
-        {/* A arte ocupa o tile inteiro, sem moldura: o padding de 8px encolhia
-            a carta duas vezes (a margem, e a altura que sobrava para ela) e o
-            que o olho batia primeiro era o card da UI, não a carta. */}
+        {/* A arte manda no tile: 4px de respiro só para ela não encostar na
+            borda do card (os 8px de antes encolhiam a carta duas vezes — a
+            margem, e a altura que sobrava para ela). O raio interno é menor
+            que o do card na mesma medida do respiro, senão os dois cantos
+            ficam concêntricos errados. */}
         {cardHref ? (
-          <Link href={cardHref} className="block overflow-hidden">
+          <Link href={cardHref} className="block overflow-hidden p-1">
             <Image
               src={imagemDaGrade}
               alt={displayName}
-              className="aspect-[5/7] w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+              className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               width={400}
               height={560}
             />
           </Link>
         ) : (
-          <div className="overflow-hidden">
+          <div className="overflow-hidden p-1">
             <Image
               src={imagemDaGrade}
               alt={displayName}
-              className="aspect-[5/7] w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+              className="aspect-[5/7] w-full rounded-xl object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               width={400}
               height={560}
             />
