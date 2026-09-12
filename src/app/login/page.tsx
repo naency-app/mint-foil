@@ -107,7 +107,7 @@ function LoginContent() {
           onClick={handleGoogleSignIn}
           isLoading={loadingGoogle}
           icon={<GoogleIcon />}
-          className="h-11 w-full rounded-full border-border bg-card text-foreground hover:bg-muted/40"
+          className="h-11 w-full rounded-xl border-border bg-card text-foreground hover:bg-muted/40"
         >
           Continuar com Google
         </Button>

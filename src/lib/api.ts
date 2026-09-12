@@ -244,6 +244,23 @@ function cardQueryParams(q: CardQuery): URLSearchParams {
   return params;
 }
 
+/**
+ * Erro da API com o status HTTP junto.
+ *
+ * Sem o status, quem chama só tem a mensagem — e "Erro ao adicionar carta" é a
+ * mesma frase para sessão expirada (401) e para banco fora do ar. A tela precisa
+ * distinguir: no 401 a saída é entrar de novo, não tentar de novo.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -257,7 +274,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `API error: ${res.status}`);
+    throw new ApiError(body.message || `API error: ${res.status}`, res.status);
   }
 
   return res.json();

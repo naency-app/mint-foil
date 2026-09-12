@@ -70,6 +70,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   api,
+  ApiError,
   type CardQuery,
   type CardSet,
   type CardSort,
@@ -324,31 +325,39 @@ function ListRow({
   const displayPrice = tcgPrice;
   const [adding, setAdding] = useState(false);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, isPending: sessaoCarregando } = useSession();
   const { pedirLogin } = useQuickAdd();
+
+  function cartaParaLogin() {
+    return {
+      id: card.id,
+      name: card.name,
+      namePt: card.namePt,
+      imageUrl: card.imageUrl,
+      images: card.images,
+      setName: card.setName,
+      rarity: card.rarity,
+      collectorNumber: card.collectorNumber,
+      price: formatPrice(displayPrice),
+      change: getPriceChange(card),
+    };
+  }
 
   async function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (adding) return;
+
+    // Sessão ANTES de portfólio: o portfólio ativo mora no navegador e
+    // sobrevive ao logout. Na ordem inversa, a gravação saía sem sessão e o 401
+    // virava "Erro ao adicionar carta".
+    if (sessaoCarregando) return;
+    if (!session?.user) {
+      pedirLogin(cartaParaLogin());
+      return;
+    }
     if (!activePortfolioId) {
-      // Logado sem portfólio ativo → pede pra selecionar (não chuta pro login)
-      if (!session?.user) {
-        pedirLogin({
-          id: card.id,
-          name: card.name,
-          namePt: card.namePt,
-          imageUrl: card.imageUrl,
-          images: card.images,
-          setName: card.setName,
-          rarity: card.rarity,
-          collectorNumber: card.collectorNumber,
-          price: formatPrice(displayPrice),
-          change: getPriceChange(card),
-        });
-      } else {
-        toast.error("Selecione um portfólio para adicionar");
-      }
+      toast.error("Selecione um portfólio para adicionar");
       return;
     }
     setAdding(true);
@@ -361,8 +370,12 @@ function ListRow({
       });
       toast.success("Adicionado ao portfólio!");
       onAdd();
-    } catch {
-      toast.error("Erro ao adicionar carta");
+    } catch (erro) {
+      if (erro instanceof ApiError && erro.status === 401) {
+        pedirLogin(cartaParaLogin());
+      } else {
+        toast.error("Erro ao adicionar carta");
+      }
     } finally {
       setAdding(false);
     }

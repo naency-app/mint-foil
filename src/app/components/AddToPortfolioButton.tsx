@@ -66,7 +66,7 @@ export function AddToPortfolioButton({
   onSuccess,
   carta,
 }: AddToPortfolioButtonProps) {
-  const { data: session } = useSession();
+  const { data: session, isPending: sessaoCarregando } = useSession();
   const { pedirLogin } = useQuickAdd();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -173,7 +173,9 @@ export function AddToPortfolioButton({
         onOpenChange={(aberto) => {
           // Deslogado o popover não tem o que mostrar — não há portfólio para
           // escolher. Vira o diálogo de entrar, com a carta à vista.
-          if (aberto && !session?.user) {
+          // `sessaoCarregando` evita concluir "deslogado" no primeiro clique,
+          // antes de a sessão chegar.
+          if (aberto && !sessaoCarregando && !session?.user) {
             if (carta) pedirLogin(carta);
             else router.push("/login");
             return;

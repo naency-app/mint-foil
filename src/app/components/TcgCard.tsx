@@ -10,7 +10,7 @@ import { CardImage } from "@/app/components/CardImage";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 
 export interface TcgCardProps {
@@ -68,7 +68,7 @@ export function TcgCard({
   // Troca a cada confirmação para remontar a animação e ela rodar de novo
   const [successId, setSuccessId] = useState(0);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, isPending: sessaoCarregando } = useSession();
   const { pedirLogin } = useQuickAdd();
   // Cliques acumulam num contador e só viram 1 request + 1 animação depois que
   // o usuário para de clicar (debounce). Assim dá pra adicionar 3 rápido sem
@@ -87,30 +87,41 @@ export function TcgCard({
     };
   }, []);
 
+  function cartaParaLogin() {
+    return {
+      id: cardId as string,
+      name,
+      namePt,
+      imageUrl,
+      images,
+      setName,
+      rarity,
+      collectorNumber,
+      price,
+      change,
+    };
+  }
+
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (!cardId) return;
+
+    // Sessão ANTES de portfólio: o portfólio ativo fica guardado no navegador e
+    // sobrevive ao logout. Perguntando na ordem inversa, quem tinha entrado
+    // antes caía no ramo "tem portfólio", a gravação ia para a API sem sessão e
+    // voltava 401 — que a tela traduzia como "Erro ao adicionar carta".
+    if (!sessaoCarregando && !session?.user) {
+      // Mostra a carta escolhida e oferece entrar — jogar direto no /login
+      // faz a pessoa perder de vista o que estava adicionando.
+      pedirLogin(cartaParaLogin());
+      return;
+    }
+    // Sessão ainda chegando: não dá para afirmar nada. O clique seria um
+    // palpite, e errar aqui é oferecer login a quem já entrou.
+    if (sessaoCarregando) return;
     if (!defaultPortfolioId) {
-      // Sem portfólio ativo: só é login se realmente não estiver logado.
-      if (!session?.user) {
-        // Mostra a carta escolhida e oferece entrar — jogar direto no /login
-        // faz a pessoa perder de vista o que estava adicionando.
-        pedirLogin({
-          id: cardId,
-          name,
-          namePt,
-          imageUrl,
-          images,
-          setName,
-          rarity,
-          collectorNumber,
-          price,
-          change,
-        });
-      } else {
-        toast.error("Selecione um portfólio para adicionar");
-      }
+      toast.error("Selecione um portfólio para adicionar");
       return;
     }
 
@@ -146,11 +157,17 @@ export function TcgCard({
             ? `+${qty} adicionadas ao portfólio!`
             : "Adicionado ao portfólio!",
         );
-      } catch {
+      } catch (erro) {
         // Falhou: desfaz o incremento otimista
         setLocalQty((prev) => Math.max(0, prev - qty));
         setSuccess(false);
-        toast.error("Erro ao adicionar carta");
+        // Sessão que expirou no meio do uso: a saída é entrar, não "tente de
+        // novo" — o botão faria exatamente o mesmo 401.
+        if (erro instanceof ApiError && erro.status === 401) {
+          pedirLogin(cartaParaLogin());
+        } else {
+          toast.error("Erro ao adicionar carta");
+        }
       }
     }, 320);
   }
