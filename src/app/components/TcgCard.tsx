@@ -256,8 +256,17 @@ export function TcgCard({
             <span className="block text-[9px] leading-tight text-muted-foreground">
               internacional
             </span>
-            {/* O rótulo fica parado; só os algarismos rolam */}
-            <span className="mt-0.5 flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+            {/* O rótulo fica parado; só os algarismos rolam.
+                Com carta na coleção o número sai do cinza e vai para o emerald
+                — a mesma cor do botão de adicionar. Numa grade de 5 colunas é
+                o que responde "eu já tenho essa?" sem ter que ler o número. */}
+            <span
+              className={`mt-0.5 flex items-center gap-1 font-mono text-[10px] ${
+                localQty > 0
+                  ? "font-bold text-emerald-400"
+                  : "text-muted-foreground"
+              }`}
+            >
               Quant.
               <RollingNumber value={localQty} fontSize={10} />
             </span>
