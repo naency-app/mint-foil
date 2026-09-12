@@ -88,10 +88,24 @@ export function Navbar() {
           "fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out",
           scrolled
             ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-background/60 px-2.5 py-1.5 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(880px,calc(100%-32px))]"
-            : "top-0 w-full bg-transparent px-4 py-2.5 md:px-10 md:py-3",
+            : "top-0 w-full bg-transparent py-2.5 md:py-3",
         )}
       >
-        <div className="flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]">
+        {/*
+          Sem rolagem, a navbar compartilha o contêiner do conteúdo
+          (max-w-7xl + px iguais aos do <main>). Antes ela era w-full com
+          px-10: numa tela larga o logo começava a 40px da borda enquanto o
+          conteúdo começava a ~150px, e as duas bordas nunca se encontravam.
+
+          Com rolagem ela vira a pílula flutuante de 880px, que tem centro
+          próprio — aí o contêiner não se aplica.
+        */}
+        <div
+          className={cn(
+            "flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]",
+            !scrolled && "mx-auto w-full max-w-7xl px-4 sm:px-6",
+          )}
+        >
           {/* ── Esquerda: hambúrguer (mobile) + logo ── */}
           <div className="flex items-center gap-2 md:justify-self-start">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
