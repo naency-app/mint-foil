@@ -1,9 +1,10 @@
 "use client";
 
-import { IconLogin, IconLogout, IconSettings } from "@tabler/icons-react";
+import { IconLogin, IconLogout, IconMoon, IconSettings, IconSun } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "./ui/button";
@@ -18,6 +19,7 @@ import {
 export function UserMenu() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -116,6 +118,30 @@ export function UserMenu() {
         >
           <IconSettings className="size-4 text-muted-foreground" />
           Configurações
+        </DropdownMenuItem>
+
+        {/*
+          Tema mora aqui, junto de Configurações e Sair: é preferência de conta,
+          não ação de navegação. Na barra ele ocupava um lugar de destaque ao
+          lado do avatar para algo que se mexe uma vez e nunca mais.
+
+          `onSelect` com preventDefault para o menu não fechar ao trocar — dá
+          para ver o resultado na hora e voltar atrás sem reabrir.
+        */}
+        <DropdownMenuItem
+          className="cursor-pointer rounded-lg px-2 py-2 text-sm font-medium focus:bg-muted/60"
+          onSelect={(e) => {
+            e.preventDefault();
+            setTheme(resolvedTheme === "dark" ? "light" : "dark");
+          }}
+          suppressHydrationWarning
+        >
+          {resolvedTheme === "dark" ? (
+            <IconSun className="size-4 text-muted-foreground" />
+          ) : (
+            <IconMoon className="size-4 text-muted-foreground" />
+          )}
+          {resolvedTheme === "dark" ? "Tema claro" : "Tema escuro"}
         </DropdownMenuItem>
 
         <DropdownMenuItem

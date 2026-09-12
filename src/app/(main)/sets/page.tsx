@@ -15,7 +15,13 @@ export default function SetsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+      {/*
+        Seis colunas na largura cheia: são ~19 TCGs, e em quatro colunas a lista
+        virava cinco fileiras de cards enormes — muita rolagem para o que é só uma
+        escolha de jogo. O gap também encolhe, porque com tile menor o respiro de
+        24px separava mais do que agrupava.
+      */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         {TCG_CATALOG.map((item) => {
           if (!item.supported) {
             return (

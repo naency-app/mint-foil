@@ -1,10 +1,9 @@
 "use client";
 
-import { IconMenu, IconMoon, IconSun, IconX } from "@tabler/icons-react";
+import { IconMenu, IconX } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { UserMenu } from "@/components/UserMenu";
 import {
@@ -35,26 +34,6 @@ function isLinkActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Toggle redondo primary-tinted, como o da nav da landing */
-function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-
-  return (
-    <button
-      type="button"
-      className="flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary transition-colors hover:bg-primary/15"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      aria-label="Alternar tema"
-      suppressHydrationWarning
-    >
-      <IconSun
-        className="hidden size-3.5 dark:block"
-        suppressHydrationWarning
-      />
-      <IconMoon className="size-3.5 dark:hidden" suppressHydrationWarning />
-    </button>
-  );
-}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -183,8 +162,7 @@ export function Navbar() {
                     <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Tema
                     </span>
-                    <ThemeToggle />
-                  </div>
+                          </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -256,8 +234,7 @@ export function Navbar() {
           {/* ── Direita: tema, usuário ── */}
           <div className="flex items-center gap-2 md:justify-self-end">
             <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
+                </div>
 
             <UserMenu />
           </div>
