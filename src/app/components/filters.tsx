@@ -220,61 +220,37 @@ export function ProductTypeFilter({
 }
 
 export function PriceRangeFilter({
-  isPro,
   value,
   ceil,
   onChange,
-  onUpsell,
 }: {
-  isPro: boolean;
   value: [number, number] | null;
   ceil: number;
   onChange: (v: [number, number]) => void;
-  onUpsell: () => void;
+  /** Aceitos e ignorados: o filtro deixou de ser Pro. */
+  isPro?: boolean;
+  onUpsell?: () => void;
 }) {
+  /*
+    Filtrar não é mais recurso premium. O que o Pro limita é o scan, que tem
+    custo por uso; achar carta na própria coleção é o básico da ferramenta, e
+    cobrar por isso só ensinava que ela trabalha contra quem ainda não paga.
+  */
   return (
-    <FilterSection title="Faixa de Preço" badge="PRO">
-      {isPro ? (
-        <div className="space-y-2 pt-3">
-          <Slider
-            value={value ?? [0, ceil]}
-            onValueChange={(v) => onChange(v as [number, number])}
-            max={ceil}
-            step={5}
-            className="mx-auto w-full"
-          />
-          <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
-            <span>R$ {(value?.[0] ?? 0).toFixed(0)}</span>
-            <span>R$ {(value?.[1] ?? ceil).toFixed(0)}</span>
-          </div>
+    <FilterSection title="Faixa de Preço">
+      <div className="space-y-2 pt-3">
+        <Slider
+          value={value ?? [0, ceil]}
+          onValueChange={(v) => onChange(v as [number, number])}
+          max={ceil}
+          step={5}
+          className="mx-auto w-full"
+        />
+        <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
+          <span>R$ {(value?.[0] ?? 0).toFixed(0)}</span>
+          <span>R$ {(value?.[1] ?? ceil).toFixed(0)}</span>
         </div>
-      ) : (
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={onUpsell}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onUpsell();
-            }
-          }}
-          className="block w-full cursor-pointer space-y-2 rounded pt-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        >
-          <div className="pointer-events-none opacity-60">
-            <Slider
-              defaultValue={[25, 50]}
-              max={100}
-              step={5}
-              className="mx-auto w-full"
-            />
-          </div>
-          <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
-            <span>R$ 25</span>
-            <span>R$ 50</span>
-          </div>
-        </div>
-      )}
+      </div>
     </FilterSection>
   );
 }

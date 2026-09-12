@@ -545,9 +545,8 @@ function ExplorePageContent() {
       rarity: selectedRarities,
       cardType: selectedTypes,
       attribute: selectedAttributes,
-      // Faixa de preço é PRO: sem assinatura o filtro nem viaja.
-      minPrice: isPro ? priceRange?.[0] : undefined,
-      maxPrice: isPro ? priceRange?.[1] : undefined,
+      minPrice: priceRange?.[0],
+      maxPrice: priceRange?.[1],
     }),
     [
       search,

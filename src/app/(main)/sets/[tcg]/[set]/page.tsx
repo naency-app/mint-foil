@@ -313,9 +313,9 @@ function SetCardsPageContent() {
       );
     }
 
-    // Filtros PRO. Client-side aqui é correto: `cards` é a coleção COMPLETA
-    // (ver SET_CARDS_LIMIT), não uma página dela.
-    if (isPro) {
+    // Client-side aqui é correto: `cards` é a coleção COMPLETA (ver
+    // SET_CARDS_LIMIT), não uma página dela.
+    {
       if (priceRange) {
         const [min, max] = priceRange;
         result = result.filter((c) => {
