@@ -681,6 +681,21 @@ function ExplorePageContent() {
     }
   }, []);
 
+  /** Tira um termo do histórico — uma busca errada digitada uma vez ficava no
+      topo da lista para sempre. */
+  const removeRecentSearch = (term: string) => {
+    setRecentSearches((prev) => {
+      const next = prev.filter((x) => x !== term);
+      localStorage.setItem("recent_searches", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const clearRecentSearches = () => {
+    localStorage.removeItem("recent_searches");
+    setRecentSearches([]);
+  };
+
   const saveRecentSearch = (term: string) => {
     if (!term.trim()) return;
     const cleanTerm = term.trim();
@@ -893,17 +908,39 @@ function ExplorePageContent() {
         {searchFocused && !searchInput.trim() && recentSearches.length > 0 && (
           <div className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-lg">
             {recentSearches.map((term) => (
-              <button
+              <div
                 key={term}
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => applyRecentSearch(term)}
-                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-muted/40"
+                className="flex items-center gap-1 transition-colors hover:bg-muted/40"
               >
-                <Clock className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="truncate">{term}</span>
-              </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => applyRecentSearch(term)}
+                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-foreground"
+                >
+                  <Clock className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{term}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Remover "${term}" do histórico`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => removeRecentSearch(term)}
+                  className="cursor-pointer px-3 py-3 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
             ))}
+
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={clearRecentSearches}
+              className="w-full cursor-pointer border-t border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Limpar histórico
+            </button>
           </div>
         )}
       </div>
