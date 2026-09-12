@@ -6,7 +6,7 @@ import { TCG_CATALOG } from "@/lib/tcg-catalog";
 
 export default function SetsPage() {
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Coleções / Sets</h1>
         <p className="mt-1 text-sm text-muted-foreground">

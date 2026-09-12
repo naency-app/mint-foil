@@ -74,7 +74,7 @@ export function ProfileCover({
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
 
       {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa */}
-      <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+      <div className="relative mx-auto max-w-screen-2xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
         {children}
 
         {/* Ações (compartilhar / ver como) — abaixo do card, à direita */}

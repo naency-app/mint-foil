@@ -93,7 +93,7 @@ export function Navbar() {
       >
         {/*
           Sem rolagem, a navbar compartilha o contêiner do conteúdo
-          (max-w-7xl + px iguais aos do <main>). Antes ela era w-full com
+          (max-w-screen-2xl + px iguais aos do <main>). Antes ela era w-full com
           px-10: numa tela larga o logo começava a 40px da borda enquanto o
           conteúdo começava a ~150px, e as duas bordas nunca se encontravam.
 
@@ -103,7 +103,7 @@ export function Navbar() {
         <div
           className={cn(
             "flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]",
-            !scrolled && "mx-auto w-full max-w-7xl px-4 sm:px-6",
+            !scrolled && "mx-auto w-full max-w-screen-2xl px-4 sm:px-6",
           )}
         >
           {/* ── Esquerda: hambúrguer (mobile) + logo ── */}

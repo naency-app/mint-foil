@@ -749,7 +749,7 @@ function PortfolioPageSkeleton() {
       {/* Capa + card do perfil (mesma estrutura do ProfileHeader) */}
       <div className="relative -mt-14 w-full md:-mt-16">
         <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+        <div className="relative mx-auto max-w-screen-2xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
           <div className="mx-auto w-full max-w-sm">
             <div className="glass-card flex flex-col items-center gap-3 !rounded-2xl p-6">
               <Skeleton className="-mt-16 size-24 rounded-full" />
@@ -1316,7 +1316,7 @@ export default function PortfolioPage() {
 
       {preview ? (
         /* Pré-visualização pública (read-only) — o que os visitantes veem */
-        <main className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6">
+        <main className="mx-auto max-w-screen-2xl space-y-6 px-4 pb-8 sm:px-6">
           {showcaseLoading || !showcaseData ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-8 animate-spin text-primary" />

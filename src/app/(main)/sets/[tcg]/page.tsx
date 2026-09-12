@@ -229,7 +229,7 @@ function TcgSetsPageContent() {
   );
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+    <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-4">
       {/* Breadcrumb (mesmo padrão da página da carta) */}
       <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Link href="/sets" className="hover:text-primary transition-colors">
