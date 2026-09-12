@@ -581,7 +581,7 @@ function SetCardsPageContent() {
 
           {/* Cards */}
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {Array.from({ length: 10 }).map((_, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
                 <GridCardSkeleton key={i} />
@@ -615,7 +615,7 @@ function SetCardsPageContent() {
               )}
             </div>
           ) : viewType === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {filteredCards.map((card) => (
                 <TcgCard
                   key={card.id}
