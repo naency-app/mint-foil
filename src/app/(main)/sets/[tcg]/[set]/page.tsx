@@ -451,7 +451,7 @@ function SetCardsPageContent() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar cartas..."
+            placeholder="Filtrar cartas desta coleção..."
             className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
           {search.length > 0 && (
@@ -464,6 +464,17 @@ function SetCardsPageContent() {
             </button>
           )}
         </div>
+
+        {/* Mesmo COM resultados, a carta procurada pode ser de outra coleção —
+            o caminho para o catálogo fica sempre visível, não só no vazio. */}
+        {search.length > 0 && (
+          <Link
+            href={`/explore?q=${encodeURIComponent(search)}`}
+            className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            Buscar em todo o catálogo →
+          </Link>
+        )}
 
         {portfolios.length > 0 && (
           <PortfolioSelector
@@ -584,9 +595,24 @@ function SetCardsPageContent() {
               </h3>
               <p className="text-sm text-muted-foreground">
                 {search
-                  ? `Nenhum resultado para "${search}".`
+                  ? `Nenhum resultado para "${search}" nesta coleção.`
                   : "Este set ainda não possui cartas catalogadas."}
               </p>
+              {/*
+                Sem esta saída a busca virava beco: quem digitava o nome de uma
+                carta de OUTRA coleção via "nenhum resultado" e não tinha para
+                onde ir — o app respondia "não existe" quando a verdade era "não
+                está aqui". A carta existe; muda só o escopo.
+              */}
+              {search && (
+                <Link
+                  href={`/explore?q=${encodeURIComponent(search)}`}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                >
+                  <Search className="size-4" />
+                  Buscar "{search}" em todo o catálogo
+                </Link>
+              )}
             </div>
           ) : viewType === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4">

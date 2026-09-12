@@ -261,7 +261,7 @@ function TcgSetsPageContent() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filtrar sets..."
+              placeholder="Filtrar sets pelo nome..."
               className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
             {search.length > 0 && (
@@ -274,6 +274,16 @@ function TcgSetsPageContent() {
               </button>
             )}
           </div>
+          {/* Esta busca é de SETS. Quem digita nome de carta aqui não acha e
+              conclui que o app não tem — o catálogo fica a um clique. */}
+          {search.length > 0 && (
+            <Link
+              href={`/explore?q=${encodeURIComponent(search)}`}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Procurando uma carta? Buscar "{search}" no catálogo →
+            </Link>
+          )}
 
           {portfolios.length > 0 && (
             <PortfolioSelector
@@ -363,9 +373,21 @@ function TcgSetsPageContent() {
               </h3>
               <p className="text-sm text-muted-foreground">
                 {search
-                  ? `Nenhum resultado para "${search}".`
+                  ? `Nenhum set com "${search}" no nome.`
                   : "Nenhum set disponível para este TCG."}
               </p>
+              {/* Esta busca filtra SETS pelo nome. Quem digita o nome de uma
+                  carta não acha nada e conclui que o app não tem — daqui se
+                  chega ao catálogo, que é onde carta se procura. */}
+              {search && (
+                <Link
+                  href={`/explore?q=${encodeURIComponent(search)}`}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                >
+                  <Search className="size-4" />
+                  Buscar "{search}" nas cartas
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-8">
