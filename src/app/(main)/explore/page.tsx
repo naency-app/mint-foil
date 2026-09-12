@@ -854,25 +854,34 @@ function ExplorePageContent() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
-      {/* ── Busca: pill de vidro, busca ao digitar ── */}
-      <div className="relative w-full">
-        <div className="glass-pill flex h-11 items-center gap-2.5 px-4">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
-          <input
-            value={searchInput}
-            onChange={(e) => handleChangeQuery(e.target.value)}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            placeholder="Buscar cartas..."
-            className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
+      {/* ── Busca ──
+          Painel próprio, com título e altura de verdade, em vez de uma pílula
+          fina solta no topo. A busca é a ação principal desta tela: no desktop
+          ela dividia a largura com o vazio e parecia um detalhe, enquanto o
+          conteúdo abaixo tinha mais peso visual que ela. */}
+      <div className="relative w-full rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
+        <h1 className="mb-3 text-base font-bold tracking-tight text-foreground">
+          Buscar cartas
+        </h1>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="glass-pill flex h-12 flex-1 items-center gap-2.5 px-4">
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <input
+              value={searchInput}
+              onChange={(e) => handleChangeQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              placeholder="Nome, número ou coleção — ex.: Umbreon, 095/084"
+              className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </div>
           {searchInput.length > 0 && (
             <button
               type="button"
               onClick={handleClear}
-              className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+              className="h-12 shrink-0 cursor-pointer rounded-full px-5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
-              <X className="size-4" />
+              Limpar
             </button>
           )}
         </div>
