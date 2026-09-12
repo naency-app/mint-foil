@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import type { Portfolio } from "@/lib/api";
 import type { ShowcasePortfolio } from "./types";
+import { imagemDaCarta } from "@/lib/card-image";
 
 function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
@@ -274,7 +275,7 @@ export function ShowcaseBrowser({
                 >
                   <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
                     <Image
-                      src={item.imageUrl}
+                      src={imagemDaCarta(item, 'grade') ?? item.imageUrl}
                       alt={item.name}
                       width={48}
                       height={64}

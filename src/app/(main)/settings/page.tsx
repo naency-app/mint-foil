@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { CoverPicker } from "./cover-picker";
 import { DeleteAccount } from "./delete-account";
 import { ProfileForm } from "./profile-form";
+import { imagemDaCarta } from "@/lib/card-image";
 
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
@@ -737,7 +738,7 @@ function SettingsContent() {
                             </span>
                             <div className="relative size-10 rounded overflow-hidden shrink-0 border border-border bg-muted">
                               <Image
-                                src={card.imageUrl}
+                                src={imagemDaCarta(card, 'grade') ?? card.imageUrl}
                                 alt={card.name}
                                 fill
                                 className="object-cover"

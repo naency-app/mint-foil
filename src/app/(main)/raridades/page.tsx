@@ -16,6 +16,7 @@ import { useRef, useState } from "react";
 import { api, type Card, type RarityExample } from "@/lib/api";
 import { queryKeys, useCardDetail } from "@/lib/queries";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
+import { imagemDaCarta } from "@/lib/card-image";
 
 // Derivado do catálogo para não ficar pra trás quando um TCG é habilitado.
 const SHORT_NAME: Record<string, string> = { magic: "Magic", lorcana: "Lorcana" };
@@ -331,7 +332,7 @@ function CardModal({
         {/* Carta com spotlight na parte do passo atual */}
         <div className="relative aspect-[5/7] w-56 shrink-0 overflow-hidden rounded-xl border border-border bg-gradient-to-b from-muted/60 to-muted sm:w-64">
           <Image
-            src={item.imageUrl}
+            src={imagemDaCarta(item, 'cheia') ?? item.imageUrl}
             alt={item.rarity}
             fill
             sizes="300px"

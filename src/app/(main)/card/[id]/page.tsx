@@ -44,6 +44,7 @@ import {
   usePortfolios,
 } from "@/lib/queries";
 import { cardName, cn } from "@/lib/utils";
+import { imagemDaCarta } from "@/lib/card-image";
 
 // Código utilizável na busca da Liga: precisa ser prefixado por set
 // ("JUSH-EN022", "OP12-108"). Fração/número solto (Pokémon "094/162", Magic
@@ -552,7 +553,7 @@ export default function CardDetailPage({
         <div className="lg:col-span-3">
           <div className="glass-card sticky top-20 !rounded-2xl p-2">
             <Image
-              src={card.imageUrl}
+              src={imagemDaCarta(card, 'cheia') ?? card.imageUrl}
               alt={cardName(card)}
               width={400}
               height={560}

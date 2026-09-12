@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { imagemDaCarta } from "@/lib/card-image";
 
 export interface TcgCardProps {
   name: string;
@@ -20,6 +21,8 @@ export interface TcgCardProps {
   price: string;
   priceChange?: number;
   imageUrl: string;
+  /** Tamanhos vindos da API; sem eles cai no `imageUrl` (backend antigo). */
+  images?: { thumb: string; grid: string; full: string } | null;
   collectorNumber?: string | null;
   setName?: string | null;
   tcgSlug?: string;
@@ -46,6 +49,7 @@ export function TcgCard({
   price,
   priceChange,
   imageUrl,
+  images,
   collectorNumber,
   setName,
   tcgSlug,
@@ -141,13 +145,26 @@ export function TcgCard({
   const setHref =
     tcgSlug && setSlug ? `/sets/${tcgSlug}/${setSlug}` : undefined;
 
+  /*
+
+    A grade pede _400w: em tile de ~200px numa tela retina, o _200w que vem do
+
+    TCGCSV é esticado ao dobro e fica borrado. A carta aberta usa a variante
+
+    cheia; aqui 180 KB por tile numa lista longa seria desperdício.
+
+  */
+
+  const imagemDaGrade = imagemDaCarta({ imageUrl, images }, "grade") ?? imageUrl;
+
+
   return (
     <Card className="group w-full h-full overflow-hidden glass-card !rounded-2xl shadow-none hover:bg-muted/30 transition-all duration-300 hover:-translate-y-1 py-0">
       <CardContent className="p-0 flex-1">
         {cardHref ? (
           <Link href={cardHref} className="block overflow-hidden p-2">
             <Image
-              src={imageUrl}
+              src={imagemDaGrade}
               alt={displayName}
               className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}
@@ -157,7 +174,7 @@ export function TcgCard({
         ) : (
           <div className="overflow-hidden p-2">
             <Image
-              src={imageUrl}
+              src={imagemDaGrade}
               alt={displayName}
               className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               width={200}

@@ -50,6 +50,17 @@ export interface RarityExample {
   exampleCardId: string | null;
 }
 
+/**
+ * Tamanhos derivados de `imageUrl`, calculados pela API (ver o interceptor
+ * `card-images` no backend). Opcional porque backend antigo não manda — quem lê
+ * cai no `imageUrl`, que é o comportamento de antes.
+ */
+export interface ImagensDaCarta {
+  thumb: string;
+  grid: string;
+  full: string;
+}
+
 export interface Card {
   id: string;
   name: string;
@@ -57,6 +68,7 @@ export interface Card {
   setCode: string;
   setName: string | null;
   imageUrl: string;
+  images?: ImagensDaCarta | null;
   rarity: string;
   attribute: string | null;
   cardType: string | null;
