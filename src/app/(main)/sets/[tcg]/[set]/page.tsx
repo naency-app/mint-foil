@@ -444,41 +444,46 @@ function SetCardsPageContent() {
         </h1>
       )}
 
-      {/* Busca em cima, controles embaixo — mesma ordem do Explore: primeiro o
-          campo em linha própria, depois "Adicionando em" com ordenação e
-          visualização. Tudo na mesma linha espremia o campo num canto e ele
-          deixava de parecer a ação principal da tela. */}
+      {/* Mesmo painel de busca do Explore, e pelo mesmo motivo: buscar é a ação
+          principal da tela, e solta no meio da página a linha de campo some
+          entre o cabeçalho da coleção e a grade. Os controles ("Adicionando
+          em", ordenação, visualização) vêm depois, fora do painel. */}
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="glass-input flex h-11 w-full max-w-md items-center gap-2.5 px-4">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filtrar cartas desta coleção..."
-              className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
+        <div className="rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
+          <h2 className="mb-3 text-base font-bold tracking-tight text-foreground">
+            Buscar cartas
+          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="glass-input flex h-12 min-w-0 flex-1 items-center gap-2.5 px-4">
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Filtrar cartas desta coleção..."
+                className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              {search.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Mesmo COM resultados, a carta procurada pode ser de outra coleção —
+            o caminho para o catálogo fica sempre visível, não só no vazio. */}
             {search.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+              <Link
+                href={`/explore?q=${encodeURIComponent(search)}`}
+                className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
               >
-                <X className="size-4" />
-              </button>
+                Buscar em todo o catálogo →
+              </Link>
             )}
           </div>
-
-          {/* Mesmo COM resultados, a carta procurada pode ser de outra coleção —
-            o caminho para o catálogo fica sempre visível, não só no vazio. */}
-          {search.length > 0 && (
-            <Link
-              href={`/explore?q=${encodeURIComponent(search)}`}
-              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-            >
-              Buscar em todo o catálogo →
-            </Link>
-          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

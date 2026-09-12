@@ -12,7 +12,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { imagemDaCarta } from "@/lib/card-image";
-import { cn } from "@/lib/utils";
 
 export interface TcgCardProps {
   name: string;
@@ -185,28 +184,6 @@ export function TcgCard({
             />
           </div>
         )}
-
-        {/* Quantidade sobre a arte, não numa linha própria embaixo: o que
-            interessa é "eu tenho?" ao correr o olho pela grade. Só aparece
-            quando o número quer dizer alguma coisa — com portfólio ativo ou
-            com carta já na coleção; para visitante deslogado seria um zero
-            em cima de toda carta da tela. */}
-        {(localQty > 0 || defaultPortfolioId) && (
-          <span
-            className={cn(
-              "absolute left-2 top-2 flex items-center gap-1 rounded-lg px-1.5 py-0.5 font-mono text-[10px] font-bold backdrop-blur-sm",
-              localQty > 0
-                ? "bg-background/85 text-foreground"
-                : "bg-background/60 text-muted-foreground",
-            )}
-            title={`${localQty} na coleção`}
-          >
-            <RollingNumber value={localQty} fontSize={10} />
-            <span className="font-sans font-semibold text-muted-foreground">
-              un.
-            </span>
-          </span>
-        )}
       </CardContent>
 
       <div className="space-y-1 p-2.5">
@@ -282,8 +259,13 @@ export function TcgCard({
                 {change.toFixed(2)}%
               </span>
             </div>
-            <span className="text-[9px] leading-tight text-muted-foreground">
+            <span className="block text-[9px] leading-tight text-muted-foreground">
               internacional
+            </span>
+            {/* O rótulo fica parado; só os algarismos rolam */}
+            <span className="mt-0.5 flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+              Quant.
+              <RollingNumber value={localQty} fontSize={10} />
             </span>
           </div>
 
