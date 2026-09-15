@@ -16,6 +16,14 @@ export interface CardSet {
   imageUrl: string | null;
   /** Capa de reserva (carta do set), usada quando `imageUrl` falha ao carregar */
   coverFallbackUrl?: string | null;
+  /**
+   * As 3 cartas mais valiosas do set, da mais cara para a menos. Viram a capa
+   * quando o logo não existe. Opcional porque backend antigo não manda.
+   */
+  coverCards?: {
+    imageUrl: string;
+    images?: { thumb: string; grid: string; full: string } | null;
+  }[];
   releaseDate: string | null;
   totalCards: number | null;
   tcgId: string;
