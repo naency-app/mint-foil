@@ -35,7 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
-import { findCoverPreset } from "@/lib/cover-catalog";
+import { coverCss, findCoverPreset } from "@/lib/cover-catalog";
 import { cn } from "@/lib/utils";
 import { CoverPicker } from "./cover-picker";
 import { DeleteAccount } from "./delete-account";
@@ -257,9 +257,7 @@ function coverStyle(
   if (type === "color" && value) return { background: value };
   const preset = type === "preset" ? findCoverPreset(value) : null;
   if (preset) {
-    return {
-      background: `linear-gradient(to bottom, ${preset.colors.join(", ")})`,
-    };
+    return { background: coverCss(preset) };
   }
   return {
     background:

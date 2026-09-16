@@ -4,7 +4,7 @@ import { Check, Crown, Image as ImageIcon, Lock } from "lucide-react";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/lib/api";
-import { COVER_PRESETS, type CoverPreset } from "@/lib/cover-catalog";
+import { COVER_PRESETS, coverCss, type CoverPreset } from "@/lib/cover-catalog";
 
 /**
  * Galeria de fundos do perfil, espelho da tela do app.
@@ -156,9 +156,7 @@ function CardFundo({
       className={`relative h-20 overflow-hidden rounded-xl border-2 text-left transition ${
         selecionado ? "border-primary" : "border-transparent"
       }`}
-      style={{
-        background: `linear-gradient(to bottom, ${preset.colors.join(", ")})`,
-      }}
+      style={{ background: coverCss(preset) }}
     >
       <span className="absolute bottom-2 left-3 font-bold text-sm text-white">
         {preset.name}
