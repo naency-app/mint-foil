@@ -6,6 +6,11 @@ const publicRoutes = [
   "/explore",
   "/sets",
   "/card",
+  // Página de download: é pra onde o /scan manda quem não tem o app, então
+  // não pode exigir login — seria pedir conta pra quem só quer baixar.
+  "/download",
+  // /scan não existe mais na web (é exclusivo do app); continua público só
+  // para o redirect de next.config levar ao /download sem passar pelo login.
   "/scan",
   "/showcase", // perfil público compartilhável — não pode exigir login
   // Páginas legais e de suporte: a App Store e a Play Console exigem que a

@@ -3,6 +3,15 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["oslo", "arctic"],
+  // O scan é exclusivo do app nativo. A web tem tudo o mais (busca, explore,
+  // portfólio), mas quem chega em /scan — link antigo, QR code, resultado de
+  // busca — vai pro download em vez de escanear pelo navegador.
+  async redirects() {
+    return [
+      { source: "/scan", destination: "/download", permanent: false },
+      { source: "/scan/:path*", destination: "/download", permanent: false },
+    ];
+  },
   transpilePackages: [
     "@visx/curve",
     "@visx/event",

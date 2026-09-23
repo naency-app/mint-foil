@@ -8,9 +8,7 @@
 // ⚠️ As URLs das lojas só resolvem depois que o app for publicado. Até lá, os
 // botões levam a uma página de "app não encontrado" da própria loja.
 
-const APP_STORE_URL = "https://apps.apple.com/app/mint-foil";
-const PLAY_STORE_URL =
-  "https://play.google.com/store/apps/details?id=app.mintfoil";
+import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/app-links";
 
 const S = {
   p: {

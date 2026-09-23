@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mintfoil.app",
+      "sha256_cert_fingerprints": [
+        "99:BF:86:8C:28:4D:8A:30:5C:7D:F7:4A:D4:EB:29:E0:DE:8C:FF:A6:24:CE:4D:7A:5F:3F:57:7B:C6:2D:BB:5C",
+        "0D:2A:EF:72:60:F9:75:AC:DB:2A:B2:B4:46:9B:92:C2:B9:4A:20:F1:F3:A2:DC:DA:F3:62:A5:55:E7:38:8F:96"
+      ]
+    }
+  }
+]

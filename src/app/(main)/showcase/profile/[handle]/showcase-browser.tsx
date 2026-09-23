@@ -37,12 +37,21 @@ function formatPrice(value: number) {
 type SortValue = "value-desc" | "value-asc" | "name" | "qty-desc";
 type ViewMode = "grid" | "list";
 
+/** Id sintético da opção "todos os portfólios" — não existe no banco. */
+const TODOS = "__todos__";
+
 export function ShowcaseBrowser({
   portfolios,
 }: {
   portfolios: ShowcasePortfolio[];
 }) {
-  const [activeId, setActiveId] = useState(portfolios[0]?.id ?? "");
+  // Com mais de um portfólio, a coleção abre inteira. Antes abria no primeiro
+  // (o mais antigo): quem guardava a carta nova num portfólio novo aparecia de
+  // mãos vazias pra quem recebia o link, porque a carta estava numa aba que o
+  // visitante não sabia que existia.
+  const [activeId, setActiveId] = useState(
+    portfolios.length > 1 ? TODOS : (portfolios[0]?.id ?? ""),
+  );
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortValue>("value-desc");
   const [view, setView] = useState<ViewMode>("grid");
@@ -51,23 +60,36 @@ export function ShowcaseBrowser({
   const [rarities, setRarities] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
 
-  const active =
-    portfolios.find((p) => p.id === activeId) ?? portfolios[0] ?? null;
-  const allItems = active?.items ?? [];
+  // Sem correspondência = "todos": o seletor está mostrando a opção sintética.
+  const active = portfolios.find((p) => p.id === activeId) ?? null;
+  const allItems = useMemo(
+    () => (active ? active.items : portfolios.flatMap((p) => p.items)),
+    [active, portfolios],
+  );
 
   // PortfolioSelector espera o tipo Portfolio da API — mapeamos o showcase.
-  const selectorPortfolios: Portfolio[] = useMemo(
-    () =>
-      portfolios.map((p) => ({
-        id: p.id,
-        name: p.name,
+  const selectorPortfolios: Portfolio[] = useMemo(() => {
+    const reais = portfolios.map((p) => ({
+      id: p.id,
+      name: p.name,
+      userId: "",
+      createdAt: "",
+      updatedAt: "",
+      _count: { items: p.itemCount },
+    }));
+    if (reais.length <= 1) return reais;
+    return [
+      {
+        id: TODOS,
+        name: "Todos os portfólios",
         userId: "",
         createdAt: "",
         updatedAt: "",
-        _count: { items: p.itemCount },
-      })),
-    [portfolios],
-  );
+        _count: { items: portfolios.reduce((s, p) => s + p.itemCount, 0) },
+      },
+      ...reais,
+    ];
+  }, [portfolios]);
 
   const tcgFacets = useMemo(
     () => facetOptions(allItems, (i) => i.tcgName),

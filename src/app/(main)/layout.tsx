@@ -1,3 +1,4 @@
+import { AbrirNoApp } from "@/app/components/AbrirNoApp";
 import { BackToTop } from "@/app/components/BackToTop";
 import { Navbar } from "@/app/components/Navbar";
 import { QuickAddProvider } from "@/app/components/QuickAdd";
@@ -24,6 +25,9 @@ export default function MainLayout({
         </footer>
 
         <BackToTop />
+
+        {/* Convite pro app: só no celular, e com recado conforme a página */}
+        <AbrirNoApp />
       </div>
     </QuickAddProvider>
   );

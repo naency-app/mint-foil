@@ -1957,8 +1957,9 @@ const SOLUTION_STEPS = [
     icon: <Camera size={22} />,
     title: "Escaneie",
     desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh! ou One Piece.",
-    cta: "Experimente o scan",
-    href: "/scan",
+    // O scan só existe no app nativo: o CTA leva ao download, não à web.
+    cta: "Baixe o app pra escanear",
+    href: "/download",
     span: 7,
   },
   {
@@ -2826,10 +2827,10 @@ function ProBanner() {
             <button
               type="button"
               onClick={() => {
-                // Grátis → scan direto (sem conta). PRO → download do app: a
-                // assinatura só existe como compra in-app, então mandar pro
-                // /login era prometer uma compra que a web não sabe fazer.
-                router.push(isPro ? "/download" : "/scan");
+                // Os dois caminhos passam pelo app: o scan é exclusivo dele e
+                // a assinatura só existe como compra in-app, então tanto o
+                // grátis quanto o PRO começam no download.
+                router.push("/download");
               }}
               style={{
                 padding: "13px 30px",

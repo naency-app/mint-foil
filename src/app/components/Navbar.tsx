@@ -23,8 +23,6 @@ const navLinks = [
   { label: "Sets", href: "/sets" },
 ];
 
-const mobileOnlyLinks = [{ label: "Scan", href: "/scan" }];
-
 // Mesma cara do wordmark da landing: fonte do sistema, peso 800, caixa alta
 const WORDMARK_FONT =
   '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif';
@@ -125,7 +123,7 @@ export function Navbar() {
                 </SheetHeader>
 
                 <div className="flex flex-col py-3">
-                  {[...navLinks, ...mobileOnlyLinks].map((link) => {
+                  {navLinks.map((link) => {
                     const active = isLinkActive(pathname, link.href);
                     return (
                       <SheetClose key={link.label} asChild>
@@ -230,9 +228,22 @@ export function Navbar() {
             })}
           </div>
 
-          {/* ── Direita: tema, usuário ── */}
+          {/* ── Direita: baixar o app, usuário ── */}
           <div className="flex items-center gap-2 md:justify-self-end">
-            <div className="hidden md:block"></div>
+            {/*
+              O scan só existe no app: a web precisa apontar pra ele de onde
+              der. No celular quem convida é a faixa do rodapé (AbrirNoApp),
+              que tem espaço pro recado inteiro — aqui seria só aperto.
+            */}
+            <Link
+              href="/download"
+              className={cn(
+                "hidden items-center rounded-full border border-border px-3.5 font-semibold text-foreground transition-colors hover:bg-muted md:inline-flex",
+                scrolled ? "h-8 text-[13px]" : "h-9 text-sm",
+              )}
+            >
+              Baixar o app
+            </Link>
 
             <UserMenu />
           </div>

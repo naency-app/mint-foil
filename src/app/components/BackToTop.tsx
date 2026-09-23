@@ -42,7 +42,9 @@ export function BackToTop() {
       title="Voltar ao topo"
       // z-40 fica acima do conteúdo e abaixo de modais; à direita para não
       // disputar espaço com a barra de seleção do portfólio, que é centralizada.
-      className={`fixed right-5 bottom-5 z-40 flex size-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-lg backdrop-blur transition-all hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+      // No celular sobe acima da faixa "Abrir no app" (AbrirNoApp), que ocupa
+      // o rodapé inteiro; no desktop a faixa não existe e ele volta ao canto.
+      className={`fixed right-5 bottom-24 z-40 flex md:bottom-5 size-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-lg backdrop-blur transition-all hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         visivel
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-3 opacity-0"

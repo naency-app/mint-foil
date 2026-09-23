@@ -16,13 +16,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QRCode } from "@/components/ui/qrcode";
+import {
+  APP_STORE_URL,
+  DOWNLOAD_URL,
+  PLAY_STORE_URL,
+} from "@/lib/app-links";
 
-const APP_STORE_URL = "https://apps.apple.com/app/mint-foil";
-const PLAY_STORE_URL =
-  "https://play.google.com/store/apps/details?id=app.mintfoil";
-
-// URL universal de download — redireciona para a store correta conforme o dispositivo
-const DOWNLOAD_URL = "https://mintfoil.com/download";
+// Endereços das lojas e da página de download: src/lib/app-links.ts
 
 const features = [
   {
