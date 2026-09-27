@@ -20,10 +20,8 @@ import {
   Star,
   Sun,
   TrendingUp,
-  Twitter,
   Wallet,
   X,
-  Youtube,
 } from "lucide-react";
 import {
   type MotionValue,
@@ -225,18 +223,16 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     imgs: ["/landing/op-card-back.jpg", "/landing/luffy-card.png"],
   },
   {
+    text: "Digimon",
+    // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
+    // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
+    imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
+  },
+  {
     text: "Dragon Ball",
     imgs: [
       "/landing/ygo-card-back.jpg",
       "https://images.ygoprodeck.com/images/cards/44508094.jpg",
-    ],
-    soon: true,
-  },
-  {
-    text: "Digimon",
-    imgs: [
-      "/landing/pkm-card-back.jpg",
-      "https://images.pokemontcg.io/swsh8/271_hires.png",
     ],
     soon: true,
   },
@@ -588,7 +584,6 @@ const NAV_LINKS = [
   { label: "Como funciona", href: "#recursos" },
   { label: "Coleções", href: "#colecoes" },
   { label: "Planos", href: "#planos" },
-  { label: "Loja", href: "/loja" },
 ];
 
 // Scroll suave para âncoras da própria página, compensando a navbar fixa
@@ -3039,8 +3034,6 @@ const SOCIAL_LINKS: {
     label: "Instagram",
     href: "https://instagram.com/mintfoil",
   },
-  { id: "youtube", icon: <Youtube size={15} />, label: "YouTube" },
-  { id: "twitter", icon: <Twitter size={15} />, label: "X / Twitter" },
 ];
 
 function FooterSection() {
@@ -3252,7 +3245,19 @@ function FooterSection() {
             margin: 0,
           }}
         >
-          © 2026 Mint Foil · São Paulo, Brasil
+          © 2026 Mint Foil · Curitiba, Brasil
+          {/* Razão social visível: a Apple confere se o domínio é da empresa */}
+          <span
+            style={{
+              display: "block",
+              marginTop: "6px",
+              fontWeight: 500,
+              letterSpacing: "0.3px",
+              textTransform: "none",
+            }}
+          >
+            Wihards Analysis & Development Ltda · CNPJ 48.905.063/0001-13
+          </span>
         </p>
 
         {/* Sociais — centro */}
@@ -3305,7 +3310,6 @@ function FooterSection() {
             { lbl: "Privacidade", href: "/privacidade" },
             { lbl: "Termos", href: "/termos" },
             { lbl: "Suporte", href: "/suporte" },
-            { lbl: "Loja", href: "/loja" },
           ].map(({ lbl, href }) => (
             <SmartLink
               key={lbl}

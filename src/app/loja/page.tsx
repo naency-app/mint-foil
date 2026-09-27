@@ -1,9 +1,8 @@
-import { cookies } from "next/headers";
-import { LojaClient } from "./loja-client";
+import { notFound } from "next/navigation";
 
-// Tema salvo em cookie: o servidor renderiza a loja já no tema certo
-export default async function LojaPage() {
-  const jar = await cookies();
-  const initialDark = jar.get("mf-theme")?.value === "dark";
-  return <LojaClient initialDark={initialDark} />;
+// Loja fora do ar por enquanto: a rota responde 404 e sumiu do nav/rodapé.
+// Para religar, trocar o notFound() de volta por <LojaClient initialDark={...} />
+// (tema lido do cookie "mf-theme", ver histórico do git).
+export default function LojaPage() {
+  notFound();
 }

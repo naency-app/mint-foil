@@ -21,6 +21,10 @@ export default function MainLayout({
             <p className="text-center text-xs text-muted-foreground">
               Mint Foil © 2026 — Gerencie sua coleção de TCG com inteligência.
             </p>
+            <p className="mt-1 text-center text-xs text-muted-foreground">
+              Wihards Analysis & Development Ltda · CNPJ 48.905.063/0001-13 ·
+              Curitiba/PR
+            </p>
           </div>
         </footer>
 
