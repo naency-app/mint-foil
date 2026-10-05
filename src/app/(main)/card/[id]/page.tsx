@@ -45,7 +45,7 @@ import {
   useInvalidateCollection,
   usePortfolios,
 } from "@/lib/queries";
-import { cardName, cn } from "@/lib/utils";
+import { cardName, cardNameEn, cn } from "@/lib/utils";
 
 // Código utilizável na busca da Liga: precisa ser prefixado por set
 // ("JUSH-EN022", "OP12-108"). Fração/número solto (Pokémon "094/162", Magic
@@ -495,6 +495,9 @@ export default function CardDetailPage({
               ({card.rarity})
             </span>
           </h1>
+          {cardNameEn(card) && (
+            <p className="text-muted-foreground text-sm">{cardNameEn(card)}</p>
+          )}
           <div className="flex items-center gap-2 mt-1">
             <Link
               href={
