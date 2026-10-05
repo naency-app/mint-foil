@@ -156,9 +156,11 @@ export default function SuportePage() {
           Como excluo minha conta e meus dados?
         </p>
         <p style={S.p}>
-          Direto no app, em <strong>Perfil → Config → Excluir conta</strong>. A
+          Direto no app, em <strong>Perfil → Configurações (ícone de engrenagem)
+          → Excluir conta</strong>, confirmando com a palavra EXCLUIR. A
           exclusão é imediata e permanente: remove sua conta, seus portfólios,
-          suas cartas, seus snapshots e seu histórico de scans. Se preferir,
+          suas cartas, seus snapshots, seu histórico de scans e sua foto de
+          perfil. Se preferir,
           envie o pedido para {CONTATO} a partir do e-mail cadastrado e
           processamos em até 15 dias, conforme a LGPD.
         </p>
