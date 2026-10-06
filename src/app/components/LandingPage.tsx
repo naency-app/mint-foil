@@ -401,72 +401,129 @@ function PinkBadge({
   );
 }
 
+// Medidas do iPhone desenhado (proporção do 15/16 Pro): aro de titânio fino,
+// borda preta e tela 9:19,5. O carrossel calcula o palco a partir daqui.
+const IPHONE_W = 256;
+const IPHONE_ARO = 3;
+const IPHONE_BORDA = 8;
+const IPHONE_TELA_W = IPHONE_W - 2 * (IPHONE_ARO + IPHONE_BORDA);
+const IPHONE_TELA_H = Math.round(IPHONE_TELA_W * (19.5 / 9));
+const IPHONE_H = IPHONE_TELA_H + 2 * (IPHONE_ARO + IPHONE_BORDA);
+
+/**
+ * iPhone desenhado em CSS: aro de titânio com brilho metálico, botões
+ * laterais (ação, volume, liga/desliga), borda preta, tela com cantos do
+ * aparelho e Dynamic Island. Titânio escuro no tema escuro, natural no claro.
+ */
 function PhoneMockup({
   children,
-  size = "md",
+  ilhaPreta = false,
 }: {
   children?: ReactNode;
-  size?: "sm" | "md";
+  /** Ilha preta de verdade, para tela com vídeo do app (a gravação tem a
+   *  barra de status pintada de preto e a ilha some nela, como no aparelho). */
+  ilhaPreta?: boolean;
 }) {
   const t = useTheme();
-  const w = size === "sm" ? "180px" : "240px";
+  const titanio = t.isDark
+    ? "linear-gradient(145deg, #6b6b71 0%, #3a3a3f 22%, #1d1d20 50%, #333338 78%, #77777d 100%)"
+    : "linear-gradient(145deg, #f7f7f9 0%, #cfcfd4 24%, #a7a7ad 50%, #d2d2d7 76%, #fafafc 100%)";
+  // Botões: [lado, topo em % da altura, altura em % da altura]
+  const botoes: ["left" | "right", number, number][] = [
+    ["left", 17, 5], // ação
+    ["left", 25.5, 9], // volume +
+    ["left", 36, 9], // volume −
+    ["right", 28, 14], // liga/desliga
+  ];
   return (
     <div
       style={{
-        width: w,
-        padding: "8px",
-        borderRadius: "32px",
-        background: t.isDark
-          ? "linear-gradient(145deg, #1a1a2e 0%, #0d0d1a 100%)"
-          : "linear-gradient(145deg, #e8e8ef 0%, #d0d0db 100%)",
-        border: `1px solid ${t.border}`,
         position: "relative",
-        boxShadow: t.isDark
-          ? "0 20px 60px rgba(0,0,0,0.5)"
-          : "0 20px 60px rgba(0,0,0,0.12)",
+        width: `${IPHONE_W}px`,
+        height: `${IPHONE_H}px`,
       }}
     >
-      {/* Notch */}
+      {botoes.map(([lado, topo, altura]) => (
+        <div
+          key={`${lado}-${topo}`}
+          style={{
+            position: "absolute",
+            [lado]: "-2.5px",
+            top: `${topo}%`,
+            width: "4px",
+            height: `${altura}%`,
+            borderRadius: lado === "left" ? "3px 0 0 3px" : "0 3px 3px 0",
+            background: titanio,
+          }}
+        />
+      ))}
+
+      {/* Aro de titânio */}
       <div
         style={{
           position: "absolute",
-          top: "8px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "70px",
-          height: "20px",
-          borderRadius: "12px",
-          background: t.isDark ? "#0d0d1a" : "#c8c8d2",
-          zIndex: 5,
-        }}
-      />
-      <div
-        style={{
-          borderRadius: "24px",
-          overflow: "hidden",
-          background: t.cardBg,
-          aspectRatio: "9/19.5",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          inset: 0,
+          borderRadius: "48px",
+          padding: `${IPHONE_ARO}px`,
+          background: titanio,
+          boxShadow: t.isDark
+            ? "0 30px 70px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08)"
+            : "0 30px 70px rgba(2,6,23,0.18), inset 0 0 0 1px rgba(255,255,255,0.6)",
         }}
       >
-        {children ?? (
+        {/* Borda preta */}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "45px",
+            padding: `${IPHONE_BORDA}px`,
+            background: "#000",
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
+          }}
+        >
+          {/* Tela */}
           <div
             style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              borderRadius: "37px",
+              overflow: "hidden",
+              background: t.cardBg,
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: "8px",
-              padding: "20px",
+              justifyContent: "center",
             }}
           >
-            <ScanLine size={size === "sm" ? 22 : 28} color={t.primary} />
-            <p style={{ fontSize: "10px", color: t.muted }}>
-              Screenshot real aqui
-            </p>
+            {children}
+            {/* Dynamic Island */}
+            <div
+              style={{
+                position: "absolute",
+                top: "10px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "31%",
+                height: "22px",
+                borderRadius: "999px",
+                background: ilhaPreta ? "#000" : t.isDark ? "#000" : "#111",
+                zIndex: 5,
+              }}
+            />
+            {/* Reflexo sutil no vidro */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(125deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 38%)",
+                pointerEvents: "none",
+                zIndex: 4,
+              }}
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -1020,8 +1077,8 @@ function Hero({ noCelular }: { noCelular: boolean }) {
             lineHeight: 1.7,
           }}
         >
-          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana
-          e Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
+          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e
+          Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
         </motion.p>
 
         {/* CTAs */}
@@ -2103,15 +2160,17 @@ function SolutionSection() {
 
 // ── Key Features — carrossel (from develop) ───────────────────────────────────
 
-// `video`: caminho do mockup em vídeo da tela real do app (ex.:
-// "/landing/videos/scan.mp4") — enquanto vazio, mostra o placeholder
+// `videos`: gravações da tela real do app, tocadas DENTRO do celular do card,
+// uma depois da outra e em loop. Vazio = placeholder com o ícone. `poster` é o
+// primeiro quadro do primeiro vídeo, mostrado enquanto ele carrega.
 const FEATURE_TABS: {
   value: string;
   icon: ReactNode;
   label: string;
   desc: string;
   mockupIcon: ReactNode;
-  video?: string;
+  videos?: string[];
+  poster?: string;
 }[] = [
   {
     value: "scan",
@@ -2119,6 +2178,9 @@ const FEATURE_TABS: {
     label: "Scan Inteligente",
     desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
     mockupIcon: <ScanLine size={40} />,
+    // Carta a carta, depois várias ao mesmo tempo (já acelerados 1,25x)
+    videos: ["/landing/scan-uma.mp4", "/landing/scan-varias.mp4"],
+    poster: "/landing/scan-uma.jpg",
   },
   {
     value: "precos",
@@ -2140,6 +2202,9 @@ const FEATURE_TABS: {
     label: "Histórico de Preços",
     desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
     mockupIcon: <TrendingUp size={40} />,
+    // Carta com lojas BR, histórico de preço e portfólio (1,25x)
+    videos: ["/landing/historico.mp4"],
+    poster: "/landing/historico.jpg",
   },
   {
     value: "multi-tcg",
@@ -2147,11 +2212,140 @@ const FEATURE_TABS: {
     label: "6 Jogos, 1 App",
     desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana e Digimon em um único portfólio. Sem precisar de seis sites.",
     mockupIcon: <Gamepad2 size={40} />,
+    // Explorar passando pelos jogos (1,25x)
+    videos: ["/landing/jogos.mp4"],
+    poster: "/landing/jogos.jpg",
   },
 ];
 
-const CARD_W = 600;
-const CARD_GAP = 24;
+// Card sem vídeo fica este tempo no centro antes de passar sozinho
+const AVANCO_SEM_VIDEO_MS = 6000;
+
+// Tamanho do iPhone desenhado (PhoneMockup)
+const CELULAR_W = IPHONE_W;
+const CELULAR_H = IPHONE_H;
+// Largura do título + descrição embaixo do celular
+const TEXTO_W = 340;
+
+/**
+ * Toca vários vídeos um depois do outro, em loop, sem piscar na troca.
+ *
+ * São dois <video> empilhados: enquanto um toca, o outro já está carregado com
+ * o próximo arquivo; no `ended` o próximo aparece e começa, e o que acabou
+ * passa a carregar o seguinte. Com um <video> só, trocar o `src` mostrava um
+ * quadro preto entre os dois.
+ *
+ * Só toca enquanto está na tela (IntersectionObserver) — fora dela, pausa e não
+ * gasta bateria nem banda de quem está lendo outra seção.
+ */
+function VideosEmSequencia({
+  srcs,
+  poster,
+  ativo = true,
+  onFim,
+}: {
+  srcs: string[];
+  poster?: string;
+  /** Só o card do centro toca; os vizinhos ficam parados no quadro atual. */
+  ativo?: boolean;
+  /** Chamado quando o último vídeo termina. Sem ele, a sequência fica em loop. */
+  onFim?: () => void;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const refs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
+  // Qual dos dois <video> está à mostra, e o índice do arquivo em cada um
+  const [frente, setFrente] = useState(0);
+  const [arquivo, setArquivo] = useState<[number, number]>([
+    0,
+    srcs.length > 1 ? 1 : 0,
+  ]);
+  const [visivel, setVisivel] = useState(false);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setVisivel(entry.isIntersecting),
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Virou o card do centro: recomeça do primeiro vídeo, do início.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
+  useEffect(() => {
+    if (!ativo) return;
+    setFrente(0);
+    setArquivo([0, srcs.length > 1 ? 1 : 0]);
+    for (const r of refs) if (r.current) r.current.currentTime = 0;
+  }, [ativo]);
+
+  // Toca o da frente quando visível; o de trás fica parado.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
+  useEffect(() => {
+    const atual = refs[frente].current;
+    refs[1 - frente]?.current?.pause();
+    if (!atual) return;
+    if (visivel && ativo) atual.play().catch(() => {});
+    else atual.pause();
+  }, [visivel, ativo, frente]);
+
+  function aoTerminar(lado: number) {
+    if (lado !== frente) return;
+    // Fim da sequência com alguém esperando: avisa em vez de dar a volta
+    if (onFim && arquivo[lado] === srcs.length - 1) {
+      onFim();
+      return;
+    }
+    const outro = 1 - lado;
+    const prox = refs[outro].current;
+    if (prox) {
+      prox.currentTime = 0;
+      prox.play().catch(() => {});
+    }
+    setFrente(outro);
+    // O que acabou de terminar passa a esperar o arquivo seguinte ao do outro
+    setArquivo((a) => {
+      const novo: [number, number] = [a[0], a[1]];
+      novo[lado] = (a[outro] + 1) % srcs.length;
+      return novo;
+    });
+  }
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{ position: "relative", width: "100%", height: "100%" }}
+    >
+      {/* Um arquivo só não precisa do segundo player (baixaria duas vezes) */}
+      {(srcs.length > 1 ? [0, 1] : [0]).map((lado) => (
+        <video
+          key={lado}
+          ref={refs[lado]}
+          src={srcs[arquivo[lado]]}
+          poster={lado === 0 ? poster : undefined}
+          muted
+          playsInline
+          // Os dois carregam: o de trás precisa estar pronto quando o da
+          // frente acabar (cada arquivo tem 1–2 MB).
+          preload="auto"
+          onEnded={() => aoTerminar(lado)}
+          // Um vídeo só e ninguém esperando o fim: o loop do navegador resolve
+          loop={srcs.length === 1 && !onFim}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: lado === frente ? 1 : 0,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function KeyFeatures() {
   const t = useTheme();
@@ -2168,10 +2362,12 @@ function KeyFeatures() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  const cardW = isMobile ? winW - 40 : CARD_W;
-  // O trilho começa na MESMA linha do container do título (1240px centrado):
-  // o primeiro card nasce alinhado com o cabeçalho, não solto na esquerda
-  const stripPad = isMobile ? 20 : Math.max(24, (winW - 1240) / 2 + 24);
+  // Celular do ativo: tamanho cheio no desktop, um pouco menor no celular.
+  // Os vizinhos ficam a `passo` do centro — no celular eles só espiam na borda.
+  const escalaAtivo = isMobile ? 0.82 : 1;
+  const passo = isMobile ? Math.round(winW * 0.62) : 330;
+  // Altura do palco: celular + título + descrição de até 3 linhas
+  const palco = Math.round(CELULAR_H * escalaAtivo) + (isMobile ? 170 : 150);
 
   const prev = () =>
     setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
@@ -2180,15 +2376,29 @@ function KeyFeatures() {
   // Saiu da tela → volta pro primeiro card (o reset acontece fora da vista;
   // ao rolar de volta, o carrossel sempre recomeça do início)
   const sectionRef = useRef<HTMLElement>(null);
+  const [secaoVisivel, setSecaoVisivel] = useState(false);
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const io = new IntersectionObserver(([entry]) => {
+      setSecaoVisivel(entry.isIntersecting);
       if (!entry.isIntersecting) setActiveIdx(0);
     });
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  // Passa sozinho: card com vídeo avança quando o vídeo termina (onFim); sem
+  // vídeo, depois de alguns segundos. Trocar à mão recomeça a contagem, porque
+  // o timer depende do card ativo.
+  useEffect(() => {
+    if (!secaoVisivel || FEATURE_TABS[activeIdx].videos) return;
+    const id = setTimeout(
+      () => setActiveIdx((i) => (i + 1) % FEATURE_TABS.length),
+      AVANCO_SEM_VIDEO_MS,
+    );
+    return () => clearTimeout(id);
+  }, [activeIdx, secaoVisivel]);
 
   return (
     <section
@@ -2249,217 +2459,168 @@ function KeyFeatures() {
         </FadeIn>
       </div>
 
-      {/* ── Carousel — full viewport width ── */}
-      <div style={{ position: "relative", width: "100%" }}>
-        {/* Left arrow */}
-        <button
-          type="button"
-          onClick={prev}
-          aria-label="Feature anterior"
-          style={{
-            position: "absolute",
-            left: isMobile ? "8px" : "16px",
-            top: isMobile ? "120px" : "162px",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            background: t.cardBg,
-            border: `1px solid ${t.border}`,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            padding: 0,
-          }}
-        >
-          <ChevronLeft size={18} color={t.text} />
-        </button>
-
-        {/* Cards strip */}
-        <div style={{ overflow: "hidden" }}>
-          <motion.div
-            style={{
-              display: "flex",
-              gap: `${CARD_GAP}px`,
-              paddingLeft: `${stripPad}px`,
-            }}
-            animate={{ x: -activeIdx * (cardW + CARD_GAP) }}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            drag={isMobile ? "x" : false}
-            dragConstraints={{
-              left: -(FEATURE_TABS.length - 1) * (cardW + CARD_GAP),
-              right: 0,
-            }}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -50) next();
-              else if (info.offset.x > 50) prev();
-            }}
-          >
-            {FEATURE_TABS.map((ft, i) => (
-              // biome-ignore lint/a11y/noStaticElementInteractions: clicar num card vizinho navega até ele (como no tryoption.ai); dots/setas cobrem teclado
-              // biome-ignore lint/a11y/useKeyWithClickEvents: navegação por teclado já existe nos dots e setas
-              <div
-                key={ft.value}
-                onClick={() => setActiveIdx(i)}
-                style={{
-                  width: `${cardW}px`,
-                  flexShrink: 0,
-                  // No dark, mesma cor dos tiles da Solução (sem o azul navy)
-                  background: t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg,
-                  border: `1px solid ${
-                    t.isDark ? "rgba(255,255,255,0.08)" : t.border
-                  }`,
-                  borderRadius: "16px",
-                  overflow: "hidden",
-                  cursor: activeIdx === i ? "default" : "pointer",
-                }}
-              >
-                {/* ── Video / preview area — quando o vídeo do app existir,
-                    é só preencher ft.video que ele toca aqui ── */}
-                <div
-                  style={{
-                    height: isMobile ? "200px" : "325px",
-                    position: "relative",
-                    background:
-                      "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
-                    overflow: "hidden",
-                  }}
-                >
-                  {ft.video && (
-                    <video
-                      src={ft.video}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        zIndex: 2,
-                      }}
-                    />
-                  )}
-                  {/* Radial glow */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "radial-gradient(ellipse at 50% 110%, rgba(248,86,167,0.22) 0%, transparent 65%)",
-                      pointerEvents: "none",
-                    }}
+      {/* ── Carrossel centralizado: o card ativo no meio, os vizinhos menores
+          dos lados e dá a volta. O card é o próprio celular (vídeo em pé). ── */}
+      <motion.div
+        onPanEnd={(_, info) => {
+          if (info.offset.x < -50) next();
+          else if (info.offset.x > 50) prev();
+        }}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: `${palco}px`,
+          overflow: "hidden",
+          touchAction: "pan-y",
+        }}
+      >
+        {FEATURE_TABS.map((ft, i) => {
+          const n = FEATURE_TABS.length;
+          const meio = Math.floor(n / 2);
+          // Distância circular até o ativo (-2…2 com 5 cards)
+          const off = ((i - activeIdx + n + meio) % n) - meio;
+          const ativo = off === 0;
+          const longe = Math.abs(off) > 1;
+          return (
+            // Clicar num vizinho navega até ele; setas e dots cobrem o teclado
+            <motion.div
+              key={ft.value}
+              onClick={() => setActiveIdx(i)}
+              initial={false}
+              animate={{
+                x: off * passo,
+                scale: ativo ? escalaAtivo : escalaAtivo * 0.78,
+                opacity: ativo ? 1 : longe ? 0 : 0.55,
+              }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                marginLeft: `-${CELULAR_W / 2}px`,
+                width: `${CELULAR_W}px`,
+                transformOrigin: "50% 40%",
+                zIndex: ativo ? 3 : longe ? 1 : 2,
+                cursor: ativo ? "default" : "pointer",
+                pointerEvents: longe ? "none" : "auto",
+              }}
+            >
+              <PhoneMockup ilhaPreta={!!ft.videos}>
+                {ft.videos ? (
+                  <VideosEmSequencia
+                    srcs={ft.videos}
+                    poster={ft.poster}
+                    ativo={ativo}
+                    onFim={next}
                   />
-                  {/* Phone mockup clipped at bottom */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "-18px",
-                      left: "50%",
-                      transform: isMobile
-                        ? "translateX(-50%) scale(0.4)"
-                        : "translateX(-50%) scale(0.65)",
-                      transformOrigin: "bottom center",
-                      opacity: 0.72,
-                    }}
-                  >
-                    <PhoneMockup>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                          padding: "20px",
-                        }}
-                      >
-                        <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
-                      </div>
-                    </PhoneMockup>
-                  </div>
-                </div>
-
-                {/* ── Info area — icon + label + desc; mesmo bg dos tiles
-                    da Solução ── */}
-                <div
-                  style={{
-                    padding: "18px 20px 22px",
-                    borderTop: `1px solid ${t.border}`,
-                    background: t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg,
-                  }}
-                >
+                ) : (
                   <div
                     style={{
                       display: "flex",
-                      gap: "8px",
                       alignItems: "center",
-                      marginBottom: "6px",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: "100%",
+                      background:
+                        "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
                     }}
                   >
-                    <span style={{ color: t.muted, display: "flex" }}>
-                      {ft.icon}
-                    </span>
-                    <p
-                      style={{
-                        fontSize: "20px",
-                        lineHeight: "28px",
-                        fontWeight: 500,
-                        color: t.text,
-                        margin: 0,
-                      }}
-                    >
-                      {ft.label}
-                    </p>
+                    <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
                   </div>
+                )}
+              </PhoneMockup>
+
+              {/* Título e descrição embaixo do celular, como na referência */}
+              {/* Mais largo que o celular: a descrição em 256px quebrava em
+                  quatro linhas e era cortada pelo palco */}
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "22px 0 0",
+                  width: `${TEXTO_W}px`,
+                  marginLeft: `${(CELULAR_W - TEXTO_W) / 2}px`,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <span style={{ color: t.muted, display: "flex" }}>
+                    {ft.icon}
+                  </span>
                   <p
                     style={{
-                      fontSize: "16px",
-                      lineHeight: "24px",
-                      color: t.muted,
+                      fontSize: "20px",
+                      lineHeight: "28px",
+                      fontWeight: 500,
+                      color: t.text,
                       margin: 0,
                     }}
                   >
-                    {ft.desc}
+                    {ft.label}
                   </p>
                 </div>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    lineHeight: "22px",
+                    color: t.muted,
+                    margin: 0,
+                    opacity: ativo ? 1 : 0,
+                    transition: "opacity 0.3s ease",
+                  }}
+                >
+                  {ft.desc}
+                </p>
               </div>
-            ))}
-          </motion.div>
-        </div>
+            </motion.div>
+          );
+        })}
 
-        {/* Right arrow */}
-        <button
-          type="button"
-          onClick={next}
-          aria-label="Próxima feature"
-          style={{
-            position: "absolute",
-            right: isMobile ? "8px" : "16px",
-            top: isMobile ? "120px" : "162px",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            background: t.cardBg,
-            border: `1px solid ${t.border}`,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            padding: 0,
-          }}
-        >
-          <ChevronRight size={18} color={t.text} />
-        </button>
-      </div>
+        {/* Setas — à altura do meio do celular */}
+        {[
+          { lado: "left" as const, onClick: prev, label: "Feature anterior" },
+          { lado: "right" as const, onClick: next, label: "Próxima feature" },
+        ].map(({ lado, onClick, label }) => (
+          <button
+            key={lado}
+            type="button"
+            onClick={onClick}
+            aria-label={label}
+            style={{
+              position: "absolute",
+              [lado]: isMobile
+                ? "8px"
+                : `calc(50% - ${passo + CELULAR_W * 0.5}px)`,
+              top: `${(CELULAR_H * escalaAtivo) / 2}px`,
+              transform: "translateY(-50%)",
+              zIndex: 10,
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: t.cardBg,
+              border: `1px solid ${t.border}`,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              padding: 0,
+            }}
+          >
+            {lado === "left" ? (
+              <ChevronLeft size={18} color={t.text} />
+            ) : (
+              <ChevronRight size={18} color={t.text} />
+            )}
+          </button>
+        ))}
+      </motion.div>
 
       {/* ── Dots ── */}
       <div
@@ -2467,7 +2628,7 @@ function KeyFeatures() {
           display: "flex",
           justifyContent: "center",
           gap: "8px",
-          marginTop: "32px",
+          marginTop: "8px",
         }}
       >
         {FEATURE_TABS.map((ft, i) => (
