@@ -583,6 +583,9 @@ export default function CardDetailPage({
               height={560}
               sizes="(max-width: 1024px) 90vw, 22vw"
               className="mx-auto h-auto w-full rounded-xl"
+              // É a imagem principal da página: sem priority o next/image a
+              // carrega em lazy e ela era a última coisa a aparecer.
+              priority
             />
           </div>
         </div>

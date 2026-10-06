@@ -96,6 +96,14 @@ const nextConfig: NextConfig = {
         hostname: "svgs.scryfall.io",
         pathname: "/**",
       },
+      // Foto de perfil e fundo próprio (Pro) enviados pelo app ficam no R2
+      // (pub-<id>.r2.dev, sem domínio próprio). Sem isto o next/image recusa e
+      // o avatar vira o texto alternativo.
+      {
+        protocol: "https",
+        hostname: "*.r2.dev",
+        pathname: "/**",
+      },
     ],
   },
 };

@@ -143,7 +143,9 @@ export function ProfileHeader({
           )}
 
           <p className="mt-4 text-[11px] uppercase tracking-wider text-muted-foreground">
-            Valor estimado do portfólio
+            {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
+                ao lado do gráfico, que mostra só o portfólio escolhido. */}
+            Valor estimado da coleção
           </p>
           <p className="font-mono text-3xl font-black text-foreground">
             R$ {formatPrice(totalValue)}
