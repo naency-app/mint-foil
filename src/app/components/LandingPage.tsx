@@ -2165,8 +2165,11 @@ const FEATURE_TABS: {
   },
 ];
 
-const CARD_W = 600;
-const CARD_GAP = 24;
+// PhoneMockup "md": 240px de tela + 8px de borda de cada lado, tela 9:19,5
+const CELULAR_W = 256;
+const CELULAR_H = Math.round(240 * (19.5 / 9)) + 16;
+// Largura do título + descrição embaixo do celular
+const TEXTO_W = 340;
 
 /**
  * Toca vários vídeos um depois do outro, em loop, sem piscar na troca.
@@ -2182,9 +2185,12 @@ const CARD_GAP = 24;
 function VideosEmSequencia({
   srcs,
   poster,
+  ativo = true,
 }: {
   srcs: string[];
   poster?: string;
+  /** Só o card do centro toca; os vizinhos ficam parados no quadro atual. */
+  ativo?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const refs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
@@ -2212,9 +2218,9 @@ function VideosEmSequencia({
   useEffect(() => {
     const atual = refs[frente].current;
     if (!atual) return;
-    if (visivel) atual.play().catch(() => {});
+    if (visivel && ativo) atual.play().catch(() => {});
     else atual.pause();
-  }, [visivel, frente]);
+  }, [visivel, ativo, frente]);
 
   function aoTerminar(lado: number) {
     if (lado !== frente) return;
@@ -2282,10 +2288,12 @@ function KeyFeatures() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  const cardW = isMobile ? winW - 40 : CARD_W;
-  // O trilho começa na MESMA linha do container do título (1240px centrado):
-  // o primeiro card nasce alinhado com o cabeçalho, não solto na esquerda
-  const stripPad = isMobile ? 20 : Math.max(24, (winW - 1240) / 2 + 24);
+  // Celular do ativo: tamanho cheio no desktop, um pouco menor no celular.
+  // Os vizinhos ficam a `passo` do centro — no celular eles só espiam na borda.
+  const escalaAtivo = isMobile ? 0.82 : 1;
+  const passo = isMobile ? Math.round(winW * 0.62) : 330;
+  // Altura do palco: celular + título + descrição de até 3 linhas
+  const palco = Math.round(CELULAR_H * escalaAtivo) + (isMobile ? 170 : 150);
 
   const prev = () =>
     setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
@@ -2363,210 +2371,167 @@ function KeyFeatures() {
         </FadeIn>
       </div>
 
-      {/* ── Carousel — full viewport width ── */}
-      <div style={{ position: "relative", width: "100%" }}>
-        {/* Left arrow */}
-        <button
-          type="button"
-          onClick={prev}
-          aria-label="Feature anterior"
-          style={{
-            position: "absolute",
-            left: isMobile ? "8px" : "16px",
-            top: isMobile ? "120px" : "162px",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            background: t.cardBg,
-            border: `1px solid ${t.border}`,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            padding: 0,
-          }}
-        >
-          <ChevronLeft size={18} color={t.text} />
-        </button>
-
-        {/* Cards strip */}
-        <div style={{ overflow: "hidden" }}>
-          <motion.div
-            style={{
-              display: "flex",
-              gap: `${CARD_GAP}px`,
-              paddingLeft: `${stripPad}px`,
-            }}
-            animate={{ x: -activeIdx * (cardW + CARD_GAP) }}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            drag={isMobile ? "x" : false}
-            dragConstraints={{
-              left: -(FEATURE_TABS.length - 1) * (cardW + CARD_GAP),
-              right: 0,
-            }}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -50) next();
-              else if (info.offset.x > 50) prev();
-            }}
-          >
-            {FEATURE_TABS.map((ft, i) => (
-              // biome-ignore lint/a11y/noStaticElementInteractions: clicar num card vizinho navega até ele (como no tryoption.ai); dots/setas cobrem teclado
-              // biome-ignore lint/a11y/useKeyWithClickEvents: navegação por teclado já existe nos dots e setas
-              <div
-                key={ft.value}
-                onClick={() => setActiveIdx(i)}
-                style={{
-                  width: `${cardW}px`,
-                  flexShrink: 0,
-                  // No dark, mesma cor dos tiles da Solução (sem o azul navy)
-                  background: t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg,
-                  border: `1px solid ${
-                    t.isDark ? "rgba(255,255,255,0.08)" : t.border
-                  }`,
-                  borderRadius: "16px",
-                  overflow: "hidden",
-                  cursor: activeIdx === i ? "default" : "pointer",
-                }}
-              >
-                {/* ── Video / preview area — quando o vídeo do app existir,
-                    é só preencher ft.video que ele toca aqui ── */}
-                <div
-                  style={{
-                    height: isMobile ? "200px" : "325px",
-                    position: "relative",
-                    background:
-                      "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
-                    overflow: "hidden",
-                  }}
-                >
-                  {/* Radial glow */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "radial-gradient(ellipse at 50% 110%, rgba(248,86,167,0.22) 0%, transparent 65%)",
-                      pointerEvents: "none",
-                    }}
+      {/* ── Carrossel centralizado: o card ativo no meio, os vizinhos menores
+          dos lados e dá a volta. O card é o próprio celular (vídeo em pé). ── */}
+      <motion.div
+        onPanEnd={(_, info) => {
+          if (info.offset.x < -50) next();
+          else if (info.offset.x > 50) prev();
+        }}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: `${palco}px`,
+          overflow: "hidden",
+          touchAction: "pan-y",
+        }}
+      >
+        {FEATURE_TABS.map((ft, i) => {
+          const n = FEATURE_TABS.length;
+          const meio = Math.floor(n / 2);
+          // Distância circular até o ativo (-2…2 com 5 cards)
+          const off = ((i - activeIdx + n + meio) % n) - meio;
+          const ativo = off === 0;
+          const longe = Math.abs(off) > 1;
+          return (
+            // Clicar num vizinho navega até ele; setas e dots cobrem o teclado
+            <motion.div
+              key={ft.value}
+              onClick={() => setActiveIdx(i)}
+              initial={false}
+              animate={{
+                x: off * passo,
+                scale: ativo ? escalaAtivo : escalaAtivo * 0.78,
+                opacity: ativo ? 1 : longe ? 0 : 0.55,
+              }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                marginLeft: `-${CELULAR_W / 2}px`,
+                width: `${CELULAR_W}px`,
+                transformOrigin: "50% 40%",
+                zIndex: ativo ? 3 : longe ? 1 : 2,
+                cursor: ativo ? "default" : "pointer",
+                pointerEvents: longe ? "none" : "auto",
+              }}
+            >
+              <PhoneMockup ilhaPreta={!!ft.videos}>
+                {ft.videos ? (
+                  <VideosEmSequencia
+                    srcs={ft.videos}
+                    poster={ft.poster}
+                    ativo={ativo}
                   />
-                  {/* Phone mockup clipped at bottom */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "-18px",
-                      left: "50%",
-                      transform: isMobile
-                        ? "translateX(-50%) scale(0.4)"
-                        : "translateX(-50%) scale(0.65)",
-                      transformOrigin: "bottom center",
-                      // Com vídeo o celular é o conteúdo, não um enfeite
-                      opacity: ft.videos ? 1 : 0.72,
-                    }}
-                  >
-                    <PhoneMockup ilhaPreta={!!ft.videos}>
-                      {ft.videos ? (
-                        <VideosEmSequencia
-                          srcs={ft.videos}
-                          poster={ft.poster}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            height: "100%",
-                            padding: "20px",
-                          }}
-                        >
-                          <div style={{ color: t.primary }}>
-                            {ft.mockupIcon}
-                          </div>
-                        </div>
-                      )}
-                    </PhoneMockup>
-                  </div>
-                </div>
-
-                {/* ── Info area — icon + label + desc; mesmo bg dos tiles
-                    da Solução ── */}
-                <div
-                  style={{
-                    padding: "18px 20px 22px",
-                    borderTop: `1px solid ${t.border}`,
-                    background: t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg,
-                  }}
-                >
+                ) : (
                   <div
                     style={{
                       display: "flex",
-                      gap: "8px",
                       alignItems: "center",
-                      marginBottom: "6px",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: "100%",
+                      background:
+                        "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
                     }}
                   >
-                    <span style={{ color: t.muted, display: "flex" }}>
-                      {ft.icon}
-                    </span>
-                    <p
-                      style={{
-                        fontSize: "20px",
-                        lineHeight: "28px",
-                        fontWeight: 500,
-                        color: t.text,
-                        margin: 0,
-                      }}
-                    >
-                      {ft.label}
-                    </p>
+                    <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
                   </div>
+                )}
+              </PhoneMockup>
+
+              {/* Título e descrição embaixo do celular, como na referência */}
+              {/* Mais largo que o celular: a descrição em 256px quebrava em
+                  quatro linhas e era cortada pelo palco */}
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "22px 0 0",
+                  width: `${TEXTO_W}px`,
+                  marginLeft: `${(CELULAR_W - TEXTO_W) / 2}px`,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <span style={{ color: t.muted, display: "flex" }}>
+                    {ft.icon}
+                  </span>
                   <p
                     style={{
-                      fontSize: "16px",
-                      lineHeight: "24px",
-                      color: t.muted,
+                      fontSize: "20px",
+                      lineHeight: "28px",
+                      fontWeight: 500,
+                      color: t.text,
                       margin: 0,
                     }}
                   >
-                    {ft.desc}
+                    {ft.label}
                   </p>
                 </div>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    lineHeight: "22px",
+                    color: t.muted,
+                    margin: 0,
+                    opacity: ativo ? 1 : 0,
+                    transition: "opacity 0.3s ease",
+                  }}
+                >
+                  {ft.desc}
+                </p>
               </div>
-            ))}
-          </motion.div>
-        </div>
+            </motion.div>
+          );
+        })}
 
-        {/* Right arrow */}
-        <button
-          type="button"
-          onClick={next}
-          aria-label="Próxima feature"
-          style={{
-            position: "absolute",
-            right: isMobile ? "8px" : "16px",
-            top: isMobile ? "120px" : "162px",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            background: t.cardBg,
-            border: `1px solid ${t.border}`,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            padding: 0,
-          }}
-        >
-          <ChevronRight size={18} color={t.text} />
-        </button>
-      </div>
+        {/* Setas — à altura do meio do celular */}
+        {[
+          { lado: "left" as const, onClick: prev, label: "Feature anterior" },
+          { lado: "right" as const, onClick: next, label: "Próxima feature" },
+        ].map(({ lado, onClick, label }) => (
+          <button
+            key={lado}
+            type="button"
+            onClick={onClick}
+            aria-label={label}
+            style={{
+              position: "absolute",
+              [lado]: isMobile
+                ? "8px"
+                : `calc(50% - ${passo + CELULAR_W * 0.5}px)`,
+              top: `${(CELULAR_H * escalaAtivo) / 2}px`,
+              transform: "translateY(-50%)",
+              zIndex: 10,
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: t.cardBg,
+              border: `1px solid ${t.border}`,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              padding: 0,
+            }}
+          >
+            {lado === "left" ? (
+              <ChevronLeft size={18} color={t.text} />
+            ) : (
+              <ChevronRight size={18} color={t.text} />
+            )}
+          </button>
+        ))}
+      </motion.div>
 
       {/* ── Dots ── */}
       <div
@@ -2574,7 +2539,7 @@ function KeyFeatures() {
           display: "flex",
           justifyContent: "center",
           gap: "8px",
-          marginTop: "32px",
+          marginTop: "8px",
         }}
       >
         {FEATURE_TABS.map((ft, i) => (
