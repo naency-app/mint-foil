@@ -186,6 +186,9 @@ function PortfolioItemRow({
 
   const currentPrice = item.card.prices[0]?.value ?? 0;
   const totalValue = currentPrice * optimisticQty;
+  // Sem preço pago não existe lucro: antes o custo virava R$ 0 e o valor
+  // inteiro da carta aparecia como ganho.
+  const temCusto = item.buyPrice != null;
   const invested = (item.buyPrice ?? 0) * optimisticQty;
   const profit = totalValue - invested;
   const isPositive = profit >= 0;
@@ -367,18 +370,22 @@ function PortfolioItemRow({
               R$ {formatPrice(totalValue)}
             </span>
           </div>
-          <div className="flex items-center justify-end gap-1">
-            {isPositive ? (
-              <TrendingUp className="size-2.5 text-emerald-400" />
-            ) : (
-              <TrendingDown className="size-2.5 text-red-400" />
-            )}
-            <span
-              className={`text-[10px] font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-            >
-              {isPositive ? "+" : ""}R$ {formatPrice(profit)}
-            </span>
-          </div>
+          {temCusto ? (
+            <div className="flex items-center justify-end gap-1">
+              {isPositive ? (
+                <TrendingUp className="size-2.5 text-emerald-400" />
+              ) : (
+                <TrendingDown className="size-2.5 text-red-400" />
+              )}
+              <span
+                className={`text-[10px] font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+              >
+                {isPositive ? "+" : ""}R$ {formatPrice(profit)}
+              </span>
+            </div>
+          ) : (
+            <p className="text-[10px] text-muted-foreground">Sem custo</p>
+          )}
         </div>
 
         <div
@@ -473,6 +480,8 @@ function PortfolioItemCard({
 
   const currentPrice = item.card.prices[0]?.value ?? 0;
   const totalValue = currentPrice * item.quantity;
+  // Sem preço pago não existe lucro (ver o item de lista acima)
+  const temCusto = item.buyPrice != null;
   const invested = (item.buyPrice ?? 0) * item.quantity;
   const profit = totalValue - invested;
   const isPositive = profit >= 0;
@@ -632,9 +641,16 @@ function PortfolioItemCard({
               </div>
               <div className="flex items-center justify-between text-[11px] font-mono">
                 <span className="text-muted-foreground">
-                  Custo: R$ {formatPrice(invested)}
+                  {temCusto
+                    ? `Custo: R$ ${formatPrice(invested)}`
+                    : "Sem custo"}
                 </span>
-                <div className="flex items-center gap-1">
+                <div
+                  className={cn(
+                    "flex items-center gap-1",
+                    !temCusto && "invisible",
+                  )}
+                >
                   {isPositive ? (
                     <TrendingUp className="size-3 text-emerald-400 shrink-0" />
                   ) : (
@@ -871,6 +887,28 @@ export default function PortfolioPage() {
   const detailQuery = usePortfolioDetail(activePortfolioId || undefined);
   const items: CollectionItem[] = detailQuery.data?.items ?? [];
   const metrics: PortfolioMetrics = detailQuery.data?.metrics ?? defaultMetrics;
+  // Lucro e ROI só das cartas com preço pago. O backend faz valor total −
+  // investido, então uma carta sem custo entrava inteira como lucro ("Lucro
+  // +R$ 108" com "Total investido R$ 0,00"). Sem nenhuma carta com custo, os
+  // três números viram "—".
+  const retorno = useMemo(() => {
+    let investido = 0;
+    let valorComCusto = 0;
+    let comCusto = 0;
+    for (const i of items) {
+      if (i.buyPrice == null) continue;
+      comCusto += 1;
+      investido += i.buyPrice * i.quantity;
+      valorComCusto += (i.card.prices[0]?.value ?? 0) * i.quantity;
+    }
+    const lucro = valorComCusto - investido;
+    return {
+      temCusto: comCusto > 0,
+      investido,
+      lucro,
+      roi: investido > 0 ? (lucro / investido) * 100 : 0,
+    };
+  }, [items]);
   // Ordem congelada da grade — ver `compareItems` mais abaixo. Guarda os ids na
   // sequência exibida e a assinatura dos critérios que a produziram.
   const orderRef = useRef<{ signature: string; ids: string[] }>({
@@ -1172,12 +1210,19 @@ export default function PortfolioPage() {
       return false;
     const q = search.trim().toLowerCase();
     if (q) {
+      // Nome em PT também: a grade mostra o PT, e buscar o que está escrito na
+      // tela não achava nada ("Força Celeste" só casava como "Sky Striker").
       const hay =
-        `${i.card.name} ${i.card.setName ?? ""} ${i.card.setCode} ${i.card.rarity}`.toLowerCase();
+        `${i.card.name} ${i.card.namePt ?? ""} ${i.card.setName ?? ""} ${i.card.setCode} ${i.card.rarity}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
+  const cartasTotal = items.reduce((soma, i) => soma + i.quantity, 0);
+  const cartasFiltradas = filteredItems.reduce(
+    (soma, i) => soma + i.quantity,
+    0,
+  );
   function compareItems(a: CollectionItem, b: CollectionItem) {
     const av = (a.card.prices[0]?.value ?? 0) * a.quantity;
     const bv = (b.card.prices[0]?.value ?? 0) * b.quantity;
@@ -1185,7 +1230,8 @@ export default function PortfolioPage() {
       case "value-asc":
         return av - bv;
       case "name":
-        return a.card.name.localeCompare(b.card.name);
+        // Pelo nome que aparece no card (PT quando houver)
+        return cardName(a.card).localeCompare(cardName(b.card), "pt-BR");
       case "qty-desc":
         return b.quantity - a.quantity;
       default:
@@ -1517,7 +1563,9 @@ export default function PortfolioPage() {
                           <Skeleton className="h-4 w-20" />
                         ) : (
                           <span className="text-sm font-bold text-foreground font-mono">
-                            R$ {formatPrice(metrics.totalInvested)}
+                            {retorno.temCusto
+                              ? `R$ ${formatPrice(retorno.investido)}`
+                              : "—"}
                           </span>
                         )}
                       </div>
@@ -1528,12 +1576,12 @@ export default function PortfolioPage() {
                           <div
                             className={cn(
                               "size-8 rounded-lg flex items-center justify-center",
-                              metrics.profitOrLoss >= 0
+                              retorno.lucro >= 0
                                 ? "bg-emerald-500/10 text-emerald-400"
                                 : "bg-red-500/10 text-red-400",
                             )}
                           >
-                            {metrics.profitOrLoss >= 0 ? (
+                            {retorno.lucro >= 0 ? (
                               <TrendingUp className="size-4" />
                             ) : (
                               <TrendingDown className="size-4" />
@@ -1549,13 +1597,16 @@ export default function PortfolioPage() {
                           <span
                             className={cn(
                               "text-sm font-bold font-mono",
-                              metrics.profitOrLoss >= 0
-                                ? "text-emerald-400"
-                                : "text-red-400",
+                              !retorno.temCusto
+                                ? "text-foreground"
+                                : retorno.lucro >= 0
+                                  ? "text-emerald-400"
+                                  : "text-red-400",
                             )}
                           >
-                            {metrics.profitOrLoss >= 0 ? "+" : ""}
-                            R$ {formatPrice(metrics.profitOrLoss)}
+                            {retorno.temCusto
+                              ? `${retorno.lucro >= 0 ? "+" : ""}R$ ${formatPrice(retorno.lucro)}`
+                              : "—"}
                           </span>
                         )}
                       </div>
@@ -1576,13 +1627,16 @@ export default function PortfolioPage() {
                           <span
                             className={cn(
                               "text-sm font-bold font-mono",
-                              metrics.roi >= 0
-                                ? "text-emerald-400"
-                                : "text-red-400",
+                              !retorno.temCusto
+                                ? "text-foreground"
+                                : retorno.roi >= 0
+                                  ? "text-emerald-400"
+                                  : "text-red-400",
                             )}
                           >
-                            {metrics.roi >= 0 ? "+" : ""}
-                            {formatPrice(metrics.roi)}%
+                            {retorno.temCusto
+                              ? `${retorno.roi >= 0 ? "+" : ""}${formatPrice(retorno.roi)}%`
+                              : "—"}
                           </span>
                         )}
                       </div>
@@ -1669,6 +1723,24 @@ export default function PortfolioPage() {
                     </div>
                   )}
                 </>
+              ) : detailQuery.isError ? (
+                // Falha não pode dizer que o portfólio está vazio: a pessoa lê
+                // que a coleção sumiu. Mesma regra do app.
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    Não foi possível carregar este portfólio
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                    Suas cartas continuam salvas. Tente de novo em instantes.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => void detailQuery.refetch()}
+                    disabled={detailQuery.isFetching}
+                  >
+                    Tentar de novo
+                  </Button>
+                </div>
               ) : items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <Package className="size-16 text-muted-foreground mb-4" />
@@ -1767,11 +1839,13 @@ export default function PortfolioPage() {
                     {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
                     <div className="min-w-0 flex-1 space-y-4">
                       <div className="flex items-center justify-between animate-in fade-in duration-300">
+                        {/* Conta CARTAS, não linhas: quem tem 2 cópias da mesma
+                            carta tem 2 cartas — igual ao app. */}
                         <p className="text-xs text-muted-foreground">
-                          {filteredItems.length}{" "}
-                          {filteredItems.length === 1 ? "carta" : "cartas"}
-                          {filteredItems.length !== items.length
-                            ? ` de ${items.length}`
+                          {cartasFiltradas}{" "}
+                          {cartasFiltradas === 1 ? "carta" : "cartas"}
+                          {cartasFiltradas !== cartasTotal
+                            ? ` de ${cartasTotal}`
                             : ""}
                         </p>
                         <div className="flex items-center gap-3">
