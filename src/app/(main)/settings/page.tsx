@@ -1040,7 +1040,7 @@ function SettingsContent() {
                       </span>
                     </div>
                     <Link
-                      href="/terms"
+                      href="/termos"
                       className="text-xs font-semibold text-primary hover:underline"
                     >
                       Ver Documento
@@ -1054,7 +1054,7 @@ function SettingsContent() {
                       </span>
                     </div>
                     <Link
-                      href="/privacy"
+                      href="/privacidade"
                       className="text-xs font-semibold text-primary hover:underline"
                     >
                       Ver Documento

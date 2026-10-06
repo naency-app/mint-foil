@@ -118,14 +118,14 @@ function LoginContent() {
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             Ao continuar, você concorda com os{" "}
             <Link
-              href="/terms"
+              href="/termos"
               className="font-medium text-foreground underline decoration-border underline-offset-2 transition-colors hover:text-primary"
             >
               Termos de Uso
             </Link>{" "}
             e{" "}
             <Link
-              href="/privacy"
+              href="/privacidade"
               className="font-medium text-foreground underline decoration-border underline-offset-2 transition-colors hover:text-primary"
             >
               Política de Privacidade
