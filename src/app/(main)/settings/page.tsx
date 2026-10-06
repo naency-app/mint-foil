@@ -974,7 +974,7 @@ function SettingsContent() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        Scans de IA ilimitados, portfólios ilimitados, análise
+                        Scans ilimitados, portfólios ilimitados, análise
                         de P&L e mais
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
