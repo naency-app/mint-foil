@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { capaVisivel } from "@/lib/cover-catalog";
 import { ShowcaseBrowser } from "./showcase-browser";
 import type { Showcase } from "./types";
 import { ViewerBanner } from "./viewer-banner";
@@ -95,7 +96,7 @@ export default async function ShowcaseProfilePage({
         totalCards={data.totalCards}
         totalSealed={data.totalSealed}
         totalValue={data.totalValue}
-        cover={data.cover}
+        cover={capaVisivel(data.cover, data.isPro)}
         bio={data.bio}
         socials={data.socials}
         actions={<ViewerBanner handle={data.handle} shareUrl={shareUrl} />}

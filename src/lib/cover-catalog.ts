@@ -192,7 +192,9 @@ function rgba(hex: string, alpha: number): string {
 export function coverCss(preset: CoverPreset): string {
   const camadas = (preset.glows ?? []).map((g) => {
     const paradas = g.stops
-      .map((st) => `${rgba(st.color, st.opacity)} ${Math.round(st.offset * 100)}%`)
+      .map(
+        (st) => `${rgba(st.color, st.opacity)} ${Math.round(st.offset * 100)}%`,
+      )
       .join(", ");
     return `radial-gradient(${g.rx}% ${g.ry}% at ${g.cx}% ${g.cy}%, ${paradas})`;
   });
@@ -215,4 +217,24 @@ export function coverCss(preset: CoverPreset): string {
   }
 
   return camadas.join(", ");
+}
+
+/**
+ * A capa que de fato aparece. Fundo Pro de quem deixou de ser Pro volta para o
+ * gradiente da marca — o slug continua salvo e reaparece se a pessoa assinar de
+ * novo. `isPro` indefinido = status ainda carregando: mostra o salvo, sem piscar
+ * o padrão na capa de quem é Pro.
+ */
+export function capaVisivel<T extends string>(
+  cover: { type: T; value: string | null },
+  isPro: boolean | undefined,
+): { type: T | "gradient"; value: string | null } {
+  if (
+    isPro === false &&
+    cover.type === "preset" &&
+    findCoverPreset(cover.value)?.tier === "pro"
+  ) {
+    return { type: "gradient", value: null };
+  }
+  return cover;
 }
