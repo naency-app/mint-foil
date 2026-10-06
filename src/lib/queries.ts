@@ -9,7 +9,14 @@ import {
 } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { api, type CardQuery, type CollectionItem } from "./api";
+import {
+  api,
+  type CardQuery,
+  type CollectionItem,
+  type FollowStatus,
+  type FollowUser,
+} from "./api";
+import type { Showcase } from "./showcase";
 
 /**
  * Hooks de dados compartilhados entre páginas (TanStack Query) — espelho de
@@ -339,6 +346,90 @@ export function useInvalidateCollection() {
         qc.invalidateQueries({ queryKey: ["collection-stats"] }),
         qc.invalidateQueries({ queryKey: ["card-ownership"] }),
       ]),
+    [qc],
+  );
+}
+
+// ─── Social — espelho de mint-foil-app/lib/queries.ts ─────────────────────────
+
+export function useFollowCounts(enabled: boolean) {
+  return useQuery({
+    queryKey: ["follow-counts"],
+    queryFn: () => api.follows.counts(),
+    enabled,
+  });
+}
+
+export function useFollowRequests(enabled: boolean) {
+  return useQuery({
+    queryKey: ["follow-requests"],
+    queryFn: () => api.follows.requests(),
+    enabled,
+    // Sem push: um pedido novo só apareceria ao recarregar a página
+    refetchInterval: 30_000,
+  });
+}
+
+export function useFollowList(
+  handle: string,
+  tipo: "followers" | "following",
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ["follow-list", handle, tipo],
+    queryFn: () =>
+      tipo === "followers"
+        ? api.follows.followers(handle)
+        : api.follows.following(handle),
+    enabled: enabled && !!handle,
+  });
+}
+
+export function useUserSearch(q: string) {
+  return useQuery({
+    queryKey: ["user-search", q],
+    queryFn: () => api.follows.search(q),
+    enabled: q.trim().length >= 2,
+  });
+}
+
+/** Invalida o social (contagens, pedidos, perfis, listas) após follow/accept. */
+export function useInvalidateSocial() {
+  const qc = useQueryClient();
+  return useCallback(
+    () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["follow-counts"] }),
+        qc.invalidateQueries({ queryKey: ["follow-requests"] }),
+        qc.invalidateQueries({ queryKey: ["showcase"] }),
+        qc.invalidateQueries({ queryKey: ["user-search"] }),
+        qc.invalidateQueries({ queryKey: ["follow-list"] }),
+      ]),
+    [qc],
+  );
+}
+
+/**
+ * Escreve o status de seguir de um @ em todo cache que mostra o botão (perfil,
+ * busca, listas) — a troca aparece na hora em todas as telas, como no app.
+ */
+export function useEscreverStatusDeSeguir() {
+  const qc = useQueryClient();
+  return useCallback(
+    (handle: string, status: FollowStatus) => {
+      const mesmo = (h: string) => h.toLowerCase() === handle.toLowerCase();
+      const naLista = (old: FollowUser[] | undefined) =>
+        Array.isArray(old)
+          ? old.map((u) =>
+              mesmo(u.handle) ? { ...u, followStatus: status } : u,
+            )
+          : old;
+      qc.setQueriesData<Showcase>({ queryKey: ["showcase"] }, (old) =>
+        old && mesmo(old.handle) ? { ...old, followStatus: status } : old,
+      );
+      qc.setQueriesData<FollowUser[]>({ queryKey: ["user-search"] }, naLista);
+      qc.setQueriesData<FollowUser[]>({ queryKey: ["follow-list"] }, naLista);
+    },
     [qc],
   );
 }

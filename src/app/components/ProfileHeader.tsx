@@ -37,6 +37,7 @@ export function ProfileHeader({
   cover,
   bio,
   socials,
+  social,
   actions,
 }: {
   displayName: string;
@@ -50,6 +51,8 @@ export function ProfileHeader({
   cover: Cover;
   bio?: string | null;
   socials?: Record<string, string>;
+  /** Seguidores/seguindo e o botão de seguir, logo abaixo do @. */
+  social?: ReactNode;
   actions?: ReactNode;
 }) {
   const initial = displayName.charAt(0).toUpperCase();
@@ -101,6 +104,8 @@ export function ProfileHeader({
             )}
           </div>
           <p className="text-sm font-medium text-muted-foreground">@{handle}</p>
+
+          {social}
 
           {bio && (
             <p className="mt-3 text-sm leading-relaxed text-foreground">

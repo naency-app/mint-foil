@@ -46,6 +46,8 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { PedidosButton } from "@/app/components/social/PedidosButton";
+import { SocialStats } from "@/app/components/social/SocialStats";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
@@ -88,6 +90,7 @@ import {
   queryKeys,
   useCollectionHistory,
   useCollectionStats,
+  useFollowCounts,
   useInvalidateCollection,
   useMyProfile,
   usePortfolioDetail,
@@ -855,6 +858,8 @@ export default function PortfolioPage() {
   // mostra o mesmo que o visitante vê. Endpoint leve — o showcase traria a
   // coleção inteira só para ler dois campos.
   const { data: meuPerfil } = useMyProfile(!!session?.user);
+  // Seguidores/seguindo do dono — mesma rota leve que o app usa
+  const { data: contagens } = useFollowCounts(!!session?.user);
 
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   // Filtros da coleção (mesmos do showcase) — sidebar + busca.
@@ -1333,8 +1338,18 @@ export default function PortfolioPage() {
         )}
         bio={meuPerfil?.bio}
         socials={meuPerfil?.socials}
+        social={
+          ownerHandle ? (
+            <SocialStats
+              handle={ownerHandle}
+              followers={contagens?.followers ?? 0}
+              following={contagens?.following ?? 0}
+            />
+          ) : undefined
+        }
         actions={
           <div className="flex items-center gap-2">
+            <PedidosButton />
             <button
               type="button"
               onClick={() => setPreview((p) => !p)}
