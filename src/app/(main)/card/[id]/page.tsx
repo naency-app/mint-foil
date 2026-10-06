@@ -140,12 +140,15 @@ function getSearchUrls(
     });
   }
   // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)
-  // que não temos como derivar — o link de conferência vai pra busca, com o
-  // código de colecionador quando houver (mais preciso que o nome).
+  // que não temos como derivar — o link de conferência vai pra busca, com a
+  // mesma regra da Liga: código só quando ele identifica a carta sozinho
+  // ("OP12-108"); senão, o nome completo. Buscar só a fração ("173/193") caía
+  // em OUTRA versão quando a loja não tinha a da pessoa — agora ela mostra
+  // que não tem.
   const myPTcg = tcgSlug ?? "yugioh";
   const myPUrl = `https://mypcards.com/${myPTcg}?${new URLSearchParams({
     "ProdutoSearch[marca]": myPTcg,
-    "ProdutoSearch[query]": collectorNumber ?? cardName,
+    "ProdutoSearch[query]": ligaCode ?? cardName,
   }).toString()}`;
   urls.push({
     name: "MyPCards",
