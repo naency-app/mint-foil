@@ -1020,8 +1020,8 @@ function Hero({ noCelular }: { noCelular: boolean }) {
             lineHeight: 1.7,
           }}
         >
-          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana
-          e Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
+          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e
+          Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
         </motion.p>
 
         {/* CTAs */}
@@ -2103,15 +2103,17 @@ function SolutionSection() {
 
 // ── Key Features — carrossel (from develop) ───────────────────────────────────
 
-// `video`: caminho do mockup em vídeo da tela real do app (ex.:
-// "/landing/videos/scan.mp4") — enquanto vazio, mostra o placeholder
+// `videos`: gravações da tela real do app, tocadas DENTRO do celular do card,
+// uma depois da outra e em loop. Vazio = placeholder com o ícone. `poster` é o
+// primeiro quadro do primeiro vídeo, mostrado enquanto ele carrega.
 const FEATURE_TABS: {
   value: string;
   icon: ReactNode;
   label: string;
   desc: string;
   mockupIcon: ReactNode;
-  video?: string;
+  videos?: string[];
+  poster?: string;
 }[] = [
   {
     value: "scan",
@@ -2119,6 +2121,9 @@ const FEATURE_TABS: {
     label: "Scan Inteligente",
     desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
     mockupIcon: <ScanLine size={40} />,
+    // Carta a carta, depois várias ao mesmo tempo (já acelerados 1,25x)
+    videos: ["/landing/scan-uma.mp4", "/landing/scan-varias.mp4"],
+    poster: "/landing/scan-uma.jpg",
   },
   {
     value: "precos",
@@ -2152,6 +2157,104 @@ const FEATURE_TABS: {
 
 const CARD_W = 600;
 const CARD_GAP = 24;
+
+/**
+ * Toca vários vídeos um depois do outro, em loop, sem piscar na troca.
+ *
+ * São dois <video> empilhados: enquanto um toca, o outro já está carregado com
+ * o próximo arquivo; no `ended` o próximo aparece e começa, e o que acabou
+ * passa a carregar o seguinte. Com um <video> só, trocar o `src` mostrava um
+ * quadro preto entre os dois.
+ *
+ * Só toca enquanto está na tela (IntersectionObserver) — fora dela, pausa e não
+ * gasta bateria nem banda de quem está lendo outra seção.
+ */
+function VideosEmSequencia({
+  srcs,
+  poster,
+}: {
+  srcs: string[];
+  poster?: string;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const refs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
+  // Qual dos dois <video> está à mostra, e o índice do arquivo em cada um
+  const [frente, setFrente] = useState(0);
+  const [arquivo, setArquivo] = useState<[number, number]>([
+    0,
+    srcs.length > 1 ? 1 : 0,
+  ]);
+  const [visivel, setVisivel] = useState(false);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setVisivel(entry.isIntersecting),
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Toca o da frente quando visível; o de trás fica parado no começo.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
+  useEffect(() => {
+    const atual = refs[frente].current;
+    if (!atual) return;
+    if (visivel) atual.play().catch(() => {});
+    else atual.pause();
+  }, [visivel, frente]);
+
+  function aoTerminar(lado: number) {
+    if (lado !== frente) return;
+    const outro = 1 - lado;
+    const prox = refs[outro].current;
+    if (prox) {
+      prox.currentTime = 0;
+      prox.play().catch(() => {});
+    }
+    setFrente(outro);
+    // O que acabou de terminar passa a esperar o arquivo seguinte ao do outro
+    setArquivo((a) => {
+      const novo: [number, number] = [a[0], a[1]];
+      novo[lado] = (a[outro] + 1) % srcs.length;
+      return novo;
+    });
+  }
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{ position: "relative", width: "100%", height: "100%" }}
+    >
+      {[0, 1].map((lado) => (
+        <video
+          key={lado}
+          ref={refs[lado]}
+          src={srcs[arquivo[lado]]}
+          poster={lado === 0 ? poster : undefined}
+          muted
+          playsInline
+          // Os dois carregam: o de trás precisa estar pronto quando o da
+          // frente acabar (cada arquivo tem 1–2 MB).
+          preload="auto"
+          onEnded={() => aoTerminar(lado)}
+          // Um vídeo só: o próprio loop do navegador resolve
+          loop={srcs.length === 1}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: lado === frente ? 1 : 0,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function KeyFeatures() {
   const t = useTheme();
@@ -2328,23 +2431,6 @@ function KeyFeatures() {
                     overflow: "hidden",
                   }}
                 >
-                  {ft.video && (
-                    <video
-                      src={ft.video}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        zIndex: 2,
-                      }}
-                    />
-                  )}
                   {/* Radial glow */}
                   <div
                     style={{
@@ -2365,22 +2451,32 @@ function KeyFeatures() {
                         ? "translateX(-50%) scale(0.4)"
                         : "translateX(-50%) scale(0.65)",
                       transformOrigin: "bottom center",
-                      opacity: 0.72,
+                      // Com vídeo o celular é o conteúdo, não um enfeite
+                      opacity: ft.videos ? 1 : 0.72,
                     }}
                   >
                     <PhoneMockup>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                          padding: "20px",
-                        }}
-                      >
-                        <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
-                      </div>
+                      {ft.videos ? (
+                        <VideosEmSequencia
+                          srcs={ft.videos}
+                          poster={ft.poster}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "100%",
+                            padding: "20px",
+                          }}
+                        >
+                          <div style={{ color: t.primary }}>
+                            {ft.mockupIcon}
+                          </div>
+                        </div>
+                      )}
                     </PhoneMockup>
                   </div>
                 </div>
