@@ -46,6 +46,7 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { AdicionarAmigos } from "@/app/components/social/AdicionarAmigos";
 import { PedidosButton } from "@/app/components/social/PedidosButton";
 import { SocialStats } from "@/app/components/social/SocialStats";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
@@ -1348,8 +1349,9 @@ export default function PortfolioPage() {
           ) : undefined
         }
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <PedidosButton />
+            <AdicionarAmigos />
             <button
               type="button"
               onClick={() => setPreview((p) => !p)}

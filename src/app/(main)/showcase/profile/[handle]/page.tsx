@@ -107,7 +107,13 @@ export default async function ShowcaseProfilePage({
             following={data.following ?? 0}
           />
         }
-        actions={<ViewerBanner handle={data.handle} shareUrl={shareUrl} />}
+        actions={
+          <ViewerBanner
+            handle={data.handle}
+            displayName={data.displayName}
+            shareUrl={shareUrl}
+          />
+        }
       />
 
       {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}

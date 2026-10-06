@@ -21,7 +21,6 @@ import {
   Trophy,
   User,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -39,6 +38,7 @@ import { capaVisivel, coverCss, findCoverPreset } from "@/lib/cover-catalog";
 import { cn } from "@/lib/utils";
 import { CoverPicker } from "./cover-picker";
 import { DeleteAccount } from "./delete-account";
+import { FotoDePerfil } from "./foto-de-perfil";
 import { ProfileForm } from "./profile-form";
 
 const ADMIN_EMAIL = "danilomiranda1451@gmail.com";
@@ -790,21 +790,11 @@ function SettingsContent() {
                       à base do avatar, invadia a capa — ilegível em fundo
                       escuro. */}
                   <div className="-mt-10 mb-3 flex items-end justify-between gap-4">
-                    {user.image ? (
-                      <Image
-                        src={user.image}
-                        alt={user.name ?? "Avatar"}
-                        width={80}
-                        height={80}
-                        className="h-20 w-20 rounded-full border-4 border-card bg-background object-cover shadow-md"
-                      />
-                    ) : (
-                      <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-muted font-bold text-2xl text-foreground shadow-md">
-                        {(user.name ?? user.email ?? "?")
-                          .charAt(0)
-                          .toUpperCase()}
-                      </div>
-                    )}
+                    {/* Clicar troca a foto (prévia + Salvar, como no app) */}
+                    <FotoDePerfil
+                      image={user.image ?? null}
+                      nome={user.name ?? user.email ?? "?"}
+                    />
 
                     {/* mt-10 anula o -mt-10 da linha (só o avatar sobe, senão o
                         botão fica por cima da capa); o resto é respiro para o
