@@ -229,11 +229,11 @@ export function capaVisivel<T extends string>(
   cover: { type: T; value: string | null },
   isPro: boolean | undefined,
 ): { type: T | "gradient"; value: string | null } {
-  if (
-    isPro === false &&
-    cover.type === "preset" &&
-    findCoverPreset(cover.value)?.tier === "pro"
-  ) {
+  // Preset Pro e foto própria são vantagens do Pro.
+  const fundoPro =
+    cover.type === "image" ||
+    (cover.type === "preset" && findCoverPreset(cover.value)?.tier === "pro");
+  if (isPro === false && fundoPro) {
     return { type: "gradient", value: null };
   }
   return cover;
