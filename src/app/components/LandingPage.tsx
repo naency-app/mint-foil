@@ -401,76 +401,129 @@ function PinkBadge({
   );
 }
 
+// Medidas do iPhone desenhado (proporção do 15/16 Pro): aro de titânio fino,
+// borda preta e tela 9:19,5. O carrossel calcula o palco a partir daqui.
+const IPHONE_W = 256;
+const IPHONE_ARO = 3;
+const IPHONE_BORDA = 8;
+const IPHONE_TELA_W = IPHONE_W - 2 * (IPHONE_ARO + IPHONE_BORDA);
+const IPHONE_TELA_H = Math.round(IPHONE_TELA_W * (19.5 / 9));
+const IPHONE_H = IPHONE_TELA_H + 2 * (IPHONE_ARO + IPHONE_BORDA);
+
+/**
+ * iPhone desenhado em CSS: aro de titânio com brilho metálico, botões
+ * laterais (ação, volume, liga/desliga), borda preta, tela com cantos do
+ * aparelho e Dynamic Island. Titânio escuro no tema escuro, natural no claro.
+ */
 function PhoneMockup({
   children,
-  size = "md",
   ilhaPreta = false,
 }: {
   children?: ReactNode;
-  size?: "sm" | "md";
   /** Ilha preta de verdade, para tela com vídeo do app (a gravação tem a
    *  barra de status pintada de preto e a ilha some nela, como no aparelho). */
   ilhaPreta?: boolean;
 }) {
   const t = useTheme();
-  const w = size === "sm" ? "180px" : "240px";
+  const titanio = t.isDark
+    ? "linear-gradient(145deg, #6b6b71 0%, #3a3a3f 22%, #1d1d20 50%, #333338 78%, #77777d 100%)"
+    : "linear-gradient(145deg, #f7f7f9 0%, #cfcfd4 24%, #a7a7ad 50%, #d2d2d7 76%, #fafafc 100%)";
+  // Botões: [lado, topo em % da altura, altura em % da altura]
+  const botoes: ["left" | "right", number, number][] = [
+    ["left", 17, 5], // ação
+    ["left", 25.5, 9], // volume +
+    ["left", 36, 9], // volume −
+    ["right", 28, 14], // liga/desliga
+  ];
   return (
     <div
       style={{
-        width: w,
-        padding: "8px",
-        borderRadius: "32px",
-        background: t.isDark
-          ? "linear-gradient(145deg, #1a1a2e 0%, #0d0d1a 100%)"
-          : "linear-gradient(145deg, #e8e8ef 0%, #d0d0db 100%)",
-        border: `1px solid ${t.border}`,
         position: "relative",
-        boxShadow: t.isDark
-          ? "0 20px 60px rgba(0,0,0,0.5)"
-          : "0 20px 60px rgba(0,0,0,0.12)",
+        width: `${IPHONE_W}px`,
+        height: `${IPHONE_H}px`,
       }}
     >
-      {/* Notch */}
+      {botoes.map(([lado, topo, altura]) => (
+        <div
+          key={`${lado}-${topo}`}
+          style={{
+            position: "absolute",
+            [lado]: "-2.5px",
+            top: `${topo}%`,
+            width: "4px",
+            height: `${altura}%`,
+            borderRadius: lado === "left" ? "3px 0 0 3px" : "0 3px 3px 0",
+            background: titanio,
+          }}
+        />
+      ))}
+
+      {/* Aro de titânio */}
       <div
         style={{
           position: "absolute",
-          top: "8px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "70px",
-          height: "20px",
-          borderRadius: "12px",
-          background: ilhaPreta ? "#000" : t.isDark ? "#0d0d1a" : "#c8c8d2",
-          zIndex: 5,
-        }}
-      />
-      <div
-        style={{
-          borderRadius: "24px",
-          overflow: "hidden",
-          background: t.cardBg,
-          aspectRatio: "9/19.5",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          inset: 0,
+          borderRadius: "48px",
+          padding: `${IPHONE_ARO}px`,
+          background: titanio,
+          boxShadow: t.isDark
+            ? "0 30px 70px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08)"
+            : "0 30px 70px rgba(2,6,23,0.18), inset 0 0 0 1px rgba(255,255,255,0.6)",
         }}
       >
-        {children ?? (
+        {/* Borda preta */}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "45px",
+            padding: `${IPHONE_BORDA}px`,
+            background: "#000",
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
+          }}
+        >
+          {/* Tela */}
           <div
             style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              borderRadius: "37px",
+              overflow: "hidden",
+              background: t.cardBg,
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: "8px",
-              padding: "20px",
+              justifyContent: "center",
             }}
           >
-            <ScanLine size={size === "sm" ? 22 : 28} color={t.primary} />
-            <p style={{ fontSize: "10px", color: t.muted }}>
-              Screenshot real aqui
-            </p>
+            {children}
+            {/* Dynamic Island */}
+            <div
+              style={{
+                position: "absolute",
+                top: "10px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "31%",
+                height: "22px",
+                borderRadius: "999px",
+                background: ilhaPreta ? "#000" : t.isDark ? "#000" : "#111",
+                zIndex: 5,
+              }}
+            />
+            {/* Reflexo sutil no vidro */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(125deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 38%)",
+                pointerEvents: "none",
+                zIndex: 4,
+              }}
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -2165,9 +2218,12 @@ const FEATURE_TABS: {
   },
 ];
 
-// PhoneMockup "md": 240px de tela + 8px de borda de cada lado, tela 9:19,5
-const CELULAR_W = 256;
-const CELULAR_H = Math.round(240 * (19.5 / 9)) + 16;
+// Card sem vídeo fica este tempo no centro antes de passar sozinho
+const AVANCO_SEM_VIDEO_MS = 6000;
+
+// Tamanho do iPhone desenhado (PhoneMockup)
+const CELULAR_W = IPHONE_W;
+const CELULAR_H = IPHONE_H;
 // Largura do título + descrição embaixo do celular
 const TEXTO_W = 340;
 
@@ -2186,11 +2242,14 @@ function VideosEmSequencia({
   srcs,
   poster,
   ativo = true,
+  onFim,
 }: {
   srcs: string[];
   poster?: string;
   /** Só o card do centro toca; os vizinhos ficam parados no quadro atual. */
   ativo?: boolean;
+  /** Chamado quando o último vídeo termina. Sem ele, a sequência fica em loop. */
+  onFim?: () => void;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const refs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
@@ -2213,10 +2272,20 @@ function VideosEmSequencia({
     return () => io.disconnect();
   }, []);
 
-  // Toca o da frente quando visível; o de trás fica parado no começo.
+  // Virou o card do centro: recomeça do primeiro vídeo, do início.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
+  useEffect(() => {
+    if (!ativo) return;
+    setFrente(0);
+    setArquivo([0, srcs.length > 1 ? 1 : 0]);
+    for (const r of refs) if (r.current) r.current.currentTime = 0;
+  }, [ativo]);
+
+  // Toca o da frente quando visível; o de trás fica parado.
   // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
   useEffect(() => {
     const atual = refs[frente].current;
+    refs[1 - frente]?.current?.pause();
     if (!atual) return;
     if (visivel && ativo) atual.play().catch(() => {});
     else atual.pause();
@@ -2224,6 +2293,11 @@ function VideosEmSequencia({
 
   function aoTerminar(lado: number) {
     if (lado !== frente) return;
+    // Fim da sequência com alguém esperando: avisa em vez de dar a volta
+    if (onFim && arquivo[lado] === srcs.length - 1) {
+      onFim();
+      return;
+    }
     const outro = 1 - lado;
     const prox = refs[outro].current;
     if (prox) {
@@ -2257,8 +2331,8 @@ function VideosEmSequencia({
           // frente acabar (cada arquivo tem 1–2 MB).
           preload="auto"
           onEnded={() => aoTerminar(lado)}
-          // Um vídeo só: o próprio loop do navegador resolve
-          loop={srcs.length === 1}
+          // Um vídeo só e ninguém esperando o fim: o loop do navegador resolve
+          loop={srcs.length === 1 && !onFim}
           style={{
             position: "absolute",
             inset: 0,
@@ -2302,15 +2376,29 @@ function KeyFeatures() {
   // Saiu da tela → volta pro primeiro card (o reset acontece fora da vista;
   // ao rolar de volta, o carrossel sempre recomeça do início)
   const sectionRef = useRef<HTMLElement>(null);
+  const [secaoVisivel, setSecaoVisivel] = useState(false);
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const io = new IntersectionObserver(([entry]) => {
+      setSecaoVisivel(entry.isIntersecting);
       if (!entry.isIntersecting) setActiveIdx(0);
     });
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  // Passa sozinho: card com vídeo avança quando o vídeo termina (onFim); sem
+  // vídeo, depois de alguns segundos. Trocar à mão recomeça a contagem, porque
+  // o timer depende do card ativo.
+  useEffect(() => {
+    if (!secaoVisivel || FEATURE_TABS[activeIdx].videos) return;
+    const id = setTimeout(
+      () => setActiveIdx((i) => (i + 1) % FEATURE_TABS.length),
+      AVANCO_SEM_VIDEO_MS,
+    );
+    return () => clearTimeout(id);
+  }, [activeIdx, secaoVisivel]);
 
   return (
     <section
@@ -2423,6 +2511,7 @@ function KeyFeatures() {
                     srcs={ft.videos}
                     poster={ft.poster}
                     ativo={ativo}
+                    onFim={next}
                   />
                 ) : (
                   <div
