@@ -2145,6 +2145,9 @@ const FEATURE_TABS: {
     label: "Histórico de Preços",
     desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
     mockupIcon: <TrendingUp size={40} />,
+    // Carta com lojas BR, histórico de preço e portfólio (1,25x)
+    videos: ["/landing/historico.mp4"],
+    poster: "/landing/historico.jpg",
   },
   {
     value: "multi-tcg",
@@ -2152,6 +2155,9 @@ const FEATURE_TABS: {
     label: "6 Jogos, 1 App",
     desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana e Digimon em um único portfólio. Sem precisar de seis sites.",
     mockupIcon: <Gamepad2 size={40} />,
+    // Explorar passando pelos jogos (1,25x)
+    videos: ["/landing/jogos.mp4"],
+    poster: "/landing/jogos.jpg",
   },
 ];
 
@@ -2228,7 +2234,8 @@ function VideosEmSequencia({
       ref={wrapRef}
       style={{ position: "relative", width: "100%", height: "100%" }}
     >
-      {[0, 1].map((lado) => (
+      {/* Um arquivo só não precisa do segundo player (baixaria duas vezes) */}
+      {(srcs.length > 1 ? [0, 1] : [0]).map((lado) => (
         <video
           key={lado}
           ref={refs[lado]}
