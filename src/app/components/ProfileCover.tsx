@@ -73,8 +73,10 @@ export function ProfileCover({
       {/* Degradê para o fundo da página */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
 
-      {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa */}
-      <div className="relative mx-auto max-w-screen-2xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+      {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa. O
+          avatar sobe 64px acima do card (-mt-16): o pt precisa ser navbar
+          (56/64px) + 64px + respiro, senão a navbar corta o topo da foto. */}
+      <div className="relative mx-auto max-w-screen-2xl px-4 pb-14 pt-32 sm:px-6 sm:pb-20 sm:pt-36">
         {children}
 
         {/* Ações (compartilhar / ver como) — abaixo do card, à direita */}
