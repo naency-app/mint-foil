@@ -17,7 +17,6 @@ import {
   Play,
   ScanLine,
   Share2,
-  Star,
   Sun,
   TrendingUp,
   Wallet,
@@ -895,7 +894,10 @@ function Nav({
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
-function Hero() {
+// `noCelular` vem do user-agent, lido no servidor (page.tsx): o botão já
+// nasce certo, sem trocar de texto depois da hidratação. Largura de tela não
+// serve — o que importa é ter câmera e poder instalar o app.
+function Hero({ noCelular }: { noCelular: boolean }) {
   const t = useTheme();
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -1018,8 +1020,8 @@ function Hero() {
             lineHeight: 1.7,
           }}
         >
-          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh! e One Piece e
-          acompanhe o valor da sua coleção. Grátis pra começar.
+          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana
+          e Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
         </motion.p>
 
         {/* CTAs */}
@@ -1033,13 +1035,26 @@ function Hero() {
               flexWrap: "wrap",
             }}
           >
-            <PrimaryBtn
-              onClick={() => {
-                router.push("/explore");
-              }}
-            >
-              <ArrowRight size={16} /> Explorar agora
-            </PrimaryBtn>
+            {noCelular ? (
+              // O scan só existe no app: no celular o convite é instalar.
+              // /download e não a loja direto enquanto o app não está
+              // publicado — o link da loja cairia em "app não encontrado".
+              <PrimaryBtn
+                onClick={() => {
+                  router.push("/download");
+                }}
+              >
+                <ScanLine size={16} /> Comece a escanear
+              </PrimaryBtn>
+            ) : (
+              <PrimaryBtn
+                onClick={() => {
+                  router.push("/explore");
+                }}
+              >
+                <ArrowRight size={16} /> Explorar agora
+              </PrimaryBtn>
+            )}
             <PrimaryBtn
               ghost
               onClick={() =>
@@ -1673,8 +1688,8 @@ const WHY_POINTS = [
   {
     id: "multi",
     icon: <Gamepad2 size={17} />,
-    title: "4 jogos, 1 app",
-    desc: "Sem pular entre quatro sites pra cuidar da coleção.",
+    title: "6 jogos, 1 app",
+    desc: "Sem pular entre seis sites pra cuidar da coleção.",
   },
   {
     id: "semconta",
@@ -1847,7 +1862,7 @@ const SOLUTION_STEPS = [
     id: "scan",
     icon: <Camera size={22} />,
     title: "Escaneie",
-    desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh! ou One Piece.",
+    desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana ou Digimon.",
     // O scan só existe no app nativo: o CTA leva ao download, não à web.
     cta: "Baixe o app pra escanear",
     href: "/download",
@@ -2102,7 +2117,7 @@ const FEATURE_TABS: {
     value: "scan",
     icon: <Camera size={15} />,
     label: "Scan Inteligente",
-    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh! e One Piece.",
+    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
     mockupIcon: <ScanLine size={40} />,
   },
   {
@@ -2127,17 +2142,10 @@ const FEATURE_TABS: {
     mockupIcon: <TrendingUp size={40} />,
   },
   {
-    value: "alertas",
-    icon: <Star size={15} />,
-    label: "Alertas de Valorização",
-    desc: "Defina um preço-alvo e seja avisado assim que a carta atingir. Nunca mais perca uma oportunidade.",
-    mockupIcon: <Star size={40} />,
-  },
-  {
     value: "multi-tcg",
     icon: <Gamepad2 size={15} />,
-    label: "4 Jogos, 1 App",
-    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh! e One Piece em um único portfólio. Sem precisar de quatro sites.",
+    label: "6 Jogos, 1 App",
+    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana e Digimon em um único portfólio. Sem precisar de seis sites.",
     mockupIcon: <Gamepad2 size={40} />,
   },
 ];
@@ -2886,7 +2894,7 @@ function PricingInner() {
               margin: "14px auto 0",
             }}
           >
-            Menos de R$ 0,66/dia. Menos que um booster pack.
+            Menos de R$ 0,35/dia. Menos que um booster pack.
           </p>
         </FadeIn>
       </div>
@@ -3281,8 +3289,10 @@ function persistTheme(dark: boolean) {
 
 export function LandingPage({
   initialDark = false,
+  noCelular = false,
 }: {
   initialDark?: boolean;
+  noCelular?: boolean;
 }) {
   const [isDark, setIsDark] = useState(initialDark);
   const theme = isDark ? DARK : LIGHT;
@@ -3456,7 +3466,7 @@ export function LandingPage({
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: CSS estático do view-transition */}
         <style dangerouslySetInnerHTML={{ __html: VT_CSS }} />
         <Nav isDark={isDark} onToggle={handleThemeToggle} />
-        <Hero />
+        <Hero noCelular={noCelular} />
         {/* Margem negativa: a "Veja em ação" já espera atrás da animação,
             que dá fade no final — sem tela vazia entre as duas */}
         {/* z-index alto: a animação pinta por cima da seção de vídeo que

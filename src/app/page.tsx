@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { LandingPage } from "@/app/components/LandingPage";
+import { detectarPlataforma } from "@/lib/app-links";
 
 export const metadata: Metadata = {
   title: "Mint Foil — Escaneie, Colete e Domine o Mercado TCG",
   description:
-    "Identifique cartas com IA, acompanhe preços do mercado brasileiro em tempo real e gerencie todo o seu portfólio de TCG em um só lugar. Pokémon, Magic, Yu-Gi-Oh!, One Piece e mais.",
+    "Escaneie cartas com IA, veja quanto valem em reais e acompanhe sua coleção. Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
 };
 
 // Tema salvo em cookie: o SERVIDOR já renderiza no tema certo — reload no
@@ -13,5 +14,11 @@ export const metadata: Metadata = {
 export default async function Page() {
   const jar = await cookies();
   const initialDark = jar.get("mf-theme")?.value === "dark";
-  return <LandingPage initialDark={initialDark} />;
+  // Celular decide o botão do hero ("Comece a escanear" x "Explorar agora")
+  const plataforma = detectarPlataforma(
+    (await headers()).get("user-agent") ?? "",
+  );
+  return (
+    <LandingPage initialDark={initialDark} noCelular={plataforma !== "outra"} />
+  );
 }
