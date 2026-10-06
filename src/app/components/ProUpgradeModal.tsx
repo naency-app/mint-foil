@@ -27,7 +27,7 @@ import {
 const features = [
   {
     icon: Camera,
-    title: "Scans de IA Ilimitados",
+    title: "Scans Ilimitados",
     description: "Identifique qualquer carta sem limites diários",
   },
   {

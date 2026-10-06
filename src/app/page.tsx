@@ -6,7 +6,7 @@ import { detectarPlataforma } from "@/lib/app-links";
 export const metadata: Metadata = {
   title: "Mint Foil — Escaneie, Colete e Domine o Mercado TCG",
   description:
-    "Escaneie cartas com IA, veja quanto valem em reais e acompanhe sua coleção. Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
+    "Escaneie cartas, veja quanto valem em reais e acompanhe sua coleção. Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
 };
 
 // Tema salvo em cookie: o SERVIDOR já renderiza no tema certo — reload no
