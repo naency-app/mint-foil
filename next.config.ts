@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
     return [
       { source: "/scan", destination: "/download", permanent: false },
       { source: "/scan/:path*", destination: "/download", permanent: false },
+      // Termos e privacidade têm uma versão só (as de julho/2026, com a Ltda).
+      // As de março viviam em /terms e /privacy e divergiam das novas; os
+      // endereços antigos continuam valendo para links já espalhados.
+      { source: "/privacy", destination: "/privacidade", permanent: true },
+      { source: "/terms", destination: "/termos", permanent: true },
     ];
   },
   transpilePackages: [

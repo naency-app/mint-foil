@@ -56,7 +56,7 @@ export default function TermosPage() {
           Termos de Uso
         </h1>
         <p style={{ fontSize: 13, opacity: 0.5, margin: "0 0 8px" }}>
-          Última atualização: julho de 2026
+          Última atualização: outubro de 2026
         </p>
         <p style={S.p}>
           Ao usar o <strong>Mint Foil</strong> — aplicativo, site e loja — você
@@ -104,14 +104,14 @@ export default function TermosPage() {
 
         <h2 style={S.h2}>4. Propriedade intelectual</h2>
         <p style={S.p}>
-          Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece e demais marcas,
-          nomes e imagens de cartas pertencem aos seus respectivos titulares
-          (The Pokémon Company/Nintendo, Wizards of the Coast, Konami e Bandai,
-          entre outros). O Mint Foil{" "}
-          <strong>não é afiliado, patrocinado ou endossado</strong> por nenhuma
-          dessas empresas; as imagens de cartas são exibidas apenas para fins de
-          identificação e catalogação. A marca, o logo e o software Mint Foil
-          são de nossa titularidade.
+          Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Disney Lorcana,
+          Digimon e demais marcas, nomes e imagens de cartas pertencem aos seus
+          respectivos titulares (The Pokémon Company/Nintendo, Wizards of the
+          Coast, Konami, Bandai e Disney/Ravensburger, entre outros). O Mint
+          Foil <strong>não é afiliado, patrocinado ou endossado</strong> por
+          nenhuma dessas empresas; as imagens de cartas são exibidas apenas para
+          fins de identificação e catalogação. A marca, o logo e o software Mint
+          Foil são de nossa titularidade.
         </p>
 
         <h2 style={S.h2}>5. Loja e produtos físicos</h2>
