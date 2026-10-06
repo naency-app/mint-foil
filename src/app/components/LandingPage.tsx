@@ -404,9 +404,13 @@ function PinkBadge({
 function PhoneMockup({
   children,
   size = "md",
+  ilhaPreta = false,
 }: {
   children?: ReactNode;
   size?: "sm" | "md";
+  /** Ilha preta de verdade, para tela com vídeo do app (a gravação tem a
+   *  barra de status pintada de preto e a ilha some nela, como no aparelho). */
+  ilhaPreta?: boolean;
 }) {
   const t = useTheme();
   const w = size === "sm" ? "180px" : "240px";
@@ -436,7 +440,7 @@ function PhoneMockup({
           width: "70px",
           height: "20px",
           borderRadius: "12px",
-          background: t.isDark ? "#0d0d1a" : "#c8c8d2",
+          background: ilhaPreta ? "#000" : t.isDark ? "#0d0d1a" : "#c8c8d2",
           zIndex: 5,
         }}
       />
@@ -2462,7 +2466,7 @@ function KeyFeatures() {
                       opacity: ft.videos ? 1 : 0.72,
                     }}
                   >
-                    <PhoneMockup>
+                    <PhoneMockup ilhaPreta={!!ft.videos}>
                       {ft.videos ? (
                         <VideosEmSequencia
                           srcs={ft.videos}
