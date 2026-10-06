@@ -187,8 +187,13 @@ export type CardSort =
   | "best-match"
   | "price-asc"
   | "price-desc"
+  | "pct-asc"
+  | "pct-desc"
+  | "rise"
+  | "drop"
   | "name-asc"
   | "name-desc"
+  | "oldest"
   | "recent";
 
 /**

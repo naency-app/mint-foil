@@ -88,6 +88,7 @@ import {
   useCardFacets,
   useCardSets,
   useCollectionStats,
+  useAllCollectionItems,
   useInfiniteCards,
   useInvalidateCollection,
   usePortfolioDetail,
@@ -446,6 +447,20 @@ function ListRow({
   );
 }
 
+/** Rótulo da grade sem busca e sem coleção, quando há ordenação escolhida. */
+const ROTULO_DA_ORDEM: Record<string, string> = {
+  "price-asc": "Menor preço",
+  "price-desc": "Maior preço",
+  "pct-asc": "Menor variação do dia",
+  "pct-desc": "Maiores variações do dia",
+  rise: "Maiores altas do dia",
+  drop: "Maiores quedas do dia",
+  "name-asc": "Nome: A → Z",
+  "name-desc": "Nome: Z → A",
+  oldest: "Mais antigos no catálogo",
+  recent: "Mais recentes no catálogo",
+};
+
 function ExplorePageContent() {
   const searchParams = useSearchParams();
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
@@ -692,10 +707,29 @@ function ExplorePageContent() {
     setSearchInput(value);
     if (value) setSelectedSetId(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    // O histórico NÃO grava aqui: digitar "Pikachu" gravava "P", "Pik",
+    // "Pika"… Só o que a pessoa confirma vira busca recente (Enter ou abrir
+    // um resultado) — mesma regra do app.
     debounceRef.current = setTimeout(() => {
       setSearch(value);
-      if (value.trim()) saveRecentSearch(value);
     }, 300);
+  }
+
+  /**
+   * Abrir um resultado também confirma a busca: na web ela roda enquanto se
+   * digita, e quase ninguém aperta Enter antes de clicar na carta.
+   */
+  function registrarAoAbrir() {
+    if (search.trim()) saveRecentSearch(search);
+  }
+
+  /** Enter confirma: busca na hora, sem esperar o debounce, e grava. */
+  function confirmarBusca() {
+    const termo = searchInput.trim();
+    if (!termo) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSearch(termo);
+    saveRecentSearch(termo);
   }
 
   useEffect(() => {
@@ -726,10 +760,10 @@ function ExplorePageContent() {
     if (!term.trim()) return;
     const cleanTerm = term.trim();
     setRecentSearches((prev) => {
-      const next = [cleanTerm, ...prev.filter((x) => x !== cleanTerm)].slice(
-        0,
-        5,
-      );
+      const next = [
+        cleanTerm,
+        ...prev.filter((x) => x.toLowerCase() !== cleanTerm.toLowerCase()),
+      ].slice(0, 8);
       localStorage.setItem("recent_searches", JSON.stringify(next));
       return next;
     });
@@ -755,20 +789,34 @@ function ExplorePageContent() {
     }
   }, [portfoliosQuery.data]);
 
-  // Detalhe do portfólio → mapa de quantidades por carta e progresso por set
-  const { collectionMap, setProgress } = useMemo(() => {
+  // Quantidade por carta: do portfólio ATIVO, que é onde o "+" adiciona.
+  const collectionMap = useMemo(() => {
     const map: CollectionMap = {};
-    const progress: SetProgressMap = {};
     for (const item of portfolioDetail.data?.items ?? []) {
       map[item.cardId] = (map[item.cardId] ?? 0) + item.quantity;
+    }
+    return map;
+  }, [portfolioDetail.data]);
+
+  // Progresso da coleção conta TODOS os portfólios, como no app: a pergunta é
+  // "quanto desta coleção eu tenho", e ela não muda com o portfólio ativo.
+  const todosOsItens = useAllCollectionItems(!!session?.user);
+  const setProgress = useMemo(() => {
+    const progress: SetProgressMap = {};
+    const contadas = new Set<string>();
+    for (const item of todosOsItens) {
       const code = item.card.set?.code ?? item.card.setCode;
       if (!progress[code]) progress[code] = { count: 0, value: 0 };
-      progress[code].count += 1; // cartas únicas, não cópias
+      // cartas únicas — nem cópias, nem a mesma carta em outro portfólio
+      if (!contadas.has(item.cardId)) {
+        contadas.add(item.cardId);
+        progress[code].count += 1;
+      }
       progress[code].value +=
         (item.card.prices?.[0]?.value ?? 0) * item.quantity;
     }
-    return { collectionMap: map, setProgress: progress };
-  }, [portfolioDetail.data]);
+    return progress;
+  }, [todosOsItens]);
 
   function handleClear() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -855,17 +903,11 @@ function ExplorePageContent() {
   // participariam, e o topo da lista descreveria uma amostra.
   const sortedCards = cards;
 
-  // Sets com imagem primeiro (getcollectr > ygoprodeck), preservando a ordem
-  // de lançamento do backend dentro de cada grupo (sort estável) — como no mobile
-  const sortedSets = useMemo(() => {
-    const rank = (s: CardSet) =>
-      s.imageUrl?.includes("getcollectr")
-        ? 0
-        : s.imageUrl?.includes("ygoprodeck")
-          ? 1
-          : 2;
-    return [...sets].sort((a, b) => rank(a) - rank(b));
-  }, [sets]);
+  // Ordem do backend (lançamento, mais recente primeiro), como no app. Antes
+  // havia um sort que jogava para o fim quem não tinha capa de CDN conhecido;
+  // hoje toda coleção tem capa (backfill + fallback), e priorizar por origem
+  // só bagunçava a data.
+  const sortedSets = sets;
 
   // O grid pagina, então `sortedCards.length` é quanto já foi CARREGADO, não
   // quanto existe. Enquanto houver próxima página, o número sai com "+" — dizer
@@ -877,9 +919,13 @@ function ExplorePageContent() {
     ? `${selectedSet.name} — ${contagem} carta${sortedCards.length !== 1 || parcial ? "s" : ""}`
     : searching
       ? `${contagem} resultado${sortedCards.length !== 1 || parcial ? "s" : ""}`
-      : activeTcgs.length === 1
-        ? `Em Alta · ${activeTcgLabel}`
-        : "Em Alta";
+      : ROTULO_DA_ORDEM[sortBy]
+        ? // Com uma ordenação escolhida a grade deixa de ser o "Em Alta":
+          // chamar o ranking de quedas de "Em Alta" descrevia outra coisa.
+          `${ROTULO_DA_ORDEM[sortBy]}${activeTcgs.length === 1 ? ` · ${activeTcgLabel}` : ""}`
+        : activeTcgs.length === 1
+          ? `Em Alta · ${activeTcgLabel}`
+          : "Em Alta";
 
   const sortActive = sortBy !== "best-match";
   const selectedSetTotal =
@@ -914,6 +960,13 @@ function ExplorePageContent() {
               onChange={(e) => handleChangeQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  confirmarBusca();
+                  e.currentTarget.blur();
+                }
+              }}
+              enterKeyHint="search"
               placeholder="Nome, número ou coleção — ex.: Umbreon, 095/084"
               className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
@@ -1003,11 +1056,19 @@ function ExplorePageContent() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              {/* Mesma lista do app (filter-sort-sheet). Variação = tamanho do
+                  movimento de ontem para hoje; altas/quedas separam o lado. */}
               <SelectItem value="best-match">Melhor Resultado</SelectItem>
               <SelectItem value="price-asc">Preço: Menor → Maior</SelectItem>
               <SelectItem value="price-desc">Preço: Maior → Menor</SelectItem>
+              <SelectItem value="pct-asc">Variação de preço: Menor</SelectItem>
+              <SelectItem value="pct-desc">Variação de preço: Maior</SelectItem>
+              <SelectItem value="rise">Maiores altas</SelectItem>
+              <SelectItem value="drop">Maiores quedas</SelectItem>
               <SelectItem value="name-asc">Nome: A → Z</SelectItem>
               <SelectItem value="name-desc">Nome: Z → A</SelectItem>
+              <SelectItem value="oldest">Mais antigos no catálogo</SelectItem>
+              <SelectItem value="recent">Mais recentes no catálogo</SelectItem>
             </SelectContent>
           </Select>
 
@@ -1300,7 +1361,7 @@ function ExplorePageContent() {
                 <GridCardSkeleton key={`skeleton-${i}`} />
               ))}
             </div>
-          ) : sortedCards.length === 0 ? (
+          ) : error ? null : sortedCards.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Search className="size-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -1309,11 +1370,14 @@ function ExplorePageContent() {
               <p className="text-sm text-muted-foreground">
                 {search
                   ? `Nenhum resultado para "${search}". Tente outro termo.`
-                  : "O catálogo está vazio. Adicione cartas via banco de dados."}
+                  : "Nenhuma carta com esses filtros. Tente tirar algum."}
               </p>
             </div>
           ) : viewType === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
+              onClickCapture={registrarAoAbrir}
+            >
               {sortedCards.map((card) => (
                 <TcgCard
                   key={card.id}
@@ -1342,7 +1406,7 @@ function ExplorePageContent() {
               ))}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2" onClickCapture={registrarAoAbrir}>
               {sortedCards.map((card) => (
                 <ListRow
                   key={card.id}

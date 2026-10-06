@@ -3,12 +3,13 @@
 import {
   keepPreviousData,
   useInfiniteQuery,
+  useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { api, type CardQuery } from "./api";
+import { api, type CardQuery, type CollectionItem } from "./api";
 
 /**
  * Hooks de dados compartilhados entre páginas (TanStack Query) — espelho de
@@ -62,6 +63,31 @@ export function usePortfolioDetail(portfolioId: string | undefined) {
     queryFn: () => api.collection.getPortfolio(portfolioId as string),
     enabled: !!portfolioId,
   });
+}
+
+/**
+ * Itens de TODOS os portfólios, juntos — espelho do useAllCollectionItems do
+ * app. Serve à pergunta "quanto desta coleção eu tenho", que não depende de
+ * qual portfólio está ativo. Reaproveita o cache ['portfolio-detail', id] de
+ * cada um, então o portfólio ativo não é buscado duas vezes.
+ */
+export function useAllCollectionItems(enabled: boolean) {
+  const { data: portfolios } = usePortfolios(enabled);
+  return useQueries({
+    queries: (enabled ? (portfolios ?? []) : []).map((p) => ({
+      queryKey: queryKeys.portfolioDetail(p.id),
+      queryFn: () => api.collection.getPortfolio(p.id),
+    })),
+    combine: juntarItens,
+  });
+}
+
+// Fora do hook: `combine` estável faz o TanStack só recombinar quando algum
+// portfólio muda, e a lista mantém a identidade entre renders.
+function juntarItens(
+  detalhes: { data?: { items: CollectionItem[] } }[],
+): CollectionItem[] {
+  return detalhes.flatMap((d) => d.data?.items ?? []);
 }
 
 export function useCollectionHistory(
