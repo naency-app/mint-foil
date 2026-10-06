@@ -78,6 +78,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api, type CollectionItem, type PortfolioMetrics } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { capaVisivel } from "@/lib/cover-catalog";
 import {
   resolveActiveId,
   sortByFavorite,
@@ -1273,14 +1274,17 @@ export default function PortfolioPage() {
         totalCards={stats?.totalCards ?? 0}
         totalSealed={stats?.totalSealed ?? 0}
         totalValue={stats?.totalValue ?? 0}
-        cover={{
-          type: (u.coverType ?? "gradient") as
-            | "gradient"
-            | "color"
-            | "preset"
-            | "image",
-          value: u.coverValue ?? null,
-        }}
+        cover={capaVisivel(
+          {
+            type: (u.coverType ?? "gradient") as
+              | "gradient"
+              | "color"
+              | "preset"
+              | "image",
+            value: u.coverValue ?? null,
+          },
+          stats ? !!(stats.isPro || u.isPro) : undefined,
+        )}
         bio={meuPerfil?.bio}
         socials={meuPerfil?.socials}
         actions={

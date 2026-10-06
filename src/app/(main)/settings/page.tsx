@@ -35,7 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
-import { coverCss, findCoverPreset } from "@/lib/cover-catalog";
+import { capaVisivel, coverCss, findCoverPreset } from "@/lib/cover-catalog";
 import { cn } from "@/lib/utils";
 import { CoverPicker } from "./cover-picker";
 import { DeleteAccount } from "./delete-account";
@@ -502,10 +502,14 @@ function SettingsContent() {
   if (!session) return null;
 
   const user = session.user as any;
-  const cover = novoCover ?? {
-    type: user.coverType ?? "gradient",
-    value: user.coverValue ?? null,
-  };
+  // Fundo Pro de quem não é mais Pro some daqui (o salvo fica guardado).
+  const cover = capaVisivel(
+    novoCover ?? {
+      type: user.coverType ?? "gradient",
+      value: user.coverValue ?? null,
+    },
+    stats ? !!(stats.isPro || user.isPro) : undefined,
+  );
   const nomeExibido =
     novoPerfil?.nickname ?? user.nickname ?? user.name ?? "Colecionador";
   const handleExibido = novoPerfil?.handle ?? user.handle ?? "";
