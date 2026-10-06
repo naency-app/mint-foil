@@ -44,7 +44,7 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Mint Foil — Gerencie sua Coleção de TCG",
   description:
-    "Escaneie cartas, acompanhe preços do mercado brasileiro e gerencie seu portfólio de TCG. Pokémon, Magic, Yu-Gi-Oh!, One Piece e mais.",
+    "Escaneie cartas, veja o valor em reais e organize seu portfólio de TCG. Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
 };
 
 export const viewport: Viewport = {
