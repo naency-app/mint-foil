@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { PerfilSocial } from "@/app/components/social/PerfilSocial";
 import { capaVisivel } from "@/lib/cover-catalog";
 import { ShowcaseBrowser } from "./showcase-browser";
 import type { Showcase } from "./types";
@@ -99,7 +100,20 @@ export default async function ShowcaseProfilePage({
         cover={capaVisivel(data.cover, data.isPro)}
         bio={data.bio}
         socials={data.socials}
-        actions={<ViewerBanner handle={data.handle} shareUrl={shareUrl} />}
+        social={
+          <PerfilSocial
+            handle={data.handle}
+            followers={data.followers ?? 0}
+            following={data.following ?? 0}
+          />
+        }
+        actions={
+          <ViewerBanner
+            handle={data.handle}
+            displayName={data.displayName}
+            shareUrl={shareUrl}
+          />
+        }
       />
 
       {/* Navegador de coleção (busca, portfólio, sort, view, filtros) */}

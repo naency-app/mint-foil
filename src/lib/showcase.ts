@@ -46,4 +46,9 @@ export interface Showcase {
   totalSealed: number;
   totalValue: number;
   portfolios: ShowcasePortfolio[];
+  /** Contagens públicas de seguidores/seguindo. */
+  followers?: number;
+  following?: number;
+  /** Relação de quem vê (só vem certa com sessão; sem login é 'none'). */
+  followStatus?: import("./api").FollowStatus;
 }

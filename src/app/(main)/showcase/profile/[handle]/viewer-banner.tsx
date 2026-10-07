@@ -2,18 +2,21 @@
 
 import { Check, Eye, Share2 } from "lucide-react";
 import { useState } from "react";
+import { PerfilAcoes } from "@/app/components/social/PerfilAcoes";
 import { useSession } from "@/lib/auth-client";
 
 /**
- * Só aparece para o DONO do perfil: um chip discreto indicando que é a visão
- * pública + botão de compartilhar. Fica sobreposto no canto do banner (o page
- * posiciona), em vez de uma faixa grande no topo.
+ * Para o DONO do perfil: um chip discreto indicando que é a visão pública +
+ * botão de compartilhar. Para outra pessoa logada: o menu de denunciar e
+ * bloquear. Fica no canto do banner (o page posiciona).
  */
 export function ViewerBanner({
   handle,
+  displayName,
   shareUrl,
 }: {
   handle: string;
+  displayName: string;
   shareUrl: string;
 }) {
   const { data: session } = useSession();
@@ -24,7 +27,14 @@ export function ViewerBanner({
   const isOwner =
     !!viewerHandle && viewerHandle.toLowerCase() === handle.toLowerCase();
 
-  if (!isOwner) return null;
+  if (!isOwner) {
+    const logado =
+      !!session?.user &&
+      (session.user as { isAnonymous?: boolean }).isAnonymous !== true;
+    return logado ? (
+      <PerfilAcoes handle={handle} displayName={displayName} />
+    ) : null;
+  }
 
   async function handleShare() {
     try {

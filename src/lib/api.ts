@@ -257,6 +257,37 @@ function cardQueryParams(q: CardQuery): URLSearchParams {
   return params;
 }
 
+// ─── Social (seguir, pedidos, bloquear) — espelho de mint-foil-app/lib/api.ts ──
+
+/** Relação de quem vê com o perfil: 'self' é o próprio perfil. */
+export type FollowStatus = "self" | "none" | "requested" | "following";
+
+export interface FollowUser {
+  id?: string;
+  handle: string;
+  displayName: string;
+  image: string | null;
+  isPro: boolean;
+  followStatus?: FollowStatus;
+}
+
+export interface FollowRequest {
+  id: string;
+  user: {
+    handle: string;
+    displayName: string;
+    image: string | null;
+    isPro: boolean;
+  };
+}
+
+export type ReportReason =
+  | "SPAM"
+  | "OFFENSIVE"
+  | "IMPERSONATION"
+  | "SCAM"
+  | "OTHER";
+
 /**
  * Erro da API com o status HTTP junto.
  *
@@ -334,6 +365,65 @@ export const api = {
         "/users/profile",
         { method: "POST", body: JSON.stringify(input) },
       ),
+    /** Foto de perfil própria, em base64 (o servidor reprocessa e guarda no R2). */
+    setAvatar: (image: string) =>
+      apiFetch<{ image: string }>("/users/avatar", {
+        method: "POST",
+        body: JSON.stringify({ image }),
+      }),
+    /** Volta para a foto do login (ou as iniciais). */
+    removeAvatar: () =>
+      apiFetch<{ image: null }>("/users/avatar", { method: "DELETE" }),
+  },
+  follows: {
+    /** Busca de contas por @ ou nome (exclui anônimos e o próprio). */
+    search: (q: string) =>
+      apiFetch<FollowUser[]>(`/users/search?q=${encodeURIComponent(q)}`),
+    follow: (handle: string) =>
+      apiFetch<{ status: FollowStatus }>(
+        `/follows/${encodeURIComponent(handle)}`,
+        { method: "POST" },
+      ),
+    unfollow: (handle: string) =>
+      apiFetch<{ status: FollowStatus }>(
+        `/follows/${encodeURIComponent(handle)}`,
+        { method: "DELETE" },
+      ),
+    counts: () =>
+      apiFetch<{ followers: number; following: number }>("/follows/counts"),
+    requests: () => apiFetch<FollowRequest[]>("/follows/requests"),
+    accept: (id: string) =>
+      apiFetch<{ ok: boolean }>(`/follows/requests/${id}/accept`, {
+        method: "POST",
+      }),
+    reject: (id: string) =>
+      apiFetch<{ ok: boolean }>(`/follows/requests/${id}/reject`, {
+        method: "POST",
+      }),
+    followers: (handle: string) =>
+      apiFetch<FollowUser[]>(
+        `/follows/${encodeURIComponent(handle)}/followers`,
+      ),
+    following: (handle: string) =>
+      apiFetch<FollowUser[]>(
+        `/follows/${encodeURIComponent(handle)}/following`,
+      ),
+  },
+  /** Bloquear e denunciar (exigência das lojas para perfil público). */
+  moderation: {
+    block: (handle: string) =>
+      apiFetch<{ blocked: boolean }>(`/blocks/${encodeURIComponent(handle)}`, {
+        method: "POST",
+      }),
+    unblock: (handle: string) =>
+      apiFetch<{ blocked: boolean }>(`/blocks/${encodeURIComponent(handle)}`, {
+        method: "DELETE",
+      }),
+    report: (handle: string, reason: ReportReason, details?: string) =>
+      apiFetch<{ ok: boolean }>(`/reports/${encodeURIComponent(handle)}`, {
+        method: "POST",
+        body: JSON.stringify({ reason, details }),
+      }),
   },
   cards: {
     list: (query: CardQuery = {}) => {
