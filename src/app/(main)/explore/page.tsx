@@ -13,13 +13,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  Layers,
   Loader2,
   Search,
   TrendingUp,
   X,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -52,7 +50,7 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { getSetImageUrl, type SetProgress } from "@/app/components/SetCard";
+import { type SetProgress, SetCover, temCapa } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -250,8 +248,6 @@ function CarouselSetItem({
   selected: boolean;
   onClick: () => void;
 }) {
-  const imgUrl = getSetImageUrl(set);
-  const [imgFailed, setImgFailed] = useState(false);
   const total = set.totalCards ?? set._count?.cards ?? 0;
   const collected = progress?.count ?? 0;
   const pct = total > 0 ? Math.min(collected / total, 1) : 0;
@@ -267,19 +263,10 @@ function CarouselSetItem({
     >
       {/* Painel de imagem com fundo neutro — logos claros aparecem no light */}
       <div className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-2 dark:from-white/[0.06] dark:to-white/[0.02]">
-        {imgUrl && !imgFailed ? (
-          <Image
-            src={imgUrl}
-            alt={set.name}
-            fill
-            sizes="128px"
-            className="object-contain p-2 transition-transform duration-300 group-hover/item:scale-105"
-            loading="lazy"
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <Layers className="size-7 stroke-[1.5] text-muted-foreground" />
-        )}
+        {/* Mesma capa em cascata do SetCard e do app: logo que presta →
+            leque das cartas mais valiosas → logo do jogo. Antes era uma URL só
+            e, falhando, o ícone de pilha. */}
+        <SetCover set={set} logoFit="contain" sizes="128px" />
         {selected && (
           <span className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-primary">
             <Check
@@ -907,7 +894,11 @@ function ExplorePageContent() {
   // havia um sort que jogava para o fim quem não tinha capa de CDN conhecido;
   // hoje toda coleção tem capa (backfill + fallback), e priorizar por origem
   // só bagunçava a data.
-  const sortedSets = sets;
+  // Sem jogo escolhido, "Coleções recentes" é vitrine: só entra coleção com
+  // capa de verdade (cartas com foto para o leque), como a Home do app. Sem
+  // isso o topo virava uma fila de ícones de promos e avulsas sem foto. Com um
+  // jogo escolhido a lista é navegação e mostra tudo (a capa cai no logo do jogo).
+  const sortedSets = carouselTcg ? sets : sets.filter(temCapa);
 
   // O grid pagina, então `sortedCards.length` é quanto já foi CARREGADO, não
   // quanto existe. Enquanto houver próxima página, o número sai com "+" — dizer
@@ -939,7 +930,6 @@ function ExplorePageContent() {
         year: "numeric",
       })
     : null;
-  const selectedSetImg = selectedSet ? getSetImageUrl(selectedSet) : null;
 
   return (
     <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-4">
@@ -1305,17 +1295,10 @@ function ExplorePageContent() {
           {/* ── Banner do set selecionado ── */}
           {selectedSet && (
             <div className="glass-card flex items-stretch gap-3 !rounded-2xl p-2">
-              {selectedSetImg && (
-                <div className="relative h-[70px] w-[110px] shrink-0">
-                  <Image
-                    src={selectedSetImg}
-                    alt={selectedSet.name}
-                    fill
-                    sizes="110px"
-                    className="object-contain"
-                  />
-                </div>
-              )}
+              {/* Mesma capa em cascata do carrossel (logo → leque → jogo) */}
+              <div className="relative flex h-[70px] w-[110px] shrink-0 items-center justify-center overflow-hidden">
+                <SetCover set={selectedSet} logoFit="contain" sizes="110px" />
+              </div>
               <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-1 pr-2">
                 <p className="line-clamp-2 text-[13px] font-bold leading-snug text-foreground">
                   {selectedSet.name}
