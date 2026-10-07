@@ -268,7 +268,8 @@ function CarouselSetItem({
             e, falhando, o ícone de pilha. */}
         <SetCover set={set} logoFit="contain" sizes="128px" />
         {selected && (
-          <span className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-primary">
+          // z-10: o leque e o logo da capa têm camada própria (até z-[5]) e cobriam o selo
+          <span className="absolute right-1.5 top-1.5 z-10 flex size-4 items-center justify-center rounded-full bg-primary">
             <Check
               className="size-2.5 text-primary-foreground"
               strokeWidth={3}
