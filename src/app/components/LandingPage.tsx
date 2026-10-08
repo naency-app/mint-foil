@@ -2201,6 +2201,10 @@ const FEATURE_TABS: {
     label: "Portfólio Inteligente",
     desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
     mockupIcon: <BarChart3 size={40} />,
+    // Portfólio: cartas, Top cartas, Por jogo, troca de portfólio e criação
+    // de um novo (1,25x, mesma regra dos outros)
+    videos: ["/landing/portfolio.mp4"],
+    poster: "/landing/portfolio.jpg",
   },
   {
     value: "historico",
