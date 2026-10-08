@@ -2187,7 +2187,7 @@ const FEATURE_TABS: {
     // Ocupa o lugar de "Preços em Reais" até termos o vídeo dos preços
     value: "amigos",
     icon: <Users size={15} />,
-    label: "Siga Colecionadores",
+    label: "Perfil Colecionador",
     desc: "Encontre amigos pelo @, peça para seguir e aceite pedidos. Depois, veja a coleção de quem você segue, jogo por jogo.",
     mockupIcon: <Users size={40} />,
     // Achar o amigo → pedir para seguir → aceitar o pedido → ver a coleção
