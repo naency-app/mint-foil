@@ -19,6 +19,7 @@ import {
   Share2,
   Sun,
   TrendingUp,
+  Users,
   Wallet,
   X,
 } from "lucide-react";
@@ -2183,11 +2184,16 @@ const FEATURE_TABS: {
     poster: "/landing/scan-uma.jpg",
   },
   {
-    value: "precos",
-    icon: <DollarSign size={15} />,
-    label: "Preços em Reais",
-    desc: "Valor de referência convertido pra reais e atualizado todos os dias — com o link das lojas BR na tela da carta.",
-    mockupIcon: <TrendingUp size={40} />,
+    // Ocupa o lugar de "Preços em Reais" até termos o vídeo dos preços
+    value: "amigos",
+    icon: <Users size={15} />,
+    label: "Perfil Colecionador",
+    desc: "Encontre amigos pelo @, peça para seguir e aceite pedidos. Depois, veja a coleção de quem você segue, jogo por jogo.",
+    mockupIcon: <Users size={40} />,
+    // Achar o amigo → pedir para seguir → aceitar o pedido → ver a coleção
+    // (quatro gravações juntas, 1,25x; conta de terceiro desfocada na busca)
+    videos: ["/landing/social.mp4"],
+    poster: "/landing/social.jpg",
   },
   {
     value: "portfolio",
