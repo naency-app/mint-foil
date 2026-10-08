@@ -2333,9 +2333,10 @@ function VideosEmSequencia({
           poster={lado === 0 ? poster : undefined}
           muted
           playsInline
-          // Os dois carregam: o de trás precisa estar pronto quando o da
-          // frente acabar (cada arquivo tem 1–2 MB).
-          preload="auto"
+          // Só o card do centro baixa vídeo (9–22 MB cada, em 720px): os
+          // vizinhos mostram o poster. No do centro os dois players carregam,
+          // para o de trás estar pronto quando o da frente acabar.
+          preload={ativo ? "auto" : "none"}
           onEnded={() => aoTerminar(lado)}
           // Um vídeo só e ninguém esperando o fim: o loop do navegador resolve
           loop={srcs.length === 1 && !onFim}
