@@ -92,14 +92,41 @@ const FAN_POSITIONS = [
   "z-[1] translate-x-[62%] translate-y-1 rotate-10",
 ];
 
-export function SetCard({ set, progress, onClick }: SetCardProps) {
-  const total = set.totalCards ?? set._count?.cards ?? 0;
-  const collected = progress?.count ?? 0;
-  const pct = total > 0 ? Math.min(collected / total, 1) : 0;
+/** Coleção tem capa de verdade (logo próprio ou cartas com foto para o leque). */
+export function temCapa(set: CardSet): boolean {
+  return (set.coverCards?.length ?? 0) > 0 || !!set.coverFallbackUrl;
+}
+
+/**
+ * Capa da coleção em cascata — a mesma do app (components/set-card.tsx):
+ * logos em ordem (descartando o quebrado pelo tamanho) → leque das 3 cartas
+ * mais valiosas → logo do jogo → ícone. Preenche o container pai (absolute).
+ *
+ * `logoFit`: "cover" no card grande (16:9), "contain" em miniaturas, onde o
+ * logo cortado ficava ilegível.
+ */
+export function SetCover({
+  set,
+  logoFit = "cover",
+  sizes = "(max-w-768px) 100vw, 300px",
+}: {
+  set: CardSet;
+  logoFit?: "cover" | "contain";
+  sizes?: string;
+}) {
   // Avança nos logos a cada falha; esgotados, entra o leque de cartas, e só sem
   // cartas cai no logo do TCG (e, sem ele, no ícone)
-  const logos = useMemo(() => setCoverCandidates(set), [set]);
   const fan = useMemo(() => setFanCards(set), [set]);
+  // SVG de coleção (o símbolo do Scryfall) é um desenho de uma cor só: em
+  // fundo escuro some, e não diz nada da coleção. Com cartas para o leque, ele
+  // perde a vez — só vira capa quando não há nada melhor.
+  const logos = useMemo(
+    () =>
+      setCoverCandidates(set).filter(
+        (u) => fan.length === 0 || !u.endsWith(".svg"),
+      ),
+    [set, fan],
+  );
   const [attempt, setAttempt] = useState(0);
   useEffect(() => setAttempt(0), [set.id]);
   const logoUrl = logos[attempt] ?? null;
@@ -109,6 +136,72 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
   useEffect(() => setLogoPronto(false), [logoUrl]);
   const tcgLogo = set.tcg?.slug ? (TCG_LOGOS[set.tcg.slug] ?? null) : null;
 
+  return (
+    <>
+      {logoUrl && (
+        <Image
+          key={logoUrl}
+          src={logoUrl}
+          alt={set.name}
+          fill
+          sizes={sizes}
+          className={`z-[5] transition-transform duration-300 group-hover:scale-[1.012] ${
+            logoFit === "contain" ? "object-contain p-2" : "object-cover"
+          } ${logoPronto ? "opacity-100" : "opacity-0"}`}
+          loading="lazy"
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            if (logoPareceQuebrado(img.naturalWidth, img.naturalHeight)) {
+              setAttempt((n) => n + 1);
+            } else {
+              setLogoPronto(true);
+            }
+          }}
+          onError={() => setAttempt((n) => n + 1)}
+        />
+      )}
+
+      {/* Base: sempre visível até um logo provar que presta */}
+      {logoPronto ? null : fan.length > 0 ? (
+        // Carta é retrato e o container é paisagem: uma carta só sobra como
+        // tira no meio do vazio; três abertas em leque ocupam a largura
+        <div className="absolute inset-0 flex items-center justify-center">
+          {fan.map((carta, i) => (
+            <div
+              key={`${carta.imageUrl}-${i}`}
+              className={`absolute h-[84%] aspect-[5/7] overflow-hidden rounded-[4px] shadow-md transition-transform duration-300 group-hover:scale-[1.03] ${FAN_POSITIONS[i]}`}
+            >
+              <CardImage
+                carta={carta}
+                tamanho="miniatura"
+                alt={i === 0 ? set.name : ""}
+                fill
+                sizes="120px"
+                className="object-cover"
+                rotulo={false}
+              />
+            </div>
+          ))}
+        </div>
+      ) : tcgLogo ? (
+        <Image
+          src={tcgLogo}
+          alt={set.tcg?.name ?? set.name}
+          width={120}
+          height={68}
+          className="max-h-[60%] w-auto object-contain opacity-80"
+        />
+      ) : (
+        <Layers className="size-8 text-muted-foreground stroke-[1.5]" />
+      )}
+    </>
+  );
+}
+
+export function SetCard({ set, progress, onClick }: SetCardProps) {
+  const total = set.totalCards ?? set._count?.cards ?? 0;
+  const collected = progress?.count ?? 0;
+  const pct = total > 0 ? Math.min(collected / total, 1) : 0;
   const relDate = useMemo(() => {
     if (!set.releaseDate) return null;
     try {
@@ -128,62 +221,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
     >
       <div>
         <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3 border-b border-border">
-          {logoUrl && (
-            <Image
-              key={logoUrl}
-              src={logoUrl}
-              alt={set.name}
-              fill
-              sizes="(max-w-768px) 100vw, 300px"
-              className={`z-[5] object-cover transition-transform duration-300 group-hover:scale-[1.012] ${
-                logoPronto ? "opacity-100" : "opacity-0"
-              }`}
-              loading="lazy"
-              onLoad={(e) => {
-                const img = e.currentTarget;
-                if (logoPareceQuebrado(img.naturalWidth, img.naturalHeight)) {
-                  setAttempt((n) => n + 1);
-                } else {
-                  setLogoPronto(true);
-                }
-              }}
-              onError={() => setAttempt((n) => n + 1)}
-            />
-          )}
-
-          {/* Base: sempre visível até um logo provar que presta */}
-          {logoPronto ? null : fan.length > 0 ? (
-            // Carta é retrato e o container é 16:9: uma carta só sobra como tira
-            // no meio do vazio; três abertas em leque ocupam a largura
-            <div className="absolute inset-0 flex items-center justify-center">
-              {fan.map((carta, i) => (
-                <div
-                  key={`${carta.imageUrl}-${i}`}
-                  className={`absolute h-[84%] aspect-[5/7] overflow-hidden rounded-[4px] shadow-md transition-transform duration-300 group-hover:scale-[1.03] ${FAN_POSITIONS[i]}`}
-                >
-                  <CardImage
-                    carta={carta}
-                    tamanho="miniatura"
-                    alt={i === 0 ? set.name : ""}
-                    fill
-                    sizes="120px"
-                    className="object-cover"
-                    rotulo={false}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : tcgLogo ? (
-            <Image
-              src={tcgLogo}
-              alt={set.tcg?.name ?? set.name}
-              width={120}
-              height={68}
-              className="max-h-[60%] w-auto object-contain opacity-80"
-            />
-          ) : (
-            <Layers className="size-8 text-muted-foreground stroke-[1.5]" />
-          )}
+          <SetCover set={set} />
 
           {/* Date Badge */}
           {relDate && (
