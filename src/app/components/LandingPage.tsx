@@ -2602,7 +2602,9 @@ function KeyFeatures() {
               position: "absolute",
               [lado]: isMobile
                 ? "8px"
-                : `calc(50% - ${passo + CELULAR_W * 0.5}px)`,
+                : // Fora dos celulares vizinhos: centro do vizinho (passo) +
+                  // meia largura dele (escala 0,78) + 24px de folga + a seta
+                  `calc(50% - ${passo + (CELULAR_W * escalaAtivo * 0.78) / 2 + 24 + 40}px)`,
               top: `${(CELULAR_H * escalaAtivo) / 2}px`,
               transform: "translateY(-50%)",
               zIndex: 10,
