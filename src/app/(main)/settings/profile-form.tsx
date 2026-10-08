@@ -8,29 +8,14 @@ import { Separator } from "@/components/ui/separator";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { SOCIAL_LINKS, toDisplay, toUrl } from "@/lib/social-links";
+import {
+  HANDLE_MIN,
+  sanitizeHandle,
+  useCampoHandle,
+} from "@/lib/use-campo-handle";
 
 const NAME_MAX = 24;
-const HANDLE_MAX = 20;
-const HANDLE_MIN = 3;
 const BIO_MAX = 300;
-
-// Espelha as regras do backend (auth/handle.ts): minúsculas, [a-z0-9_].
-function sanitizeHandle(raw: string): string {
-  return raw
-    .toLowerCase()
-    .replace(/^@+/, "")
-    .replace(/[^a-z0-9_]/g, "")
-    .slice(0, HANDLE_MAX);
-}
-
-type HandleStatus =
-  | "current"
-  | "short"
-  | "locked"
-  | "checking"
-  | "ok"
-  | "taken"
-  | "error";
 
 /**
  * Nome, @handle, descrição e links — o mesmo conjunto que a tela de editar
@@ -58,7 +43,6 @@ export function ProfileForm({
   onSaved?: (perfil: { nickname: string; handle: string }) => void;
 }) {
   const [name, setName] = useState(currentName);
-  const [handle, setHandle] = useState(currentHandle);
   const [bio, setBio] = useState("");
   const [links, setLinks] = useState<Record<string, string>>({});
   const [original, setOriginal] = useState<{
@@ -70,17 +54,16 @@ export function ProfileForm({
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
 
-  const [debounced, setDebounced] = useState(sanitizeHandle(currentHandle));
-  const [check, setCheck] = useState<{
-    loading: boolean;
-    available?: boolean;
-    reason?: string;
-  }>({ loading: false });
-
   const canEditHandle = isPro || handleEditCount < 1;
-  const normalized = sanitizeHandle(handle);
-  const handleChanged = normalized !== currentHandle;
-  const tooShort = normalized.length < HANDLE_MIN;
+  const {
+    handle,
+    setHandle,
+    normalized,
+    handleChanged,
+    status,
+    reason,
+    valido: handleValid,
+  } = useCampoHandle(currentHandle, canEditHandle);
 
   // Carrega descrição e links uma vez. Depois disso o que vale é o que a
   // pessoa digitou — um refetch não pode apagar edição em curso.
@@ -106,47 +89,6 @@ export function ProfileForm({
     };
   }, [currentHandle]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(normalized), 400);
-    return () => clearTimeout(t);
-  }, [normalized]);
-
-  useEffect(() => {
-    if (!handleChanged || !canEditHandle || tooShort) return;
-    if (debounced !== normalized) return;
-    let vivo = true;
-    setCheck({ loading: true });
-    api.users
-      .checkHandle(debounced)
-      .then(
-        (r) =>
-          vivo &&
-          setCheck({
-            loading: false,
-            available: r.available,
-            reason: r.reason,
-          }),
-      )
-      .catch(() => vivo && setCheck({ loading: false, available: undefined }));
-    return () => {
-      vivo = false;
-    };
-  }, [debounced, normalized, handleChanged, canEditHandle, tooShort]);
-
-  const status: HandleStatus = !handleChanged
-    ? "current"
-    : tooShort
-      ? "short"
-      : !canEditHandle
-        ? "locked"
-        : check.loading || debounced !== normalized
-          ? "checking"
-          : check.available === true
-            ? "ok"
-            : check.available === false
-              ? "taken"
-              : "error";
-
   const nameChanged = name.trim() !== currentName.trim();
   const bioChanged = !!original && bio.trim() !== original.bio;
   const linksChanged = useMemo(() => {
@@ -157,7 +99,6 @@ export function ProfileForm({
     });
   }, [links, original]);
 
-  const handleValid = !handleChanged || (canEditHandle && status === "ok");
   const canSave =
     !saving &&
     (nameChanged ||
@@ -270,7 +211,7 @@ export function ProfileForm({
               </span>
             ) : status === "taken" ? (
               <span className="text-destructive">
-                {check.reason ?? "Nome de usuário indisponível."}
+                {reason ?? "Nome de usuário indisponível."}
               </span>
             ) : status === "short" ? (
               <span className="text-destructive">

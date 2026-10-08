@@ -67,7 +67,16 @@ export function FollowButton({
   function onClick() {
     if (busy) return;
     if (semConta) {
-      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      // No celular, quem chega pelo link do perfil quer o app: seguir leva ao
+      // download. No computador, ao login (a web também segue).
+      const celular =
+        typeof navigator !== "undefined" &&
+        /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      router.push(
+        celular
+          ? "/download"
+          : `/login?redirect=${encodeURIComponent(pathname)}`,
+      );
       return;
     }
     if (local === "none") void alternar();
