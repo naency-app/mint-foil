@@ -15,7 +15,12 @@ const CHAVE = "mf-perfil-completo.";
 
 /** Só caminho interno: "/x" sim, "//x" ou "https://…" não (redirect aberto). */
 function destinoSeguro(v: string | null): string {
-  return v?.startsWith("/") && !v.startsWith("//") ? v : "/explore";
+  // Voltar para a própria tela seria um ciclo
+  return v?.startsWith("/") &&
+    !v.startsWith("//") &&
+    !v.startsWith("/completar-perfil")
+    ? v
+    : "/explore";
 }
 
 export default function CompletarPerfilPage() {
