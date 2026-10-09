@@ -1393,7 +1393,7 @@ function DemoWeb() {
         if (e.isIntersecting) {
           v.currentTime = 0;
           tocar(v, setBloqueado);
-        } else v.pause();
+        } else parar(v);
       },
       { threshold: 0.25 },
     );
@@ -1435,9 +1435,28 @@ function DemoWeb() {
  * ficava parado no poster sem nada indicando que dava pra tocar.
  */
 function tocar(v: HTMLVideoElement, setBloqueado: (b: boolean) => void) {
+  // Marca que a PÁGINA quer o vídeo tocando; `parar` desmarca. Sem isso, a
+  // checagem abaixo confundiria "a pessoa rolou pra fora e pausamos" com
+  // "o navegador bloqueou".
+  v.dataset.querTocar = "1";
   v.play()
     .then(() => setBloqueado(false))
-    .catch((e: DOMException) => setBloqueado(e?.name === "NotAllowedError"));
+    // AbortError = um pause() nosso interrompeu o play; não é bloqueio
+    .catch((e: DOMException) => {
+      if (e?.name !== "AbortError" && v.dataset.querTocar) setBloqueado(true);
+    });
+  // O Chrome do iPhone no Modo de Pouca Energia não rejeita o play(): deixa
+  // o vídeo parado em silêncio e a promise nunca responde. Ainda parado
+  // depois de 2s (carregando conta como tocando: paused fica false) = bloqueado.
+  window.setTimeout(() => {
+    if (v.dataset.querTocar && v.paused) setBloqueado(true);
+  }, 2000);
+}
+
+function parar(v: HTMLVideoElement | null | undefined) {
+  if (!v) return;
+  delete v.dataset.querTocar;
+  v.pause();
 }
 
 /** Play por cima do vídeo bloqueado — o mesmo botão do card do "Veja em ação". */
@@ -2360,10 +2379,10 @@ function VideosEmSequencia({
   // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
   useEffect(() => {
     const atual = refs[frente].current;
-    refs[1 - frente]?.current?.pause();
+    parar(refs[1 - frente]?.current);
     if (!atual) return;
     if (visivel && ativo) tocar(atual, setBloqueado);
-    else atual.pause();
+    else parar(atual);
   }, [visivel, ativo, frente]);
 
   function aoTerminar(lado: number) {
