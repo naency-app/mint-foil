@@ -698,15 +698,15 @@ function Nav({
             "top 0.35s ease, width 0.35s ease, padding 0.35s ease, background 0.15s ease, border-radius 0.35s ease, box-shadow 0.35s ease, border-color 0.15s ease",
         }}
       >
-        {/* Logo — clique recarrega a landing e volta pro início (o Link do
-            Next para "/" estando em "/" não fazia nada) */}
+        {/* Logo — na landing, sobe até o topo com a mesma rolagem suave dos
+            outros itens (o Link do Next para "/" estando em "/" não fazia
+            nada); em outra página, o Link leva de volta à landing */}
         <SmartLink
           href="/"
           onClick={(e) => {
             if (window.location.pathname !== "/") return;
             e.preventDefault();
-            window.scrollTo(0, 0);
-            window.location.reload();
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
           style={{
             display: "flex",
