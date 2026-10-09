@@ -22,10 +22,15 @@ const publicRoutes = [
   "/privacy",
   "/terms",
   "/loja",
+  // Guia de raridades é conteúdo educativo, como no app: abre sem conta
+  "/raridades",
+  // A própria página manda para o login quem não tem sessão, guardando o
+  // destino (?volta=) — aqui o redirect perdia a query e podia virar ciclo
+  "/completar-perfil",
 ];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   if (
     publicRoutes.some(
@@ -41,7 +46,8 @@ export async function middleware(request: NextRequest) {
 
   if (!sessionToken) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    // Com a query junto: "/portfolio?tab=x" voltava como "/portfolio"
+    loginUrl.searchParams.set("redirect", pathname + search);
     return NextResponse.redirect(loginUrl);
   }
 
