@@ -569,7 +569,7 @@ export function CinematicHero({
                     <div className="mf-phone-widget relative h-full w-full">
                       {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
                       <img
-                        src="/landing/app-dashboard.jpg"
+                        src="/landing/home-sem-conta.jpg"
                         alt="Dashboard do Mint Foil"
                         className="h-full w-full object-cover object-top"
                       />
