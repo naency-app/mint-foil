@@ -108,33 +108,33 @@ function FlipCard({ src, back, target }: FlipCardProps) {
 // --- Cartas (mistura dos 4 TCGs; locais + hotlinks já usados na landing) ---
 const IMAGES = [
   "/landing/blue-eyes-card.jpg",
-  "https://images.pokemontcg.io/swsh7/215_hires.png",
+  "/landing/faixa/01.webp",
   "/landing/shivan-card.jpg",
   // Umbreon ex — Prismatic Evolutions (2025)
-  "https://images.pokemontcg.io/sv8pt5/161_hires.png",
+  "/landing/faixa/02.webp",
   "/landing/luffy-card.png",
   // Ash Blossom & Joyous Spring — staple nº 1, tem versão Starlight
-  "https://images.ygoprodeck.com/images/cards/14558127.jpg",
+  "/landing/faixa/morph-1.webp",
   "/landing/charizard-card.png",
-  "https://images.pokemontcg.io/swsh4/188_hires.png",
+  "/landing/faixa/03.webp",
   // Sheoldred, the Apocalypse — staple atual de Magic
-  "https://cards.scryfall.io/large/front/d/6/d67be074-cdd4-41d9-ac89-0a0456c4e4b2.jpg?1783921327",
-  "https://images.pokemontcg.io/swsh8/271_hires.png",
+  "/landing/faixa/21.webp",
+  "/landing/faixa/04.webp",
   // Infinite Impermanence — staple desejadíssima, versão Starlight
-  "https://images.ygoprodeck.com/images/cards/10045474.jpg",
-  "https://images.pokemontcg.io/pgo/31_hires.png",
-  "https://cards.scryfall.io/large/front/4/c/4cbc6901-6a4a-4d0a-83ea-7eefa3b35021.jpg",
+  "/landing/faixa/morph-2.webp",
+  "/landing/faixa/06.webp",
+  "/landing/faixa/22.webp",
   // Leafeon ex — Prismatic Evolutions (2025)
-  "https://images.pokemontcg.io/sv8pt5/144_hires.png",
+  "/landing/faixa/12.webp",
   // S:P Little Knight — chase atual do extra deck
-  "https://images.ygoprodeck.com/images/cards/29301450.jpg",
+  "/landing/faixa/morph-3.webp",
   // Pikachu ex — Surging Sparks (2024)
-  "https://images.pokemontcg.io/sv8/238_hires.png",
-  "https://cards.scryfall.io/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg",
-  "https://images.pokemontcg.io/swsh7/212_hires.png",
+  "/landing/faixa/11.webp",
+  "/landing/faixa/23.webp",
+  "/landing/faixa/09.webp",
   // Mulcharmy Fuwalos — hand trap chase de 2024/25
-  "https://images.ygoprodeck.com/images/cards/42141493.jpg",
-  "https://images.pokemontcg.io/swsh45sv/SV107_hires.png",
+  "/landing/faixa/morph-4.webp",
+  "/landing/faixa/10.webp",
 ];
 
 const TOTAL_IMAGES = 20;
