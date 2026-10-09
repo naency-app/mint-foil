@@ -327,12 +327,12 @@ export default function DownloadPage() {
           >
             {/* biome-ignore lint/performance/noImgElement: print local do app */}
             <img
-              src="/landing/app-dashboard.jpg"
+              src="/landing/home-sem-conta.jpg"
               alt="Tela inicial do Mint Foil com o valor da coleção"
               style={{
                 display: "block",
                 width: "100%",
-                aspectRatio: "553 / 1200",
+                aspectRatio: "828 / 1800",
                 objectFit: "cover",
                 borderRadius: 36,
               }}
