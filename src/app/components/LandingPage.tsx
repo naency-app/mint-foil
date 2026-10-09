@@ -1355,19 +1355,41 @@ function VideoInner({
 
 // ── Reveal hover ──────────────────────────────────────────────────────────────
 
+/**
+ * true quando o elemento está a até ~1 tela de distância. É quando o vídeo
+ * começa a baixar: antes, a demo só baixava ao aparecer (e no 4G ficava
+ * parada no 0,0 por segundos) e os do carrossel baixavam 19 MB logo na
+ * abertura da página, disputando a conexão com o resto.
+ */
+function usePerto(ref: React.RefObject<HTMLElement | null>) {
+  const [perto, setPerto] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => e.isIntersecting && setPerto(true),
+      {
+        rootMargin: "100% 0px",
+      },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return perto;
+}
+
 // Demo da web: toca sozinho (mudo, em loop) só enquanto aparece na tela —
 // 164s de vídeo não podem baixar nem rodar com a seção fora da vista. Sempre
 // do início: voltar à seção mostra o vídeo desde o começo, não do meio.
 function DemoWeb() {
   const ref = useRef<HTMLVideoElement>(null);
-  const [visivel, setVisivel] = useState(false);
+  const perto = usePerto(ref);
   const [bloqueado, setBloqueado] = useState(false);
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
     const io = new IntersectionObserver(
       ([e]) => {
-        setVisivel(e.isIntersecting);
         if (e.isIntersecting) {
           v.currentTime = 0;
           tocar(v, setBloqueado);
@@ -1387,7 +1409,7 @@ function DemoWeb() {
         muted
         loop
         playsInline
-        preload={visivel ? "auto" : "none"}
+        preload={perto ? "auto" : "none"}
         aria-label="Demonstração da versão web do Mint Foil"
         style={{
           position: "absolute",
@@ -2311,6 +2333,7 @@ function VideosEmSequencia({
   ]);
   const [visivel, setVisivel] = useState(false);
   const [bloqueado, setBloqueado] = useState(false);
+  const perto = usePerto(wrapRef);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -2379,10 +2402,11 @@ function VideosEmSequencia({
           poster={lado === 0 ? poster : undefined}
           muted
           playsInline
-          // Só o card do centro baixa vídeo (9–22 MB cada, em 720px): os
-          // vizinhos mostram o poster. No do centro os dois players carregam,
-          // para o de trás estar pronto quando o da frente acabar.
-          preload={ativo ? "auto" : "none"}
+          // Só o card do centro baixa vídeo (9–22 MB cada, em 720px), e só
+          // com a seção perto da tela: os vizinhos mostram o poster. No do
+          // centro os dois players carregam, para o de trás estar pronto
+          // quando o da frente acabar.
+          preload={ativo && perto ? "auto" : "none"}
           onEnded={() => aoTerminar(lado)}
           // Um vídeo só e ninguém esperando o fim: o loop do navegador resolve
           loop={srcs.length === 1 && !onFim}
