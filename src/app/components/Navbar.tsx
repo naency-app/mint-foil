@@ -164,10 +164,12 @@ export function Navbar() {
               </SheetContent>
             </Sheet>
 
+            {/* Logo leva à landing, como em qualquer site; o Explorar tem o
+                próprio link no centro da barra */}
             <Link
-              href={exploreHref}
+              href="/"
               className="flex items-center gap-2"
-              aria-label="Mint Foil — Explorar"
+              aria-label="Mint Foil — Início"
             >
               {/* biome-ignore lint/performance/noImgElement: logo local pequeno, sem necessidade de next/image */}
               <img
