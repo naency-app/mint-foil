@@ -202,7 +202,7 @@ const FOOTER_BAND = [
   { text, id: `fb${i}` },
 ]);
 
-// Reveal section — 6 TCGs
+// Reveal section — 6 TCGs + Dragon Ball (em breve)
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
@@ -228,6 +228,11 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
     // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
+  },
+  {
+    text: "Lorcana",
+    // Sem verso limpo disponível: duas frentes (atrás o Mickey do set 1)
+    imgs: ["/landing/mickey-card.jpg", "/landing/elsa-card.jpg"],
   },
   {
     text: "Dragon Ball",
@@ -707,9 +712,16 @@ function Nav({
             "top 0.35s ease, width 0.35s ease, padding 0.35s ease, background 0.15s ease, border-radius 0.35s ease, box-shadow 0.35s ease, border-color 0.15s ease",
         }}
       >
-        {/* Logo — clique volta a página pro início */}
+        {/* Logo — clique recarrega a landing e volta pro início (o Link do
+            Next para "/" estando em "/" não fazia nada) */}
         <SmartLink
           href="/"
+          onClick={(e) => {
+            if (window.location.pathname !== "/") return;
+            e.preventDefault();
+            window.scrollTo(0, 0);
+            window.location.reload();
+          }}
           style={{
             display: "flex",
             alignItems: "center",
@@ -1246,8 +1258,6 @@ function VideoInner({
   const t = useTheme();
   const isMobile = useIsMobile();
   const [hovered, setHovered] = useState(false);
-  // Mesmo tratamento dos tiles da Solução no dark
-  const accent = t.isDark ? "#F856A7" : t.primary;
   const cardBg = t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg;
   const cardBorder = t.isDark ? "rgba(255,255,255,0.08)" : t.border;
   return (
@@ -1327,90 +1337,20 @@ function VideoInner({
             onMouseLeave={() => setHovered(false)}
             style={{
               width: "100%",
-              // Mobile: formato de TELA DE CELULAR — estreito e em pé
-              maxWidth: isMobile ? "min(300px, 78vw)" : VIDEO_W,
+              maxWidth: VIDEO_W,
               margin: "0 auto",
-              borderRadius: isMobile ? "24px" : "20px",
+              borderRadius: isMobile ? "14px" : "20px",
               overflow: "hidden",
               background: cardBg,
               // Mesma borda/hover dos tiles da Solução
               border: `1px solid ${hovered ? "#F856A755" : cardBorder}`,
-              // Mobile: proporção de celular (vídeo gravado em pé)
-              aspectRatio: isMobile ? "9 / 16" : "1024 / 534.945",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
+              // Proporção da gravação da web (1088×720)
+              aspectRatio: "1088 / 720",
               transition: "border-color 0.3s ease",
               position: "relative",
             }}
           >
-            {/* Banho de gradiente + glow de baixo: mesmo idioma da área de
-                preview dos cards do "Como funciona" — sem isso o card era um
-                buraco escuro no dark */}
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(135deg, rgba(248,86,167,0.10) 0%, rgba(181,13,87,0.06) 100%)",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "radial-gradient(ellipse at 50% 115%, rgba(248,86,167,0.22) 0%, transparent 60%)",
-                pointerEvents: "none",
-              }}
-            />
-            {/* Marca d'água */}
-            <span
-              aria-hidden
-              style={{
-                position: "absolute",
-                bottom: "4%",
-                left: "50%",
-                transform: "translateX(-50%)",
-                fontSize: "clamp(48px, 10vw, 120px)",
-                fontWeight: 900,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-                whiteSpace: "nowrap",
-                color: t.isDark
-                  ? "rgba(255,255,255,0.05)"
-                  : "rgba(2,6,23,0.05)",
-                userSelect: "none",
-                pointerEvents: "none",
-              }}
-            >
-              MINT FOIL
-            </span>
-            <div style={{ textAlign: "center", position: "relative" }}>
-              <div
-                style={{
-                  width: "72px",
-                  height: "72px",
-                  borderRadius: "50%",
-                  background: accent,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px",
-                  transition: "transform 0.2s ease",
-                  transform: hovered ? "scale(1.08)" : "scale(1)",
-                }}
-              >
-                <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-              </div>
-              <p style={{ fontSize: "14px", color: t.muted }}>
-                Clique para assistir o vídeo
-              </p>
-            </div>
+            <DemoWeb />
           </div>
         </motion.div>
       </div>
@@ -1419,6 +1359,47 @@ function VideoInner({
 }
 
 // ── Reveal hover ──────────────────────────────────────────────────────────────
+
+// Demo da web: toca sozinho (mudo, em loop) só enquanto aparece na tela —
+// 164s de vídeo não podem baixar nem rodar com a seção fora da vista
+function DemoWeb() {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [visivel, setVisivel] = useState(false);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        setVisivel(e.isIntersecting);
+        if (e.isIntersecting) v.play().catch(() => {});
+        else v.pause();
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <video
+      ref={ref}
+      src="/landing/demo-web.mp4"
+      poster="/landing/demo-web.jpg"
+      muted
+      loop
+      playsInline
+      preload={visivel ? "auto" : "none"}
+      aria-label="Demonstração da versão web do Mint Foil"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block",
+      }}
+    />
+  );
+}
 
 function RevealItem({
   text,
