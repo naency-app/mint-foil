@@ -1,0 +1,15 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teste de autoplay</title>
+<style>body{background:#0b1020;color:#fff;font:15px -apple-system,system-ui,sans-serif;margin:0;padding:16px}h1{font-size:18px}.c{margin:18px 0;padding:12px;border:1px solid #333;border-radius:12px}video{width:100%;border-radius:8px;display:block;background:#000}b{font-size:22px}.st{font:13px monospace;color:#9f9;margin-top:6px}</style></head><body>
+<h1>Teste de autoplay — diga quais números estão se mexendo</h1>
+<div class="c"><b>1</b> — atributo autoplay
+<video id="v1" src="/landing/scan-uma.mp4" muted autoplay playsinline loop></video><div class="st" id="s1"></div></div>
+<div class="c"><b>2</b> — play() ao abrir a página
+<video id="v2" src="/landing/scan-uma.mp4" muted playsinline loop preload="auto"></video><div class="st" id="s2"></div></div>
+<div class="c"><b>3</b> — play() quando aparece na tela (como na landing hoje)
+<video id="v3" src="/landing/scan-uma.mp4" muted playsinline loop preload="none"></video><div class="st" id="s3"></div></div>
+<script>
+const err={};
+v2.play().catch(e=>err.v2=e.name);
+new IntersectionObserver(([e])=>{ if(e.isIntersecting) v3.play().catch(x=>err.v3=x.name); },{threshold:0.25}).observe(v3);
+setInterval(()=>{ for (const i of [1,2,3]) { const v=document.getElementById('v'+i); document.getElementById('s'+i).textContent=`t=${v.currentTime.toFixed(1)}s ${v.paused?'PARADO':'tocando'} ${err['v'+i]||''}`; } },300);
+</script></body></html>
