@@ -57,9 +57,17 @@ function LoginContent() {
     setError("");
     setLoadingGoogle(true);
     try {
+      // Passa por "Complete seu perfil" (conta nova vê foto, nome e @; quem
+      // não precisa segue direto) e volta para onde a pessoa ia — antes o
+      // ?redirect= era ignorado e todo login caía no Explorar.
+      const pedido = searchParams.get("redirect");
+      const volta =
+        pedido?.startsWith("/") && !pedido.startsWith("//")
+          ? pedido
+          : "/explore";
       await signIn.social({
         provider: "google",
-        callbackURL: `${frontendURL}/explore`,
+        callbackURL: `${frontendURL}/completar-perfil?volta=${encodeURIComponent(volta)}`,
       });
     } catch {
       setError("Erro ao conectar com o Google. Tente novamente.");
