@@ -1382,8 +1382,8 @@ function DemoWeb() {
     <>
       <video
         ref={ref}
-        src="/landing/demo-web.mp4?v=3"
-        poster="/landing/demo-web.jpg?v=3"
+        src="/landing/demo-web.mp4?v=4"
+        poster="/landing/demo-web.jpg?v=4"
         muted
         loop
         playsInline
