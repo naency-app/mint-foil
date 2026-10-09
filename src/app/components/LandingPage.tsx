@@ -202,7 +202,7 @@ const FOOTER_BAND = [
   { text, id: `fb${i}` },
 ]);
 
-// Reveal section — 6 TCGs + Dragon Ball (em breve)
+// Reveal section — 6 TCGs
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
@@ -228,11 +228,6 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
     // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
-  },
-  {
-    text: "Lorcana",
-    // Sem verso limpo disponível: duas frentes (atrás o Mickey do set 1)
-    imgs: ["/landing/mickey-card.jpg", "/landing/elsa-card.jpg"],
   },
   {
     text: "Dragon Ball",
