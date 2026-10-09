@@ -125,55 +125,52 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
-// ── Card data — 30-card marquee (no repeats, mixed TCGs) ──────────────────────
+// ── Card data — 26-card marquee (no repeats, mixed TCGs) ──────────────────────
 
+// Cartas da faixa do topo, hospedadas aqui (public/landing/faixa, WebP de
+// 440px). Vinham direto da pokemontcg.io, ygoprodeck, scryfall e limitless:
+// no Chrome do iPhone parte delas aparecia quebrada — o Chrome baixa imagem
+// pela própria rede e alguns desses sites barram imagem embutida em site
+// alheio. Daqui não depende de ninguém e pesa 1 MB no total.
 const MARQUEE_SRCS = [
   // Pokémon 12
-  "https://images.pokemontcg.io/swsh7/215_hires.png",
+  "/landing/faixa/01.webp",
   // Umbreon ex — Prismatic Evolutions (2025)
-  "https://images.pokemontcg.io/sv8pt5/161_hires.png",
-  "https://images.pokemontcg.io/swsh4/188_hires.png",
-  "https://images.pokemontcg.io/swsh8/271_hires.png",
-  "https://images.pokemontcg.io/swsh7/218_hires.png",
-  "https://images.pokemontcg.io/pgo/31_hires.png",
-  "https://images.pokemontcg.io/swsh11/131_hires.png",
-  "https://images.pokemontcg.io/swsh8/270_hires.png",
-  "https://images.pokemontcg.io/swsh7/212_hires.png",
-  "https://images.pokemontcg.io/swsh45sv/SV107_hires.png",
+  "/landing/faixa/02.webp",
+  "/landing/faixa/03.webp",
+  "/landing/faixa/04.webp",
+  "/landing/faixa/05.webp",
+  "/landing/faixa/06.webp",
+  "/landing/faixa/07.webp",
+  "/landing/faixa/08.webp",
+  "/landing/faixa/09.webp",
+  "/landing/faixa/10.webp",
   // Pikachu ex — Surging Sparks (2024)
-  "https://images.pokemontcg.io/sv8/238_hires.png",
+  "/landing/faixa/11.webp",
   // Leafeon ex — Prismatic Evolutions (2025)
-  "https://images.pokemontcg.io/sv8pt5/144_hires.png",
+  "/landing/faixa/12.webp",
   // Yu-Gi-Oh! 8
-  "https://images.ygoprodeck.com/images/cards/89631139.jpg",
-  "https://images.ygoprodeck.com/images/cards/46986414.jpg",
-  "https://images.ygoprodeck.com/images/cards/33396948.jpg",
-  "https://images.ygoprodeck.com/images/cards/74677422.jpg",
-  "https://images.ygoprodeck.com/images/cards/38033121.jpg",
-  "https://images.ygoprodeck.com/images/cards/44508094.jpg",
+  "/landing/faixa/13.webp",
+  "/landing/faixa/14.webp",
+  "/landing/faixa/15.webp",
+  "/landing/faixa/16.webp",
+  "/landing/faixa/17.webp",
+  "/landing/faixa/18.webp",
   // Snake-Eye Ash — meta atual
-  "https://images.ygoprodeck.com/images/cards/9674034.jpg",
+  "/landing/faixa/19.webp",
   // Fiendsmith Engraver — chase de 2024/25
-  "https://images.ygoprodeck.com/images/cards/60764609.jpg",
+  "/landing/faixa/20.webp",
   // Magic 5
   // Sheoldred, the Apocalypse — staple atual
-  "https://cards.scryfall.io/large/front/d/6/d67be074-cdd4-41d9-ac89-0a0456c4e4b2.jpg?1783921327",
-  "https://cards.scryfall.io/large/front/4/c/4cbc6901-6a4a-4d0a-83ea-7eefa3b35021.jpg",
-  "https://cards.scryfall.io/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg",
-  "https://cards.scryfall.io/large/front/c/8/c8817585-0d32-4d56-9142-0d29512e86a9.jpg",
-  "https://cards.scryfall.io/large/front/e/6/e653437e-2e56-4443-aec5-5bb7d8860238.jpg",
-  // One Piece 5 — CDN da Limitless (o site oficial da Bandai bloqueia
-  // hotlink via Cross-Origin-Resource-Policy)
-  // Shanks SEC (OP01)
-  "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP01/OP01-120_EN.webp",
-  // Monkey.D.Luffy SEC — Gear 5 (OP05)
-  "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP05/OP05-119_EN.webp",
-  // Yamato SEC (OP01)
-  "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP01/OP01-121_EN.webp",
-  // Edward.Newgate SEC (OP02)
-  "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP02/OP02-120_EN.webp",
-  // Roronoa Zoro SR (OP01)
-  "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP01/OP01-025_EN.webp",
+  "/landing/faixa/21.webp",
+  "/landing/faixa/22.webp",
+  "/landing/faixa/23.webp",
+  "/landing/faixa/24.webp",
+  "/landing/faixa/25.webp",
+  // One Piece fica de fora: toda fonte de imagem conhecida (Bandai, Limitless,
+  // TCGplayer) carimba "SAMPLE" na arte, e era isso que a faixa mostrava.
+  // Digimon — WarGreymon do site oficial, sem carimbo
+  "/landing/faixa/26.webp",
 ];
 
 // Tripled for seamless CSS loop — stable IDs
@@ -206,10 +203,7 @@ const FOOTER_BAND = [
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
-    imgs: [
-      "/landing/pkm-card-back.jpg",
-      "https://images.pokemontcg.io/swsh7/215_hires.png",
-    ],
+    imgs: ["/landing/pkm-card-back.jpg", "/landing/faixa/01.webp"],
   },
   {
     text: "Yu-Gi-Oh!",
@@ -231,10 +225,7 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   },
   {
     text: "Dragon Ball",
-    imgs: [
-      "/landing/ygo-card-back.jpg",
-      "https://images.ygoprodeck.com/images/cards/44508094.jpg",
-    ],
+    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
     soon: true,
   },
 ];
@@ -1800,18 +1791,17 @@ function WatchDemoBtn() {
 const STACK_CARDS = [
   // Pikachu VMAX (Vivid Voltage)
   {
-    image: "https://images.pokemontcg.io/swsh4/188_hires.png",
+    image: "/landing/faixa/pilha-1.webp",
     badge: "R$ 380",
   },
   // Incredible Ecclesia, the Virtuous (MP22-EN188 · Prismatic Secret Rare);
   // o foil só existe na carta física, o scan digital é o mesmo
   {
-    image: "https://images.ygoprodeck.com/images/cards/55273560.jpg",
+    image: "/landing/faixa/pilha-2.webp",
   },
   // Vivi Ornitier — Final Fantasy (2025), staple atual de Magic
   {
-    image:
-      "https://cards.scryfall.io/large/front/e/c/ecc1027a-8c07-44a0-bdde-fa2844cff694.jpg?1783906561",
+    image: "/landing/faixa/pilha-3.webp",
   },
 ];
 
