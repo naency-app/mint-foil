@@ -1356,18 +1356,22 @@ function VideoInner({
 // ── Reveal hover ──────────────────────────────────────────────────────────────
 
 // Demo da web: toca sozinho (mudo, em loop) só enquanto aparece na tela —
-// 164s de vídeo não podem baixar nem rodar com a seção fora da vista
+// 164s de vídeo não podem baixar nem rodar com a seção fora da vista. Sempre
+// do início: voltar à seção mostra o vídeo desde o começo, não do meio.
 function DemoWeb() {
   const ref = useRef<HTMLVideoElement>(null);
   const [visivel, setVisivel] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
     const io = new IntersectionObserver(
       ([e]) => {
         setVisivel(e.isIntersecting);
-        if (e.isIntersecting) v.play().catch(() => {});
-        else v.pause();
+        if (e.isIntersecting) {
+          v.currentTime = 0;
+          tocar(v, setBloqueado);
+        } else v.pause();
       },
       { threshold: 0.25 },
     );
@@ -1375,24 +1379,84 @@ function DemoWeb() {
     return () => io.disconnect();
   }, []);
   return (
-    <video
-      ref={ref}
-      src="/landing/demo-web.mp4"
-      poster="/landing/demo-web.jpg"
-      muted
-      loop
-      playsInline
-      preload={visivel ? "auto" : "none"}
-      aria-label="Demonstração da versão web do Mint Foil"
+    <>
+      <video
+        ref={ref}
+        src="/landing/demo-web.mp4"
+        poster="/landing/demo-web.jpg"
+        muted
+        loop
+        playsInline
+        preload={visivel ? "auto" : "none"}
+        aria-label="Demonstração da versão web do Mint Foil"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+        }}
+      />
+      {bloqueado && (
+        <BotaoTocar
+          onPress={() => ref.current && tocar(ref.current, setBloqueado)}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * play() com o aviso de bloqueio. O iPhone no Modo de Pouca Energia (e o
+ * Android em economia de dados) recusa TODO autoplay, mesmo mudo: o vídeo
+ * ficava parado no poster sem nada indicando que dava pra tocar.
+ */
+function tocar(v: HTMLVideoElement, setBloqueado: (b: boolean) => void) {
+  v.play()
+    .then(() => setBloqueado(false))
+    .catch((e: DOMException) => setBloqueado(e?.name === "NotAllowedError"));
+}
+
+/** Play por cima do vídeo bloqueado — o mesmo botão do card do "Veja em ação". */
+function BotaoTocar({ onPress }: { onPress: () => void }) {
+  const t = useTheme();
+  const accent = t.isDark ? "#F856A7" : t.primary;
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onPress();
+      }}
+      aria-label="Tocar vídeo"
       style={{
         position: "absolute",
         inset: 0,
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        display: "block",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
       }}
-    />
+    >
+      <span
+        style={{
+          width: "64px",
+          height: "64px",
+          borderRadius: "50%",
+          background: accent,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        }}
+      >
+        <Play size={26} color="#FFFFFF" fill="#FFFFFF" />
+      </span>
+    </button>
   );
 }
 
@@ -2246,6 +2310,7 @@ function VideosEmSequencia({
     srcs.length > 1 ? 1 : 0,
   ]);
   const [visivel, setVisivel] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -2258,14 +2323,15 @@ function VideosEmSequencia({
     return () => io.disconnect();
   }, []);
 
-  // Virou o card do centro: recomeça do primeiro vídeo, do início.
+  // Virou o card do centro, ou a seção voltou à tela: recomeça do primeiro
+  // vídeo, do início — nunca do ponto em que parou.
   // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
   useEffect(() => {
-    if (!ativo) return;
+    if (!ativo || !visivel) return;
     setFrente(0);
     setArquivo([0, srcs.length > 1 ? 1 : 0]);
     for (const r of refs) if (r.current) r.current.currentTime = 0;
-  }, [ativo]);
+  }, [ativo, visivel]);
 
   // Toca o da frente quando visível; o de trás fica parado.
   // biome-ignore lint/correctness/useExhaustiveDependencies: refs são estáveis
@@ -2273,7 +2339,7 @@ function VideosEmSequencia({
     const atual = refs[frente].current;
     refs[1 - frente]?.current?.pause();
     if (!atual) return;
-    if (visivel && ativo) atual.play().catch(() => {});
+    if (visivel && ativo) tocar(atual, setBloqueado);
     else atual.pause();
   }, [visivel, ativo, frente]);
 
@@ -2330,6 +2396,14 @@ function VideosEmSequencia({
           }}
         />
       ))}
+      {bloqueado && ativo && (
+        <BotaoTocar
+          onPress={() => {
+            const atual = refs[frente].current;
+            if (atual) tocar(atual, setBloqueado);
+          }}
+        />
+      )}
     </div>
   );
 }
