@@ -20,8 +20,8 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
-import { useQuickAdd } from "@/app/components/QuickAdd";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
+import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
@@ -45,6 +45,7 @@ import {
   useInvalidateCollection,
   usePortfolios,
 } from "@/lib/queries";
+import { precoAnterior, precoAtual } from "@/lib/reference-price";
 import { cardName, cardNameEn, cn } from "@/lib/utils";
 
 // Código utilizável na busca da Liga: precisa ser prefixado por set
@@ -345,7 +346,7 @@ export default function CardDetailPage({
 
   async function commitQty(target: number) {
     pendingTargetRef.current = null;
-    const price = card?.prices?.[0]?.value ?? 0;
+    const price = precoAtual(card?.prices);
     try {
       if (activeNmItem) {
         if (target <= 0) {
@@ -436,8 +437,8 @@ export default function CardDetailPage({
     );
   }
 
-  const latestPrice = card.prices[0]?.value ?? 0;
-  const previousPrice = card.prices[1]?.value ?? latestPrice;
+  const latestPrice = precoAtual(card.prices);
+  const previousPrice = precoAnterior(card.prices);
   const priceChange = latestPrice - previousPrice;
   const changePercent =
     previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;

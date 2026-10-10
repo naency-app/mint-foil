@@ -37,7 +37,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { CardImage } from "@/app/components/CardImage";
-import { useQuickAdd } from "@/app/components/QuickAdd";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -50,7 +49,8 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { type SetProgress, SetCover, temCapa } from "@/app/components/SetCard";
+import { useQuickAdd } from "@/app/components/QuickAdd";
+import { SetCover, type SetProgress, temCapa } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,8 +67,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  api,
   ApiError,
+  api,
   type CardQuery,
   type CardSet,
   type CardSort,
@@ -83,15 +83,16 @@ import {
   usePortfolioStore,
 } from "@/lib/portfolio-store";
 import {
+  useAllCollectionItems,
   useCardFacets,
   useCardSets,
   useCollectionStats,
-  useAllCollectionItems,
   useInfiniteCards,
   useInvalidateCollection,
   usePortfolioDetail,
   usePortfolios,
 } from "@/lib/queries";
+import { precoAtual } from "@/lib/reference-price";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
 import { cardName } from "@/lib/utils";
 
@@ -800,8 +801,7 @@ function ExplorePageContent() {
         contadas.add(item.cardId);
         progress[code].count += 1;
       }
-      progress[code].value +=
-        (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+      progress[code].value += precoAtual(item.card.prices) * item.quantity;
     }
     return progress;
   }, [todosOsItens]);

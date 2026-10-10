@@ -271,6 +271,15 @@ export interface FollowUser {
   followStatus?: FollowStatus;
 }
 
+/** Conta que eu bloqueei (Ajustes → Contas bloqueadas). */
+export interface BlockedUser {
+  handle: string;
+  displayName: string;
+  image: string | null;
+  isPro: boolean;
+  blockedAt: string;
+}
+
 export interface FollowRequest {
   id: string;
   user: {
@@ -411,6 +420,7 @@ export const api = {
   },
   /** Bloquear e denunciar (exigência das lojas para perfil público). */
   moderation: {
+    blocks: () => apiFetch<BlockedUser[]>("/blocks"),
     block: (handle: string) =>
       apiFetch<{ blocked: boolean }>(`/blocks/${encodeURIComponent(handle)}`, {
         method: "POST",

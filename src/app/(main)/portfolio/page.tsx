@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { CollectionInsights } from "@/app/components/CollectionInsights";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -46,11 +47,11 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
+import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { RollingNumber } from "@/app/components/RollingNumber";
 import { AdicionarAmigos } from "@/app/components/social/AdicionarAmigos";
 import { PedidosButton } from "@/app/components/social/PedidosButton";
 import { SocialStats } from "@/app/components/social/SocialStats";
-import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { RollingNumber } from "@/app/components/RollingNumber";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
@@ -98,6 +99,7 @@ import {
   usePortfolios,
   useShowcase,
 } from "@/lib/queries";
+import { precoAtual } from "@/lib/reference-price";
 import { cardName, cn } from "@/lib/utils";
 
 function formatPrice(value: number) {
@@ -188,7 +190,7 @@ function PortfolioItemRow({
     setOptimisticQty(item.quantity);
   }, [item.quantity]);
 
-  const currentPrice = item.card.prices[0]?.value ?? 0;
+  const currentPrice = precoAtual(item.card.prices);
   const totalValue = currentPrice * optimisticQty;
   // Sem preço pago não existe lucro: antes o custo virava R$ 0 e o valor
   // inteiro da carta aparecia como ganho.
@@ -482,7 +484,7 @@ function PortfolioItemCard({
   const [success, setSuccess] = useState(false);
   const [successId, setSuccessId] = useState(0);
 
-  const currentPrice = item.card.prices[0]?.value ?? 0;
+  const currentPrice = precoAtual(item.card.prices);
   const totalValue = currentPrice * item.quantity;
   // Sem preço pago não existe lucro (ver o item de lista acima)
   const temCusto = item.buyPrice != null;
@@ -905,7 +907,7 @@ export default function PortfolioPage() {
       if (i.buyPrice == null) continue;
       comCusto += 1;
       investido += i.buyPrice * i.quantity;
-      valorComCusto += (i.card.prices[0]?.value ?? 0) * i.quantity;
+      valorComCusto += precoAtual(i.card.prices) * i.quantity;
     }
     const lucro = valorComCusto - investido;
     return {
@@ -1198,7 +1200,7 @@ export default function PortfolioPage() {
   const rarityFacets = facetOptions(items, (i) => i.card.rarity);
   const priceCeil = Math.max(
     50,
-    ...items.map((i) => Math.ceil(i.card.prices[0]?.value ?? 0)),
+    ...items.map((i) => Math.ceil(precoAtual(i.card.prices))),
   );
   const filteredItems = items.filter((i) => {
     const pt = i.card.productType ?? "SINGLE";
@@ -1211,7 +1213,7 @@ export default function PortfolioPage() {
       return false;
     if (filterRarities.length > 0 && !filterRarities.includes(i.card.rarity))
       return false;
-    const unit = i.card.prices[0]?.value ?? 0;
+    const unit = precoAtual(i.card.prices);
     if (priceRange && (unit < priceRange[0] || unit > priceRange[1]))
       return false;
     const q = search.trim().toLowerCase();
@@ -1230,8 +1232,8 @@ export default function PortfolioPage() {
     0,
   );
   function compareItems(a: CollectionItem, b: CollectionItem) {
-    const av = (a.card.prices[0]?.value ?? 0) * a.quantity;
-    const bv = (b.card.prices[0]?.value ?? 0) * b.quantity;
+    const av = precoAtual(a.card.prices) * a.quantity;
+    const bv = precoAtual(b.card.prices) * b.quantity;
     switch (sort) {
       case "value-asc":
         return av - bv;
@@ -2004,6 +2006,11 @@ export default function PortfolioPage() {
                 </div>
               )}
             </>
+          )}
+
+          {/* Top cartas / Por jogo — rodapé do Portfólio, como no app */}
+          {portfolios.length > 0 && !loading && (
+            <CollectionInsights stats={stats ?? null} />
           )}
 
           {portfolios.length === 0 && !loading && (

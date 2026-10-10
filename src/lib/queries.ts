@@ -385,6 +385,15 @@ export function useFollowList(
   });
 }
 
+/** Contas que eu bloqueei — a única porta de volta, já que o bloqueado some da busca. */
+export function useBlocks(enabled: boolean) {
+  return useQuery({
+    queryKey: ["blocks"],
+    queryFn: () => api.moderation.blocks(),
+    enabled,
+  });
+}
+
 export function useUserSearch(q: string) {
   return useQuery({
     queryKey: ["user-search", q],
@@ -404,6 +413,7 @@ export function useInvalidateSocial() {
         qc.invalidateQueries({ queryKey: ["showcase"] }),
         qc.invalidateQueries({ queryKey: ["user-search"] }),
         qc.invalidateQueries({ queryKey: ["follow-list"] }),
+        qc.invalidateQueries({ queryKey: ["blocks"] }),
       ]),
     [qc],
   );

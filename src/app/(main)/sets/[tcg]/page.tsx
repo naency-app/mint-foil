@@ -31,6 +31,7 @@ import {
   usePortfolios,
   useTcgs,
 } from "@/lib/queries";
+import { precoAtual } from "@/lib/reference-price";
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
@@ -172,7 +173,7 @@ function TcgSetsPageContent() {
       }
       progressMap[setCode].count += 1;
       progressMap[setCode].value +=
-        (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+        precoAtual(item.card.prices) * item.quantity;
     }
     return progressMap;
   }, [portfolioDetail.data]);

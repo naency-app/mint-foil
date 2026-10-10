@@ -54,6 +54,7 @@ import {
   usePortfolios,
   useSetBySlug,
 } from "@/lib/queries";
+import { precoAtual } from "@/lib/reference-price";
 
 type CollectionMap = Record<string, number>;
 
@@ -287,7 +288,7 @@ function SetCardsPageContent() {
       if (!progressMap[setCode]) progressMap[setCode] = { count: 0, value: 0 };
       progressMap[setCode].count += 1;
       progressMap[setCode].value +=
-        (item.card.prices?.[0]?.value ?? 0) * item.quantity;
+        precoAtual(item.card.prices) * item.quantity;
     }
     return { collectionMap: map, setProgressMap: progressMap };
   }, [portfolioDetail.data]);

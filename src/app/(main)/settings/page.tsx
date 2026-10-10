@@ -36,6 +36,7 @@ import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
 import { capaVisivel, coverCss, findCoverPreset } from "@/lib/cover-catalog";
 import { cn } from "@/lib/utils";
+import { ContasBloqueadas } from "./contas-bloqueadas";
 import { CoverPicker } from "./cover-picker";
 import { DeleteAccount } from "./delete-account";
 import { FotoDePerfil } from "./foto-de-perfil";
@@ -682,94 +683,6 @@ function SettingsContent() {
                       </div>
                     ))}
                   </div>
-
-                  {/* TCG Breakdown */}
-                  {stats.tcgBreakdown.length > 0 && (
-                    <div className="glass-card !rounded-2xl p-6 space-y-4">
-                      <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                        Distribuição por Jogo
-                      </h3>
-                      <div className="space-y-4">
-                        {stats.tcgBreakdown.map((tcg) => {
-                          const pct =
-                            stats.totalValue > 0
-                              ? (tcg.value / stats.totalValue) * 100
-                              : 0;
-                          return (
-                            <div key={tcg.slug} className="space-y-1.5">
-                              <div className="flex justify-between text-xs">
-                                <span className="font-semibold text-foreground">
-                                  {tcg.name}
-                                </span>
-                                <span className="text-muted-foreground font-mono">
-                                  {formatPrice(tcg.value)} ({tcg.count} cartas •{" "}
-                                  {pct.toFixed(1)}%)
-                                </span>
-                              </div>
-                              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                <div
-                                  className="h-full bg-primary rounded-full"
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Top Cards */}
-                  {stats.topCards.length > 0 && (
-                    <div className="glass-card !rounded-2xl p-6 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="size-4 text-primary" />
-                        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                          Top Cartas (Mais Valiosas)
-                        </h3>
-                      </div>
-                      <div className="space-y-3">
-                        {stats.topCards.map((card, i) => (
-                          <div
-                            key={card.id}
-                            onClick={() => router.push(`/card/${card.id}`)}
-                            className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background hover:bg-muted/40 transition-colors cursor-pointer"
-                          >
-                            <span className="text-xs font-mono font-bold text-muted-foreground w-4 text-center">
-                              #{i + 1}
-                            </span>
-                            <div className="relative size-10 rounded overflow-hidden shrink-0 border border-border bg-muted">
-                              <CardImage
-                                carta={card}
-                                tamanho="grade"
-                                alt={card.name}
-                                fill
-                                rotulo={false}
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground truncate">
-                                {card.name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {card.collectorNumber ?? card.setCode} • Qtd:{" "}
-                                {card.quantity}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-bold text-primary font-mono">
-                                {formatPrice(card.totalValue)}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground font-mono">
-                                {formatPrice(card.unitValue)} / un
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
             </div>
@@ -923,6 +836,8 @@ function SettingsContent() {
                 </div>
               </section>
 
+              <ContasBloqueadas />
+
               {/* Session Control */}
               <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-4">
                 <h2 className="text-sm font-bold text-destructive uppercase tracking-wider flex items-center gap-2">
@@ -964,8 +879,8 @@ function SettingsContent() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        Scans ilimitados, portfólios ilimitados, análise
-                        de P&L e mais
+                        Scans ilimitados, portfólios ilimitados, análise de P&L
+                        e mais
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Assinaturas e gerenciamento disponíveis exclusivamente
