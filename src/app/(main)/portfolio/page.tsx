@@ -6,7 +6,6 @@ import {
   IconCheck as Check,
   IconChevronLeft as ChevronLeft,
   IconCopy as Copy,
-  IconCurrencyDollar as DollarSign,
   IconFileSpreadsheet as FileSpreadsheet,
   IconFolderPlus as FolderPlus,
   IconEye,
@@ -192,12 +191,6 @@ function PortfolioItemRow({
 
   const currentPrice = precoAtual(item.card.prices);
   const totalValue = currentPrice * optimisticQty;
-  // Sem preço pago não existe lucro: antes o custo virava R$ 0 e o valor
-  // inteiro da carta aparecia como ganho.
-  const temCusto = item.buyPrice != null;
-  const invested = (item.buyPrice ?? 0) * optimisticQty;
-  const profit = totalValue - invested;
-  const isPositive = profit >= 0;
 
   async function handleQuantityChange(delta: number) {
     const newQty = optimisticQty + delta;
@@ -316,11 +309,6 @@ function PortfolioItemRow({
             <Badge variant="outline" className="text-[9px] h-4 px-1.5">
               {item.condition}
             </Badge>
-            {item.buyPrice != null && (
-              <span className="text-[10px] text-muted-foreground font-mono">
-                Compra: R$ {formatPrice(item.buyPrice)}
-              </span>
-            )}
           </div>
         </div>
 
@@ -376,22 +364,6 @@ function PortfolioItemRow({
               R$ {formatPrice(totalValue)}
             </span>
           </div>
-          {temCusto ? (
-            <div className="flex items-center justify-end gap-1">
-              {isPositive ? (
-                <TrendingUp className="size-2.5 text-emerald-400" />
-              ) : (
-                <TrendingDown className="size-2.5 text-red-400" />
-              )}
-              <span
-                className={`text-[10px] font-mono ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-              >
-                {isPositive ? "+" : ""}R$ {formatPrice(profit)}
-              </span>
-            </div>
-          ) : (
-            <p className="text-[10px] text-muted-foreground">Sem custo</p>
-          )}
         </div>
 
         <div
@@ -486,11 +458,6 @@ function PortfolioItemCard({
 
   const currentPrice = precoAtual(item.card.prices);
   const totalValue = currentPrice * item.quantity;
-  // Sem preço pago não existe lucro (ver o item de lista acima)
-  const temCusto = item.buyPrice != null;
-  const invested = (item.buyPrice ?? 0) * item.quantity;
-  const profit = totalValue - invested;
-  const isPositive = profit >= 0;
   const [removing, setRemoving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -635,7 +602,8 @@ function PortfolioItemCard({
           </p>
 
           <div className="pt-1.5 border-t border-border space-y-2">
-            {/* Price & profit / cost */}
+            {/* Preço (custo/lucro saíram: o app não tem e ninguém digitava
+                quanto pagou — ver o card de resumo abaixo) */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-foreground font-mono">
@@ -644,30 +612,6 @@ function PortfolioItemCard({
                 <span className="text-[10px] text-muted-foreground font-mono">
                   ({item.quantity}x R$ {formatPrice(currentPrice)})
                 </span>
-              </div>
-              <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="text-muted-foreground">
-                  {temCusto
-                    ? `Custo: R$ ${formatPrice(invested)}`
-                    : "Sem custo"}
-                </span>
-                <div
-                  className={cn(
-                    "flex items-center gap-1",
-                    !temCusto && "invisible",
-                  )}
-                >
-                  {isPositive ? (
-                    <TrendingUp className="size-3 text-emerald-400 shrink-0" />
-                  ) : (
-                    <TrendingDown className="size-3 text-red-400 shrink-0" />
-                  )}
-                  <span
-                    className={isPositive ? "text-emerald-400" : "text-red-400"}
-                  >
-                    {isPositive ? "+" : ""}R$ {formatPrice(profit)}
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -895,28 +839,6 @@ export default function PortfolioPage() {
   const detailQuery = usePortfolioDetail(activePortfolioId || undefined);
   const items: CollectionItem[] = detailQuery.data?.items ?? [];
   const metrics: PortfolioMetrics = detailQuery.data?.metrics ?? defaultMetrics;
-  // Lucro e ROI só das cartas com preço pago. O backend faz valor total −
-  // investido, então uma carta sem custo entrava inteira como lucro ("Lucro
-  // +R$ 108" com "Total investido R$ 0,00"). Sem nenhuma carta com custo, os
-  // três números viram "—".
-  const retorno = useMemo(() => {
-    let investido = 0;
-    let valorComCusto = 0;
-    let comCusto = 0;
-    for (const i of items) {
-      if (i.buyPrice == null) continue;
-      comCusto += 1;
-      investido += i.buyPrice * i.quantity;
-      valorComCusto += precoAtual(i.card.prices) * i.quantity;
-    }
-    const lucro = valorComCusto - investido;
-    return {
-      temCusto: comCusto > 0,
-      investido,
-      lucro,
-      roi: investido > 0 ? (lucro / investido) * 100 : 0,
-    };
-  }, [items]);
   // Ordem congelada da grade — ver `compareItems` mais abaixo. Guarda os ids na
   // sequência exibida e a assinatura dos critérios que a produziram.
   const orderRef = useRef<{ signature: string; ids: string[] }>({
@@ -1192,7 +1114,6 @@ export default function PortfolioPage() {
 
   if (!session?.user) return null;
 
-  const totalCards = items.reduce((acc, item) => acc + item.quantity, 0);
   const activePortfolio = portfolios.find((p) => p.id === activePortfolioId);
 
   // Facetas + filtragem da coleção (sidebar). Mesma lógica do showcase.
@@ -1429,8 +1350,12 @@ export default function PortfolioPage() {
             <>
               {/* Dashboard Metrics and Chart Section */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                {/* Left Card: Value Chart (col-span-8) */}
-                <Card className="lg:col-span-8 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+                {/* Gráfico na largura toda, como o topo do Portfólio no app. O
+                    card de resumo (Total investido / Lucro / ROI) saiu: o app
+                    não tem, e o "preço de compra" era o preço do dia em que a
+                    carta foi adicionada — o "lucro" era só a variação desde
+                    então, e parte dos valores tinha sido gravada em dólar. */}
+                <Card className="lg:col-span-12 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1561,155 +1486,6 @@ export default function PortfolioPage() {
                   </div>
                 </Card>
 
-                {/* Right Card: Summary Metrics (col-span-4) */}
-                <Card className="lg:col-span-4 glass-card shadow-none p-5 flex flex-col justify-between min-h-[380px]">
-                  <div className="flex flex-1 flex-col">
-                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                      Resumo Geral do Portfólio
-                    </h3>
-                    <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-3">
-                      {/* Total Invested */}
-                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                        <div className="flex items-center gap-2">
-                          <div className="size-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                            <DollarSign className="size-4" />
-                          </div>
-                          <span className="text-xs text-muted-foreground font-medium">
-                            Total Investido
-                          </span>
-                        </div>
-                        {loading ? (
-                          <Skeleton className="h-4 w-20" />
-                        ) : (
-                          <span className="text-sm font-bold text-foreground font-mono">
-                            {retorno.temCusto
-                              ? `R$ ${formatPrice(retorno.investido)}`
-                              : "—"}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Lucro / Prejuizo */}
-                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={cn(
-                              "size-8 rounded-lg flex items-center justify-center",
-                              retorno.lucro >= 0
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-red-500/10 text-red-400",
-                            )}
-                          >
-                            {retorno.lucro >= 0 ? (
-                              <TrendingUp className="size-4" />
-                            ) : (
-                              <TrendingDown className="size-4" />
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground font-medium">
-                            Lucro / Prejuízo
-                          </span>
-                        </div>
-                        {loading ? (
-                          <Skeleton className="h-4 w-20" />
-                        ) : (
-                          <span
-                            className={cn(
-                              "text-sm font-bold font-mono",
-                              !retorno.temCusto
-                                ? "text-foreground"
-                                : retorno.lucro >= 0
-                                  ? "text-emerald-400"
-                                  : "text-red-400",
-                            )}
-                          >
-                            {retorno.temCusto
-                              ? `${retorno.lucro >= 0 ? "+" : ""}R$ ${formatPrice(retorno.lucro)}`
-                              : "—"}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* ROI */}
-                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                        <div className="flex items-center gap-2">
-                          <div className="size-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-                            <ArrowUpDown className="size-4" />
-                          </div>
-                          <span className="text-xs text-muted-foreground font-medium">
-                            ROI (Retorno)
-                          </span>
-                        </div>
-                        {loading ? (
-                          <Skeleton className="h-4 w-20" />
-                        ) : (
-                          <span
-                            className={cn(
-                              "text-sm font-bold font-mono",
-                              !retorno.temCusto
-                                ? "text-foreground"
-                                : retorno.roi >= 0
-                                  ? "text-emerald-400"
-                                  : "text-red-400",
-                            )}
-                          >
-                            {retorno.temCusto
-                              ? `${retorno.roi >= 0 ? "+" : ""}${formatPrice(retorno.roi)}%`
-                              : "—"}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Total de Cartas */}
-                      <div className="flex flex-col justify-center gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
-                        <div className="flex items-center gap-2">
-                          <div className="size-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
-                            <Package className="size-4" />
-                          </div>
-                          <span className="text-xs text-muted-foreground font-medium">
-                            Total de Cartas
-                          </span>
-                        </div>
-                        {loading ? (
-                          <Skeleton className="h-4 w-16" />
-                        ) : (
-                          <span className="text-sm font-bold text-foreground font-mono">
-                            {totalCards}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bottom Quick Stats */}
-                  <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-                    {loading ? (
-                      <>
-                        <Skeleton className="h-3 w-28" />
-                        <Skeleton className="h-3 w-32" />
-                      </>
-                    ) : (
-                      <>
-                        <span>
-                          Itens únicos:{" "}
-                          <strong className="text-foreground">
-                            {items.length}
-                          </strong>
-                        </span>
-                        <span>
-                          Última atualização:{" "}
-                          <strong className="text-foreground">
-                            {activePortfolio?.updatedAt
-                              ? new Date(
-                                  activePortfolio.updatedAt,
-                                ).toLocaleDateString("pt-BR")
-                              : "Hoje"}
-                          </strong>
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </Card>
               </div>
 
               <Separator />
