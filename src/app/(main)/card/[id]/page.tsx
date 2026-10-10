@@ -346,7 +346,6 @@ export default function CardDetailPage({
 
   async function commitQty(target: number) {
     pendingTargetRef.current = null;
-    const price = precoAtual(card?.prices);
     try {
       if (activeNmItem) {
         if (target <= 0) {
@@ -359,7 +358,6 @@ export default function CardDetailPage({
           cardId: id,
           quantity: target,
           condition: "NM",
-          buyPrice: price,
           portfolioId: activePortfolioId || undefined,
         });
       }
