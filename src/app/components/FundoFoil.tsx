@@ -23,7 +23,10 @@ const ROSA = "248, 86, 167"; // --primary #F856A7
 const ROXO = "136, 124, 253"; // --tertiary #887CFD
 const MAGENTA = "181, 13, 87"; // --secondary #B50D57
 
-/** Reflexo foil: elipse com degradê cônico, desfocada. */
+/**
+ * Reflexo foil: faixa de cor desfocada. Opacidade baixa de propósito: o fundo
+ * não pode competir com os banners de convite, que usam o mesmo foil.
+ */
 const REFLEXOS: {
   top: string;
   left: string;
@@ -33,13 +36,13 @@ const REFLEXOS: {
   op: number;
   soDesktop?: boolean;
 }[] = [
-  { top: "14%", left: "22%", w: 120, h: 34, rot: -28, op: 0.5 },
-  { top: "9%", left: "71%", w: 96, h: 28, rot: 34, op: 0.42 },
-  { top: "38%", left: "8%", w: 130, h: 36, rot: 18, op: 0.38, soDesktop: true },
-  { top: "31%", left: "84%", w: 150, h: 40, rot: -52, op: 0.48 },
-  { top: "58%", left: "52%", w: 86, h: 24, rot: 62, op: 0.3, soDesktop: true },
-  { top: "72%", left: "17%", w: 160, h: 44, rot: -12, op: 0.42 },
-  { top: "80%", left: "76%", w: 110, h: 30, rot: 24, op: 0.38 },
+  { top: "14%", left: "22%", w: 120, h: 34, rot: -28, op: 0.25 },
+  { top: "9%", left: "71%", w: 96, h: 28, rot: 34, op: 0.21 },
+  { top: "38%", left: "8%", w: 130, h: 36, rot: 18, op: 0.19, soDesktop: true },
+  { top: "31%", left: "84%", w: 150, h: 40, rot: -52, op: 0.24 },
+  { top: "58%", left: "52%", w: 86, h: 24, rot: 62, op: 0.15, soDesktop: true },
+  { top: "72%", left: "17%", w: 160, h: 44, rot: -12, op: 0.21 },
+  { top: "80%", left: "76%", w: 110, h: 30, rot: 24, op: 0.19 },
 ];
 
 /** Contornos de carta (proporção 2:3) e brilhos espalhados num ladrilho. */
@@ -178,7 +181,7 @@ export function FundoFoil() {
             style={{
               inset: "30% 32%",
               filter: "blur(6px)",
-              backgroundColor: "rgba(255,255,255,0.55)",
+              backgroundColor: "rgba(255,255,255,0.3)",
             }}
           />
         </div>
