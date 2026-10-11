@@ -1,10 +1,17 @@
 "use client";
 
-import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/app-links";
+import {
+  APP_STORE_URL,
+  PLAY_STORE_URL,
+  PUBLICADO_NA_LOJA,
+} from "@/lib/app-links";
 
 // Selo App Store / Google Play no estilo oficial. Saiu de dentro da landing
 // para ser usado também no /download — e virou link: na landing era um
 // <button> sem destino, o clique não fazia nada.
+//
+// Antes da loja publicar, o link cairia em "app não encontrado": o selo vira
+// "Em breve", apagado e sem link.
 export function StoreBadge({
   store,
   light = false,
@@ -18,14 +25,24 @@ export function StoreBadge({
   brand?: boolean;
 }) {
   const isIos = store === "ios";
+  const publicado = PUBLICADO_NA_LOJA[store];
   // brand: branco com fonte/ícone rosa — destaque limpo sobre o card escuro
   const fg = brand ? "#F856A7" : "#FFFFFF";
   return (
     <a
-      href={isIos ? APP_STORE_URL : PLAY_STORE_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={isIos ? "Baixar na App Store" : "Baixar no Google Play"}
+      href={publicado ? (isIos ? APP_STORE_URL : PLAY_STORE_URL) : undefined}
+      target={publicado ? "_blank" : undefined}
+      rel={publicado ? "noopener noreferrer" : undefined}
+      aria-disabled={!publicado || undefined}
+      aria-label={
+        publicado
+          ? isIos
+            ? "Baixar na App Store"
+            : "Baixar no Google Play"
+          : isIos
+            ? "Em breve na App Store"
+            : "Em breve no Google Play"
+      }
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -43,17 +60,20 @@ export function StoreBadge({
             ? "1px solid rgba(255,255,255,0.12)"
             : "1px solid rgba(255,255,255,0.15)",
         boxShadow: brand ? "0 8px 24px rgba(0,0,0,0.35)" : "none",
-        cursor: "pointer",
+        cursor: publicado ? "pointer" : "default",
+        opacity: publicado ? 1 : 0.6,
         textDecoration: "none",
         transition: "opacity 0.18s, background 0.2s, transform 0.2s ease",
       }}
       onMouseEnter={(e) => {
+        if (!publicado) return;
         if (brand) e.currentTarget.style.transform = "translateY(-2px)";
         else if (light)
           e.currentTarget.style.background = "rgba(255,255,255,0.12)";
         else e.currentTarget.style.opacity = "0.82";
       }}
       onMouseLeave={(e) => {
+        if (!publicado) return;
         if (brand) e.currentTarget.style.transform = "translateY(0)";
         else if (light)
           e.currentTarget.style.background = "rgba(255,255,255,0.06)";
@@ -96,7 +116,13 @@ export function StoreBadge({
             lineHeight: 1.2,
           }}
         >
-          {isIos ? "Download on the" : "Get it on"}
+          {publicado
+            ? isIos
+              ? "Download on the"
+              : "Get it on"
+            : isIos
+              ? "Em breve na"
+              : "Em breve no"}
         </div>
         <div
           style={{
