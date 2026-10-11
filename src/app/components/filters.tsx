@@ -102,13 +102,13 @@ export function CheckboxFilterList({
             />
             <label
               htmlFor={`${idPrefix}-${value}`}
-              className="cursor-pointer select-none truncate text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="cursor-pointer select-none truncate text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {label}
             </label>
           </div>
           {count != null && (
-            <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
+            <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">
               {count}
             </span>
           )}
@@ -151,7 +151,7 @@ export function ShowMoreToggle({
     <button
       type="button"
       onClick={onToggle}
-      className="flex cursor-pointer items-center gap-1 rounded-md text-[11px] font-bold text-primary transition-colors hover:text-tertiary-hover focus-visible:outline-offset-2"
+      className="flex cursor-pointer items-center gap-1 rounded-md text-xs font-bold text-primary transition-colors hover:text-tertiary-hover focus-visible:outline-offset-2"
     >
       {expanded ? "Ver menos" : `Ver mais (${hiddenCount})`}
       <ChevronDown
@@ -196,7 +196,7 @@ export function ProductTypeFilter({
           />
           <label
             htmlFor="type-cards"
-            className="cursor-pointer text-xs font-medium text-foreground"
+            className="cursor-pointer text-sm font-medium text-foreground"
           >
             Apenas Cartas
           </label>
@@ -209,7 +209,7 @@ export function ProductTypeFilter({
           />
           <label
             htmlFor="type-sealed"
-            className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="cursor-pointer select-none text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Produtos Selados
           </label>
@@ -246,7 +246,7 @@ export function PriceRangeFilter({
           step={5}
           className="mx-auto w-full"
         />
-        <div className="flex justify-between text-[11px] tabular-nums text-muted-foreground">
+        <div className="flex justify-between text-xs tabular-nums text-muted-foreground">
           <span>R$ {(value?.[0] ?? 0).toFixed(0)}</span>
           <span>R$ {(value?.[1] ?? ceil).toFixed(0)}</span>
         </div>

@@ -36,7 +36,7 @@ export function SectionLabel({
   return (
     <h2
       className={cn(
-        "text-[11px] font-bold uppercase tracking-[0.06em] text-muted-foreground",
+        "text-[13px] font-bold uppercase tracking-[0.06em] text-muted-foreground",
         className,
       )}
       {...props}
