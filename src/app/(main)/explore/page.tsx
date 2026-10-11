@@ -37,6 +37,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { CardImage } from "@/app/components/CardImage";
+import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -1238,6 +1239,14 @@ function ExplorePageContent() {
 
         {/* ── Coluna de conteúdo ── */}
         <div className="min-w-0 flex-1 space-y-4">
+          {!searching && (
+            <ConviteAppFaixa
+              id="explore"
+              titulo="Procurando uma carta que está na sua mão?"
+              texto="No app você aponta a câmera e ela aparece na hora, com o preço do dia. Sem digitar o nome."
+            />
+          )}
+
           {/* ── Carrossel de coleções — clica para filtrar o grid (some na busca) ── */}
           {!searching && (
             <section className="space-y-2">

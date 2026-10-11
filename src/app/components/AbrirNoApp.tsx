@@ -134,6 +134,22 @@ function recadoPara(pathname: string) {
       caminhoNoApp: undefined,
     };
   }
+  if (pathname.startsWith("/explore")) {
+    return {
+      id: "explore",
+      titulo: "Ache a carta pela câmera",
+      descricao: "Aponte e ela aparece com o preço do dia.",
+      caminhoNoApp: undefined,
+    };
+  }
+  if (pathname.startsWith("/raridades")) {
+    return {
+      id: "raridades",
+      titulo: "Veja o brilho foil no app",
+      descricao: "A carta se mexe com o celular.",
+      caminhoNoApp: undefined,
+    };
+  }
   return {
     id: "geral",
     titulo: "Escaneie suas cartas no app",
