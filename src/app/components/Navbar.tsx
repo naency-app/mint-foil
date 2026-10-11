@@ -1,6 +1,6 @@
 "use client";
 
-import { IconMenu, IconX } from "@tabler/icons-react";
+import { IconMenu, IconScan, IconX } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -245,13 +245,23 @@ export function Navbar() {
             */}
             <Popover>
               <PopoverTrigger asChild>
+                {/* Chamada, não botão comum: degradê da marca correndo e um
+                    brilho rosa em volta, como o banner dos convites */}
                 <button
                   type="button"
                   className={cn(
-                    "hidden cursor-pointer items-center rounded-full border border-border px-3.5 font-semibold text-foreground transition-colors hover:bg-muted md:inline-flex",
+                    "hidden cursor-pointer items-center gap-1.5 rounded-full px-4 font-bold text-white transition-transform hover:scale-[1.03] md:inline-flex",
                     scrolled ? "h-8 text-[13px]" : "h-9 text-sm",
                   )}
+                  style={{
+                    background:
+                      "linear-gradient(110deg, #B50D57 0%, #F856A7 35%, #887CFD 65%, #B50D57 100%)",
+                    backgroundSize: "200% 200%",
+                    animation: "mfFoilShift 5s linear infinite",
+                    boxShadow: "0 4px 18px rgba(248, 86, 167, 0.4)",
+                  }}
                 >
+                  <IconScan className="size-4" />
                   Baixar o app
                 </button>
               </PopoverTrigger>

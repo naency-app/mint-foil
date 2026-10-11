@@ -93,6 +93,13 @@ export function QrDoApp({ className }: { className?: string }) {
 }
 
 /**
+ * Degradê foil da marca (o mesmo do banner do Pro na landing, só rosas → roxo
+ * → azul). Animado com o keyframe `mfFoilShift` de globals.css.
+ */
+export const FOIL =
+  "linear-gradient(110deg, #B50D57 0%, #D7327F 6%, #F856A7 12%, #FC7DC0 19%, #FF9AD5 26%, #E3A9E9 33%, #C49AFF 40%, #AEADFF 45%, #9AC1FF 50%, #AEADFF 55%, #C49AFF 60%, #E3A9E9 67%, #FF9AD5 74%, #FC7DC0 81%, #F856A7 88%, #D7327F 94%, #B50D57 100%)";
+
+/**
  * Destaque dos convites: a mesma linguagem do card do Pro em Configurações
  * (borda rosa e um degradê leve), por cima do vidro.
  */
@@ -167,7 +174,8 @@ export function ConviteAppCartao({
 }
 
 /**
- * Faixa larga, acima de listas (portfólio, coleção). Dá para dispensar, e o
+ * Banner largo, acima de listas (Explorar, Sets, coleção, portfólio): tem que
+ * parecer propaganda, não mais um card da página. Dá para dispensar, e o
  * dispensar vale só para esta visita (sessionStorage, como a faixa do rodapé):
  * o convite volta na próxima vez.
  */
@@ -207,49 +215,89 @@ export function ConviteAppFaixa({
   if (dispensada) return null;
 
   return (
+    // Borda foil animada: o fundo do wrapper é o degradê que corre, e o miolo
+    // escuro por cima deixa só o fio de 1.5px aparecendo (o banner do Pro da
+    // landing faz igual).
     <div
-      className={cn(
-        "glass-card !rounded-xl relative flex items-center gap-4 p-4 pr-12",
-        DESTAQUE,
-        className,
-      )}
+      className={cn("relative rounded-2xl p-[1.5px] shadow-xl", className)}
+      style={{
+        background: FOIL,
+        backgroundSize: "200% 200%",
+        animation: "mfFoilShift 7s linear infinite",
+        boxShadow: "0 12px 40px rgba(248, 86, 167, 0.18)",
+      }}
     >
-      <IconeConvite grande />
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-bold text-foreground">{titulo}</h3>
-        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-          {texto}
-        </p>
-        <Button asChild size="sm" className="mt-3 md:hidden">
-          <Link href="/download">
-            <ScanLine />
-            Baixar o app
-          </Link>
-        </Button>
-      </div>
-
-      {/* Desktop: QR com a legenda alinhada à esquerda dele, separado do texto
-          por uma linha rosa */}
-      <div className="hidden items-center gap-3 border-l border-primary/20 pl-4 md:flex">
-        <div className="text-left">
-          <p className="text-xs font-semibold text-foreground">Baixe grátis</p>
-          <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-            Aponte a câmera
-            <br />
-            do celular
-          </p>
-        </div>
-        <QrDoApp className="size-[72px]" />
-      </div>
-
-      <button
-        type="button"
-        onClick={dispensar}
-        aria-label="Dispensar"
-        className="absolute top-3 right-3 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      <div
+        className="relative flex items-center gap-5 overflow-hidden rounded-[14.5px] py-5 pr-12 pl-5 sm:pl-6"
+        style={{
+          // Fundo próprio, escuro nos três temas: é banner, não superfície
+          backgroundColor: "#020617",
+          backgroundImage:
+            "radial-gradient(ellipse 60% 120% at 0% 0%, rgba(181,13,87,0.35), transparent 70%), radial-gradient(ellipse 50% 120% at 100% 100%, rgba(136,124,253,0.28), transparent 70%)",
+        }}
       >
-        <X className="size-4" />
-      </button>
+        <div className="relative z-10 min-w-0 flex-1">
+          <span className="foil-text text-[11px] font-extrabold tracking-[3px]">
+            APP MINT FOIL
+          </span>
+          <h3 className="mt-1.5 text-lg font-extrabold leading-tight tracking-tight text-white sm:text-xl">
+            {titulo}
+          </h3>
+          <p className="mt-1 max-w-xl text-[13px] leading-snug text-white/65">
+            {texto}
+          </p>
+          <Button asChild size="sm" className="mt-3.5 md:hidden">
+            <Link href="/download">
+              <ScanLine />
+              Baixar o app grátis
+            </Link>
+          </Button>
+        </div>
+
+        {/* Celular com o print real do scan, saindo pela base do banner */}
+        <div
+          aria-hidden
+          className="pointer-events-none relative hidden w-[92px] shrink-0 self-stretch lg:block"
+        >
+          <div
+            className="absolute top-1 left-0 w-[92px] rotate-[8deg] rounded-[18px] border border-white/15 p-[3px]"
+            style={{
+              background: "linear-gradient(145deg, #1a1a2e 0%, #0d0d1a 100%)",
+              boxShadow:
+                "0 16px 40px rgba(0,0,0,0.55), 0 0 40px rgba(248,86,167,0.25)",
+            }}
+          >
+            {/* biome-ignore lint/performance/noImgElement: print local do app */}
+            <img
+              src="/landing/scan-uma.jpg"
+              alt=""
+              className="block w-full rounded-[15px]"
+              style={{ aspectRatio: "720 / 1560" }}
+            />
+          </div>
+        </div>
+
+        {/* QR + lojas (desktop) */}
+        <div className="relative z-10 hidden items-center gap-3.5 md:flex">
+          <div className="text-left">
+            <p className="text-sm font-bold text-white">Baixe grátis</p>
+            <p className="mt-0.5 mb-2 text-[11px] leading-snug text-white/60">
+              Aponte a câmera do celular
+            </p>
+            <SelosLojas className="gap-1.5" tamanho={96} />
+          </div>
+          <QrDoApp className="size-[84px]" />
+        </div>
+
+        <button
+          type="button"
+          onClick={dispensar}
+          aria-label="Dispensar"
+          className="absolute top-3 right-3 z-10 rounded-full p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
     </div>
   );
 }
