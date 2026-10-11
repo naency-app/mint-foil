@@ -20,7 +20,13 @@ import { cn } from "@/lib/utils";
  * nas duas lojas, o link direto cairia em "app não encontrado".
  */
 
-/** Selos oficiais das duas lojas (os mesmos do ProUpgradeModal). */
+/**
+ * Selos oficiais das duas lojas (os mesmos do ProUpgradeModal).
+ *
+ * Os SVGs são quadrados, com o selo no meio e margem transparente em cima e
+ * embaixo: sem o object-cover numa caixa da proporção do selo, cada um ocupava
+ * um quadrado e empurrava o resto pra longe.
+ */
 export function SelosLojas({
   className,
   tamanho = 150,
@@ -43,6 +49,7 @@ export function SelosLojas({
           alt="Download on the App Store"
           width={tamanho}
           height={altura}
+          style={{ width: tamanho, height: altura, objectFit: "cover" }}
         />
       </a>
       <a
@@ -56,6 +63,7 @@ export function SelosLojas({
           alt="Get it on Google Play"
           width={tamanho}
           height={altura}
+          style={{ width: tamanho, height: altura, objectFit: "cover" }}
         />
       </a>
     </div>
