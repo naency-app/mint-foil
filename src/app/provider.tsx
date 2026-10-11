@@ -25,9 +25,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Mint (escuro + fundo foil) é o padrão: quem nunca escolheu um tema
+          entra nele. Quem já escolheu Claro ou Escuro continua no seu. */}
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="mint"
         enableSystem
         themes={["light", "dark", "mint"]}
       >
