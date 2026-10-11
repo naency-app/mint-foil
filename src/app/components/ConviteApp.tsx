@@ -227,23 +227,17 @@ export function ConviteAppFaixa({
         boxShadow: "0 12px 40px rgba(248, 86, 167, 0.18)",
       }}
     >
-      <div
-        className="relative flex items-center gap-5 overflow-hidden rounded-[14.5px] py-5 pr-12 pl-5 sm:pl-6"
-        style={{
-          // Fundo próprio, escuro nos três temas: é banner, não superfície
-          backgroundColor: "#020617",
-          backgroundImage:
-            "radial-gradient(ellipse 60% 120% at 0% 0%, rgba(181,13,87,0.35), transparent 70%), radial-gradient(ellipse 50% 120% at 100% 100%, rgba(136,124,253,0.28), transparent 70%)",
-        }}
-      >
+      {/* Fundo do banner em globals.css (.convite-banner): claro no tema
+          claro — escuro ali pesava a página —, escuro no Escuro e no Mint */}
+      <div className="convite-banner relative flex items-center gap-5 overflow-hidden rounded-[14.5px] py-5 pr-12 pl-5 sm:pl-6">
         <div className="relative z-10 min-w-0 flex-1">
           <span className="foil-text text-[11px] font-extrabold tracking-[3px]">
             APP MINT FOIL
           </span>
-          <h3 className="mt-1.5 text-lg font-extrabold leading-tight tracking-tight text-white sm:text-xl">
+          <h3 className="mt-1.5 text-lg font-extrabold leading-tight tracking-tight text-foreground sm:text-xl">
             {titulo}
           </h3>
-          <p className="mt-1 max-w-xl text-[13px] leading-snug text-white/65">
+          <p className="mt-1 max-w-xl text-[13px] leading-snug text-muted-foreground">
             {texto}
           </p>
           <Button asChild size="sm" className="mt-3.5 md:hidden">
@@ -280,8 +274,8 @@ export function ConviteAppFaixa({
         {/* QR + lojas (desktop) */}
         <div className="relative z-10 hidden items-center gap-3.5 md:flex">
           <div className="text-left">
-            <p className="text-sm font-bold text-white">Baixe grátis</p>
-            <p className="mt-0.5 mb-2 text-[11px] leading-snug text-white/60">
+            <p className="text-sm font-bold text-foreground">Baixe grátis</p>
+            <p className="mt-0.5 mb-2 text-[11px] leading-snug text-muted-foreground">
               Aponte a câmera do celular
             </p>
             <SelosLojas className="gap-1.5" tamanho={96} />
@@ -293,7 +287,7 @@ export function ConviteAppFaixa({
           type="button"
           onClick={dispensar}
           aria-label="Dispensar"
-          className="absolute top-3 right-3 z-10 rounded-full p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+          className="absolute top-3 right-3 z-10 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <X className="size-4" />
         </button>

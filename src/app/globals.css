@@ -231,6 +231,21 @@
     color: #020617;
   }
 
+  /* Fundo do banner de convite pro app (ConviteAppFaixa): branco com brilho
+     rosa/roxo no claro, navy com brilho magenta/roxo no escuro e no Mint. */
+  .convite-banner {
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(60% 120% at 0% 0%, rgba(248, 86, 167, 0.14), transparent 70%),
+      radial-gradient(50% 120% at 100% 100%, rgba(136, 124, 253, 0.14), transparent 70%);
+  }
+  :is(.dark, .mint) .convite-banner {
+    background-color: #020617;
+    background-image:
+      radial-gradient(60% 120% at 0% 0%, rgba(181, 13, 87, 0.35), transparent 70%),
+      radial-gradient(50% 120% at 100% 100%, rgba(136, 124, 253, 0.28), transparent 70%);
+  }
+
   /* Shimmer foil do wordmark (mesmo gradiente/animação da landing) */
   .foil-text {
     background: linear-gradient(
