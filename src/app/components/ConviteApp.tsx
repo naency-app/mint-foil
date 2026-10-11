@@ -7,7 +7,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { QRCode } from "@/components/ui/qrcode";
-import { APP_STORE_URL, DOWNLOAD_URL, PLAY_STORE_URL } from "@/lib/app-links";
+import {
+  APP_STORE_URL,
+  DOWNLOAD_URL,
+  PLAY_STORE_URL,
+  PUBLICADO_NA_LOJA,
+} from "@/lib/app-links";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -48,40 +53,75 @@ export function SelosLojas({
   /** Onde os selos estão, para o Analytics */
   origem?: string;
 }) {
-  const altura = Math.round((tamanho * 44) / 150);
   return (
     <div className={cn("flex gap-3", className)}>
-      <a
-        href={APP_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => registrarClique(origem, "app-store")}
-        className="opacity-90 transition-opacity hover:opacity-100"
-      >
-        <Image
-          src="/logos/app-store-apple.svg"
-          alt="Download on the App Store"
-          width={tamanho}
-          height={altura}
-          style={{ width: tamanho, height: altura, objectFit: "cover" }}
-        />
-      </a>
-      <a
-        href={PLAY_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => registrarClique(origem, "google-play")}
-        className="opacity-90 transition-opacity hover:opacity-100"
-      >
-        <Image
-          src="/logos/app-google-play.svg"
-          alt="Get it on Google Play"
-          width={tamanho}
-          height={altura}
-          style={{ width: tamanho, height: altura, objectFit: "cover" }}
-        />
-      </a>
+      <SeloLoja loja="ios" tamanho={tamanho} origem={origem} />
+      <SeloLoja loja="android" tamanho={tamanho} origem={origem} />
     </div>
+  );
+}
+
+const SELOS = {
+  ios: {
+    url: APP_STORE_URL,
+    src: "/logos/app-store-apple.svg",
+    alt: "Download on the App Store",
+    destino: "app-store",
+  },
+  android: {
+    url: PLAY_STORE_URL,
+    src: "/logos/app-google-play.svg",
+    alt: "Get it on Google Play",
+    destino: "google-play",
+  },
+} as const;
+
+/**
+ * Um selo. Antes da loja publicar o app, o link cairia em "app não
+ * encontrado": o selo fica apagado, sem link, com "Em breve" embaixo.
+ */
+function SeloLoja({
+  loja,
+  tamanho,
+  origem,
+}: {
+  loja: "ios" | "android";
+  tamanho: number;
+  origem: string;
+}) {
+  const selo = SELOS[loja];
+  const altura = Math.round((tamanho * 44) / 150);
+  const imagem = (
+    <Image
+      src={selo.src}
+      alt={selo.alt}
+      width={tamanho}
+      height={altura}
+      style={{ width: tamanho, height: altura, objectFit: "cover" }}
+    />
+  );
+
+  if (!PUBLICADO_NA_LOJA[loja]) {
+    return (
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="opacity-50">{imagem}</div>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Em breve
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={selo.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => registrarClique(origem, selo.destino)}
+      className="opacity-90 transition-opacity hover:opacity-100"
+    >
+      {imagem}
+    </a>
   );
 }
 

@@ -8,8 +8,8 @@
 // Visual herdado do rodapé da landing (fundo #020617, aurora rosa, marca
 // d'água MINT FOIL) e o mesmo print do app que o hero usa no mockup.
 //
-// ⚠️ As URLs das lojas só resolvem depois que o app for publicado. Até lá, os
-// botões levam a uma página de "app não encontrado" da própria loja.
+// As URLs das lojas só resolvem depois que o app for publicado: até lá o
+// selo aparece como "Em breve" (PUBLICADO_NA_LOJA em app-links.ts).
 
 import { ScanLine, TrendingUp, Wallet } from "lucide-react";
 import { StoreBadge } from "@/app/components/StoreBadge";

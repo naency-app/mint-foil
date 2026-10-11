@@ -440,7 +440,7 @@ function SettingsContent() {
 
   useEffect(() => {
     if (!isPending && !session) {
-      router.replace("/login");
+      router.replace("/login?redirect=/settings");
     }
   }, [isPending, session, router]);
 

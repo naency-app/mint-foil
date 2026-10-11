@@ -17,6 +17,16 @@ export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${A
 export const DOWNLOAD_URL = "https://mintfoil.com/download";
 
 /**
+ * Lojas onde o app já está publicado. Antes de publicar, a URL da loja dá 404
+ * ("app não encontrado"): o selo aparece como "Em breve", sem link, e o botão
+ * do celular leva ao /download. Virar para `true` quando a loja publicar.
+ */
+export const PUBLICADO_NA_LOJA: Record<"ios" | "android", boolean> = {
+  ios: false,
+  android: false,
+};
+
+/**
  * Esquema privado do app (`expo.scheme` do app.json).
  *
  * Serve para o caso em que o Universal Link NÃO dispara: navegador in-app do
@@ -37,10 +47,14 @@ export function detectarPlataforma(userAgent: string): Plataforma {
   return "outra";
 }
 
-/** Loja certa para a plataforma; no desktop, a página que mostra as duas. */
+/**
+ * Loja certa para a plataforma; no desktop, ou se a loja ainda não publicou,
+ * a página que mostra as duas.
+ */
 export function lojaPara(plataforma: Plataforma): string {
-  if (plataforma === "ios") return APP_STORE_URL;
-  if (plataforma === "android") return PLAY_STORE_URL;
+  if (plataforma === "ios" && PUBLICADO_NA_LOJA.ios) return APP_STORE_URL;
+  if (plataforma === "android" && PUBLICADO_NA_LOJA.android)
+    return PLAY_STORE_URL;
   return "/download";
 }
 
