@@ -13,6 +13,7 @@ import {
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
+import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import { api, type Card, type RarityExample } from "@/lib/api";
 import { queryKeys, useCardDetail } from "@/lib/queries";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
@@ -470,6 +471,13 @@ export default function RaridadesPage() {
           exemplos, da mais comum à mais rara.
         </p>
       </div>
+
+      <ConviteAppFaixa
+        id="raridades"
+        className="mb-10"
+        titulo="Veja o brilho foil de verdade"
+        texto="No app a carta se mexe com o celular e o reflexo acompanha, como na carta física."
+      />
 
       <div className="space-y-14">
         {TCGS.map((t) => {

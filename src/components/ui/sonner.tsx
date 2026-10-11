@@ -12,10 +12,15 @@ import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
+  // O Sonner só conhece light/dark/system: com "mint" ele ficava sem tema e o
+  // aviso saía transparente, ilegível por cima das cartas. Mint é escuro.
+  const temaSonner = (
+    theme === "mint" ? "dark" : theme
+  ) as ToasterProps["theme"];
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={temaSonner}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

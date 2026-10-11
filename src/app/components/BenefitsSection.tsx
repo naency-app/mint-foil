@@ -340,7 +340,7 @@ export function PhoneMockup() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const isDark = mounted && resolvedTheme === "dark";
+  const isDark = mounted && resolvedTheme !== "light"; // Mint é escuro também
 
   return (
     <div className="relative flex items-center justify-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import { Badge } from "@/components/ui/badge";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
 
@@ -14,6 +15,12 @@ export default function SetsPage() {
           progresso de sua coleção.
         </p>
       </div>
+
+      <ConviteAppFaixa
+        id="sets"
+        titulo="Complete suas coleções pelo app"
+        texto="Escaneie as cartas que você tem e veja na hora quanto falta para fechar cada coleção."
+      />
 
       {/*
         Seis colunas na largura cheia: são ~19 TCGs, e em quatro colunas a lista

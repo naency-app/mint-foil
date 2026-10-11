@@ -1,11 +1,17 @@
 "use client";
 
-import { IconMenu, IconX } from "@tabler/icons-react";
+import { IconMenu, IconScan, IconX } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
 import { UserMenu } from "@/components/UserMenu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Sheet,
   SheetClose,
@@ -237,15 +243,59 @@ export function Navbar() {
               der. No celular quem convida é a faixa do rodapé (AbrirNoApp),
               que tem espaço pro recado inteiro — aqui seria só aperto.
             */}
-            <Link
-              href="/download"
-              className={cn(
-                "hidden items-center rounded-full border border-border px-3.5 font-semibold text-foreground transition-colors hover:bg-muted md:inline-flex",
-                scrolled ? "h-8 text-[13px]" : "h-9 text-sm",
-              )}
-            >
-              Baixar o app
-            </Link>
+            <Popover>
+              <PopoverTrigger asChild>
+                {/* Chamada, não botão comum: degradê da marca correndo e um
+                    brilho rosa em volta, como o banner dos convites */}
+                <button
+                  type="button"
+                  className={cn(
+                    "hidden cursor-pointer items-center gap-1.5 rounded-full px-4 font-bold text-white transition-transform hover:scale-[1.03] md:inline-flex",
+                    scrolled ? "h-8 text-[13px]" : "h-9 text-sm",
+                  )}
+                  style={{
+                    background:
+                      "linear-gradient(110deg, #B50D57 0%, #F856A7 35%, #887CFD 65%, #B50D57 100%)",
+                    backgroundSize: "200% 200%",
+                    animation: "mfFoilShift 5s linear infinite",
+                    boxShadow: "0 4px 18px rgba(248, 86, 167, 0.4)",
+                  }}
+                >
+                  <IconScan className="size-4" />
+                  Baixar o app
+                </button>
+              </PopoverTrigger>
+              {/* No computador, o QR leva o download pro celular sem sair do
+                  site — antes o botão trocava de página e a pessoa perdia o
+                  que estava vendo. */}
+              <PopoverContent
+                align="end"
+                sideOffset={8}
+                className="w-72 space-y-3 rounded-2xl p-5 text-center"
+              >
+                <div>
+                  <p className="text-sm font-bold text-foreground">
+                    Escaneie suas cartas pelo celular
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Aponte a câmera para o código e baixe o Mint Foil. São 10
+                    scans grátis por dia.
+                  </p>
+                </div>
+                <QrDoApp className="mx-auto size-40" />
+                <SelosLojas
+                  className="justify-center gap-2"
+                  tamanho={120}
+                  origem="navbar"
+                />
+                <Link
+                  href="/download"
+                  className="inline-block text-xs font-semibold text-primary hover:underline"
+                >
+                  Ver tudo o que o app faz
+                </Link>
+              </PopoverContent>
+            </Popover>
 
             <UserMenu />
           </div>

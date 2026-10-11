@@ -17,6 +17,7 @@ import {
   IconMinus as Minus,
   IconPackage as Package,
   IconPlus as Plus,
+  IconScan as ScanLine,
   IconSearch as Search,
   IconSparkles as Sparkles,
   IconTrash as Trash2,
@@ -35,6 +36,7 @@ import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
+import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -1485,8 +1487,19 @@ export default function PortfolioPage() {
                     )}
                   </div>
                 </Card>
-
               </div>
+
+              {/* Top cartas / Por jogo logo abaixo do gráfico: no rodapé, quem
+                  tem muitas cartas nunca chegava até eles. */}
+              {!loading && <CollectionInsights stats={stats ?? null} />}
+
+              {!loading && items.length > 0 && (
+                <ConviteAppFaixa
+                  id="portfolio"
+                  titulo="Adicionar carta por carta cansa"
+                  texto="No app você escaneia várias cartas numa foto só, e elas entram no seu portfólio com o preço do dia."
+                />
+              )}
 
               <Separator />
 
@@ -1543,17 +1556,26 @@ export default function PortfolioPage() {
                     Portfólio vazio
                   </h3>
                   <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                    Explore o catálogo e adicione cartas a este portfólio.
+                    Explore o catálogo e adicione cartas a este portfólio, ou
+                    escaneie as suas pelo app.
                   </p>
-                  <Button
-                    asChild
-                    className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
-                  >
-                    <Link href="/explore">
-                      <Plus className="size-4" />
-                      Explorar Cartas
-                    </Link>
-                  </Button>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Button
+                      asChild
+                      className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
+                    >
+                      <Link href="/explore">
+                        <Plus className="size-4" />
+                        Explorar Cartas
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="gap-2">
+                      <Link href="/download">
+                        <ScanLine className="size-4" />
+                        Escanear no app
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1782,11 +1804,6 @@ export default function PortfolioPage() {
                 </div>
               )}
             </>
-          )}
-
-          {/* Top cartas / Por jogo — rodapé do Portfólio, como no app */}
-          {portfolios.length > 0 && !loading && (
-            <CollectionInsights stats={stats ?? null} />
           )}
 
           {portfolios.length === 0 && !loading && (

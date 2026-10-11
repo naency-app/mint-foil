@@ -8,21 +8,13 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import Image from "next/image";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QRCode } from "@/components/ui/qrcode";
-import {
-  APP_STORE_URL,
-  DOWNLOAD_URL,
-  PLAY_STORE_URL,
-} from "@/lib/app-links";
-
-// Endereços das lojas e da página de download: src/lib/app-links.ts
+import { QrDoApp, SelosLojas } from "./ConviteApp";
 
 const features = [
   {
@@ -116,42 +108,13 @@ export function ProUpgradeModal({
         <div className="px-6 pb-6 pt-2 space-y-4">
           {/* QR code — visível apenas em desktop */}
           <div className="hidden sm:flex flex-col items-center gap-2">
-            <div className="size-28 p-2 rounded-xl border border-border bg-background">
-              <QRCode data={DOWNLOAD_URL} robustness="M" />
-            </div>
+            <QrDoApp className="size-28" />
             <p className="text-xs text-muted-foreground">
               Escaneie para baixar no celular
             </p>
           </div>
 
-          <div className="flex justify-center gap-3">
-            <a
-              href={APP_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-90 hover:opacity-100 transition-opacity"
-            >
-              <Image
-                src="/logos/app-store-apple.svg"
-                alt="Download on the App Store"
-                width={150}
-                height={44}
-              />
-            </a>
-            <a
-              href={PLAY_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-90 hover:opacity-100 transition-opacity"
-            >
-              <Image
-                src="/logos/app-google-play.svg"
-                alt="Get it on Google Play"
-                width={150}
-                height={44}
-              />
-            </a>
-          </div>
+          <SelosLojas className="justify-center" origem="pro" />
           <p className="text-center text-xs text-muted-foreground">
             Assinaturas disponíveis somente pelo app
           </p>

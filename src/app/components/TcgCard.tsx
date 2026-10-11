@@ -120,10 +120,8 @@ export function TcgCard({
     // Sessão ainda chegando: não dá para afirmar nada. O clique seria um
     // palpite, e errar aqui é oferecer login a quem já entrou.
     if (sessaoCarregando) return;
-    if (!defaultPortfolioId) {
-      toast.error("Selecione um portfólio para adicionar");
-      return;
-    }
+    // Sem portfólio ativo (conta nova, sem nenhum) segue sem `portfolioId`: o
+    // servidor grava no padrão e cria o "Principal" se preciso.
 
     // Feedback instantâneo: incrementa na hora, sem esperar a rede
     setLocalQty((prev) => prev + 1);
@@ -149,7 +147,7 @@ export function TcgCard({
           cardId,
           quantity: qty,
           condition: "NM",
-          portfolioId,
+          ...(portfolioId ? { portfolioId } : {}),
         });
         if (onAdd) onAdd();
         toast.success(
