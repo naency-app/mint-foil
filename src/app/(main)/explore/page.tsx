@@ -939,12 +939,12 @@ function ExplorePageContent() {
           ela dividia a largura com o vazio e parecia um detalhe, enquanto o
           conteúdo abaixo tinha mais peso visual que ela. */}
       <div className="relative w-full rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
-        <h1 className="mb-3 text-base font-bold tracking-tight text-foreground">
+        <h1 className="mb-3 text-xl font-bold tracking-tight text-foreground">
           Buscar cartas
         </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="glass-input flex h-12 flex-1 items-center gap-2.5 px-4">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <Search className="size-5 shrink-0 text-muted-foreground" />
             <input
               value={searchInput}
               onChange={(e) => handleChangeQuery(e.target.value)}
@@ -958,7 +958,7 @@ function ExplorePageContent() {
               }}
               enterKeyHint="search"
               placeholder="Nome, número ou coleção — ex.: Umbreon, 095/084"
-              className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              className="h-full flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
             />
           </div>
           {searchInput.length > 0 && (
@@ -1135,7 +1135,7 @@ function ExplorePageContent() {
                     />
                     <label
                       htmlFor={`tcg-${tcg.slug}`}
-                      className="cursor-pointer select-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      className="cursor-pointer select-none text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {tcg.name}
                     </label>
@@ -1156,13 +1156,13 @@ function ExplorePageContent() {
                         id={`tcg-coming-${name.toLowerCase().replace(/\s+/g, "")}`}
                         disabled
                       />
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="text-sm font-medium text-muted-foreground">
                         {name}
                       </span>
                     </div>
                     <Badge
                       variant="outline"
-                      className="h-3.5 px-1 font-mono text-[8px] uppercase leading-none tracking-wider opacity-80"
+                      className="h-3.5 px-1 font-mono text-[9px] uppercase leading-none tracking-wider opacity-80"
                     >
                       Breve
                     </Badge>
@@ -1256,7 +1256,7 @@ function ExplorePageContent() {
                 </SectionLabel>
                 <Link
                   href="/sets"
-                  className="text-xs font-bold text-primary hover:underline"
+                  className="text-sm font-bold text-primary hover:underline"
                 >
                   Ver todas →
                 </Link>
