@@ -72,14 +72,48 @@ export function SelosLojas({
 
 /** QR code que abre a página de download no celular. */
 export function QrDoApp({ className }: { className?: string }) {
+  // Quadrado branco com módulos escuros, como um QR impresso: a moldura escura
+  // de antes (bg-background) fazia o código parecer um buraco na faixa. As
+  // cores vão explícitas porque o QRCode só lê oklch dos tokens do tema.
   return (
     <div
       className={cn(
-        "shrink-0 rounded-xl border border-border bg-background p-2",
+        "shrink-0 rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-black/5",
         className,
       )}
     >
-      <QRCode data={DOWNLOAD_URL} robustness="M" />
+      <QRCode
+        data={DOWNLOAD_URL}
+        robustness="M"
+        foreground="oklch(0.15 0.03 265)"
+        background="oklch(1 0 0)"
+      />
+    </div>
+  );
+}
+
+/**
+ * Destaque dos convites: a mesma linguagem do card do Pro em Configurações
+ * (borda rosa e um degradê leve), por cima do vidro.
+ */
+const DESTAQUE =
+  "border-primary/30 bg-gradient-to-br from-primary/10 via-transparent to-tertiary/10";
+
+/** Ícone do convite, com o brilho pulsando como o do card do Pro. */
+function IconeConvite({ grande = false }: { grande?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/15",
+        grande ? "size-10" : "size-9",
+      )}
+    >
+      <ScanLine
+        className={cn(
+          "animate-pulse text-primary",
+          grande ? "size-5" : "size-4",
+        )}
+      />
     </div>
   );
 }
@@ -96,11 +130,9 @@ export function ConviteAppCartao({
   texto: string;
 }) {
   return (
-    <div className="glass-card !rounded-xl space-y-3 p-4">
+    <div className={cn("glass-card !rounded-xl space-y-3 p-4", DESTAQUE)}>
       <div className="flex items-start gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-          <ScanLine className="size-4 text-primary" />
-        </div>
+        <IconeConvite />
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-foreground">{titulo}</h3>
           <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
@@ -177,35 +209,44 @@ export function ConviteAppFaixa({
   return (
     <div
       className={cn(
-        "glass-card !rounded-xl relative flex items-center gap-4 p-4 pr-10",
+        "glass-card !rounded-xl relative flex items-center gap-4 p-4 pr-12",
+        DESTAQUE,
         className,
       )}
     >
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-        <ScanLine className="size-5 text-primary" />
-      </div>
+      <IconeConvite grande />
       <div className="min-w-0 flex-1">
         <h3 className="text-sm font-bold text-foreground">{titulo}</h3>
         <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
           {texto}
         </p>
         <Button asChild size="sm" className="mt-3 md:hidden">
-          <Link href="/download">Baixar o app</Link>
+          <Link href="/download">
+            <ScanLine />
+            Baixar o app
+          </Link>
         </Button>
       </div>
 
-      <div className="hidden items-center gap-3 md:flex">
-        <p className="max-w-[9rem] text-right text-[11px] leading-snug text-muted-foreground">
-          Aponte a câmera do celular para baixar
-        </p>
-        <QrDoApp className="size-20" />
+      {/* Desktop: QR com a legenda alinhada à esquerda dele, separado do texto
+          por uma linha rosa */}
+      <div className="hidden items-center gap-3 border-l border-primary/20 pl-4 md:flex">
+        <div className="text-left">
+          <p className="text-xs font-semibold text-foreground">Baixe grátis</p>
+          <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+            Aponte a câmera
+            <br />
+            do celular
+          </p>
+        </div>
+        <QrDoApp className="size-[72px]" />
       </div>
 
       <button
         type="button"
         onClick={dispensar}
         aria-label="Dispensar"
-        className="absolute top-2.5 right-2.5 p-1 text-muted-foreground transition-colors hover:text-foreground"
+        className="absolute top-3 right-3 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <X className="size-4" />
       </button>
