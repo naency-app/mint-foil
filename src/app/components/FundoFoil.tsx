@@ -1,5 +1,5 @@
 /**
- * Fundo das páginas do app web (só no tema escuro): o brilho de carta foil
+ * Fundo do tema Mint (Aparência → Mint): o escuro com o brilho de carta foil
  * atrás do conteúdo.
  *
  * Ideia vinda do Collectr, que usa um JPG fixo com grade, silhuetas e reflexos
@@ -108,7 +108,7 @@ export function FundoFoil() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 hidden overflow-hidden dark:block"
+      className="pointer-events-none fixed inset-0 z-0 hidden overflow-hidden mint:block"
       style={{ backgroundColor: "#020617" }}
     >
       {/* 1. Manchas de cor */}

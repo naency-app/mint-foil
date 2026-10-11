@@ -3,9 +3,8 @@
 import {
   IconLogin,
   IconLogout,
-  IconMoon,
+  IconPalette,
   IconSettings,
-  IconSun,
 } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,19 +12,25 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "@/lib/auth-client";
+import { TEMAS } from "@/lib/temas";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
 export function UserMenu() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -127,28 +132,37 @@ export function UserMenu() {
         </DropdownMenuItem>
 
         {/*
-          Tema mora aqui, junto de Configurações e Sair: é preferência de conta,
-          não ação de navegação. Na barra ele ocupava um lugar de destaque ao
-          lado do avatar para algo que se mexe uma vez e nunca mais.
+          Aparência mora aqui, junto de Configurações e Sair: é preferência de
+          conta, não ação de navegação. Submenu porque são três temas — o Mint
+          é o escuro com o fundo foil.
 
           `onSelect` com preventDefault para o menu não fechar ao trocar — dá
           para ver o resultado na hora e voltar atrás sem reabrir.
         */}
-        <DropdownMenuItem
-          className="cursor-pointer rounded-lg px-2 py-2 text-sm font-medium focus:bg-muted/60"
-          onSelect={(e) => {
-            e.preventDefault();
-            setTheme(resolvedTheme === "dark" ? "light" : "dark");
-          }}
-          suppressHydrationWarning
-        >
-          {resolvedTheme === "dark" ? (
-            <IconSun className="size-4 text-muted-foreground" />
-          ) : (
-            <IconMoon className="size-4 text-muted-foreground" />
-          )}
-          {resolvedTheme === "dark" ? "Tema claro" : "Tema escuro"}
-        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="cursor-pointer gap-2 rounded-lg px-2 py-2 text-sm font-medium focus:bg-muted/60 data-[state=open]:bg-muted/60">
+            <IconPalette className="size-4 text-muted-foreground" />
+            Aparência
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent
+            sideOffset={8}
+            className="glass-card w-44 !rounded-2xl border-border p-1.5 shadow-xl"
+          >
+            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+              {TEMAS.map((t) => (
+                <DropdownMenuRadioItem
+                  key={t.value}
+                  value={t.value}
+                  onSelect={(e) => e.preventDefault()}
+                  className="cursor-pointer gap-2 rounded-lg py-2 text-sm font-medium focus:bg-muted/60"
+                >
+                  <t.icon className="size-4 text-muted-foreground" />
+                  {t.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
 
         <DropdownMenuItem
           variant="destructive"

@@ -1,5 +1,6 @@
 "use client";
 
+import { IconDeviceDesktop } from "@tabler/icons-react";
 import {
   BarChart3,
   Crown,
@@ -8,7 +9,6 @@ import {
   Info,
   LogOut,
   Mail,
-  Moon,
   RefreshCw,
   Scan,
   Settings2,
@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
 import { capaVisivel, coverCss, findCoverPreset } from "@/lib/cover-catalog";
+import { TEMAS } from "@/lib/temas";
 import { cn } from "@/lib/utils";
 import { ContasBloqueadas } from "./contas-bloqueadas";
 import { CoverPicker } from "./cover-picker";
@@ -215,13 +216,12 @@ function ThemeSelector() {
   if (!mounted) return null;
 
   const options = [
-    { value: "light", label: "Claro", icon: Sun },
-    { value: "dark", label: "Escuro", icon: Moon },
-    { value: "system", label: "Sistema", icon: Moon },
+    ...TEMAS,
+    { value: "system", label: "Sistema", icon: IconDeviceDesktop },
   ] as const;
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {options.map((opt) => {
         const active = theme === opt.value;
         return (

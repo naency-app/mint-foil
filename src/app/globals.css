@@ -2,7 +2,10 @@
 @import "tw-animate-css";
 /* @import "shadcn/tailwind.css"; */
 
-@custom-variant dark (&:is(.dark *));
+/* O tema Mint é o escuro com o fundo foil: tudo que vale para .dark vale
+   para .mint também. A variante `mint:` serve só ao que é exclusivo dele. */
+@custom-variant dark (&:is(.dark *, .mint *));
+@custom-variant mint (&:is(.mint *));
 
 @theme inline {
   --font-sans: var(--font-sans);
@@ -123,7 +126,9 @@
   --chart-label: oklch(0.45 0.01 260);
 }
 
-.dark {
+.dark,
+.mint {
+  color-scheme: dark;
   --background: #020617;
   --foreground: #ffffff;
   --card: #0d1121;
@@ -206,9 +211,9 @@
   .glass-input {
     border-radius: 12px;
   }
-  .dark .glass-card,
-  .dark .glass-input,
-  .dark .glass-pill {
+  :is(.dark, .mint) .glass-card,
+  :is(.dark, .mint) .glass-input,
+  :is(.dark, .mint) .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
     /* Navy dos cards (#0D1121) semi-transparente */
     background-color: rgba(13, 17, 33, 0.45);
@@ -220,7 +225,7 @@
     background-color: #020617;
     color: #ffffff;
   }
-  .dark .glass-pill-active {
+  :is(.dark, .mint) .glass-pill-active {
     border-color: transparent;
     background-color: #ffffff;
     color: #020617;
