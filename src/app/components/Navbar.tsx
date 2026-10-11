@@ -214,8 +214,7 @@ export function Navbar() {
                   href={destino(link.href)}
                   onMouseEnter={() => setHovered(link.href)}
                   className={cn(
-                    "relative rounded-full px-3.5 py-2 font-medium transition-colors duration-150",
-                    scrolled ? "text-[13px]" : "text-sm",
+                    "relative rounded-full px-3.5 py-2 text-base font-medium transition-colors duration-150",
                     on ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
