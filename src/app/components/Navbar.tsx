@@ -283,7 +283,11 @@ export function Navbar() {
                   </p>
                 </div>
                 <QrDoApp className="mx-auto size-40" />
-                <SelosLojas className="justify-center gap-2" tamanho={120} />
+                <SelosLojas
+                  className="justify-center gap-2"
+                  tamanho={120}
+                  origem="navbar"
+                />
                 <Link
                   href="/download"
                   className="inline-block text-xs font-semibold text-primary hover:underline"

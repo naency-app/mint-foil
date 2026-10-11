@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { ScanLine, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,6 +22,14 @@ import { cn } from "@/lib/utils";
  */
 
 /**
+ * Clique num convite, no Vercel Analytics: `origem` é onde ele estava
+ * (explore, carta, navbar…) e `destino` para onde levou.
+ */
+function registrarClique(origem: string, destino: string) {
+  track("convite_app", { origem, destino });
+}
+
+/**
  * Selos oficiais das duas lojas (os mesmos do ProUpgradeModal).
  *
  * Os SVGs são quadrados, com o selo no meio e margem transparente em cima e
@@ -30,10 +39,13 @@ import { cn } from "@/lib/utils";
 export function SelosLojas({
   className,
   tamanho = 150,
+  origem = "outro",
 }: {
   className?: string;
   /** Largura de cada selo, em px */
   tamanho?: number;
+  /** Onde os selos estão, para o Analytics */
+  origem?: string;
 }) {
   const altura = Math.round((tamanho * 44) / 150);
   return (
@@ -42,6 +54,7 @@ export function SelosLojas({
         href={APP_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => registrarClique(origem, "app-store")}
         className="opacity-90 transition-opacity hover:opacity-100"
       >
         <Image
@@ -56,6 +69,7 @@ export function SelosLojas({
         href={PLAY_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => registrarClique(origem, "google-play")}
         className="opacity-90 transition-opacity hover:opacity-100"
       >
         <Image
@@ -154,13 +168,20 @@ export function ConviteAppCartao({
           <p className="text-[11px] leading-snug text-muted-foreground">
             Aponte a câmera do celular. São 10 scans grátis por dia.
           </p>
-          <SelosLojas className="flex-col gap-1.5" tamanho={110} />
+          <SelosLojas
+            className="flex-col gap-1.5"
+            tamanho={110}
+            origem="carta"
+          />
         </div>
       </div>
 
       <div className="space-y-1.5 md:hidden">
         <Button asChild className="w-full">
-          <Link href="/download">
+          <Link
+            href="/download"
+            onClick={() => registrarClique("carta", "download")}
+          >
             <ScanLine />
             Baixar o app
           </Link>
@@ -173,11 +194,17 @@ export function ConviteAppCartao({
   );
 }
 
+/** Data local (AAAA-MM-DD): o dia em que o banner foi dispensado. */
+function hoje() {
+  const d = new Date();
+  const dois = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`;
+}
+
 /**
  * Banner largo, acima de listas (Explorar, Sets, coleção, portfólio): tem que
  * parecer propaganda, não mais um card da página. Dá para dispensar, e o
- * dispensar vale só para esta visita (sessionStorage, como a faixa do rodapé):
- * o convite volta na próxima vez.
+ * dispensar vale até o fim do dia: amanhã o convite volta.
  */
 export function ConviteAppFaixa({
   id,
@@ -195,9 +222,11 @@ export function ConviteAppFaixa({
   // Começa escondida para não piscar antes de ler o storage
   const [dispensada, setDispensada] = useState(true);
 
+  // O × vale pelo resto do dia: guarda a data e o banner volta amanhã. Antes
+  // era sessionStorage, que zerava a cada visita.
   useEffect(() => {
     try {
-      setDispensada(sessionStorage.getItem(chave) === "1");
+      setDispensada(localStorage.getItem(chave) === hoje());
     } catch {
       setDispensada(false); // storage bloqueado: mostra assim mesmo
     }
@@ -206,7 +235,7 @@ export function ConviteAppFaixa({
   function dispensar() {
     setDispensada(true);
     try {
-      sessionStorage.setItem(chave, "1");
+      localStorage.setItem(chave, hoje());
     } catch {
       /* sem storage: volta no próximo carregamento, tudo bem */
     }
@@ -241,7 +270,10 @@ export function ConviteAppFaixa({
             {texto}
           </p>
           <Button asChild size="sm" className="mt-3.5 md:hidden">
-            <Link href="/download">
+            <Link
+              href="/download"
+              onClick={() => registrarClique(id, "download")}
+            >
               <ScanLine />
               Baixar o app grátis
             </Link>
@@ -278,7 +310,7 @@ export function ConviteAppFaixa({
             <p className="mt-0.5 mb-2 text-[11px] leading-snug text-muted-foreground">
               Aponte a câmera do celular
             </p>
-            <SelosLojas className="gap-1.5" tamanho={96} />
+            <SelosLojas className="gap-1.5" tamanho={96} origem={id} />
           </div>
           <QrDoApp className="size-[84px]" />
         </div>

@@ -114,7 +114,7 @@ export function ProUpgradeModal({
             </p>
           </div>
 
-          <SelosLojas className="justify-center" />
+          <SelosLojas className="justify-center" origem="pro" />
           <p className="text-center text-xs text-muted-foreground">
             Assinaturas disponíveis somente pelo app
           </p>
