@@ -347,17 +347,15 @@ function ListRow({
       pedirLogin(cartaParaLogin());
       return;
     }
-    if (!activePortfolioId) {
-      toast.error("Selecione um portfólio para adicionar");
-      return;
-    }
+    // Sem portfólio ativo (conta sem nenhum) segue sem `portfolioId`: o
+    // servidor grava no padrão e cria o "Principal" se preciso.
     setAdding(true);
     try {
       await api.collection.add({
         cardId: card.id,
         quantity: 1,
         condition: "NM",
-        portfolioId: activePortfolioId,
+        ...(activePortfolioId ? { portfolioId: activePortfolioId } : {}),
       });
       toast.success("Adicionado ao portfólio!");
       onAdd();

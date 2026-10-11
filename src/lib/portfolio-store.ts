@@ -11,8 +11,18 @@ interface PortfolioState {
   activeId: string | null;
   /** Portfólios fixados: aparecem primeiro e ganham a escolha automática. */
   favoriteIds: string[];
+  /**
+   * Conta dona de `activeId`/`favoriteIds`. O estado mora no navegador e
+   * sobrevive à troca de conta: sem saber de quem é, a conta nova herdava o
+   * portfólio da anterior e o "+" voltava 404 ("Portfolio not found").
+   */
+  donoId: string | null;
   setActive: (id: string) => void;
   toggleFavorite: (id: string) => void;
+  /** Chamado quando a sessão chega: outra conta zera a escolha guardada. */
+  sincronizarDono: (userId: string) => void;
+  /** Conta sem portfólio: nada a lembrar, o servidor cria o padrão no "+". */
+  limparAtivo: () => void;
 }
 
 /**
@@ -28,7 +38,17 @@ export const usePortfolioStore = create<PortfolioState>()(
     (set) => ({
       activeId: null,
       favoriteIds: [],
+      donoId: null,
       setActive: (id) => set({ activeId: id }),
+      sincronizarDono: (userId) =>
+        set((s) => {
+          if (s.donoId === userId) return s;
+          // Estado gravado antes deste campo existir: é da conta que está aí
+          // (adota sem zerar, senão todo mundo perdia a escolha no deploy).
+          if (s.donoId === null) return { donoId: userId };
+          return { donoId: userId, activeId: null, favoriteIds: [] };
+        }),
+      limparAtivo: () => set({ activeId: null }),
       toggleFavorite: (id) =>
         set((s) => ({
           favoriteIds: s.favoriteIds.includes(id)

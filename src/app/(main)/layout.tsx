@@ -3,6 +3,7 @@ import { BackToTop } from "@/app/components/BackToTop";
 import { FundoFoil } from "@/app/components/FundoFoil";
 import { Navbar } from "@/app/components/Navbar";
 import { QuickAddProvider } from "@/app/components/QuickAdd";
+import { SincronizaPortfolio } from "@/app/components/SincronizaPortfolio";
 
 export default function MainLayout({
   children,
@@ -14,6 +15,7 @@ export default function MainLayout({
       <div className="min-h-screen bg-background text-foreground">
         {/* Primeiro filho: fica atrás de tudo que é posicionado depois dele */}
         <FundoFoil />
+        <SincronizaPortfolio />
 
         <Navbar />
 
