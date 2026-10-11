@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { QRCode } from "@/components/ui/qrcode";
 import { APP_STORE_URL, DOWNLOAD_URL, PLAY_STORE_URL } from "@/lib/app-links";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 /**
@@ -204,7 +205,8 @@ function hoje() {
 /**
  * Banner largo, acima de listas (Explorar, Sets, coleção, portfólio): tem que
  * parecer propaganda, não mais um card da página. Dá para dispensar, e o
- * dispensar vale até o fim do dia: amanhã o convite volta.
+ * dispensar vale até o fim do dia e só para a conta que fechou: amanhã, ou
+ * noutra conta, o convite volta.
  */
 export function ConviteAppFaixa({
   id,
@@ -218,19 +220,23 @@ export function ConviteAppFaixa({
   texto: string;
   className?: string;
 }) {
-  const chave = `mf:convite-app:${id}`;
+  const { data: session, isPending } = useSession();
+  // Por conta: fechar numa conta não esconde o banner de outra que entre no
+  // mesmo navegador. Sem login, a chave é a do visitante anônimo.
+  const conta = session?.user?.id ?? "anonimo";
+  const chave = `mf:convite-app:${conta}:${id}`;
   // Começa escondida para não piscar antes de ler o storage
   const [dispensada, setDispensada] = useState(true);
 
-  // O × vale pelo resto do dia: guarda a data e o banner volta amanhã. Antes
-  // era sessionStorage, que zerava a cada visita.
+  // O × vale pelo resto do dia: guarda a data e o banner volta amanhã.
   useEffect(() => {
+    if (isPending) return; // ainda não sabe de quem é a chave
     try {
       setDispensada(localStorage.getItem(chave) === hoje());
     } catch {
       setDispensada(false); // storage bloqueado: mostra assim mesmo
     }
-  }, [chave]);
+  }, [chave, isPending]);
 
   function dispensar() {
     setDispensada(true);
