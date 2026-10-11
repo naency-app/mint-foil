@@ -56,7 +56,7 @@ export default function PrivacidadePage() {
           Política de Privacidade
         </h1>
         <p style={{ fontSize: 13, opacity: 0.5, margin: "0 0 8px" }}>
-          Última atualização: julho de 2026
+          Última atualização: outubro de 2026
         </p>
         <p style={S.p}>
           Esta política descreve como o <strong>Mint Foil</strong> ("nós")
@@ -128,10 +128,14 @@ export default function PrivacidadePage() {
 
         <h2 style={S.h2}>5. Retenção e exclusão</h2>
         <p style={S.p}>
-          Mantemos seus dados enquanto sua conta existir. Você pode solicitar a
-          exclusão da conta e dos dados associados a qualquer momento pelo
-          e-mail abaixo; removeremos os dados em até 30 dias, exceto o que a lei
-          exigir manter.
+          Mantemos seus dados enquanto sua conta existir. Você pode excluir a
+          conta e os dados associados a qualquer momento, no app ou no site
+          (passo a passo em{" "}
+          <a href="/suporte#excluir-conta" style={{ color: "#F856A7" }}>
+            mintfoil.com/suporte
+          </a>
+          ), com efeito imediato, ou pedir pelo e-mail abaixo; nesse caso
+          removemos os dados em até 15 dias, exceto o que a lei exigir manter.
         </p>
 
         <h2 style={S.h2}>6. Seus direitos (LGPD)</h2>

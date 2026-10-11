@@ -69,7 +69,7 @@ export default function SuportePage() {
           Suporte
         </h1>
         <p style={{ fontSize: 13, opacity: 0.5, margin: "0 0 8px" }}>
-          Última atualização: julho de 2026
+          Última atualização: outubro de 2026
         </p>
         <p style={S.p}>
           Precisa de ajuda com o <strong>Mint Foil</strong>? Fale com a gente —
@@ -156,13 +156,27 @@ export default function SuportePage() {
           Como excluo minha conta e meus dados?
         </p>
         <p style={S.p}>
-          Direto no app, em <strong>Perfil → Configurações (ícone de engrenagem)
-          → Excluir conta</strong>, confirmando com a palavra EXCLUIR. A
-          exclusão é imediata e permanente: remove sua conta, seus portfólios,
-          suas cartas, seus snapshots, seu histórico de scans e sua foto de
-          perfil. Se preferir,
-          envie o pedido para {CONTATO} a partir do e-mail cadastrado e
-          processamos em até 15 dias, conforme a LGPD.
+          Você mesmo exclui, de dois jeitos. No app Mint Foil, em{" "}
+          <strong>Perfil → Configurações (ícone de engrenagem) → Excluir
+          conta</strong>, confirmando com a palavra EXCLUIR. Ou, sem o app
+          instalado, no site: entre em{" "}
+          <a href="/settings" style={{ color: "#F856A7" }}>
+            mintfoil.com/settings
+          </a>{" "}
+          com a mesma conta Google e use <strong>Excluir conta</strong>, no fim
+          da página, confirmando com o seu @. Quem entrou com a Apple exclui
+          pelo app ou pelo e-mail abaixo.
+        </p>
+        <p style={S.p}>
+          A exclusão é imediata e permanente: apaga sua conta, seu perfil e foto,
+          seus portfólios e cartas, o histórico de valor da coleção, os scans,
+          os alertas de preço, as notificações e quem você segue ou te segue.
+          Não guardamos cópia. Os registros de pagamento de uma assinatura ficam
+          com a loja onde ela foi feita (Apple ou Google), pelas regras dela.
+        </p>
+        <p style={S.p}>
+          Se preferir, envie o pedido para {CONTATO} a partir do e-mail
+          cadastrado e excluímos em até 15 dias, conforme a LGPD.
         </p>
         <p style={S.p}>
           Atenção: excluir a conta não cancela uma assinatura ativa — cancele-a
