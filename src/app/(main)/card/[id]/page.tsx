@@ -20,6 +20,7 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
+import { ConviteAppCartao } from "@/app/components/ConviteApp";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
@@ -925,6 +926,11 @@ export default function CardDetailPage({
               ),
             )}
           </div>
+
+          <ConviteAppCartao
+            titulo="Tem esta carta?"
+            texto="Escaneie no app e ela entra no seu portfólio na hora, já com o preço do dia."
+          />
         </div>
       </div>
     </main>

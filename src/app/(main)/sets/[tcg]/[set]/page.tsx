@@ -17,6 +17,7 @@ import { useQueryState } from "nuqs";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CardImage } from "@/app/components/CardImage";
+import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -594,6 +595,12 @@ function SetCardsPageContent() {
 
         {/* Coluna de conteúdo */}
         <div className="min-w-0 flex-1 space-y-4">
+          <ConviteAppFaixa
+            id="set"
+            titulo="Abriu um booster desta coleção?"
+            texto="Escaneie as cartas no app, várias numa foto só, e descubra quanto saiu o pacote."
+          />
+
           {/* Label da seção */}
           <SectionLabel>
             {loading

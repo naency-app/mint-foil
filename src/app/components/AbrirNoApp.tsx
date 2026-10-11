@@ -109,6 +109,31 @@ function recadoPara(pathname: string) {
       caminhoNoApp: pathname,
     };
   }
+  // Nas outras páginas o recado fala do que a pessoa está fazendo ali
+  if (pathname.startsWith("/card/")) {
+    return {
+      id: "carta",
+      titulo: "Tem esta carta? Escaneie no app",
+      descricao: "Ela entra no seu portfólio na hora.",
+      caminhoNoApp: undefined,
+    };
+  }
+  if (pathname.startsWith("/portfolio")) {
+    return {
+      id: "portfolio",
+      titulo: "Adicione cartas pela câmera",
+      descricao: "Várias numa foto só, sem digitar nada.",
+      caminhoNoApp: undefined,
+    };
+  }
+  if (/^\/sets\/[^/]+\/[^/]+/.test(pathname)) {
+    return {
+      id: "set",
+      titulo: "Abriu um booster desta coleção?",
+      descricao: "Escaneie e descubra quanto saiu.",
+      caminhoNoApp: undefined,
+    };
+  }
   return {
     id: "geral",
     titulo: "Escaneie suas cartas no app",
