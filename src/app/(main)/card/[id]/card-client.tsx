@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, type Card, type CollectionItem } from "@/lib/api";
+import { ApiError, api, type Card, type CollectionItem } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -271,6 +271,11 @@ export function CardDetailClient({
   const card = cardQuery.data ?? null;
   const loading = cardQuery.isPending;
   const error = cardQuery.error ? cardQuery.error.message : null;
+  // Só o 404 é "não existe": sem rede ou com o servidor fora a carta existe,
+  // e o título dizendo o contrário mandava a pessoa desistir do link
+  const naoExiste =
+    !cardQuery.error ||
+    (cardQuery.error instanceof ApiError && cardQuery.error.status === 404);
   const { data: session } = useSession();
   const { pedirLogin } = useQuickAdd();
   const router = useRouter();
@@ -428,10 +433,12 @@ export function CardDetailClient({
       <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <AlertCircle className="size-12 text-red-400 mx-auto mb-4" />
         <h1 className="text-xl font-bold text-foreground mb-2">
-          Carta não encontrada
+          {naoExiste
+            ? "Carta não encontrada"
+            : "Não foi possível abrir a carta"}
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
-          {error || "A carta solicitada não existe no catálogo."}
+          {naoExiste ? "A carta solicitada não existe no catálogo." : error}
         </p>
         <Button asChild>
           <Link href="/explore">Voltar ao Explorar</Link>
