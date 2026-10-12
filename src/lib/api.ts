@@ -77,6 +77,8 @@ export interface Card {
   setName: string | null;
   imageUrl: string;
   images?: ImagensDaCarta | null;
+  /** false = a TCGplayer não tem foto desta carta (a URL dá 403) */
+  hasImage?: boolean;
   rarity: string;
   attribute: string | null;
   cardType: string | null;

@@ -42,6 +42,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  // Base das URLs relativas (canonical, Open Graph) das páginas
+  metadataBase: new URL("https://mintfoil.com"),
   title: "Mint Foil — Gerencie sua Coleção de TCG",
   description:
     "Escaneie cartas, veja o valor em reais e organize seu portfólio de TCG. Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",

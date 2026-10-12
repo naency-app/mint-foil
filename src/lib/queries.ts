@@ -11,6 +11,7 @@ import { useCallback } from "react";
 
 import {
   api,
+  type Card,
   type CardQuery,
   type CollectionItem,
   type FollowStatus,
@@ -143,12 +144,14 @@ export function useShowcase(handle: string, enabled: boolean) {
   });
 }
 
-export function useCardDetail(id: string | undefined) {
+/** `inicial`: a carta que o servidor já buscou (página da carta). */
+export function useCardDetail(id: string | undefined, inicial?: Card) {
   return useQuery({
     queryKey: ["card", id ?? "none"],
     queryFn: () => api.cards.get(id as string),
     enabled: !!id,
     staleTime: CATALOGO_STALE_MS,
+    initialData: inicial,
   });
 }
 
