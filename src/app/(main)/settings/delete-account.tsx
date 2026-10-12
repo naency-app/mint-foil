@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { textoDoErro } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
 /**
@@ -47,9 +48,7 @@ export function DeleteAccount({ handle }: { handle: string }) {
       if (error) throw new Error(error.message ?? "Não foi possível excluir.");
       router.replace("/login");
     } catch (e) {
-      setErro(
-        e instanceof Error ? e.message : "Não foi possível excluir a conta.",
-      );
+      setErro(textoDoErro(e, "Não foi possível excluir a conta."));
       setExcluindo(false);
     }
   }

@@ -316,20 +316,82 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Frase que a pessoa lê quando o backend não manda uma em português.
+ *
+ * Antes a tela mostrava o que viesse: "Failed to fetch" com a internet caída,
+ * "Card with ID … not found" no link quebrado, "API error: 503" com o servidor
+ * acordando. Status 0 = a requisição nem chegou ao servidor.
+ */
+function mensagemPorStatus(status: number): string {
+  if (status === 0)
+    return "Não foi possível conectar ao Mint Foil. Confira sua internet e tente de novo.";
+  if (status === 401)
+    return "Sua sessão expirou. Entre de novo para continuar.";
+  if (status === 403) return "Você não tem permissão para fazer isso.";
+  if (status === 404) return "Não encontramos o que você procurou.";
+  if (status === 429)
+    return "Muitas tentativas seguidas. Espere um pouco e tente de novo.";
+  if (status >= 500)
+    return "O servidor não respondeu como devia. Tente de novo em instantes.";
+  return "Algo deu errado. Tente de novo.";
+}
+
+/**
+ * Os erros de regra do backend já vêm em português e dizem o que fazer ("Esse
+ * nome de usuário já está em uso."), então passam como estão. Os padrões do
+ * Nest ("Not Found"), os da validação (lista de frases em inglês) e alguns
+ * antigos ("Portfolio not found") não — esses viram a frase do status.
+ */
+const EM_INGLES =
+  /\b(not found|unauthorized|forbidden|bad request|internal server error|too many requests|failed|missing|invalid|must|should|error)\b/i;
+
+function mensagemDoErro(body: { message?: unknown }, status: number): string {
+  const m = body.message;
+  if (typeof m === "string" && m.trim() && !EM_INGLES.test(m)) return m;
+  return mensagemPorStatus(status);
+}
+
+/**
+ * Texto de um erro qualquer pego num `catch` — para quem fala com o backend sem
+ * passar pelo `apiFetch` (o cliente do better-auth: nome, exclusão de conta).
+ * Sem rede, o navegador lança TypeError com a frase dele ("Failed to fetch" no
+ * Chrome, "Load failed" no Safari, "NetworkError…" no Firefox).
+ */
+export function textoDoErro(e: unknown, padrao: string): string {
+  if (e instanceof ApiError) return e.message;
+  // Fora a falta de rede, TypeError é bug nosso: a frase do motor não ajuda
+  if (e instanceof TypeError)
+    return /fetch|load failed|network/i.test(e.message)
+      ? mensagemPorStatus(0)
+      : padrao;
+  if (e instanceof Error && e.message && !EM_INGLES.test(e.message))
+    return e.message;
+  return padrao;
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      "ngrok-skip-browser-warning": "true",
-      ...options?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+        ...options?.headers,
+      },
+    });
+  } catch (erro) {
+    // Cancelamento (troca de filtro no meio da busca) não é falha: o TanStack
+    // precisa ver o AbortError para descartar a resposta em silêncio.
+    if (erro instanceof DOMException && erro.name === "AbortError") throw erro;
+    throw new ApiError(mensagemPorStatus(0), 0);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(body.message || `API error: ${res.status}`, res.status);
+    throw new ApiError(mensagemDoErro(body, res.status), res.status);
   }
 
   return res.json();
