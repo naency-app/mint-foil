@@ -1442,7 +1442,10 @@ export default function PortfolioPage() {
                               left: 10,
                             }}
                             aspectRatio="2.8 / 1"
-                            className="w-full h-full"
+                            // Teto de altura: só a proporção deixava o gráfico
+                            // com ~360px numa tela larga. No celular ele fica
+                            // abaixo disso e segue a proporção.
+                            className="w-full h-full max-h-[240px]"
                           >
                             <Grid
                               horizontal
