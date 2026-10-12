@@ -303,8 +303,10 @@ export function ConviteAppFaixa({
       }}
     >
       {/* Fundo do banner em globals.css (.convite-banner): claro no tema
-          claro — escuro ali pesava a página —, escuro no Escuro e no Mint */}
-      <div className="convite-banner relative flex items-center gap-5 overflow-hidden rounded-[14.5px] py-5 pr-12 pl-5 sm:pl-6">
+          claro — escuro ali pesava a página —, escuro no Escuro e no Mint.
+          Raio = o de fora menos o fio de 1.5px: com número fixo (14.5px) o
+          token cresceu para 18px e o fio engrossava nos cantos. */}
+      <div className="convite-banner relative flex items-center gap-5 overflow-hidden rounded-[calc(var(--radius-2xl)-1.5px)] py-5 pr-12 pl-5 sm:pl-6">
         <div className="relative z-10 min-w-0 flex-1">
           <span className="foil-text text-[11px] font-extrabold tracking-[3px]">
             APP MINT FOIL
