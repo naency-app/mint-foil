@@ -40,6 +40,8 @@ function veu(cores: string[]): string {
   return `linear-gradient(to bottom, ${paradas.join(", ")}, transparent)`;
 }
 
+const SUMIR_NA_BASE = "linear-gradient(to bottom, #000 45%, transparent)";
+
 export function ProfileCover({
   cover,
   actions,
@@ -68,10 +70,19 @@ export function ProfileCover({
 
   return (
     <div className="relative -mt-14 w-full md:-mt-16">
-      {/* Fundo da capa */}
-      <div className={`absolute inset-0 ${bgClass}`} style={bgStyle} />
-      {/* Degradê para o fundo da página */}
-      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
+      {/* Fundo da capa. A base some com máscara, não com uma camada da cor
+          da página por cima: no Mint o fundo é o foil com a grade, e o
+          degradê para `bg-background` terminava numa faixa lisa com linha
+          reta. Com a máscara a capa fica transparente e o que está atrás
+          aparece, em qualquer tema. */}
+      <div
+        className={`absolute inset-0 ${bgClass}`}
+        style={{
+          ...bgStyle,
+          maskImage: SUMIR_NA_BASE,
+          WebkitMaskImage: SUMIR_NA_BASE,
+        }}
+      />
 
       {/* Conteúdo (card do perfil) — pt maior para limpar a navbar fixa. O
           avatar sobe 64px acima do card (-mt-16): o pt precisa ser navbar

@@ -1350,6 +1350,16 @@ export default function PortfolioPage() {
 
           {activePortfolio && (
             <>
+              {/* Convite pro app entre o seletor e o gráfico: embaixo dos
+                  insights ele ficava fora da primeira tela */}
+              {!loading && items.length > 0 && (
+                <ConviteAppFaixa
+                  id="portfolio"
+                  titulo="Adicionar carta por carta cansa"
+                  texto="No app você escaneia várias cartas numa foto só, e elas entram no seu portfólio com o preço do dia."
+                />
+              )}
+
               {/* Dashboard Metrics and Chart Section */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 {/* Gráfico na largura toda, como o topo do Portfólio no app. O
@@ -1495,14 +1505,6 @@ export default function PortfolioPage() {
               {/* Top cartas / Por jogo logo abaixo do gráfico: no rodapé, quem
                   tem muitas cartas nunca chegava até eles. */}
               {!loading && <CollectionInsights stats={stats ?? null} />}
-
-              {!loading && items.length > 0 && (
-                <ConviteAppFaixa
-                  id="portfolio"
-                  titulo="Adicionar carta por carta cansa"
-                  texto="No app você escaneia várias cartas numa foto só, e elas entram no seu portfólio com o preço do dia."
-                />
-              )}
 
               <Separator />
 
