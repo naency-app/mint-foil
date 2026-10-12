@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { FotoDePerfil } from "@/app/(main)/settings/foto-de-perfil";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
+import { api, textoDoErro } from "@/lib/api";
 import { authClient, useSession } from "@/lib/auth-client";
 import { sanitizeHandle, useCampoHandle } from "@/lib/use-campo-handle";
 
@@ -120,9 +120,7 @@ function CompletarPerfil() {
       marcarFeito();
       router.replace(volta);
     } catch (e) {
-      setErro(
-        (e as Error).message || "Não foi possível salvar. Tente de novo.",
-      );
+      setErro(textoDoErro(e, "Não foi possível salvar. Tente de novo."));
       setSalvando(false);
     }
   }

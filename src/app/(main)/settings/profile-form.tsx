@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { api } from "@/lib/api";
+import { api, textoDoErro } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { SOCIAL_LINKS, toDisplay, toUrl } from "@/lib/social-links";
 import {
@@ -148,7 +148,7 @@ export function ProfileForm({
         handle: handleChanged && canEditHandle ? normalized : currentHandle,
       });
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não foi possível salvar.");
+      setErro(textoDoErro(e, "Não foi possível salvar."));
     } finally {
       setSaving(false);
     }
