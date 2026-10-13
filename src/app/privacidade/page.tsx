@@ -81,6 +81,12 @@ export default function PrivacidadePage() {
             quantidades, preços de aquisição informados e histórico de valor.
           </li>
           <li style={S.li}>
+            <strong>Alertas e notificações:</strong> os alertas de preço que
+            você cria (a carta e o valor-alvo) e os avisos que o app gera para
+            você, como novo seguidor, pedido para seguir e carta que valorizou.
+            Ficam na sua conta e são apagados junto com ela.
+          </li>
+          <li style={S.li}>
             <strong>Dados de uso:</strong> informações técnicas como modelo do
             dispositivo, sistema operacional e eventos de uso do app, para
             diagnóstico e melhoria do produto.
@@ -97,6 +103,10 @@ export default function PrivacidadePage() {
           <li style={S.li}>Identificar cartas a partir das fotos enviadas;</li>
           <li style={S.li}>
             Manter seu portfólio e calcular o histórico de valor da coleção;
+          </li>
+          <li style={S.li}>
+            Avisar você dentro do app quando uma carta valorizar, quando um
+            alerta de preço for atingido ou quando alguém seguir você;
           </li>
           <li style={S.li}>
             Operar os limites do plano gratuito e a assinatura PRO;
