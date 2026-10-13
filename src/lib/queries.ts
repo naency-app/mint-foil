@@ -303,11 +303,17 @@ export function useInfiniteCards(query: CardQuery) {
  * clique numa raridade.
  */
 export function useCardFacets(query: CardQuery) {
+  // Ordem e faixa de preço ENTRAM: a ordenação por preço tira as cartas sem
+  // preço e a faixa limita o conjunto — sem elas a contagem ao lado da
+  // raridade descrevia outras cartas ("4 + 2" com 5 na grade).
   const facetQuery: CardQuery = {
     search: query.search,
     tcg: query.tcg,
     setId: query.setId,
     productType: query.productType,
+    sort: query.sort,
+    minPrice: query.minPrice,
+    maxPrice: query.maxPrice,
   };
   return useQuery({
     queryKey: ["card-facets", ...cardsQueryKey(facetQuery)],

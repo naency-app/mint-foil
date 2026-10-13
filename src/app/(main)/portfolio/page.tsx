@@ -37,6 +37,8 @@ import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
+import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
+import { cartaCasaBusca } from "@/lib/busca-local";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -840,6 +842,12 @@ export default function PortfolioPage() {
   );
   const detailQuery = usePortfolioDetail(activePortfolioId || undefined);
   const items: CollectionItem[] = detailQuery.data?.items ?? [];
+  // Antes de qualquer return: é hook. Ids estáveis enquanto a coleção não muda.
+  const idsDoPortfolio = useMemo(
+    () => (detailQuery.data?.items ?? []).map((i) => i.card.id),
+    [detailQuery.data],
+  );
+  const achadasNoServidor = useBuscaEntreCartas(search, idsDoPortfolio);
   const metrics: PortfolioMetrics = detailQuery.data?.metrics ?? defaultMetrics;
   // Ordem congelada da grade — ver `compareItems` mais abaixo. Guarda os ids na
   // sequência exibida e a assinatura dos critérios que a produziram.
@@ -1139,14 +1147,13 @@ export default function PortfolioPage() {
     const unit = precoAtual(i.card.prices);
     if (priceRange && (unit < priceRange[0] || unit > priceRange[1]))
       return false;
-    const q = search.trim().toLowerCase();
-    if (q) {
-      // Nome em PT também: a grade mostra o PT, e buscar o que está escrito na
-      // tela não achava nada ("Força Celeste" só casava como "Sky Striker").
-      const hay =
-        `${i.card.name} ${i.card.namePt ?? ""} ${i.card.setName ?? ""} ${i.card.setCode} ${i.card.rarity}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
+    // Nome em PT também: a grade mostra o PT, e buscar o que está escrito na
+    // tela não achava nada ("Força Celeste" só casava como "Sky Striker").
+    // Local na hora + motor do Explorar no servidor (código sem hífen, erro de
+    // digitação) — ver useBuscaEntreCartas.
+    const q = search.trim();
+    if (q && !cartaCasaBusca(i.card, q) && !achadasNoServidor?.has(i.card.id))
+      return false;
     return true;
   });
   const cartasTotal = items.reduce((soma, i) => soma + i.quantity, 0);
