@@ -37,6 +37,7 @@ import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
+import { cartaCasaBusca } from "@/lib/busca-local";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -1139,14 +1140,10 @@ export default function PortfolioPage() {
     const unit = precoAtual(i.card.prices);
     if (priceRange && (unit < priceRange[0] || unit > priceRange[1]))
       return false;
-    const q = search.trim().toLowerCase();
-    if (q) {
-      // Nome em PT também: a grade mostra o PT, e buscar o que está escrito na
-      // tela não achava nada ("Força Celeste" só casava como "Sky Striker").
-      const hay =
-        `${i.card.name} ${i.card.namePt ?? ""} ${i.card.setName ?? ""} ${i.card.setCode} ${i.card.rarity}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
+    // Nome em PT também: a grade mostra o PT, e buscar o que está escrito na
+    // tela não achava nada ("Força Celeste" só casava como "Sky Striker").
+    const q = search.trim();
+    if (q && !cartaCasaBusca(i.card, q)) return false;
     return true;
   });
   const cartasTotal = items.reduce((soma, i) => soma + i.quantity, 0);
