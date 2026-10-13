@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Portfolio } from "@/lib/api";
+import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
+import { cartaCasaBusca } from "@/lib/busca-local";
 import type { ShowcasePortfolio } from "./types";
 
 function formatPrice(value: number) {
@@ -104,8 +106,11 @@ export function ShowcaseBrowser({
     [allItems],
   );
 
+  // Mesma busca do portfólio: local na hora + motor do Explorar no servidor
+  const idsDoPerfil = useMemo(() => allItems.map((i) => i.cardId), [allItems]);
+  const achadasNoServidor = useBuscaEntreCartas(search, idsDoPerfil);
   const items = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = search.trim();
     const filtered = allItems.filter((i) => {
       if (productType === "single" && i.productType !== "SINGLE") return false;
       if (productType === "sealed" && i.productType !== "SEALED") return false;
@@ -116,11 +121,8 @@ export function ShowcaseBrowser({
         if (i.unitValue < priceRange[0] || i.unitValue > priceRange[1])
           return false;
       }
-      if (q) {
-        const hay =
-          `${i.name} ${i.setName ?? ""} ${i.setCode} ${i.rarity}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
+      if (q && !cartaCasaBusca(i, q) && !achadasNoServidor?.has(i.cardId))
+        return false;
       return true;
     });
 
@@ -136,7 +138,16 @@ export function ShowcaseBrowser({
           return b.totalValue - a.totalValue;
       }
     });
-  }, [allItems, search, productType, tcgs, rarities, priceRange, sort]);
+  }, [
+    allItems,
+    search,
+    productType,
+    tcgs,
+    rarities,
+    priceRange,
+    sort,
+    achadasNoServidor,
+  ]);
 
   return (
     <div className="space-y-4">

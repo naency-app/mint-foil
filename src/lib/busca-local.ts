@@ -1,6 +1,15 @@
 const semAcento = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const soLetrasENumeros = (s: string) => semAcento(s).replace(/[^a-z0-9]/g, "");
+/**
+ * Código comparável: sem acento, sinal nem zero à esquerda dos números —
+ * "RA05-EN041", "ra05en41" e "Ra05-en41" viram todos "ra5en41"; "081/084" e
+ * "81/84" viram "8184". Cada um digita de um jeito.
+ */
+const soLetrasENumeros = (s: string) =>
+  semAcento(s)
+    .split(/[^a-z0-9]+/)
+    .map((t) => t.replace(/(^|[a-z])0+(?=\d)/g, "$1"))
+    .join("");
 
 /**
  * Busca local do portfólio — mesma regra do app (mint-foil-app/lib/card-name.ts):

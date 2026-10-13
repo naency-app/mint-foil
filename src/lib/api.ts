@@ -500,6 +500,15 @@ export const api = {
       }),
   },
   cards: {
+    /**
+     * Busca do Explorar restrita a estas cartas (portfólio, perfil público):
+     * devolve os ids que casam, com o mesmo motor do catálogo.
+     */
+    searchIn: (search: string, cardIds: string[]) =>
+      apiFetch<{ cardIds: string[] }>("/cards/search-in", {
+        method: "POST",
+        body: JSON.stringify({ search, cardIds }),
+      }),
     list: (query: CardQuery = {}) => {
       const qs = cardQueryParams(query).toString();
       return apiFetch<Card[]>(`/cards${qs ? `?${qs}` : ""}`);
