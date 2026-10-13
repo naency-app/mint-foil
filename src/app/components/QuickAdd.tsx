@@ -174,11 +174,18 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
                     </p>
                   )}
                   {(carta.rarity || carta.collectorNumber) && (
-                    <p className="truncate text-[11px] text-muted-foreground">
-                      {carta.rarity}
-                      {carta.rarity && carta.collectorNumber && " • "}
+                    // Raridade longa ("Duel Terminal Normal Parallel Rare")
+                    // encurta com reticências; o número da carta fica sempre
+                    // inteiro, é por ele que se confere a impressão
+                    <p className="flex min-w-0 items-baseline gap-1 text-[11px] text-muted-foreground">
+                      {carta.rarity && (
+                        <span className="truncate">{carta.rarity}</span>
+                      )}
+                      {carta.rarity && carta.collectorNumber && (
+                        <span className="shrink-0">•</span>
+                      )}
                       {carta.collectorNumber && (
-                        <span className="font-mono font-bold text-foreground/85">
+                        <span className="shrink-0 font-mono font-bold text-foreground/85">
                           {carta.collectorNumber}
                         </span>
                       )}

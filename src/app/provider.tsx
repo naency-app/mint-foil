@@ -25,12 +25,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Mint (escuro + fundo foil) é o padrão: quem nunca escolheu um tema
-          entra nele. Quem já escolheu Claro ou Escuro continua no seu. */}
+      {/*
+        Mint (escuro + fundo foil) é o padrão. A escolha mora numa chave
+        própria (`mf-tema`): na chave antiga (`theme`) ficou o que cada
+        navegador gravou quando o padrão era outro, e quem caiu em Claro ou
+        Escuro sem escolher nunca via o Mint. Trocar a chave põe todo mundo no
+        Mint uma vez; daí em diante vale o que a pessoa escolher no menu.
+        Sem enableSystem: o menu não oferece "Sistema", e com ele um "system"
+        salvo seguiria o sistema operacional.
+      */}
       <ThemeProvider
         attribute="class"
         defaultTheme="mint"
-        enableSystem
+        storageKey="mf-tema"
         themes={["light", "dark", "mint"]}
       >
         <NuqsAdapter>
