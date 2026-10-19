@@ -197,7 +197,8 @@
     /* Translúcido e SEM blur, como no Collectr: o fundo aparece nítido
        através do painel; com blur ele virava mancha. O Collectr usa 82%, mas
        o fundo dele é claro e cheio de desenho — no nosso, escuro, 82% parecia
-       sólido (19/10); 60% deixa o fundo aparecer sem atrapalhar a leitura. */
+       sólido (19/10); a 50%, com os detalhes do FundoFoil mais marcados, o
+       fundo aparece sem atrapalhar a leitura. */
     background-color: rgba(255, 255, 255, 0.7);
   }
   .glass-card {
@@ -217,8 +218,8 @@
   :is(.dark, .mint) .glass-input,
   :is(.dark, .mint) .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
-    /* Navy dos cards (#0D1121) a 60%, sem blur (ver acima) */
-    background-color: rgba(13, 17, 33, 0.6);
+    /* Navy dos cards (#0D1121) a 50%, sem blur (ver acima) */
+    background-color: rgba(13, 17, 33, 0.5);
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
