@@ -939,12 +939,14 @@ function ExplorePageContent() {
           fina solta no topo. A busca é a ação principal desta tela: no desktop
           ela dividia a largura com o vazio e parecia um detalhe, enquanto o
           conteúdo abaixo tinha mais peso visual que ela. */}
-      <div className="relative w-full rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
+      <div className="relative w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
         <h1 className="mb-3 text-xl font-bold tracking-tight text-foreground">
           Buscar cartas
         </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="glass-input flex h-12 flex-1 items-center gap-2.5 px-4">
+          {/* Cores invertidas a pedido (19/10): o painel leva a cor dos cards e o
+              campo, o navy translúcido que era do painel */}
+          <div className="glass-input flex h-12 flex-1 items-center gap-2.5 bg-card/40 px-4">
             <Search className="size-5 shrink-0 text-muted-foreground" />
             <input
               value={searchInput}
