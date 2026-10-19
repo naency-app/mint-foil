@@ -222,6 +222,14 @@
     background-color: rgba(13, 17, 33, 0.5);
   }
 
+  /* Campo dentro de um painel (a busca do Explorar) não soma mais uma camada:
+     translúcido sobre translúcido, ele ficava mais escuro que os cards da
+     página. Fica só a borda, e o tom é o mesmo dos cards (19/10). */
+  .glass-card .glass-input,
+  :is(.dark, .mint) .glass-card .glass-input {
+    background-color: transparent;
+  }
+
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
   .glass-pill-active {
     border-color: transparent;
