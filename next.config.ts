@@ -48,6 +48,12 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // Sem o otimizador da Vercel: a cota do plano acabou em 19/10/2026 e todo
+    // /_next/image passou a responder 402, então TODA carta virava "sem
+    // imagem". As imagens vêm direto das origens — o CDN da TCGplayer já
+    // entrega os tamanhos que usamos (thumb/grid/full, ver lib/card-image.ts),
+    // igual ao app. Ligar de novo só num plano com cota.
+    unoptimized: true,
     // Os logos de set do Magic vêm do Scryfall em SVG. Sem isto o otimizador
     // recusa com 400 ("image type is not allowed") e toda capa de Magic cai no
     // fallback. SVG remoto é servido em sandbox e sem script, como manda a doc.
