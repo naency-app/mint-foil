@@ -1265,9 +1265,10 @@ function VideoSection() {
 // A seção fica presa na tela (sticky de 100vh): num notebook o card de 960px
 // não cabia abaixo do título e o fim do vídeo ficava cortado para sempre
 // (19/10). O terceiro limite faz o card caber na altura que sobra — 100vh
-// menos o respiro de cima e de baixo e o cabeçalho (~330px) —, na proporção
+// menos o respiro de cima e de baixo e o cabeçalho (~270px; com 330 sobrava
+// espaço e o vídeo ficava pequeno demais) —, na proporção
 // da gravação (1088×720).
-const VIDEO_W = "min(960px, 92vw, calc((100svh - 330px) * 1088 / 720))";
+const VIDEO_W = "min(960px, 92vw, calc((100svh - 270px) * 1088 / 720))";
 
 function VideoInner({
   cardScale,
