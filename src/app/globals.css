@@ -218,9 +218,8 @@
   :is(.dark, .mint) .glass-input,
   :is(.dark, .mint) .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
-    /* Navy um tom abaixo do #0D1121 dos cards (#090C1A), a 50% e sem blur
-       (ver acima) — pedido do usuário em 19/10 */
-    background-color: rgba(9, 12, 26, 0.5);
+    /* Navy dos cards (#0D1121) a 50%, sem blur (ver acima) */
+    background-color: rgba(13, 17, 33, 0.5);
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
