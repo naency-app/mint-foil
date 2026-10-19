@@ -23,7 +23,10 @@ export function CollectionInsights({ stats }: { stats: UserStats | null }) {
   if (!topCards.length && !stats.tcgBreakdown.length) return null;
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    // grid-cols-1 no celular: sem coluna definida, a grade crescia até o nome
+    // mais longo ("Umbreon VMAX (Alternate Art Secret)") e o truncate nunca
+    // agia — o portfólio rolava para o lado (19/10).
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {topCards.length > 0 && (
         <div className="glass-card !rounded-2xl p-6 space-y-4">
           <div className="flex items-center gap-2">

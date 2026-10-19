@@ -1667,17 +1667,19 @@ export default function PortfolioPage() {
 
                     {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
                     <div className="min-w-0 flex-1 space-y-4">
-                      <div className="flex items-center justify-between animate-in fade-in duration-300">
+                      {/* Quebra em duas linhas no celular: numa linha só as
+                          ações passavam da tela e empurravam a página. */}
+                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 animate-in fade-in duration-300">
                         {/* Conta CARTAS, não linhas: quem tem 2 cópias da mesma
                             carta tem 2 cartas — igual ao app. */}
-                        <p className="text-xs text-muted-foreground">
+                        <p className="whitespace-nowrap text-xs text-muted-foreground">
                           {cartasFiltradas}{" "}
                           {cartasFiltradas === 1 ? "carta" : "cartas"}
                           {cartasFiltradas !== cartasTotal
                             ? ` de ${cartasTotal}`
                             : ""}
                         </p>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           {/*
                             Exportar mora aqui, e não só em settings: é
                             benefício de Pro, e benefício que a pessoa não vê
