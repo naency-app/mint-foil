@@ -1533,13 +1533,10 @@ function RevealItem({
   soon = false,
   active,
   onChange,
-  emColunas = false,
 }: {
   text: string;
   imgs: string[];
   soon?: boolean;
-  /** Desktop: a lista em duas colunas, com o nome medido pela altura da tela */
-  emColunas?: boolean;
   // Quem manda é a seção: só um nome revelado por vez, igual ao mouse,
   // que nunca consegue estar sobre dois
   active: boolean;
@@ -1555,9 +1552,7 @@ function RevealItem({
   const pointer = useRef<string>("mouse");
 
   return (
-    <div
-      style={{ padding: emColunas ? "clamp(6px, 1.4vh, 16px) 0" : "16px 0" }}
-    >
+    <div style={{ padding: "16px 0" }}>
       {/* Wrapper inline: as cartas ancoram no fim da palavra */}
       <div style={{ position: "relative", display: "inline-block" }}>
         <button
@@ -1593,9 +1588,7 @@ function RevealItem({
               // 900 saía "falso" e fino — SF Pro/Segoe têm Black de verdade
               fontFamily:
                 '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
-              fontSize: emColunas
-                ? "clamp(36px, min(5vw, 8.5vh), 80px)"
-                : "clamp(52px, 9.5vw, 96px)",
+              fontSize: "clamp(52px, 9.5vw, 96px)",
               fontWeight: 900,
               color: soon ? t.muted : t.text,
               textTransform: "uppercase",
@@ -1704,19 +1697,15 @@ function RevealSection() {
     <section
       id="colecoes"
       style={{
-        padding: isMobile ? "80px 20px" : `${RESPIRO} 24px`,
+        padding: isMobile ? "80px 20px" : "125px 24px",
         maxWidth: "1240px",
         margin: "0 auto",
       }}
     >
       {/* Bloco recuado pro centro, texto alinhado à esquerda — o cabeçalho
           nasce na mesma coluna das palavras, no estilo do "Veja em ação" */}
-      {/* No desktop, duas colunas: numa só, os nove nomes passavam de 1000px
-          de altura e a seção não cabia na tela (19/10) */}
-      <div
-        style={{ maxWidth: isMobile ? "640px" : "1100px", margin: "0 auto" }}
-      >
-        <div style={{ textAlign: "left", marginBottom: RESPIRO_CABECALHO }}>
+      <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+        <div style={{ textAlign: "left", marginBottom: "48px" }}>
           <FadeIn>
             <p
               style={{
@@ -1757,29 +1746,20 @@ function RevealSection() {
             </p>
           </FadeIn>
         </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-            columnGap: "40px",
-          }}
-        >
-          {REVEAL_ITEMS.map(({ text, imgs, soon }) => (
-            <RevealItem
-              key={text}
-              text={text}
-              imgs={imgs}
-              soon={soon}
-              emColunas={!isMobile}
-              active={active === text}
-              // Fechar só vale pra quem está aberto: o blur do nome anterior
-              // chega depois do clique no próximo e apagaria a seleção nova
-              onChange={(on) =>
-                setActive((cur) => (on ? text : cur === text ? null : cur))
-              }
-            />
-          ))}
-        </div>
+        {REVEAL_ITEMS.map(({ text, imgs, soon }) => (
+          <RevealItem
+            key={text}
+            text={text}
+            imgs={imgs}
+            soon={soon}
+            active={active === text}
+            // Fechar só vale pra quem está aberto: o blur do nome anterior
+            // chega depois do clique no próximo e apagaria a seleção nova
+            onChange={(on) =>
+              setActive((cur) => (on ? text : cur === text ? null : cur))
+            }
+          />
+        ))}
       </div>
     </section>
   );
@@ -2039,11 +2019,12 @@ function WhyMintFoil() {
 
 // ── Solução — passo a passo + invocação 3D ────────────────────────────────────
 
-// Tiles no estilo Collectr ("One app, the whole hobby"), em rosa:
-// tile = ícone + título + desc + link-CTA, os quatro numa linha no desktop
+// Bento no estilo Collectr ("One app, the whole hobby"), em rosa:
+// tile = ícone + título + desc + link-CTA; spans somam 12 por linha
 const SOLUTION_STEPS = [
   {
     id: "scan",
+    span: 7,
     icon: <Camera size={22} />,
     title: "Escaneie",
     desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana ou Digimon.",
@@ -2053,6 +2034,7 @@ const SOLUTION_STEPS = [
   },
   {
     id: "valor",
+    span: 5,
     icon: <DollarSign size={22} />,
     title: "Veja o valor",
     desc: "Valor de referência em reais na hora — e o link pra conferir nas lojas brasileiras.",
@@ -2061,6 +2043,7 @@ const SOLUTION_STEPS = [
   },
   {
     id: "portfolio",
+    span: 5,
     icon: <Wallet size={22} />,
     title: "Adicione ao portfólio",
     desc: "Coleção catalogada e monitorada dia a dia, com gráficos de valorização.",
@@ -2069,6 +2052,7 @@ const SOLUTION_STEPS = [
   },
   {
     id: "share",
+    span: 7,
     icon: <Share2 size={22} />,
     title: "Compartilhe",
     desc: "Mostre sua coleção pra quem quiser com um link só seu.",
@@ -2158,28 +2142,35 @@ function SolutionSection() {
           </FadeIn>
         </div>
 
-        {/* Tiles estilo Collectr — glow de canto, spotlight no hover e
-            link-CTA rosa. Os quatro passos numa linha só no desktop: em duas
-            linhas o bento passava da altura de um notebook (19/10). */}
+        {/* Bento estilo Collectr — tiles largos com glow de canto, spotlight
+            no hover e link-CTA rosa. Em tela baixa o bento é o mesmo, só
+            menor: respiro, ícone e texto encolhem com a altura da tela. */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(12, 1fr)",
             gap: "16px",
           }}
         >
           {SOLUTION_STEPS.map((s, i) => (
-            <div key={s.id}>
+            <div
+              key={s.id}
+              style={{ gridColumn: isMobile ? "auto" : `span ${s.span}` }}
+            >
               <FadeIn delay={i * 0.08} className="h-full">
                 {/* biome-ignore lint/a11y/noStaticElementInteractions: hover decorativo na borda */}
                 <div
                   style={{
                     position: "relative",
-                    padding: "clamp(18px, 3.6vh, 30px) 24px",
+                    padding:
+                      "clamp(10px, calc((100vh - 500px) / 10), 30px) clamp(20px, 2.4vw, 28px)",
                     borderRadius: "20px",
                     background: tileBg,
                     border: `1px solid ${tileBorder}`,
                     height: "100%",
+                    // 210px numa tela alta; some numa baixa
+                    minHeight:
+                      "clamp(0px, calc((100vh - 620px) * 0.75), 210px)",
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
@@ -2216,8 +2207,8 @@ function SolutionSection() {
                   )}
                   <div
                     style={{
-                      width: "46px",
-                      height: "46px",
+                      width: "clamp(30px, 6vh, 46px)",
+                      height: "clamp(30px, 6vh, 46px)",
                       borderRadius: "14px",
                       background: iconBg,
                       border: `1px solid ${iconBorder}`,
@@ -2225,18 +2216,18 @@ function SolutionSection() {
                       alignItems: "center",
                       justifyContent: "center",
                       color: accent,
-                      marginBottom: "clamp(10px, 2.4vh, 20px)",
+                      marginBottom: "clamp(6px, 2.4vh, 20px)",
                     }}
                   >
                     {s.icon}
                   </div>
                   <h4
                     style={{
-                      fontSize: "20px",
-                      lineHeight: "28px",
+                      fontSize: "clamp(17px, 2.6vh, 20px)",
+                      lineHeight: 1.4,
                       fontWeight: 700,
                       color: t.text,
-                      margin: "0 0 8px",
+                      margin: "0 0 clamp(4px, 1vh, 8px)",
                       letterSpacing: "-0.3px",
                     }}
                   >
@@ -2244,8 +2235,8 @@ function SolutionSection() {
                   </h4>
                   <p
                     style={{
-                      fontSize: "14.5px",
-                      lineHeight: "23px",
+                      fontSize: "clamp(13px, 1.9vh, 14.5px)",
+                      lineHeight: 1.55,
                       color: t.muted,
                       margin: 0,
                       flex: 1,
@@ -2260,7 +2251,7 @@ function SolutionSection() {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "6px",
-                      marginTop: "18px",
+                      marginTop: "clamp(8px, 2.2vh, 18px)",
                       fontSize: "13.5px",
                       fontWeight: 700,
                       color: accent,
@@ -2360,7 +2351,8 @@ const CELULAR_H = IPHONE_H;
 const TEXTO_W = 340;
 // Altura da legenda (título + descrição de até 3 linhas) e dos pontinhos:
 // o que fica fora do celular quando ele se mede pela altura da tela
-const LEGENDA_H = 130;
+// (110: a descrição ocupa duas linhas na prática; 130 encolhia o celular à toa)
+const LEGENDA_H = 110;
 const PONTOS_H = 24;
 
 /**
@@ -2533,7 +2525,7 @@ function KeyFeatures() {
     : Math.min(
         1,
         Math.max(
-          0.4,
+          0.5,
           (winH - MENU_H - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
         ),
       );
