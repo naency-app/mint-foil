@@ -218,8 +218,9 @@
   :is(.dark, .mint) .glass-input,
   :is(.dark, .mint) .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
-    /* Navy dos cards (#0D1121) a 50%, sem blur (ver acima) */
-    background-color: rgba(13, 17, 33, 0.5);
+    /* #261645 (roxo escuro, escolhido pelo usuário em 19/10) a 50%, sem blur
+       (ver acima) — cards, barra de busca e pills no mesmo tom */
+    background-color: rgba(38, 22, 69, 0.5);
   }
 
   /* Campo dentro de um painel (a busca do Explorar) não soma mais uma camada:
