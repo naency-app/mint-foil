@@ -8,9 +8,10 @@
  *
  * Camadas, de baixo pra cima:
  *  1. manchas de cor (magenta à esquerda, roxo à direita);
- *  2. grade fina, apagada no centro;
- *  3. contornos de carta e brilhos de quatro pontas, só nas bordas — o meio
- *     fica limpo para o conteúdo;
+ *  2. grade fina, mais leve no centro;
+ *  3. contornos de carta e brilhos de quatro pontas, mais fortes nas bordas.
+ *     Também aparecem (mais leves) atrás dos painéis, que são translúcidos:
+ *     com o meio limpo, o painel parecia sólido (19/10);
  *  4. reflexos foil desfocados;
  *  5. vinheta escurecendo as bordas.
  *
@@ -61,7 +62,7 @@ function PadraoCartas() {
           height="280"
           patternUnits="userSpaceOnUse"
         >
-          <g fill="none" stroke="white" strokeOpacity="0.07" strokeWidth="1">
+          <g fill="none" stroke="white" strokeOpacity="0.1" strokeWidth="1">
             <rect x="22" y="30" width="36" height="54" rx="4" />
             <rect x="27" y="35" width="26" height="22" rx="1.5" />
             <rect
@@ -90,7 +91,7 @@ function PadraoCartas() {
             />
           </g>
           {/* Brilho de quatro pontas — o mesmo "sparkle" de carta holo */}
-          <g fill="white" fillOpacity="0.1">
+          <g fill="white" fillOpacity="0.14">
             <path d="M120 96 l2.5 9 9 2.5 -9 2.5 -2.5 9 -2.5 -9 -9 -2.5 9 -2.5z" />
             <path d="M60 210 l1.6 5.6 5.6 1.6 -5.6 1.6 -1.6 5.6 -1.6 -5.6 -5.6 -1.6 5.6 -1.6z" />
             <path d="M250 240 l1.2 4.2 4.2 1.2 -4.2 1.2 -1.2 4.2 -1.2 -4.2 -4.2 -1.2 4.2 -1.2z" />
@@ -131,12 +132,12 @@ export function FundoFoil() {
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+            "linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
           maskImage:
-            "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.35), black 95%)",
+            "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.7), black 95%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.35), black 95%)",
+            "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.7), black 95%)",
         }}
       />
 
@@ -145,9 +146,9 @@ export function FundoFoil() {
         className="absolute inset-0"
         style={{
           maskImage:
-            "radial-gradient(ellipse 55% 55% at 50% 45%, transparent 35%, black 100%)",
+            "radial-gradient(ellipse 55% 55% at 50% 45%, rgba(0,0,0,0.45) 30%, black 100%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 55% 55% at 50% 45%, transparent 35%, black 100%)",
+            "radial-gradient(ellipse 55% 55% at 50% 45%, rgba(0,0,0,0.45) 30%, black 100%)",
         }}
       >
         <PadraoCartas />

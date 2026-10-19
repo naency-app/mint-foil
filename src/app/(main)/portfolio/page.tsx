@@ -37,12 +37,11 @@ import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
-import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
-import { cartaCasaBusca } from "@/lib/busca-local";
 import {
   CheckboxFilterList,
   FilterSection,
   facetOptions,
+  PainelFiltros,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -85,6 +84,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api, type CollectionItem, type PortfolioMetrics } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
+import { cartaCasaBusca } from "@/lib/busca-local";
 import { capaVisivel } from "@/lib/cover-catalog";
 import {
   resolveActiveId,
@@ -142,7 +143,7 @@ function MetricCard({
   suffix?: string;
 }) {
   return (
-    <Card className="glass-card shadow-none">
+    <Card className="glass-card bg-[var(--glass-bg)] shadow-none">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div
@@ -588,7 +589,7 @@ function PortfolioItemCard({
               }
             }}
           >
-            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
+            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 h-[2lh] hover:text-primary transition-colors">
               {cardName(item.card)}
             </h3>
           </Link>
@@ -605,7 +606,7 @@ function PortfolioItemCard({
               .join(" • ")}
           </p>
 
-          <div className="pt-1.5 border-t border-border space-y-2">
+          <div className="pt-1 space-y-2">
             {/* Preço (custo/lucro saíram: o app não tem e ninguém digitava
                 quanto pagou — ver o card de resumo abaixo) */}
             <div className="flex flex-col gap-1">
@@ -1377,7 +1378,7 @@ export default function PortfolioPage() {
                     não tem, e o "preço de compra" era o preço do dia em que a
                     carta foi adicionada — o "lucro" era só a variação desde
                     então, e parte dos valores tinha sido gravada em dólar. */}
-                <Card className="lg:col-span-12 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+                <Card className="lg:col-span-12 glass-card bg-[var(--glass-bg)] shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1516,8 +1517,6 @@ export default function PortfolioPage() {
                   tem muitas cartas nunca chegava até eles. */}
               {!loading && <CollectionInsights stats={stats ?? null} />}
 
-              <Separator />
-
               {/* Collection Items */}
               {loading ? (
                 <>
@@ -1619,7 +1618,7 @@ export default function PortfolioPage() {
                   <div className="flex gap-6">
                     {/* Sidebar de filtros (igual showcase) */}
                     <aside className="hidden w-60 shrink-0 lg:block">
-                      <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
+                      <PainelFiltros>
                         <ProductTypeFilter
                           value={productType}
                           onChange={setProductType}
@@ -1665,7 +1664,7 @@ export default function PortfolioPage() {
                           onChange={setPriceRange}
                           onUpsell={() => {}}
                         />
-                      </div>
+                      </PainelFiltros>
                     </aside>
 
                     {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}

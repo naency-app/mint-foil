@@ -194,12 +194,12 @@ export function ConviteAppCartao({
   texto: string;
 }) {
   return (
-    <div className={cn("glass-card !rounded-xl space-y-3 p-4", DESTAQUE)}>
+    <div className={cn("glass-card !rounded-2xl space-y-4 p-5", DESTAQUE)}>
       <div className="flex items-start gap-3">
-        <IconeConvite />
+        <IconeConvite grande />
         <div className="min-w-0">
-          <h3 className="text-sm font-bold text-foreground">{titulo}</h3>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+          <h3 className="text-xl font-semibold text-foreground">{titulo}</h3>
+          <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
             {texto}
           </p>
         </div>
@@ -208,11 +208,13 @@ export function ConviteAppCartao({
       <div className="hidden items-center gap-3 md:flex">
         <QrDoApp className="size-24" />
         <div className="min-w-0 space-y-2">
-          <p className="text-[11px] leading-snug text-muted-foreground">
-            Aponte a câmera do celular. São 10 scans grátis por dia.
+          <p className="text-sm leading-snug text-muted-foreground">
+            Aponte a câmera do celular.
           </p>
+          {/* Lado a lado: empilhados, o "Em breve" do de cima deixava os dois
+              desencontrados (19/10). */}
           <SelosLojas
-            className="flex-col gap-1.5"
+            className="flex-wrap gap-2"
             tamanho={110}
             origem="carta"
           />
@@ -229,7 +231,7 @@ export function ConviteAppCartao({
             Baixar o app
           </Link>
         </Button>
-        <p className="text-center text-[11px] text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground">
           10 scans grátis por dia
         </p>
       </div>

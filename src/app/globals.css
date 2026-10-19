@@ -79,6 +79,8 @@
   --foreground: #020617;
   --card: #ffffff;
   --card-foreground: #020617;
+  /* Superfície translúcida: cards, busca, pills e o menu flutuante */
+  --glass-bg: rgba(255, 255, 255, 0.7);
   --popover: #ffffff;
   --popover-foreground: #020617;
   --primary: #f856a7;
@@ -133,6 +135,8 @@
   --foreground: #ffffff;
   --card: #0d1121;
   --card-foreground: #ffffff;
+  /* #1E1830 (roxo acinzentado escuro, escolhido pelo usuário em 19/10) a 50% */
+  --glass-bg: rgba(30, 24, 48, 0.5);
   --popover: #0d1121;
   --popover-foreground: #ffffff;
   /* No dark a landing usa #B50D57 como primary de superfícies e #F856A7 como
@@ -186,17 +190,20 @@
 }
 
 /* ── Superfícies de vidro (espelho de mint-foil-app/components/glass-card.tsx):
-   o blur existe sempre — claro no light, escuro no dark. Superfície padrão dos
-   cards e pills do sistema. ─────────────────────────────────────────────────── */
+   claro no light, escuro no dark, um pouco transparentes e sem blur — o fundo
+   aparece nítido por trás. Superfície padrão dos cards e pills do sistema. ── */
 
 @layer components {
   .glass-card,
   .glass-input,
   .glass-pill {
     border: 1px solid rgba(2, 6, 23, 0.08);
-    background-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    /* Translúcido e SEM blur, como no Collectr: o fundo aparece nítido
+       através do painel; com blur ele virava mancha. O Collectr usa 82%, mas
+       o fundo dele é claro e cheio de desenho — no nosso, escuro, 82% parecia
+       sólido (19/10); a 50%, com os detalhes do FundoFoil mais marcados, o
+       fundo aparece sem atrapalhar a leitura. */
+    background-color: var(--glass-bg);
   }
   .glass-card {
     border-radius: 20px;
@@ -215,8 +222,14 @@
   :is(.dark, .mint) .glass-input,
   :is(.dark, .mint) .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
-    /* Navy dos cards (#0D1121) semi-transparente */
-    background-color: rgba(13, 17, 33, 0.45);
+  }
+
+  /* Campo dentro de um painel (a busca do Explorar) não soma mais uma camada:
+     translúcido sobre translúcido, ele ficava mais escuro que os cards da
+     página. Fica só a borda, e o tom é o mesmo dos cards (19/10). */
+  .glass-card .glass-input,
+  :is(.dark, .mint) .glass-card .glass-input {
+    background-color: transparent;
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */

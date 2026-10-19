@@ -112,6 +112,19 @@ const fadeUp: Variants = {
   },
 };
 
+// ── Tela baixa ────────────────────────────────────────────────────────────────
+
+// Cada seção tem que caber inteira na tela, sem rolar dentro dela (19/10: num
+// notebook com ~1000×550 de área útil, quase todas passavam da altura). O
+// respiro vertical encolhe junto com a altura da tela — 125px numa de 900px,
+// 36px numa de 546px — e o que é grande (vídeo, celulares) se mede pelo que
+// sobra. No celular nada muda: a tela é alta.
+const RESPIRO = "clamp(36px, calc((100vh - 400px) / 4), 125px)";
+/** Espaço entre o cabeçalho da seção (rótulo + título) e o conteúdo. */
+const RESPIRO_CABECALHO = "clamp(16px, calc((100vh - 400px) / 10), 48px)";
+/** O menu flutuante cobre o topo da tela: conteúdo sticky começa abaixo dele. */
+const MENU_H = 84;
+
 // ── Responsive hook (from develop's landing) ──────────────────────────────────
 
 function useIsMobile(breakpoint = 768) {
@@ -123,6 +136,22 @@ function useIsMobile(breakpoint = 768) {
     return () => window.removeEventListener("resize", check);
   }, [breakpoint]);
   return isMobile;
+}
+
+/**
+ * Desktop com pouca altura (notebook, janela menor): o que é acessório numa
+ * seção (subtítulo, nota de rodapé) sai para ela caber na tela — ver RESPIRO.
+ */
+function useTelaBaixa(limite = 720) {
+  const [baixa, setBaixa] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      setBaixa(window.innerWidth >= 768 && window.innerHeight < limite);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [limite]);
+  return baixa;
 }
 
 // ── Card data — 26-card marquee (no repeats, mixed TCGs) ──────────────────────
@@ -286,7 +315,7 @@ function AltSection({
         id={id}
         style={{
           background: outer.isDark ? "#FFFFFF" : outer.bgAlt,
-          padding: "100px 24px",
+          padding: `${RESPIRO} 24px`,
           ...style,
         }}
       >
@@ -968,7 +997,7 @@ function Hero({ noCelular }: { noCelular: boolean }) {
         alignItems: "center",
         justifyContent: "flex-start",
         // Mobile: conteúdo mais pro centro vertical (desktop mantém)
-        paddingTop: isMobile ? "21vh" : "130px",
+        paddingTop: isMobile ? "21vh" : "clamp(96px, 16vh, 130px)",
         overflow: "hidden",
         // Var pré-paint: o estado React nasce light e pintava o hero de
         // branco por um frame no reload em dark
@@ -1219,7 +1248,8 @@ function VideoSection() {
           position: "sticky",
           top: 0,
           minHeight: "100vh",
-          padding: "120px 24px 80px",
+          // Em cima, o menu flutuante; embaixo, só o necessário
+          padding: `clamp(${MENU_H + 12}px, 14vh, 120px) 24px clamp(20px, 6vh, 80px)`,
           // Um passo mais claro que o bg da página no dark: marca a divisão
           // da seção sem inverter pro branco
           background: t.isDark ? "#070D1C" : t.bgAlt,
@@ -1231,8 +1261,13 @@ function VideoSection() {
   );
 }
 
-// Tamanho natural no desktop; 92vw só limita no mobile (não transbordar)
-const VIDEO_W = "min(960px, 92vw)";
+// Tamanho natural no desktop; 92vw só limita no mobile (não transbordar).
+// A seção fica presa na tela (sticky de 100vh): num notebook o card de 960px
+// não cabia abaixo do título e o fim do vídeo ficava cortado para sempre
+// (19/10). O terceiro limite faz o card caber na altura que sobra — 100vh
+// menos o respiro de cima e de baixo e o cabeçalho (~330px) —, na proporção
+// da gravação (1088×720).
+const VIDEO_W = "min(960px, 92vw, calc((100svh - 330px) * 1088 / 720))";
 
 function VideoInner({
   cardScale,
@@ -1269,7 +1304,7 @@ function VideoInner({
           style={{
             textAlign: "left",
             maxWidth: VIDEO_W,
-            margin: "0 auto 36px",
+            margin: "0 auto clamp(16px, 4vh, 36px)",
           }}
         >
           <FadeIn>
@@ -1498,10 +1533,13 @@ function RevealItem({
   soon = false,
   active,
   onChange,
+  emColunas = false,
 }: {
   text: string;
   imgs: string[];
   soon?: boolean;
+  /** Desktop: a lista em duas colunas, com o nome medido pela altura da tela */
+  emColunas?: boolean;
   // Quem manda é a seção: só um nome revelado por vez, igual ao mouse,
   // que nunca consegue estar sobre dois
   active: boolean;
@@ -1517,7 +1555,9 @@ function RevealItem({
   const pointer = useRef<string>("mouse");
 
   return (
-    <div style={{ padding: "16px 0" }}>
+    <div
+      style={{ padding: emColunas ? "clamp(6px, 1.4vh, 16px) 0" : "16px 0" }}
+    >
       {/* Wrapper inline: as cartas ancoram no fim da palavra */}
       <div style={{ position: "relative", display: "inline-block" }}>
         <button
@@ -1553,7 +1593,9 @@ function RevealItem({
               // 900 saía "falso" e fino — SF Pro/Segoe têm Black de verdade
               fontFamily:
                 '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
-              fontSize: "clamp(52px, 9.5vw, 96px)",
+              fontSize: emColunas
+                ? "clamp(36px, min(5vw, 8.5vh), 80px)"
+                : "clamp(52px, 9.5vw, 96px)",
               fontWeight: 900,
               color: soon ? t.muted : t.text,
               textTransform: "uppercase",
@@ -1662,15 +1704,19 @@ function RevealSection() {
     <section
       id="colecoes"
       style={{
-        padding: isMobile ? "80px 20px" : "125px 24px",
+        padding: isMobile ? "80px 20px" : `${RESPIRO} 24px`,
         maxWidth: "1240px",
         margin: "0 auto",
       }}
     >
       {/* Bloco recuado pro centro, texto alinhado à esquerda — o cabeçalho
           nasce na mesma coluna das palavras, no estilo do "Veja em ação" */}
-      <div style={{ maxWidth: "640px", margin: "0 auto" }}>
-        <div style={{ textAlign: "left", marginBottom: "48px" }}>
+      {/* No desktop, duas colunas: numa só, os nove nomes passavam de 1000px
+          de altura e a seção não cabia na tela (19/10) */}
+      <div
+        style={{ maxWidth: isMobile ? "640px" : "1100px", margin: "0 auto" }}
+      >
+        <div style={{ textAlign: "left", marginBottom: RESPIRO_CABECALHO }}>
           <FadeIn>
             <p
               style={{
@@ -1711,20 +1757,29 @@ function RevealSection() {
             </p>
           </FadeIn>
         </div>
-        {REVEAL_ITEMS.map(({ text, imgs, soon }) => (
-          <RevealItem
-            key={text}
-            text={text}
-            imgs={imgs}
-            soon={soon}
-            active={active === text}
-            // Fechar só vale pra quem está aberto: o blur do nome anterior
-            // chega depois do clique no próximo e apagaria a seleção nova
-            onChange={(on) =>
-              setActive((cur) => (on ? text : cur === text ? null : cur))
-            }
-          />
-        ))}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            columnGap: "40px",
+          }}
+        >
+          {REVEAL_ITEMS.map(({ text, imgs, soon }) => (
+            <RevealItem
+              key={text}
+              text={text}
+              imgs={imgs}
+              soon={soon}
+              emColunas={!isMobile}
+              active={active === text}
+              // Fechar só vale pra quem está aberto: o blur do nome anterior
+              // chega depois do clique no próximo e apagaria a seleção nova
+              onChange={(on) =>
+                setActive((cur) => (on ? text : cur === text ? null : cur))
+              }
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1973,7 +2028,7 @@ function WhyMintFoil() {
   return (
     <section
       style={{
-        padding: isMobile ? "80px 20px" : "120px 24px",
+        padding: isMobile ? "80px 20px" : `${RESPIRO} 24px`,
         background: t.isDark ? "#070D1C" : t.bgAlt,
       }}
     >
@@ -1984,8 +2039,8 @@ function WhyMintFoil() {
 
 // ── Solução — passo a passo + invocação 3D ────────────────────────────────────
 
-// Bento no estilo Collectr ("One app, the whole hobby"), em rosa:
-// tile = ícone + título + desc + link-CTA; spans somam 12 por linha
+// Tiles no estilo Collectr ("One app, the whole hobby"), em rosa:
+// tile = ícone + título + desc + link-CTA, os quatro numa linha no desktop
 const SOLUTION_STEPS = [
   {
     id: "scan",
@@ -1995,7 +2050,6 @@ const SOLUTION_STEPS = [
     // O scan só existe no app nativo: o CTA leva ao download, não à web.
     cta: "Baixe o app pra escanear",
     href: "/download",
-    span: 7,
   },
   {
     id: "valor",
@@ -2004,7 +2058,6 @@ const SOLUTION_STEPS = [
     desc: "Valor de referência em reais na hora — e o link pra conferir nas lojas brasileiras.",
     cta: "Explore os preços",
     href: "/explore",
-    span: 5,
   },
   {
     id: "portfolio",
@@ -2013,7 +2066,6 @@ const SOLUTION_STEPS = [
     desc: "Coleção catalogada e monitorada dia a dia, com gráficos de valorização.",
     cta: "Monte o seu",
     href: "/portfolio",
-    span: 5,
   },
   {
     id: "share",
@@ -2022,13 +2074,13 @@ const SOLUTION_STEPS = [
     desc: "Mostre sua coleção pra quem quiser com um link só seu.",
     cta: "Mostre sua coleção",
     href: "/portfolio",
-    span: 7,
   },
 ];
 
 function SolutionSection() {
   const t = useTheme();
   const isMobile = useIsMobile();
+  const telaBaixa = useTelaBaixa();
   // Dark no estilo Collectr: tiles escuros neutros (vidro sutil sobre o bg)
   // com accent rosa VIVO — o vinho do tema some no fundo escuro
   const accent = t.isDark ? "#F856A7" : t.primary;
@@ -2039,7 +2091,7 @@ function SolutionSection() {
   return (
     <section
       id="como-funciona"
-      style={{ padding: isMobile ? "80px 20px" : "110px 24px 90px" }}
+      style={{ padding: isMobile ? "80px 20px" : `${RESPIRO} 24px` }}
     >
       <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
         {/* Cabeçalho à esquerda + botão alinhado com a linha do label "A Solução" */}
@@ -2050,7 +2102,7 @@ function SolutionSection() {
             justifyContent: "space-between",
             gap: "24px",
             flexWrap: "wrap",
-            marginBottom: "48px",
+            marginBottom: RESPIRO_CABECALHO,
           }}
         >
           <div style={{ textAlign: "left" }}>
@@ -2084,51 +2136,50 @@ function SolutionSection() {
                 Um app, o hobby inteiro
               </h2>
             </FadeIn>
-            <FadeIn delay={0.18}>
-              <p
-                style={{
-                  fontSize: "clamp(15px, 2.5vw, 18px)",
-                  lineHeight: "28px",
-                  color: t.muted,
-                  maxWidth: "520px",
-                  margin: "14px 0 0",
-                }}
-              >
-                Sem planilha, sem pesquisar carta por carta na Liga. Quatro
-                passos e pronto.
-              </p>
-            </FadeIn>
+            {!telaBaixa && (
+              <FadeIn delay={0.18}>
+                <p
+                  style={{
+                    fontSize: "clamp(15px, 2.5vw, 18px)",
+                    lineHeight: "28px",
+                    color: t.muted,
+                    maxWidth: "520px",
+                    margin: "14px 0 0",
+                  }}
+                >
+                  Sem planilha, sem pesquisar carta por carta na Liga. Quatro
+                  passos e pronto.
+                </p>
+              </FadeIn>
+            )}
           </div>
           <FadeIn delay={0.2}>
             <WatchDemoBtn />
           </FadeIn>
         </div>
 
-        {/* Bento estilo Collectr — tiles largos com glow de canto, spotlight
-            no hover e link-CTA rosa */}
+        {/* Tiles estilo Collectr — glow de canto, spotlight no hover e
+            link-CTA rosa. Os quatro passos numa linha só no desktop: em duas
+            linhas o bento passava da altura de um notebook (19/10). */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(12, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
             gap: "16px",
           }}
         >
           {SOLUTION_STEPS.map((s, i) => (
-            <div
-              key={s.id}
-              style={{ gridColumn: isMobile ? "auto" : `span ${s.span}` }}
-            >
+            <div key={s.id}>
               <FadeIn delay={i * 0.08} className="h-full">
                 {/* biome-ignore lint/a11y/noStaticElementInteractions: hover decorativo na borda */}
                 <div
                   style={{
                     position: "relative",
-                    padding: "30px 28px",
+                    padding: "clamp(18px, 3.6vh, 30px) 24px",
                     borderRadius: "20px",
                     background: tileBg,
                     border: `1px solid ${tileBorder}`,
                     height: "100%",
-                    minHeight: "210px",
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
@@ -2174,7 +2225,7 @@ function SolutionSection() {
                       alignItems: "center",
                       justifyContent: "center",
                       color: accent,
-                      marginBottom: "20px",
+                      marginBottom: "clamp(10px, 2.4vh, 20px)",
                     }}
                   >
                     {s.icon}
@@ -2307,6 +2358,10 @@ const CELULAR_W = IPHONE_W;
 const CELULAR_H = IPHONE_H;
 // Largura do título + descrição embaixo do celular
 const TEXTO_W = 340;
+// Altura da legenda (título + descrição de até 3 linhas) e dos pontinhos:
+// o que fica fora do celular quando ele se mede pela altura da tela
+const LEGENDA_H = 130;
+const PONTOS_H = 24;
 
 /**
  * Toca vários vídeos um depois do outro, em loop, sem piscar na troca.
@@ -2450,18 +2505,48 @@ function KeyFeatures() {
   // Começa igual ao SSR (1280) e mede só pós-mount: ler window.innerWidth
   // no estado inicial quebrava a hidratação (paddingLeft divergente)
   const [winW, setWinW] = useState(1280);
+  const [winH, setWinH] = useState(900);
   useEffect(() => {
-    const onResize = () => setWinW(window.innerWidth);
+    const onResize = () => {
+      setWinW(window.innerWidth);
+      setWinH(window.innerHeight);
+    };
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+  // Tela baixa (notebook): sem o subtítulo, e o celular encolhe até a seção
+  // inteira caber abaixo do menu (ver RESPIRO). Só o celular encolhe — a
+  // legenda embaixo dele fica no tamanho de leitura.
+  const telaBaixa = useTelaBaixa();
+  const cabecalhoRef = useRef<HTMLDivElement>(null);
+  const [cabecalhoH, setCabecalhoH] = useState(170);
+  useEffect(() => {
+    const el = cabecalhoRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setCabecalhoH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const tamanho = isMobile
+    ? 1
+    : Math.min(
+        1,
+        Math.max(
+          0.4,
+          (winH - MENU_H - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
+        ),
+      );
+  const celW = CELULAR_W * tamanho;
+  const celH = CELULAR_H * tamanho;
   // Celular do ativo: tamanho cheio no desktop, um pouco menor no celular.
   // Os vizinhos ficam a `passo` do centro — no celular eles só espiam na borda.
   const escalaAtivo = isMobile ? 0.82 : 1;
-  const passo = isMobile ? Math.round(winW * 0.62) : 330;
+  const passo = isMobile
+    ? Math.round(winW * 0.62)
+    : Math.round(330 * Math.max(tamanho, 0.6));
   // Altura do palco: celular + título + descrição de até 3 linhas
-  const palco = Math.round(CELULAR_H * escalaAtivo) + (isMobile ? 170 : 150);
+  const palco = Math.round(celH * escalaAtivo) + (isMobile ? 170 : LEGENDA_H);
 
   const prev = () =>
     setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
@@ -2498,14 +2583,15 @@ function KeyFeatures() {
     <section
       ref={sectionRef}
       id="recursos"
-      style={{ padding: isMobile ? "80px 0" : "125px 0" }}
+      style={{ padding: isMobile ? "80px 0" : `${RESPIRO} 0` }}
     >
       {/* ── Header — à esquerda, padrão da seção Solução ── */}
       <div
+        ref={cabecalhoRef}
         style={{
           maxWidth: "1240px",
           margin: "0 auto",
-          padding: isMobile ? "0 20px 36px" : "0 24px 52px",
+          padding: isMobile ? "0 20px 36px" : `0 24px ${RESPIRO_CABECALHO}`,
           textAlign: "left",
         }}
       >
@@ -2537,20 +2623,22 @@ function KeyFeatures() {
             Cada recurso em ação, passo a passo
           </h2>
         </FadeIn>
-        <FadeIn delay={0.18}>
-          <p
-            style={{
-              fontSize: "clamp(15px, 2.5vw, 18px)",
-              lineHeight: "28px",
-              color: t.muted,
-              maxWidth: "520px",
-              margin: "14px 0 0",
-            }}
-          >
-            Vídeos do app real mostrando como escanear, ver preços e montar seu
-            portfólio.
-          </p>
-        </FadeIn>
+        {!telaBaixa && (
+          <FadeIn delay={0.18}>
+            <p
+              style={{
+                fontSize: "clamp(15px, 2.5vw, 18px)",
+                lineHeight: "28px",
+                color: t.muted,
+                maxWidth: "520px",
+                margin: "14px 0 0",
+              }}
+            >
+              Vídeos do app real mostrando como escanear, ver preços e montar
+              seu portfólio.
+            </p>
+          </FadeIn>
+        )}
       </div>
 
       {/* ── Carrossel centralizado: o card ativo no meio, os vizinhos menores
@@ -2591,38 +2679,42 @@ function KeyFeatures() {
                 position: "absolute",
                 top: 0,
                 left: "50%",
-                marginLeft: `-${CELULAR_W / 2}px`,
-                width: `${CELULAR_W}px`,
+                marginLeft: `-${celW / 2}px`,
+                width: `${celW}px`,
                 transformOrigin: "50% 40%",
                 zIndex: ativo ? 3 : longe ? 1 : 2,
                 cursor: ativo ? "default" : "pointer",
                 pointerEvents: longe ? "none" : "auto",
               }}
             >
-              <PhoneMockup ilhaPreta={!!ft.videos}>
-                {ft.videos ? (
-                  <VideosEmSequencia
-                    srcs={ft.videos}
-                    poster={ft.poster}
-                    ativo={ativo}
-                    onFim={next}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      height: "100%",
-                      background:
-                        "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
-                    }}
-                  >
-                    <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
-                  </div>
-                )}
-              </PhoneMockup>
+              {/* zoom, e não scale: encolhe o celular E o espaço dele, e a
+                  legenda logo abaixo sobe junto */}
+              <div style={{ zoom: tamanho }}>
+                <PhoneMockup ilhaPreta={!!ft.videos}>
+                  {ft.videos ? (
+                    <VideosEmSequencia
+                      srcs={ft.videos}
+                      poster={ft.poster}
+                      ativo={ativo}
+                      onFim={next}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg, rgba(248,86,167,0.12) 0%, rgba(181,13,87,0.08) 100%)",
+                      }}
+                    >
+                      <div style={{ color: t.primary }}>{ft.mockupIcon}</div>
+                    </div>
+                  )}
+                </PhoneMockup>
+              </div>
 
               {/* Título e descrição embaixo do celular, como na referência */}
               {/* Mais largo que o celular: a descrição em 256px quebrava em
@@ -2632,7 +2724,7 @@ function KeyFeatures() {
                   textAlign: "center",
                   padding: "22px 0 0",
                   width: `${TEXTO_W}px`,
-                  marginLeft: `${(CELULAR_W - TEXTO_W) / 2}px`,
+                  marginLeft: `${(celW - TEXTO_W) / 2}px`,
                 }}
               >
                 <div
@@ -2692,8 +2784,8 @@ function KeyFeatures() {
                 ? "8px"
                 : // Fora dos celulares vizinhos: centro do vizinho (passo) +
                   // meia largura dele (escala 0,78) + 24px de folga + a seta
-                  `calc(50% - ${passo + (CELULAR_W * escalaAtivo * 0.78) / 2 + 24 + 40}px)`,
-              top: `${(CELULAR_H * escalaAtivo) / 2}px`,
+                  `calc(50% - ${passo + (celW * escalaAtivo * 0.78) / 2 + 24 + 40}px)`,
+              top: `${(celH * escalaAtivo) / 2}px`,
               transform: "translateY(-50%)",
               zIndex: 10,
               width: "40px",
@@ -2804,6 +2896,7 @@ const FOIL_CSS =
 
 function ProBanner() {
   const isMobile = useIsMobile();
+  const telaBaixa = useTelaBaixa();
   const router = useRouter();
   // Slider embutido: até FREE_SCANS_PER_DAY = Grátis (R$ 0); acima = PRO 9,90.
   // Nasce um passo acima do teto (PRO): mexendo pra baixo a pessoa descobre que
@@ -2816,7 +2909,8 @@ function ProBanner() {
     <div
       style={{
         maxWidth: "1100px",
-        margin: "56px auto 0",
+        // Some em tela baixa: o cabeçalho da seção já tem o respiro dele
+        margin: "clamp(0px, calc((100vh - 700px) / 4), 56px) auto 0",
         borderRadius: "26px",
         padding: "1.5px",
         // Borda foil animada (o card escuro por cima deixa só o fio visível)
@@ -2834,9 +2928,11 @@ function ProBanner() {
         style={{
           borderRadius: "24.5px",
           background: "#020617",
-          padding: isMobile ? "32px 24px" : "48px 56px",
+          padding: isMobile ? "32px 24px" : "clamp(18px, 4vh, 48px) 56px",
           display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr",
+          // Em tela baixa o wordmark PRO (decorativo) sai e o texto
+          // ocupa a largura toda: features e preço cabem em menos linhas
+          gridTemplateColumns: isMobile || telaBaixa ? "1fr" : "1.4fr 1fr",
           gap: isMobile ? "32px" : "40px",
           alignItems: "center",
           position: "relative",
@@ -2892,7 +2988,7 @@ function ProBanner() {
               fontSize: "14.5px",
               lineHeight: "22px",
               color: "rgba(255,255,255,0.6)",
-              margin: "12px 0 24px",
+              margin: telaBaixa ? "10px 0 14px" : "12px 0 24px",
               maxWidth: "440px",
             }}
           >
@@ -2900,13 +2996,17 @@ function ProBanner() {
               ? "Scans e portfólios ilimitados, filtros exclusivos e a coleção exportável em planilha."
               : `Preços de referência em real, a carteira da sua coleção e ${FREE_SCANS_PER_DAY} scans grátis por dia — sem pagar nada.`}
           </p>
-          {/* Features em 2 colunas */}
+          {/* Features em 2 colunas (3 em tela baixa: uma linha a menos) */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+              gridTemplateColumns: isMobile
+                ? "1fr"
+                : telaBaixa
+                  ? "1fr 1fr 1fr"
+                  : "1fr 1fr",
               gap: "8px 20px",
-              marginBottom: "28px",
+              marginBottom: telaBaixa ? "14px" : "28px",
             }}
           >
             {(isPro ? PRO_FEATURES : FREE_FEATURES).map((f) => (
@@ -2928,7 +3028,12 @@ function ProBanner() {
           </div>
 
           {/* Slider de scans/dia — o preço ao lado do botão responde */}
-          <div style={{ maxWidth: "440px", marginBottom: "26px" }}>
+          <div
+            style={{
+              maxWidth: "440px",
+              marginBottom: telaBaixa ? "14px" : "26px",
+            }}
+          >
             <div
               style={{
                 display: "flex",
@@ -3024,29 +3129,31 @@ function ProBanner() {
           </div>
 
           {/* Volume de loja foge do slider: canal direto */}
-          <p
-            style={{
-              fontSize: "12.5px",
-              color: "rgba(255,255,255,0.45)",
-              margin: "18px 0 0",
-            }}
-          >
-            Lojista ou coleção grande?{" "}
-            <a
-              href="mailto:contato@mintfoil.com?subject=Plano%20para%20lojas"
+          {!telaBaixa && (
+            <p
               style={{
-                color: "#F856A7",
-                fontWeight: 700,
-                textDecoration: "none",
+                fontSize: "12.5px",
+                color: "rgba(255,255,255,0.45)",
+                margin: "18px 0 0",
               }}
             >
-              Fale com a gente →
-            </a>
-          </p>
+              Lojista ou coleção grande?{" "}
+              <a
+                href="mailto:contato@mintfoil.com?subject=Plano%20para%20lojas"
+                style={{
+                  color: "#F856A7",
+                  fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                Fale com a gente →
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Wordmark PRO em foil */}
-        {!isMobile && (
+        {!isMobile && !telaBaixa && (
           <div style={{ textAlign: "center", position: "relative" }}>
             <span
               aria-hidden
@@ -3107,11 +3214,12 @@ function Pricing() {
 }
 
 function PricingInner() {
+  const telaBaixa = useTelaBaixa();
   const t = useTheme();
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
       {/* Cabeçalho: label texto (sem tag) + título, centralizado */}
-      <div style={{ textAlign: "center", marginBottom: "48px" }}>
+      <div style={{ textAlign: "center", marginBottom: RESPIRO_CABECALHO }}>
         <FadeIn>
           <p
             style={{
@@ -3141,42 +3249,46 @@ function PricingInner() {
             Grátis pra começar. PRO quando quiser.
           </h2>
         </FadeIn>
-        <FadeIn delay={0.18}>
-          <p
-            style={{
-              fontSize: "clamp(15px, 2.5vw, 18px)",
-              lineHeight: "28px",
-              color: t.muted,
-              maxWidth: "520px",
-              margin: "14px auto 0",
-            }}
-          >
-            Menos de R$ 0,35/dia. Menos que um booster pack.
-          </p>
-        </FadeIn>
+        {!telaBaixa && (
+          <FadeIn delay={0.18}>
+            <p
+              style={{
+                fontSize: "clamp(15px, 2.5vw, 18px)",
+                lineHeight: "28px",
+                color: t.muted,
+                maxWidth: "520px",
+                margin: "14px auto 0",
+              }}
+            >
+              Menos de R$ 0,35/dia. Menos que um booster pack.
+            </p>
+          </FadeIn>
+        )}
       </div>
       {/* Momento "dourado" da página, em versão foil — com o slider de
           scans embutido: o preço responde ao uso */}
       <FadeIn delay={0.15}>
         <ProBanner />
       </FadeIn>
-      <FadeIn delay={0.2}>
-        <p
-          style={{
-            textAlign: "center",
-            fontSize: "13px",
-            color: t.muted,
-            marginTop: "28px",
-            maxWidth: "440px",
-            margin: "28px auto 0",
-            lineHeight: 1.6,
-          }}
-        >
-          Cancele quando quiser. Basta encontrar{" "}
-          <strong style={{ color: t.primary }}>UMA</strong> carta que vale mais
-          do que pensava.
-        </p>
-      </FadeIn>
+      {!telaBaixa && (
+        <FadeIn delay={0.2}>
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "13px",
+              color: t.muted,
+              marginTop: "16px",
+              maxWidth: "440px",
+              margin: "16px auto 0",
+              lineHeight: 1.6,
+            }}
+          >
+            Cancele quando quiser. Basta encontrar{" "}
+            <strong style={{ color: t.primary }}>UMA</strong> carta que vale
+            mais do que pensava.
+          </p>
+        </FadeIn>
+      )}
     </div>
   );
 }

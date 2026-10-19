@@ -31,7 +31,6 @@ import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiError, api, type Card, type CollectionItem } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
@@ -184,33 +183,30 @@ function CardDetailSkeleton() {
       {/* Header: título + caixa de preço (mesmas alturas do conteúdo real) */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-72" />
-          <Skeleton className="h-5 w-56" />
+          <Skeleton className="h-10 w-96 max-w-full" />
+          <Skeleton className="h-6 w-64" />
         </div>
-        <div className="glass-card !rounded-xl p-3.5 min-w-[220px] space-y-1.5">
+        <div className="space-y-1.5 md:items-end md:flex md:flex-col">
           <Skeleton className="h-3 w-44" />
-          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-9 w-44" />
           <Skeleton className="h-3 w-40" />
-          <Skeleton className="h-7 w-56" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Imagem (aspect ~5/7 aproxima a carta real; frame igual ao final) */}
         <div className="lg:col-span-3">
-          <div className="glass-card !rounded-2xl p-2">
-            <Skeleton className="w-full aspect-5/7 rounded-xl" />
-          </div>
+          <Skeleton className="w-full aspect-5/7 rounded-2xl" />
         </div>
 
         {/* Chart + detalhes */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="glass-card !rounded-xl p-4 space-y-4">
-            <Skeleton className="h-4 w-52" />
+          <div className="glass-card !rounded-2xl p-5 space-y-4">
+            <Skeleton className="h-6 w-56" />
             <Skeleton className="w-full aspect-[2.2/1] rounded-lg" />
           </div>
-          <div className="glass-card !rounded-xl p-4 space-y-4">
-            <Skeleton className="h-4 w-24" />
+          <div className="glass-card !rounded-2xl p-5 space-y-4">
+            <Skeleton className="h-6 w-28" />
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
@@ -225,7 +221,7 @@ function CardDetailSkeleton() {
 
         {/* Adicionar + lojas */}
         <div className="lg:col-span-4 space-y-5">
-          <div className="glass-card !rounded-xl p-4 space-y-4">
+          <div className="glass-card !rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between gap-4">
               <Skeleton className="h-9 w-44 rounded-full" />
               <div className="space-y-1">
@@ -239,9 +235,8 @@ function CardDetailSkeleton() {
             </div>
             <Skeleton className="h-10 w-full rounded-md" />
           </div>
-          <div className="glass-card !rounded-xl p-4 space-y-3">
-            <Skeleton className="h-4 w-44" />
-            <Skeleton className="h-3 w-full" />
+          <div className="glass-card !rounded-2xl p-5 space-y-3">
+            <Skeleton className="h-6 w-48" />
             {Array.from({ length: 4 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de placeholders
               <div key={i} className="flex items-center gap-3 py-1">
@@ -472,7 +467,7 @@ export function CardDetailClient({
   return (
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/sets" className="hover:text-primary transition-colors">
           Sets
         </Link>
@@ -495,7 +490,7 @@ export function CardDetailClient({
           </>
         )}
         <ChevronRight className="size-3" />
-        <span className="text-foreground truncate max-w-50">
+        <span className="text-foreground truncate max-w-80">
           {cardName(card)}
         </span>
       </nav>
@@ -503,49 +498,54 @@ export function CardDetailClient({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {cardName(card)}{" "}
-            <span className="text-muted-foreground font-normal text-lg">
-              ({card.rarity})
-            </span>
+          {/* A raridade não se repete no título: está na linha de baixo e,
+              quase sempre, no próprio nome ("… (Starlight Rare)"). */}
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            {cardName(card)}
           </h1>
           {cardNameEn(card) && (
-            <p className="text-muted-foreground text-sm">{cardNameEn(card)}</p>
+            <p className="text-muted-foreground text-base mt-1">
+              {cardNameEn(card)}
+            </p>
           )}
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
             <Link
               href={
                 card.set
                   ? `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`
                   : `/sets/${card.tcg?.slug ?? ""}`
               }
-              className="text-sm text-tertiary hover:text-tertiary-hover underline underline-offset-2 transition-colors font-medium"
+              className="text-base text-tertiary hover:text-tertiary-hover underline underline-offset-2 transition-colors font-medium"
             >
               {card.set?.name ?? card.setName ?? card.setCode}
             </Link>
             <span className="text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground">{card.rarity}</span>
+            <span className="text-base text-muted-foreground">
+              {card.rarity}
+            </span>
             <span className="text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground font-mono">
+            <span className="text-base text-muted-foreground font-mono">
               {card.collectorNumber}
             </span>
           </div>
         </div>
 
         {/* Preço internacional (estimado) — ver adr/0002 */}
-        <div className="glass-card !rounded-xl p-3.5 min-w-[220px] flex flex-col gap-0.5">
-          <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold flex items-center gap-1">
-            <Globe className="size-3" />
+        {/* Solto no canto, como no Collectr: a caixa em volta era mais uma
+            moldura na página. */}
+        <div className="flex flex-col gap-1 md:items-end md:text-right">
+          <span className="text-xs text-tertiary uppercase tracking-wider font-semibold flex items-center gap-1">
+            <Globe className="size-3.5" />
             Preço internacional (estimado)
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-2xl font-black text-foreground font-mono">
+          <div className="flex items-center gap-2">
+            <span className="text-3xl font-black text-foreground font-mono">
               R$ {formatPrice(headlineBrl)}
             </span>
             {headlineBrl > 0 && latestPrice > 0 && (
               <div
                 className={cn(
-                  "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                  "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
                   isPositive
                     ? "bg-emerald-500/10 text-emerald-400"
                     : "bg-rose-500/10 text-rose-400",
@@ -563,7 +563,7 @@ export function CardDetailClient({
               </div>
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {[
               intl?.usd != null ? `US$ ${intl.usd.toFixed(2)}` : null,
               intl?.rate != null ? `câmbio ${intl.rate.toFixed(2)}` : null,
@@ -571,10 +571,6 @@ export function CardDetailClient({
             ]
               .filter(Boolean)
               .join(" · ")}
-          </span>
-          <span className="text-[10px] text-muted-foreground/80 leading-snug mt-1 max-w-[280px]">
-            Valor de mercado internacional convertido. O preço nas lojas
-            brasileiras pode variar — confira nos links abaixo.
           </span>
         </div>
       </div>
@@ -585,7 +581,7 @@ export function CardDetailClient({
             cortar borda); a proporção real varia por TCG, então nada de
             aspect fixo com cover. */}
         <div className="lg:col-span-3">
-          <div className="glass-card sticky top-20 !rounded-2xl p-2">
+          <div className="sticky top-20">
             <CardImage
               carta={card}
               tamanho="cheia"
@@ -593,7 +589,7 @@ export function CardDetailClient({
               width={400}
               height={560}
               sizes="(max-width: 1024px) 90vw, 22vw"
-              className="mx-auto h-auto w-full rounded-xl"
+              className="mx-auto h-auto w-full rounded-2xl"
               // É a imagem principal da página: sem priority o next/image a
               // carrega em lazy e ela era a última coisa a aparecer.
               priority
@@ -603,9 +599,9 @@ export function CardDetailClient({
 
         {/* Center: Chart + Details */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="glass-card !rounded-xl p-4">
-            <h2 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-              <TrendingUp className="size-4 text-primary" />
+          <div className="glass-card !rounded-2xl p-5">
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <TrendingUp className="size-5 text-primary" />
               Histórico de Preço (Ungraded)
             </h2>
             {priceHistory.length > 1 ? (
@@ -645,13 +641,13 @@ export function CardDetailClient({
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <TrendingUp className="size-8 text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   {priceHistory.length === 0
                     ? "Ainda não há dados de preço para esta carta."
                     : "Histórico em construção — o gráfico aparecerá com mais dados."}
                 </p>
                 {priceHistory.length === 1 && (
-                  <p className="text-xs text-muted-foreground/60 mt-1">
+                  <p className="text-sm text-muted-foreground/60 mt-1">
                     Preço atual: R$ {formatPrice(priceHistory[0].price)}
                   </p>
                 )}
@@ -660,75 +656,73 @@ export function CardDetailClient({
           </div>
 
           {/* Details */}
-          <div className="glass-card !rounded-xl p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <AlertCircle className="size-4 text-tertiary" />
-                Detalhes
-              </h2>
-            </div>
+          <div className="glass-card !rounded-2xl p-5 space-y-5">
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <AlertCircle className="size-5 text-tertiary" />
+              Detalhes
+            </h2>
 
             {card.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {card.description}
+              // O texto vem da base do jogo com "<br>" no meio ("monsters
+              // <br>You can…"): vira quebra de linha em vez de aparecer cru.
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                {card.description.replace(/<br\s*\/?>/gi, "\n")}
               </p>
             )}
 
-            <Separator />
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                   Raridade
                 </p>
-                <p className="text-xs text-foreground font-medium">
+                <p className="text-base text-foreground font-medium">
                   {card.rarity}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                   Código
                 </p>
-                <p className="text-xs text-primary font-mono font-bold">
+                <p className="text-base text-primary font-mono font-bold">
                   {card.collectorNumber}
                 </p>
               </div>
               {card.cardType && (
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Tipo
                   </p>
-                  <p className="text-xs text-foreground font-medium">
+                  <p className="text-base text-foreground font-medium">
                     {card.cardType}
                   </p>
                 </div>
               )}
               {card.attribute && (
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Atributo
                   </p>
-                  <p className="text-xs text-foreground font-medium">
+                  <p className="text-base text-foreground font-medium">
                     {card.attribute}
                   </p>
                 </div>
               )}
               {card.atk != null && (
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     ATK / DEF
                   </p>
-                  <p className="text-xs text-foreground font-mono font-medium">
+                  <p className="text-base text-foreground font-mono font-medium">
                     {card.atk} / {card.def ?? "?"}
                   </p>
                 </div>
               )}
               {card.level != null && (
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Nível
                   </p>
-                  <p className="text-xs text-foreground font-mono font-medium">
+                  <p className="text-base text-foreground font-mono font-medium">
                     {card.level}
                   </p>
                 </div>
@@ -739,7 +733,7 @@ export function CardDetailClient({
 
         {/* Right: Collection + Shop */}
         <div className="lg:col-span-4 space-y-5">
-          <div className="glass-card !rounded-xl p-4 space-y-4">
+          <div className="glass-card !rounded-2xl p-5 space-y-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 {portfolios.length > 0 ? (
@@ -751,7 +745,7 @@ export function CardDetailClient({
                     labelPrefix="Adicionando em"
                   />
                 ) : (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <span>Adicionar a:</span>
                     <span className="font-semibold text-primary">
                       Coleção Principal
@@ -760,27 +754,25 @@ export function CardDetailClient({
                 )}
               </div>
               <div className="text-right shrink-0 flex flex-col items-end">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                   Possui: {currentPortfolioQuantity}
                 </span>
-                <span className="text-xs text-muted-foreground font-mono font-bold">
+                <span className="text-sm text-muted-foreground font-mono font-bold">
                   Total: R$ {formatPrice(currentPortfolioValue)}
                 </span>
               </div>
             </div>
 
-            <Separator />
-
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                <span className="text-base font-semibold text-foreground">
                   Ungraded
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <Badge
                   variant="outline"
-                  className="text-[10px] font-bold h-6 px-2 border-border/80 bg-muted/30"
+                  className="text-xs font-bold h-7 px-2.5 border-border/80 bg-muted/30"
                 >
                   NM
                 </Badge>
@@ -796,15 +788,15 @@ export function CardDetailClient({
                       }}
                       onClick={() => handleQtyChange(-1)}
                       disabled={optimisticQty <= 0}
-                      className="size-8 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border disabled:hover:text-muted-foreground"
+                      className="size-9 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border disabled:hover:text-muted-foreground"
                     >
                       <Minus className="size-3.5" strokeWidth={2.5} />
                     </motion.button>
 
-                    <div className="w-8 flex items-center justify-center overflow-hidden">
+                    <div className="w-9 flex items-center justify-center overflow-hidden">
                       <RollingNumber
                         value={optimisticQty}
-                        fontSize={14}
+                        fontSize={16}
                         className="font-bold text-foreground font-mono"
                       />
                     </div>
@@ -813,7 +805,7 @@ export function CardDetailClient({
                       onClick={() => handleQtyChange(1)}
                       success={success}
                       successId={successId}
-                      size={32}
+                      size={36}
                       title="Adicionar uma cópia"
                     />
                   </div>
@@ -821,17 +813,17 @@ export function CardDetailClient({
                   <div className="text-right shrink-0">
                     <div className="flex items-center justify-end gap-1">
                       {isPositive ? (
-                        <TrendingUp className="size-2.5 text-emerald-400" />
+                        <TrendingUp className="size-3.5 text-emerald-400" />
                       ) : (
-                        <TrendingDown className="size-2.5 text-rose-400" />
+                        <TrendingDown className="size-3.5 text-rose-400" />
                       )}
-                      <span className="text-sm font-bold text-foreground font-mono">
+                      <span className="text-base font-bold text-foreground font-mono">
                         R$ {formatPrice(latestPrice)}
                       </span>
                     </div>
                     <span
                       className={cn(
-                        "text-[10px] font-mono",
+                        "text-xs font-mono",
                         isPositive ? "text-emerald-400" : "text-rose-400",
                       )}
                     >
@@ -845,10 +837,10 @@ export function CardDetailClient({
 
           {/* User Holdings (Inventory) */}
           {session?.user && ownedItems.length > 0 && (
-            <div className="glass-card !rounded-xl p-4 space-y-3">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <Package className="size-3.5 text-primary animate-in zoom-in duration-200" />
-                Suas Cópias (
+            <div className="glass-card !rounded-2xl p-5 space-y-3">
+              <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <Package className="size-5 text-primary animate-in zoom-in duration-200" />
+                Suas cópias (
                 {ownedItems.reduce((acc, item) => acc + item.quantity, 0)})
               </h3>
               <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar">
@@ -859,13 +851,13 @@ export function CardDetailClient({
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between text-xs py-1.5 border-b border-border/40 last:border-0"
+                      className="flex items-center justify-between text-sm py-1.5"
                     >
                       <div className="min-w-0 pr-2">
                         <p className="font-semibold text-foreground truncate">
                           {portfolioName}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Condição: {item.condition}
                         </p>
                       </div>
@@ -875,7 +867,7 @@ export function CardDetailClient({
                           {item.quantity === 1 ? "unidade" : "unidades"}
                         </p>
                         {item.buyPrice != null && (
-                          <p className="text-[10px] text-muted-foreground font-mono">
+                          <p className="text-xs text-muted-foreground font-mono">
                             Pago: R$ {formatPrice(item.buyPrice)}
                           </p>
                         )}
@@ -888,15 +880,11 @@ export function CardDetailClient({
           )}
 
           {/* Preço real nas lojas BR — links de conferência (ver adr/0002) */}
-          <div className="glass-card !rounded-xl p-4 space-y-1">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
-              <ShoppingCart className="size-3.5 text-emerald-400" />
-              Preço real nas lojas BR
+          <div className="glass-card !rounded-2xl p-5 space-y-1">
+            <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+              <ShoppingCart className="size-5 text-emerald-400" />
+              Preço nas lojas BR
             </h3>
-            <p className="text-[10px] text-muted-foreground leading-snug mb-3">
-              O preço do mercado brasileiro você confere direto na loja — clique
-              para abrir a página desta carta.
-            </p>
 
             {getSearchUrls(card.name, card.tcg?.slug, card.collectorNumber).map(
               (link) => (
@@ -926,12 +914,12 @@ export function CardDetailClient({
                         {link.name}
                       </Badge>
                     )}
-                    <span className="text-xs text-muted-foreground group-hover:text-foreground">
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground">
                       {link.label}
                     </span>
                   </div>
                   <ExternalLink
-                    className={`size-3.5 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
+                    className={`size-4 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
                   />
                 </a>
               ),
@@ -940,7 +928,7 @@ export function CardDetailClient({
 
           <ConviteAppCartao
             titulo="Tem esta carta?"
-            texto="Escaneie no app e ela entra no seu portfólio na hora, já com o preço do dia."
+            texto="Escaneie no app e ela entra no seu portfólio."
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
@@ -38,6 +38,26 @@ export function toggleValue(list: string[], value: string): string[] {
   return list.includes(value)
     ? list.filter((x) => x !== value)
     : [...list, value];
+}
+
+/**
+ * Painel da sidebar de filtros: gruda no topo ao rolar a página e, mais alto
+ * que a tela, rola por dentro. A rolagem fica numa caixa DENTRO do painel, com
+ * as pontas esmaecidas: a lista some antes da borda em vez de ser cortada rente
+ * a ela — com o painel translúcido, o corte rente parecia quebrado (19/10).
+ *
+ * O max-h reserva 12rem, não 6rem: com `top-20` o painel precisa caber entre o
+ * topo grudado e o fim do aside, senão o sticky recua no fim da página.
+ */
+export function PainelFiltros({ children }: { children: ReactNode }) {
+  return (
+    // O py do painel não rola: a caixa de rolagem termina 8px antes da borda
+    <div className="glass-card sticky top-20 flex max-h-[calc(100vh-12rem)] flex-col py-2">
+      <div className="space-y-5 overflow-y-auto px-4 py-2 [mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export function FilterSection({

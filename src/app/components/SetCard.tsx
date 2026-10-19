@@ -220,7 +220,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
       className="glass-card group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden !rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
     >
       <div>
-        <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3 border-b border-border">
+        <div className="relative aspect-video w-full bg-muted flex items-center justify-center overflow-hidden p-3">
           <SetCover set={set} />
 
           {/* Date Badge */}
@@ -236,7 +236,7 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
           <h4 className="text-xs font-semibold text-tertiary truncate uppercase tracking-wider font-mono">
             {set.code}
           </h4>
-          <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-2 min-h-[2.5rem] mt-0.5">
+          <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-2 h-[2lh] mt-0.5">
             {set.name}
           </h3>
         </div>
