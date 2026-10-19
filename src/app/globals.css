@@ -135,8 +135,8 @@
   --foreground: #ffffff;
   --card: #0d1121;
   --card-foreground: #ffffff;
-  /* #1E1830 (roxo acinzentado escuro, escolhido pelo usuário em 19/10) a 50% */
-  --glass-bg: rgba(30, 24, 48, 0.5);
+  /* #0D0E24 (azul-marinho escuro, escolhido pelo usuário em 19/10) a 50% */
+  --glass-bg: rgba(13, 14, 36, 0.5);
   --popover: #0d1121;
   --popover-foreground: #ffffff;
   /* No dark a landing usa #B50D57 como primary de superfícies e #F856A7 como
