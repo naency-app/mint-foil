@@ -211,8 +211,10 @@ export function ConviteAppCartao({
           <p className="text-sm leading-snug text-muted-foreground">
             Aponte a câmera do celular.
           </p>
+          {/* Lado a lado: empilhados, o "Em breve" do de cima deixava os dois
+              desencontrados (19/10). */}
           <SelosLojas
-            className="flex-col gap-1.5"
+            className="flex-wrap gap-2"
             tamanho={110}
             origem="carta"
           />
