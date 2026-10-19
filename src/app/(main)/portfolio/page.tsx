@@ -143,7 +143,7 @@ function MetricCard({
   suffix?: string;
 }) {
   return (
-    <Card className="glass-card shadow-none">
+    <Card className="glass-card bg-[var(--glass-bg)] shadow-none">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div
@@ -1378,7 +1378,7 @@ export default function PortfolioPage() {
                     não tem, e o "preço de compra" era o preço do dia em que a
                     carta foi adicionada — o "lucro" era só a variação desde
                     então, e parte dos valores tinha sido gravada em dólar. */}
-                <Card className="lg:col-span-12 glass-card shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+                <Card className="lg:col-span-12 glass-card bg-[var(--glass-bg)] shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">

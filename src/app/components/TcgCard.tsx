@@ -178,7 +178,10 @@ export function TcgCard({
      variante cheia; aqui 180 KB por tile numa lista longa seria desperdício. */
 
   return (
-    <Card className="group h-full w-full overflow-hidden glass-card !rounded-2xl py-0 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/20">
+    // O bg explícito substitui o bg-card do <Card> (utilitário vence a
+    // classe .glass-card, que mora em @layer components) — sem ele o card do
+    // grid ficava sólido e de outra cor que os painéis (19/10)
+    <Card className="group h-full w-full overflow-hidden glass-card bg-[var(--glass-bg)] !rounded-2xl py-0 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/20">
       <CardContent className="relative p-0">
         {/* A arte manda no tile: 4px de respiro só para ela não encostar na
             borda do card (os 8px de antes encolhiam a carta duas vezes — a
