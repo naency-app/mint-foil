@@ -23,8 +23,8 @@ import { cn } from "@/lib/utils";
  * No desktop o convite é um QR code: quem está no computador aponta o celular
  * e baixa sem sair do site. No celular, onde QR não serve, vira botão.
  *
- * O botão leva ao /download, não à loja: enquanto o app não estiver publicado
- * nas duas lojas, o link direto cairia em "app não encontrado".
+ * O botão e o QR levam ao /download, que manda o celular para a loja dele
+ * quando o app já está publicado lá (hoje, Android) e mostra a página no resto.
  */
 
 /**
@@ -54,7 +54,9 @@ export function SelosLojas({
   origem?: string;
 }) {
   return (
-    <div className={cn("flex gap-3", className)}>
+    // items-start: o selo publicado é um link e o "Em breve" é uma coluna
+    // com o aviso embaixo; esticados, cada um alinhava de um jeito (19/10).
+    <div className={cn("flex items-start gap-3", className)}>
       <SeloLoja loja="ios" tamanho={tamanho} origem={origem} />
       <SeloLoja loja="android" tamanho={tamanho} origem={origem} />
     </div>

@@ -12,9 +12,11 @@
 // selo aparece como "Em breve" (PUBLICADO_NA_LOJA em app-links.ts).
 
 import { ScanLine, TrendingUp, Wallet } from "lucide-react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { StoreBadge } from "@/app/components/StoreBadge";
 import { QRCode } from "@/components/ui/qrcode";
-import { DOWNLOAD_URL } from "@/lib/app-links";
+import { DOWNLOAD_URL, detectarPlataforma, lojaPara } from "@/lib/app-links";
 
 const PINK = "#F856A7";
 const GRAD = "linear-gradient(135deg, #F856A7 0%, #B50D57 100%)";
@@ -54,7 +56,16 @@ export const metadata = {
     "Baixe o Mint Foil para iPhone ou Android e escaneie suas cartas com preços em real.",
 };
 
-export default function DownloadPage() {
+export default async function DownloadPage() {
+  // No celular de uma loja onde o app já está publicado, vai direto para ela:
+  // o QR code e todo "Baixar o app" do site apontam para cá, e mostrar os dois
+  // selos para quem já está no Android era um toque a mais. Sem loja publicada
+  // (iPhone, por ora) ou no computador, fica a página.
+  const loja = lojaPara(
+    detectarPlataforma((await headers()).get("user-agent") ?? ""),
+  );
+  if (loja !== "/download") redirect(loja);
+
   return (
     <main
       style={{
