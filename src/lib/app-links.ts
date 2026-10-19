@@ -23,7 +23,8 @@ export const DOWNLOAD_URL = "https://mintfoil.com/download";
  */
 export const PUBLICADO_NA_LOJA: Record<"ios" | "android", boolean> = {
   ios: false,
-  android: false,
+  // No ar na Google Play desde 17/10/2026.
+  android: true,
 };
 
 /**
