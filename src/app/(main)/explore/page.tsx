@@ -42,6 +42,7 @@ import {
   CheckboxFilterList,
   FilterSection,
   facetOptions,
+  PainelFiltros,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -1113,7 +1114,7 @@ function ExplorePageContent() {
           para trás da navbar ao carregar a última página do scroll infinito. */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
+          <PainelFiltros>
             <ProductTypeFilter value={productType} onChange={setProductType} />
 
             <PriceRangeFilter
@@ -1232,7 +1233,7 @@ function ExplorePageContent() {
                 />
               </FilterSection>
             )}
-          </div>
+          </PainelFiltros>
         </aside>
 
         {/* ── Coluna de conteúdo ── */}

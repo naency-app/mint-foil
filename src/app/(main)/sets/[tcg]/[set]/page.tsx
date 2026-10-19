@@ -21,6 +21,7 @@ import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
   FilterSection,
+  PainelFiltros,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -559,7 +560,7 @@ function SetCardsPageContent() {
           estica na linha e o sticky acompanha o scroll) */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
+          <PainelFiltros>
             <ProductTypeFilter value={productType} onChange={setProductType} />
 
             <PriceRangeFilter
@@ -590,7 +591,7 @@ function SetCardsPageContent() {
                 />
               </FilterSection>
             )}
-          </div>
+          </PainelFiltros>
         </aside>
 
         {/* Coluna de conteúdo */}

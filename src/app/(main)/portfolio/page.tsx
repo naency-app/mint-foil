@@ -37,12 +37,11 @@ import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
-import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
-import { cartaCasaBusca } from "@/lib/busca-local";
 import {
   CheckboxFilterList,
   FilterSection,
   facetOptions,
+  PainelFiltros,
   PriceRangeFilter,
   ProductTypeFilter,
   type ProductTypeValue,
@@ -85,6 +84,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api, type CollectionItem, type PortfolioMetrics } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
+import { cartaCasaBusca } from "@/lib/busca-local";
 import { capaVisivel } from "@/lib/cover-catalog";
 import {
   resolveActiveId,
@@ -1619,7 +1620,7 @@ export default function PortfolioPage() {
                   <div className="flex gap-6">
                     {/* Sidebar de filtros (igual showcase) */}
                     <aside className="hidden w-60 shrink-0 lg:block">
-                      <div className="glass-card sticky top-20 max-h-[calc(100vh-12rem)] space-y-5 overflow-y-auto p-4">
+                      <PainelFiltros>
                         <ProductTypeFilter
                           value={productType}
                           onChange={setProductType}
@@ -1665,7 +1666,7 @@ export default function PortfolioPage() {
                           onChange={setPriceRange}
                           onUpsell={() => {}}
                         />
-                      </div>
+                      </PainelFiltros>
                     </aside>
 
                     {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
