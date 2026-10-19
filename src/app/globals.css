@@ -194,7 +194,9 @@
   .glass-input,
   .glass-pill {
     border: 1px solid rgba(2, 6, 23, 0.08);
-    background-color: rgba(255, 255, 255, 0.6);
+    /* Quase sólido (19/10): o painel é para ler, e o fundo fica livre para ter
+       detalhe sem atrapalhar o que está em cima — como no Collectr. */
+    background-color: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
   }
@@ -215,8 +217,9 @@
   :is(.dark, .mint) .glass-input,
   :is(.dark, .mint) .glass-pill {
     border-color: rgba(255, 255, 255, 0.1);
-    /* Navy dos cards (#0D1121) semi-transparente */
-    background-color: rgba(13, 17, 33, 0.45);
+    /* Navy dos cards (#0D1121) quase sólido: a 45% o fundo foil aparecia
+       através do conteúdo (19/10) */
+    background-color: rgba(13, 17, 33, 0.88);
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
