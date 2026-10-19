@@ -609,11 +609,14 @@ function PortfolioItemCard({
             {/* Preço (custo/lucro saíram: o app não tem e ninguém digitava
                 quanto pagou — ver o card de resumo abaixo) */}
             <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-foreground font-mono">
+              {/* No celular a coluna é estreita: o preço não quebra no
+                  meio ("R$" numa linha, o número na outra) e o unitário
+                  desce para a linha de baixo. */}
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                <span className="whitespace-nowrap text-sm font-bold text-foreground font-mono">
                   R$ {formatPrice(totalValue)}
                 </span>
-                <span className="text-[10px] text-muted-foreground font-mono">
+                <span className="whitespace-nowrap text-[10px] text-muted-foreground font-mono">
                   ({item.quantity}x R$ {formatPrice(currentPrice)})
                 </span>
               </div>
