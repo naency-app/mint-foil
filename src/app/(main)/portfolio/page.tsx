@@ -589,7 +589,7 @@ function PortfolioItemCard({
               }
             }}
           >
-            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 min-h-[3.1rem] hover:text-primary transition-colors">
+            <h3 className="text-lg font-bold text-foreground leading-snug line-clamp-2 h-[2lh] hover:text-primary transition-colors">
               {cardName(item.card)}
             </h3>
           </Link>
@@ -606,7 +606,7 @@ function PortfolioItemCard({
               .join(" • ")}
           </p>
 
-          <div className="pt-1.5 border-t border-border space-y-2">
+          <div className="pt-1 space-y-2">
             {/* Preço (custo/lucro saíram: o app não tem e ninguém digitava
                 quanto pagou — ver o card de resumo abaixo) */}
             <div className="flex flex-col gap-1">
@@ -1516,8 +1516,6 @@ export default function PortfolioPage() {
               {/* Top cartas / Por jogo logo abaixo do gráfico: no rodapé, quem
                   tem muitas cartas nunca chegava até eles. */}
               {!loading && <CollectionInsights stats={stats ?? null} />}
-
-              <Separator />
 
               {/* Collection Items */}
               {loading ? (

@@ -281,7 +281,9 @@ function CarouselSetItem({
         )}
       </div>
       <div className="space-y-1.5 p-2.5">
-        <p className="line-clamp-2 min-h-[2rem] text-[11px] font-semibold leading-tight text-foreground">
+        {/* Altura de exatamente duas linhas (2lh): com min-h de 2rem, maior que
+            duas linhas, o topo da terceira aparecia cortado embaixo (19/10) */}
+        <p className="line-clamp-2 h-[2lh] text-[11px] font-semibold leading-tight text-foreground">
           {set.name}
         </p>
         {total > 0 && collected > 0 ? (

@@ -258,7 +258,7 @@ export function TcgCard({
           </p>
         )}
 
-        <div className="flex items-end justify-between gap-2 border-t border-border pt-2">
+        <div className="flex items-end justify-between gap-2 pt-1">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-sm font-bold text-foreground">
