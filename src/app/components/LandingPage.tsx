@@ -564,11 +564,29 @@ const NAV_LINKS = [
 // Rotas externas (/loja) seguem o clique normal.
 function scrollToAnchor(e: React.MouseEvent, href: string) {
   if (!href.startsWith("#")) return;
-  const el = document.getElementById(href.slice(1));
-  if (!el) return;
+  if (!document.getElementById(href.slice(1))) return;
   e.preventDefault();
+  irParaSecao(href.slice(1));
+}
+
+/**
+ * Leva a seção para o meio da tela, abaixo do menu fixo: o conteúdo (sem o
+ * respiro da seção) fica centralizado no espaço livre. Encostar o topo no
+ * menu deixava o fim da seção cortado — em "Como funciona", os celulares
+ * (19/10). Se o conteúdo for mais alto que a tela (Coleções), o título fica
+ * 16px abaixo do menu, em vez de começar lá embaixo depois do respiro.
+ */
+function irParaSecao(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
   const NAV_OFFSET = 84; // pill (~52px) + folga
-  const y = el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+  const r = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  const respiroTopo = parseFloat(cs.paddingTop);
+  const conteudo = r.height - respiroTopo - parseFloat(cs.paddingBottom);
+  const livre = window.innerHeight - NAV_OFFSET;
+  const folga = Math.max(16, (livre - conteudo) / 2);
+  const y = r.top + window.scrollY + respiroTopo - NAV_OFFSET - folga;
   window.scrollTo({ top: y, behavior: "smooth" });
 }
 
@@ -1140,14 +1158,7 @@ function Hero({ noCelular }: { noCelular: boolean }) {
                 <ArrowRight size={16} /> Explorar agora
               </PrimaryBtn>
             )}
-            <PrimaryBtn
-              ghost
-              onClick={() =>
-                document
-                  .getElementById("recursos")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
+            <PrimaryBtn ghost onClick={() => irParaSecao("recursos")}>
               <Play size={14} /> Ver como funciona
             </PrimaryBtn>
           </div>
@@ -1265,10 +1276,10 @@ function VideoSection() {
 // A seção fica presa na tela (sticky de 100vh): num notebook o card de 960px
 // não cabia abaixo do título e o fim do vídeo ficava cortado para sempre
 // (19/10). O terceiro limite faz o card caber na altura que sobra — 100vh
-// menos o respiro de cima e de baixo e o cabeçalho (~270px; com 330 sobrava
+// menos o respiro de cima e de baixo e o cabeçalho (~230px; com 330 e 270 sobrava
 // espaço e o vídeo ficava pequeno demais) —, na proporção
 // da gravação (1088×720).
-const VIDEO_W = "min(960px, 92vw, calc((100svh - 270px) * 1088 / 720))";
+const VIDEO_W = "min(960px, 92vw, calc((100svh - 230px) * 1088 / 720))";
 
 function VideoInner({
   cardScale,
@@ -1564,6 +1575,12 @@ function RevealItem({
           onPointerEnter={(e) => {
             if (e.pointerType === "mouse") setHovered(true);
           }}
+          // A página rolando sob o mouse parado não dispara o enter: o nome
+          // passava por baixo do cursor e as cartas só vinham com um clique.
+          // Qualquer movimento em cima do nome revela.
+          onPointerMove={(e) => {
+            if (e.pointerType === "mouse" && !active) setHovered(true);
+          }}
           onPointerLeave={(e) => {
             if (e.pointerType === "mouse") setHovered(false);
           }}
@@ -1776,11 +1793,7 @@ function WatchDemoBtn() {
   return (
     <button
       type="button"
-      onClick={() =>
-        document
-          .getElementById("recursos")
-          ?.scrollIntoView({ behavior: "smooth" })
-      }
+      onClick={() => irParaSecao("recursos")}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -2526,8 +2539,10 @@ function KeyFeatures() {
     : Math.min(
         1,
         Math.max(
-          0.5,
-          (winH - MENU_H - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
+          0.55,
+          // Só metade do menu entra na conta: o cabeçalho da seção pode passar
+          // por baixo dele; o que precisa aparecer inteiro é o celular
+          (winH - MENU_H / 2 - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
         ),
       );
   const celW = CELULAR_W * tamanho;
