@@ -2365,8 +2365,9 @@ const CELULAR_H = IPHONE_H;
 const TEXTO_W = 340;
 // Altura da legenda (título + descrição de até 3 linhas) e dos pontinhos:
 // o que fica fora do celular quando ele se mede pela altura da tela
-// (110: a descrição ocupa duas linhas na prática; 130 encolhia o celular à toa)
-const LEGENDA_H = 110;
+// 22 de respiro + 28 do título + 6 + 3 linhas de 22 = 122. Com 110 a terceira
+// linha do "6 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
+const LEGENDA_H = 122;
 const PONTOS_H = 24;
 
 /**
