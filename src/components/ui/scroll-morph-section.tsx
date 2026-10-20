@@ -18,18 +18,15 @@ interface FlipCardProps {
   };
 }
 
-// Verso REAL de cada TCG (imagens locais) — nada de verso genérico
-function backFor(src: string): string {
-  if (src.includes("pokemontcg.io") || src.includes("charizard"))
-    return "/landing/pkm-card-back.jpg";
-  if (src.includes("ygoprodeck") || src.includes("blue-eyes"))
-    return "/landing/ygo-card-back.jpg";
-  if (src.includes("scryfall") || src.includes("shivan"))
-    return "/landing/mtg-card-back.jpg";
-  if (src.includes("luffy") || src.includes("one-piece"))
-    return "/landing/op-card-back.jpg";
-  return "/landing/pkm-card-back.jpg";
-}
+// Verso REAL de cada TCG (imagens locais) — nada de verso genérico. O jogo vem
+// marcado em cada carta de IMAGES: adivinhar pelo endereço parou de funcionar
+// quando as imagens viraram arquivos locais numerados (todas caíam no Pokémon).
+const VERSO = {
+  pokemon: "/landing/pkm-card-back.jpg",
+  yugioh: "/landing/ygo-card-back.jpg",
+  magic: "/landing/mtg-card-back.jpg",
+  onepiece: "/landing/op-card-back.jpg",
+} as const;
 
 // --- FlipCard ---
 const IMG_WIDTH = 92;
@@ -106,35 +103,35 @@ function FlipCard({ src, back, target }: FlipCardProps) {
 }
 
 // --- Cartas (mistura dos 4 TCGs; locais + hotlinks já usados na landing) ---
-const IMAGES = [
-  "/landing/blue-eyes-card.jpg",
-  "/landing/faixa/01.webp",
-  "/landing/shivan-card.jpg",
+const IMAGES: { src: string; jogo: keyof typeof VERSO }[] = [
+  { src: "/landing/blue-eyes-card.jpg", jogo: "yugioh" },
+  { src: "/landing/faixa/01.webp", jogo: "pokemon" },
+  { src: "/landing/shivan-card.jpg", jogo: "magic" },
   // Umbreon ex — Prismatic Evolutions (2025)
-  "/landing/faixa/02.webp",
-  "/landing/luffy-card.png",
+  { src: "/landing/faixa/02.webp", jogo: "pokemon" },
+  { src: "/landing/luffy-card.png", jogo: "onepiece" },
   // Ash Blossom & Joyous Spring — staple nº 1, tem versão Starlight
-  "/landing/faixa/morph-1.webp",
-  "/landing/charizard-card.png",
-  "/landing/faixa/03.webp",
+  { src: "/landing/faixa/morph-1.webp", jogo: "yugioh" },
+  { src: "/landing/charizard-card.png", jogo: "pokemon" },
+  { src: "/landing/faixa/03.webp", jogo: "pokemon" },
   // Sheoldred, the Apocalypse — staple atual de Magic
-  "/landing/faixa/21.webp",
-  "/landing/faixa/04.webp",
+  { src: "/landing/faixa/21.webp", jogo: "magic" },
+  { src: "/landing/faixa/04.webp", jogo: "pokemon" },
   // Infinite Impermanence — staple desejadíssima, versão Starlight
-  "/landing/faixa/morph-2.webp",
-  "/landing/faixa/06.webp",
-  "/landing/faixa/22.webp",
+  { src: "/landing/faixa/morph-2.webp", jogo: "yugioh" },
+  { src: "/landing/faixa/06.webp", jogo: "pokemon" },
+  { src: "/landing/faixa/22.webp", jogo: "magic" },
   // Leafeon ex — Prismatic Evolutions (2025)
-  "/landing/faixa/12.webp",
+  { src: "/landing/faixa/12.webp", jogo: "pokemon" },
   // S:P Little Knight — chase atual do extra deck
-  "/landing/faixa/morph-3.webp",
+  { src: "/landing/faixa/morph-3.webp", jogo: "yugioh" },
   // Pikachu ex — Surging Sparks (2024)
-  "/landing/faixa/11.webp",
-  "/landing/faixa/23.webp",
-  "/landing/faixa/09.webp",
+  { src: "/landing/faixa/11.webp", jogo: "pokemon" },
+  { src: "/landing/faixa/23.webp", jogo: "magic" },
+  { src: "/landing/faixa/09.webp", jogo: "pokemon" },
   // Mulcharmy Fuwalos — hand trap chase de 2024/25
-  "/landing/faixa/morph-4.webp",
-  "/landing/faixa/10.webp",
+  { src: "/landing/faixa/morph-4.webp", jogo: "yugioh" },
+  { src: "/landing/faixa/10.webp", jogo: "pokemon" },
 ];
 
 const TOTAL_IMAGES = 20;
@@ -401,7 +398,7 @@ export default function ScrollMorphSection({
 
           {/* Cartas */}
           <div className="relative z-10 flex h-full w-full items-center justify-center">
-            {IMAGES.slice(0, TOTAL_IMAGES).map((src, i) => {
+            {IMAGES.slice(0, TOTAL_IMAGES).map(({ src, jogo }, i) => {
               let target = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
 
               if (introPhase === "scatter") {
@@ -473,7 +470,7 @@ export default function ScrollMorphSection({
                 <FlipCard
                   key={src}
                   src={src}
-                  back={backFor(src)}
+                  back={VERSO[jogo]}
                   target={target}
                 />
               );
