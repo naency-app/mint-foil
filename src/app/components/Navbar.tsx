@@ -20,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useSession } from "@/lib/auth-client";
 import { useExploreHref } from "@/lib/explore-href";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +63,10 @@ export function Navbar() {
   // governa pill, hover e estado ativo; só o destino da navegação muda.
   const exploreHref = useExploreHref();
   const destino = (href: string) => (href === "/explore" ? exploreHref : href);
+
+  // Logado, o "início" é o Explorar: a landing é para quem ainda não entrou.
+  const { data: session } = useSession();
+  const inicio = session ? "/explore" : "/";
 
   return (
     <>
@@ -170,10 +175,10 @@ export function Navbar() {
               </SheetContent>
             </Sheet>
 
-            {/* Logo leva à landing, como em qualquer site; o Explorar tem o
-                próprio link no centro da barra */}
+            {/* Logo leva ao início: o Explorar sem filtros para quem está
+                logado, a landing para quem não está */}
             <Link
-              href="/"
+              href={inicio}
               className="flex items-center gap-2"
               aria-label="Mint Foil — Início"
             >
