@@ -46,8 +46,26 @@ const REFLEXOS: {
   { top: "80%", left: "76%", w: 110, h: 30, rot: 24, op: 0.19 },
 ];
 
-/** Contornos de carta (proporção 2:3) e brilhos espalhados num ladrilho. */
-function PadraoCartas() {
+/**
+ * Contornos de carta (proporção 2:3) e brilhos espalhados num ladrilho. As
+ * cores vêm de quem usa: branco no Mint, cinza e rosa no claro (FundoClaro).
+ * `id` diferente por fundo, porque os dois ficam na página ao mesmo tempo.
+ */
+function PadraoCartas({
+  id,
+  traco,
+  brilho,
+  opTraco,
+  opBrilho,
+  opPonto,
+}: {
+  id: string;
+  traco: string;
+  brilho: string;
+  opTraco: number;
+  opBrilho: number;
+  opPonto: number;
+}) {
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: decorativo, escondido do leitor de tela
     <svg
@@ -56,13 +74,8 @@ function PadraoCartas() {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <pattern
-          id="mf-cartas"
-          width="280"
-          height="280"
-          patternUnits="userSpaceOnUse"
-        >
-          <g fill="none" stroke="white" strokeOpacity="0.1" strokeWidth="1">
+        <pattern id={id} width="280" height="280" patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={traco} strokeOpacity={opTraco} strokeWidth="1">
             <rect x="22" y="30" width="36" height="54" rx="4" />
             <rect x="27" y="35" width="26" height="22" rx="1.5" />
             <rect
@@ -91,19 +104,19 @@ function PadraoCartas() {
             />
           </g>
           {/* Brilho de quatro pontas — o mesmo "sparkle" de carta holo */}
-          <g fill="white" fillOpacity="0.14">
+          <g fill={brilho} fillOpacity={opBrilho}>
             <path d="M120 96 l2.5 9 9 2.5 -9 2.5 -2.5 9 -2.5 -9 -9 -2.5 9 -2.5z" />
             <path d="M60 210 l1.6 5.6 5.6 1.6 -5.6 1.6 -1.6 5.6 -1.6 -5.6 -5.6 -1.6 5.6 -1.6z" />
             <path d="M250 240 l1.2 4.2 4.2 1.2 -4.2 1.2 -1.2 4.2 -1.2 -4.2 -4.2 -1.2 4.2 -1.2z" />
           </g>
-          <g fill="white" fillOpacity="0.08">
+          <g fill={traco} fillOpacity={opPonto}>
             <circle cx="140" cy="250" r="1" />
             <circle cx="95" cy="160" r="0.8" />
             <circle cx="245" cy="110" r="1" />
           </g>
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#mf-cartas)" />
+      <rect width="100%" height="100%" fill={`url(#${id})`} />
     </svg>
   );
 }
@@ -151,7 +164,14 @@ export function FundoFoil() {
             "radial-gradient(ellipse 55% 55% at 50% 45%, rgba(0,0,0,0.45) 30%, black 100%)",
         }}
       >
-        <PadraoCartas />
+        <PadraoCartas
+          id="mf-cartas"
+          traco="white"
+          brilho="white"
+          opTraco={0.1}
+          opBrilho={0.14}
+          opPonto={0.08}
+        />
       </div>
 
       {/* 4. Reflexos foil: faixas de cor alongadas (o cônico, desfocado,
@@ -196,6 +216,70 @@ export function FundoFoil() {
             "radial-gradient(ellipse 85% 80% at 50% 40%, transparent 55%, rgba(2,6,23,0.75) 100%)",
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * Fundo do tema claro: o mesmo desenho do Mint, bem mais discreto, para o
+ * cinza da página não ficar sem graça (pedido do usuário, 21/10). Manchas de
+ * rosa e lilás nos cantos, grade e contornos de carta em cinza quase
+ * invisível e os brilhos de quatro pontas em rosa. Sem reflexos nem vinheta:
+ * no claro eles sujavam o fundo em vez de dar brilho.
+ *
+ * `dark:hidden` esconde no escuro e no Mint (a variante dark cobre os dois).
+ */
+export function FundoClaro() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden dark:hidden"
+    >
+      {/* 1. Manchas de cor */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: [
+            `radial-gradient(ellipse 55% 50% at 6% 8%, rgba(${ROSA}, 0.13), transparent 70%)`,
+            `radial-gradient(ellipse 50% 55% at 96% 32%, rgba(${ROXO}, 0.1), transparent 70%)`,
+            `radial-gradient(ellipse 60% 45% at 40% 105%, rgba(${ROSA}, 0.08), transparent 70%)`,
+          ].join(", "),
+        }}
+      />
+
+      {/* 2. Grade fina, mais leve no centro */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(2,6,23,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(2,6,23,0.035) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+          maskImage:
+            "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.6), black 95%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.6), black 95%)",
+        }}
+      />
+
+      {/* 3. Contornos de carta e brilhos rosa, mais fortes nas bordas */}
+      <div
+        className="absolute inset-0"
+        style={{
+          maskImage:
+            "radial-gradient(ellipse 55% 55% at 50% 45%, rgba(0,0,0,0.4) 30%, black 100%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 55% 55% at 50% 45%, rgba(0,0,0,0.4) 30%, black 100%)",
+        }}
+      >
+        <PadraoCartas
+          id="mf-cartas-claro"
+          traco="#020617"
+          brilho="#F856A7"
+          opTraco={0.06}
+          opBrilho={0.3}
+          opPonto={0.08}
+        />
+      </div>
     </div>
   );
 }
