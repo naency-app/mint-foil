@@ -142,7 +142,9 @@ export function UserMenu() {
           para ver o resultado na hora e voltar atrás sem reabrir.
         */}
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="cursor-pointer gap-2 rounded-lg px-2 py-2 text-sm font-medium focus:bg-muted/60 data-[state=open]:bg-muted/60">
+          {/* md:hidden igual ao menu lateral: no celular o tema já fica lá,
+              e repetir aqui era redundante (21/10) */}
+          <DropdownMenuSubTrigger className="cursor-pointer gap-2 rounded-lg px-2 py-2 text-sm font-medium focus:bg-muted/60 data-[state=open]:bg-muted/60 max-md:hidden">
             <IconPalette className="size-4 text-muted-foreground" />
             Aparência
           </DropdownMenuSubTrigger>
