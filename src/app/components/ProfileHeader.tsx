@@ -1,6 +1,7 @@
 import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { FotoDoUsuario } from "@/components/FotoDoUsuario";
 import { faviconFor, SOCIAL_LINKS, toDisplay } from "@/lib/social-links";
 import { type Cover, ProfileCover } from "./ProfileCover";
 
@@ -70,7 +71,7 @@ export function ProfileHeader({
       style={{ width: px, height: px }}
     >
       {image ? (
-        <Image
+        <FotoDoUsuario
           src={image}
           alt={displayName}
           width={px}
