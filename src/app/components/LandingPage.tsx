@@ -1294,6 +1294,7 @@ function VideoInner({
 }) {
   const t = useTheme();
   const isMobile = useIsMobile();
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const cardBg = t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg;
   const cardBorder = t.isDark ? "rgba(255,255,255,0.08)" : t.border;
@@ -1390,6 +1391,76 @@ function VideoInner({
             <DemoWeb />
           </div>
         </motion.div>
+
+        {/* Só no celular: embaixo do vídeo sobrava a tela vazia (a seção fica
+            presa com 100vh). Um card discreto sobre o portfólio leva para a
+            web, mais para baixo, no meio desse espaço (21/10). */}
+        {isMobile && (
+          <FadeIn delay={0.2}>
+            <button
+              type="button"
+              onClick={() => router.push("/portfolio")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                width: "100%",
+                maxWidth: "100%",
+                margin: "clamp(40px, 9vh, 88px) auto 0",
+                padding: "16px",
+                borderRadius: "16px",
+                border: `1px solid ${cardBorder}`,
+                background: cardBg,
+                textAlign: "left",
+                cursor: "pointer",
+              }}
+            >
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "12px",
+                  background: t.primaryBg,
+                  color: t.primary,
+                }}
+              >
+                <BarChart3 size={18} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: t.text,
+                  }}
+                >
+                  Monte seu portfólio
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: "2px",
+                    fontSize: "13px",
+                    lineHeight: 1.45,
+                    color: t.muted,
+                  }}
+                >
+                  Adicione suas cartas e acompanhe o valor da coleção dia a dia,
+                  direto do navegador.
+                </span>
+              </span>
+              <ArrowRight
+                size={18}
+                style={{ flexShrink: 0, color: t.primary }}
+              />
+            </button>
+          </FadeIn>
+        )}
       </div>
     </>
   );
