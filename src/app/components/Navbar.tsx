@@ -1,11 +1,19 @@
 "use client";
 
-import { IconMenu, IconScan, IconX } from "@tabler/icons-react";
+import {
+  IconCards,
+  IconCompass,
+  IconMenu,
+  IconScan,
+  IconStack2,
+  IconX,
+} from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
+import { SeletorTema } from "@/components/SeletorTema";
 import { UserMenu } from "@/components/UserMenu";
 import {
   Popover,
@@ -24,9 +32,9 @@ import { useExploreHref } from "@/lib/explore-href";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Explorar", href: "/explore" },
-  { label: "Portfólio", href: "/portfolio" },
-  { label: "Sets", href: "/sets" },
+  { label: "Explorar", href: "/explore", icon: IconCompass },
+  { label: "Portfólio", href: "/portfolio", icon: IconCards },
+  { label: "Sets", href: "/sets", icon: IconStack2 },
 ];
 
 // Mesma cara do wordmark da landing: fonte do sistema, peso 800, caixa alta
@@ -103,7 +111,7 @@ export function Navbar() {
 
               <SheetContent
                 side="left"
-                className="w-72 border-border bg-background p-0"
+                className="w-72 gap-0 border-border bg-background p-0"
                 showCloseButton={false}
               >
                 <SheetHeader className="border-b border-border px-5 pt-5 pb-4">
@@ -128,7 +136,10 @@ export function Navbar() {
                   </div>
                 </SheetHeader>
 
-                <div className="flex flex-col py-3">
+                {/* Itens em pílula com ícone, como o dock do app: a faixa de
+                    largura inteira com risco na borda parecia lista de
+                    configurações (21/10) */}
+                <nav className="flex flex-col gap-1 p-3">
                   {navLinks.map((link) => {
                     const active = isLinkActive(pathname, link.href);
                     return (
@@ -136,36 +147,34 @@ export function Navbar() {
                         <Link
                           href={destino(link.href)}
                           className={cn(
-                            "relative flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors",
+                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
                             active
-                              ? "bg-primary/5 text-primary"
+                              ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {active && (
-                            <motion.span
-                              layoutId="mobile-nav-indicator"
-                              className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-primary"
-                              transition={{
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 30,
-                              }}
-                            />
-                          )}
+                          <link.icon className="size-5" />
                           {link.label}
                         </Link>
                       </SheetClose>
                     );
                   })}
+                </nav>
+
+                <div className="border-t border-border px-5 py-4">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Aparência
+                  </p>
+                  <SeletorTema />
                 </div>
 
-                <div className="border-t border-border px-5 pt-3">
-                  <div className="flex items-center justify-between py-3">
-                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Tema
-                    </span>
-                  </div>
+                {/* Convite pro app no pé do menu: no celular é o caminho do
+                    scan, e o selo leva direto à loja */}
+                <div className="mt-auto space-y-3 border-t border-border px-5 py-5">
+                  <p className="text-sm font-bold text-foreground">
+                    Escaneie suas cartas pelo app
+                  </p>
+                  <SelosLojas tamanho={116} origem="menu-mobile" />
                 </div>
               </SheetContent>
             </Sheet>

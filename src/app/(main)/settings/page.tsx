@@ -1,6 +1,5 @@
 "use client";
 
-import { IconDeviceDesktop } from "@tabler/icons-react";
 import {
   BarChart3,
   Crown,
@@ -23,10 +22,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTheme } from "next-themes";
 import { Suspense, useEffect, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { SeletorTema } from "@/components/SeletorTema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +34,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
 import { signOut, useSession } from "@/lib/auth-client";
 import { capaVisivel, coverCss, findCoverPreset } from "@/lib/cover-catalog";
-import { TEMAS } from "@/lib/temas";
 import { cn } from "@/lib/utils";
 import { ContasBloqueadas } from "./contas-bloqueadas";
 import { CoverPicker } from "./cover-picker";
@@ -204,43 +202,6 @@ function AdminPanel() {
         })}
       </div>
     </section>
-  );
-}
-
-function ThemeSelector() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) return null;
-
-  const options = [
-    ...TEMAS,
-    { value: "system", label: "Sistema", icon: IconDeviceDesktop },
-  ] as const;
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((opt) => {
-        const active = theme === opt.value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => setTheme(opt.value)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
-              active
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            <opt.icon className="size-4" />
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
@@ -832,7 +793,7 @@ function SettingsContent() {
                   <p className="text-sm text-muted-foreground mb-3">
                     Selecione o tema da interface visual.
                   </p>
-                  <ThemeSelector />
+                  <SeletorTema />
                 </div>
               </section>
 
