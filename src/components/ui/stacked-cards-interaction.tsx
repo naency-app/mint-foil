@@ -28,7 +28,9 @@ const Card = ({
           src={image}
           alt=""
           referrerPolicy="no-referrer"
-          loading="lazy"
+          // Sem loading="lazy": com largura automática a imagem tem 0px até
+          // carregar, e uma imagem de 0px nunca "entra na tela" para o lazy
+          // disparar. No celular as cartas da pilha não apareciam (21/10).
           decoding="async"
           // object-contain + largura automática: cada TCG tem proporção
           // própria (Yu-Gi-Oh é mais estreita) — cover cortava as bordas
