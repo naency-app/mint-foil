@@ -240,8 +240,8 @@ export function FundoClaro() {
         className="absolute inset-0"
         style={{
           backgroundImage: [
-            `radial-gradient(ellipse 55% 50% at 6% 8%, rgba(${ROSA}, 0.13), transparent 70%)`,
-            `radial-gradient(ellipse 50% 55% at 96% 32%, rgba(${ROXO}, 0.1), transparent 70%)`,
+            `radial-gradient(ellipse 55% 50% at 6% 8%, rgba(${ROSA}, 0.05), transparent 70%)`,
+            `radial-gradient(ellipse 50% 55% at 96% 32%, rgba(${ROXO}, 0.06), transparent 70%)`,
             `radial-gradient(ellipse 60% 45% at 40% 105%, rgba(${ROSA}, 0.08), transparent 70%)`,
           ].join(", "),
         }}
@@ -252,7 +252,7 @@ export function FundoClaro() {
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(2,6,23,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(2,6,23,0.035) 1px, transparent 1px)",
+            "linear-gradient(rgba(2,6,23,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(2,6,23,0.022) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
           maskImage:
             "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.6), black 95%)",
@@ -275,9 +275,9 @@ export function FundoClaro() {
           id="mf-cartas-claro"
           traco="#020617"
           brilho="#F856A7"
-          opTraco={0.06}
-          opBrilho={0.3}
-          opPonto={0.08}
+          opTraco={0.035}
+          opBrilho={0.18}
+          opPonto={0.05}
         />
       </div>
     </div>
