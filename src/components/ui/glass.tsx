@@ -1,5 +1,6 @@
 "use client";
 
+import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,12 +12,18 @@ import { cn } from "@/lib/utils";
 
 export function GlassPill({
   active = false,
+  asChild = false,
   className,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  active?: boolean;
+  /** Para virar Link (ação secundária de um estado vazio, por exemplo) */
+  asChild?: boolean;
+}) {
+  const Comp = asChild ? Slot.Root : "button";
   return (
-    <button
-      type="button"
+    <Comp
+      {...(!asChild && { type: "button" as const })}
       className={cn(
         "glass-pill inline-flex shrink-0 cursor-pointer items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-bold transition-colors",
         // text-foreground é utility e venceria o color de .glass-pill-active;

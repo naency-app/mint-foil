@@ -29,6 +29,7 @@ import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -639,19 +640,20 @@ export function CardDetailClient({
                 <XAxis numTicks={6} />
               </AreaChart>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <TrendingUp className="size-8 text-muted-foreground/40 mb-3" />
-                <p className="text-base text-muted-foreground">
-                  {priceHistory.length === 0
+              <EstadoVazio
+                className="py-10"
+                icon={TrendingUp}
+                titulo={
+                  priceHistory.length === 0
+                    ? "Sem histórico de preço"
+                    : "Histórico em construção"
+                }
+                descricao={
+                  priceHistory.length === 0
                     ? "Ainda não há dados de preço para esta carta."
-                    : "Histórico em construção — o gráfico aparecerá com mais dados."}
-                </p>
-                {priceHistory.length === 1 && (
-                  <p className="text-sm text-muted-foreground/60 mt-1">
-                    Preço atual: R$ {formatPrice(priceHistory[0].price)}
-                  </p>
-                )}
-              </div>
+                    : `O gráfico aparece com mais dados. Preço atual: R$ ${formatPrice(priceHistory[0].price)}`
+                }
+              />
             )}
           </div>
 
