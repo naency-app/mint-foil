@@ -271,7 +271,10 @@ function SidebarButton({
       variant="ghost"
       onClick={onClick}
       className={cn(
-        "justify-start h-auto w-full gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg",
+        // No computador é a lateral (largura cheia); no celular vira pílula do
+        // tamanho do texto: largura cheia numa linha rolável deixava uma aba
+        // por tela e obrigava a deslizar (21/10)
+        "justify-start h-auto w-full gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg max-md:w-auto max-md:gap-2 max-md:rounded-full max-md:px-3.5 max-md:py-1.5 max-md:text-[13px]",
         active
           ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -495,7 +498,7 @@ function SettingsContent() {
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0">
-          <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-x-visible pb-3 md:pb-0 border-b border-border md:border-b-0">
+          <nav className="flex flex-row flex-wrap md:flex-col gap-1 max-md:gap-2 pb-3 md:pb-0 border-b border-border md:border-b-0">
             <SidebarButton
               label="Estatísticas"
               icon={BarChart3}
