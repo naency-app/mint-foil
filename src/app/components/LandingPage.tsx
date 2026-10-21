@@ -43,7 +43,6 @@ import {
   useState,
 } from "react";
 import { flushSync } from "react-dom";
-import { SelosLojas } from "@/app/components/ConviteApp";
 import { Badge } from "@/components/ui/badge";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import ScrollMorphSection from "@/components/ui/scroll-morph-section";
@@ -1394,43 +1393,72 @@ function VideoInner({
         </motion.div>
 
         {/* Só no celular: embaixo do vídeo sobrava a tela vazia (a seção fica
-            presa com 100vh). Os convites ocupam esse espaço (21/10). */}
+            presa com 100vh). Um card discreto sobre o portfólio leva para a
+            web, mais para baixo, no meio desse espaço (21/10). */}
         {isMobile && (
           <FadeIn delay={0.2}>
-            <div
+            <button
+              type="button"
+              onClick={() => router.push("/portfolio")}
               style={{
-                marginTop: "24px",
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                gap: "12px",
-                opacity: 0.9,
+                gap: "14px",
+                width: "100%",
+                maxWidth: "100%",
+                margin: "clamp(40px, 9vh, 88px) auto 0",
+                padding: "16px",
+                borderRadius: "16px",
+                border: `1px solid ${cardBorder}`,
+                background: cardBg,
+                textAlign: "left",
+                cursor: "pointer",
               }}
             >
-              <SelosLojas
-                className="justify-center"
-                tamanho={118}
-                origem="landing-veja-em-acao"
-              />
-              {/* Link discreto em vez de outro botão grande (pedido: sutil) */}
-              <button
-                type="button"
-                onClick={() => router.push("/explore")}
+              <span
                 style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: t.primary,
-                  display: "inline-flex",
+                  display: "flex",
                   alignItems: "center",
-                  gap: "6px",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "12px",
+                  background: t.primaryBg,
+                  color: t.primary,
                 }}
               >
-                ou explore pela web <ArrowRight size={14} />
-              </button>
-            </div>
+                <BarChart3 size={18} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: t.text,
+                  }}
+                >
+                  Monte seu portfólio
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: "2px",
+                    fontSize: "13px",
+                    lineHeight: 1.45,
+                    color: t.muted,
+                  }}
+                >
+                  Adicione suas cartas e acompanhe o valor da coleção dia a dia,
+                  direto do navegador.
+                </span>
+              </span>
+              <ArrowRight
+                size={18}
+                style={{ flexShrink: 0, color: t.primary }}
+              />
+            </button>
           </FadeIn>
         )}
       </div>
