@@ -5,7 +5,6 @@ import {
   IconLoader2,
   IconMinus,
   IconPlus,
-  IconX,
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -15,6 +14,7 @@ import { AddIconButton } from "@/app/components/AddIconButton";
 import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 import { type CartaQuickAdd, useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
+import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GlassPill } from "@/components/ui/glass";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -338,22 +339,26 @@ export function AddToPortfolioButton({
               if (e.key === "Enter") handleCreatePortfolio();
             }}
           />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
-              <IconX className="size-4" />
+          {/* Mesmo padrão do diálogo do Portfólio: BotaoFoil + GlassPill */}
+          <DialogFooter className="gap-2">
+            <GlassPill
+              onClick={() => setShowNewDialog(false)}
+              className="h-9 justify-center px-4 text-sm"
+            >
               Cancelar
-            </Button>
-            <Button
+            </GlassPill>
+            <BotaoFoil
               onClick={handleCreatePortfolio}
               disabled={creatingPortfolio || !newPortfolioName.trim()}
+              className="justify-center"
             >
               {creatingPortfolio ? (
-                <IconLoader2 className="size-4 animate-spin" />
+                <IconLoader2 className="animate-spin" />
               ) : (
-                <IconFolderPlus className="size-4" />
+                <IconFolderPlus />
               )}
               Criar portfólio
-            </Button>
+            </BotaoFoil>
           </DialogFooter>
         </DialogContent>
       </Dialog>

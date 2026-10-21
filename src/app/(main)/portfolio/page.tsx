@@ -1835,11 +1835,6 @@ export default function PortfolioPage() {
               titulo="Nenhum portfólio criado"
               descricao="Crie seu primeiro portfólio para começar a rastrear sua coleção de cartas."
             >
-              {/*
-                Variante padrão do Button (bg-primary), sem override de cor: o
-                verde hardcoded que estava aqui não vem de token nenhum e
-                destoava do resto do produto.
-              */}
               <BotaoFoil onClick={openNewPortfolioOrPaywall}>
                 <FolderPlus />
                 Criar portfólio
@@ -1865,25 +1860,27 @@ export default function PortfolioPage() {
                   if (e.key === "Enter") handleCreatePortfolio();
                 }}
               />
-              <DialogFooter>
-                <Button
-                  variant="outline"
+              {/* Padrão do sistema: BotaoFoil na ação, GlassPill no cancelar
+                  (o verde destoava, 21/10) */}
+              <DialogFooter className="gap-2">
+                <GlassPill
                   onClick={() => setShowNewDialog(false)}
+                  className="h-9 justify-center px-4 text-sm"
                 >
                   Cancelar
-                </Button>
-                <Button
+                </GlassPill>
+                <BotaoFoil
                   onClick={handleCreatePortfolio}
                   disabled={creating || !newName.trim()}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-black"
+                  className="justify-center"
                 >
                   {creating ? (
-                    <Loader2 className="size-4 animate-spin mr-2" />
+                    <Loader2 className="animate-spin" />
                   ) : (
-                    <FolderPlus className="size-4 mr-2" />
+                    <FolderPlus />
                   )}
-                  Criar
-                </Button>
+                  Criar portfólio
+                </BotaoFoil>
               </DialogFooter>
             </DialogContent>
           </Dialog>
