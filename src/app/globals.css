@@ -214,7 +214,6 @@
        fundo aparece sem atrapalhar a leitura. */
     background-color: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
   }
   .glass-card {
     border-radius: 20px;
@@ -242,7 +241,6 @@
   :is(.dark, .mint) .glass-card .glass-input {
     background-color: transparent;
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
