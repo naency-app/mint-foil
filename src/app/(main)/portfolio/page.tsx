@@ -1378,7 +1378,7 @@ export default function PortfolioPage() {
                     não tem, e o "preço de compra" era o preço do dia em que a
                     carta foi adicionada — o "lucro" era só a variação desde
                     então, e parte dos valores tinha sido gravada em dólar. */}
-                <Card className="lg:col-span-12 glass-card bg-[var(--glass-bg)] shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
+                <Card className="relative lg:col-span-12 glass-card bg-[var(--glass-bg)] shadow-none overflow-hidden p-5 flex flex-col justify-between min-h-[380px]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1442,7 +1442,15 @@ export default function PortfolioPage() {
                   </div>
 
                   {/* Chart container */}
-                  <div className="flex-1 w-full relative min-h-[220px]">
+                  {/* Sem histórico, a área do gráfico deixa de ser a referência
+                      do vazio: ele centraliza no card inteiro, não abaixo do
+                      valor e dos botões de período (21/10) */}
+                  <div
+                    className={cn(
+                      "flex-1 w-full min-h-[220px]",
+                      (loading || historyData.length > 1) && "relative",
+                    )}
+                  >
                     {loading ? (
                       <Skeleton className="absolute inset-0 rounded-xl" />
                     ) : (
@@ -1497,7 +1505,7 @@ export default function PortfolioPage() {
                         ) : (
                           <EstadoVazio
                             compacto
-                            className="absolute inset-0 p-4 py-0"
+                            className="pointer-events-none absolute inset-0 p-4 py-0"
                             icon={TrendingUp}
                             titulo="Histórico em construção"
                             descricao="O gráfico de evolução histórica será desenhado à medida que sua coleção for atualizada nos próximos dias."
