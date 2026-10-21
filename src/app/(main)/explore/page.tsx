@@ -1027,23 +1027,28 @@ function ExplorePageContent() {
           Fica logo abaixo da busca, fora da coluna de conteúdo: são controles
           da tela inteira (para onde vai a carta, como a lista é ordenada e
           exibida), não do bloco de resultados. Dentro da coluna eles nasciam
-          desalinhados da sidebar e o olho lia duas barras de ferramentas. */}
-      <div className="flex flex-wrap items-center gap-2">
+          desalinhados da sidebar e o olho lia duas barras de ferramentas.
+          No celular tudo numa linha só (21/10): a ordenação vira só o ícone e o
+          "Adicionando em" encolhe se faltar espaço. */}
+      <div className="flex flex-wrap items-center gap-2 max-sm:flex-nowrap">
         {portfolios.length > 0 && (
-          <PortfolioSelector
-            portfolios={portfolios}
-            activePortfolioId={activePortfolioId}
-            onSelect={setActivePortfolioId}
-            onRefresh={invalidateCollection}
-            labelPrefix="Adicionando em"
-          />
+          <div className="min-w-0 max-sm:overflow-hidden">
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={invalidateCollection}
+              labelPrefix="Adicionando em"
+            />
+          </div>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger
               size="sm"
-              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+              aria-label="Ordenar"
+              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none max-sm:[&_[data-slot=select-value]]:hidden ${
                 sortActive
                   ? "border-primary/25 bg-primary/10 text-primary"
                   : "glass-pill text-foreground"
