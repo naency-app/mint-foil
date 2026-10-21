@@ -298,9 +298,10 @@ export function useInfiniteCards(query: CardQuery) {
  * teto de preço. Só o backend enxerga o catálogo inteiro — derivar isso das
  * cartas carregadas descrevia uma amostra e escondia opções do usuário.
  *
- * O próprio filtro de facetas fica FORA da chave: o backend já ignora essas
- * seleções ao contar, então incluí-las só causaria refetch idêntico a cada
- * clique numa raridade.
+ * As seleções de raridade/tipo/atributo ENTRAM: o backend conta cada faceta
+ * com as OUTRAS aplicadas (com FIRE marcado, a raridade conta só as FIRE).
+ * Antes ficavam de fora e a contagem descrevia a busca inteira — "Super Rare
+ * 4" com 1 carta na grade.
  */
 export function useCardFacets(query: CardQuery) {
   // Ordem e faixa de preço ENTRAM: a ordenação por preço tira as cartas sem
@@ -314,6 +315,9 @@ export function useCardFacets(query: CardQuery) {
     sort: query.sort,
     minPrice: query.minPrice,
     maxPrice: query.maxPrice,
+    rarity: query.rarity,
+    cardType: query.cardType,
+    attribute: query.attribute,
   };
   return useQuery({
     queryKey: ["card-facets", ...cardsQueryKey(facetQuery)],

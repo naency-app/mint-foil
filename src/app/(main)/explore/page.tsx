@@ -41,6 +41,7 @@ import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
   FilterSection,
+  comSelecionados,
   facetOptions,
   PainelFiltros,
   PriceRangeFilter,
@@ -869,18 +870,29 @@ function ExplorePageContent() {
   const rarityGroups = useMemo(
     () =>
       agruparRaridades(
-        facets?.rarity ?? facetOptions(cards, (c) => c.rarity),
+        comSelecionados(
+          facets?.rarity ?? facetOptions(cards, (c) => c.rarity),
+          selectedRarities,
+        ),
         activeTcgs.length === 1 ? activeTcgs[0] : undefined,
       ),
-    [facets?.rarity, cards, activeTcgs],
+    [facets?.rarity, cards, activeTcgs, selectedRarities],
   );
   const typeOptions = useMemo(
-    () => facets?.cardType ?? facetOptions(cards, (c) => c.cardType),
-    [facets?.cardType, cards],
+    () =>
+      comSelecionados(
+        facets?.cardType ?? facetOptions(cards, (c) => c.cardType),
+        selectedTypes,
+      ),
+    [facets?.cardType, cards, selectedTypes],
   );
   const attributeOptions = useMemo(
-    () => facets?.attribute ?? facetOptions(cards, (c) => c.attribute),
-    [facets?.attribute, cards],
+    () =>
+      comSelecionados(
+        facets?.attribute ?? facetOptions(cards, (c) => c.attribute),
+        selectedAttributes,
+      ),
+    [facets?.attribute, cards, selectedAttributes],
   );
 
   // Teto do slider: maior preço do catálogo filtrado. Arredondado para cima
