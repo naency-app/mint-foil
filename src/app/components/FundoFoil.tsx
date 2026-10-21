@@ -223,8 +223,9 @@ export function FundoFoil() {
 /**
  * Fundo do tema claro: o mesmo desenho do Mint, bem mais discreto, para o
  * cinza da página não ficar sem graça (pedido do usuário, 21/10). Manchas de
- * rosa e lilás nos cantos, grade e contornos de carta em cinza quase
- * invisível e os brilhos de quatro pontas em rosa. Sem reflexos nem vinheta:
+ * rosa e lilás nos cantos, grade e contornos de carta em cinza suave, como no
+ * Mint. Sem os brilhos de quatro pontas (em rosa, o usuário preferiu só as
+ * cartas), sem reflexos e sem vinheta:
  * no claro eles sujavam o fundo em vez de dar brilho.
  *
  * `dark:hidden` esconde no escuro e no Mint (a variante dark cobre os dois).
@@ -261,7 +262,7 @@ export function FundoClaro() {
         }}
       />
 
-      {/* 3. Contornos de carta e brilhos rosa, mais fortes nas bordas */}
+      {/* 3. Contornos de carta, mais fortes nas bordas */}
       <div
         className="absolute inset-0"
         style={{
@@ -275,9 +276,9 @@ export function FundoClaro() {
           id="mf-cartas-claro"
           traco="#020617"
           brilho="#F856A7"
-          opTraco={0.035}
-          opBrilho={0.18}
-          opPonto={0.05}
+          opTraco={0.06}
+          opBrilho={0}
+          opPonto={0.04}
         />
       </div>
     </div>
