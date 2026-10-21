@@ -59,6 +59,7 @@ import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1327,14 +1328,12 @@ export default function PortfolioPage() {
           ) : showcaseData.portfolios.some((p) => p.items.length > 0) ? (
             <ShowcaseBrowser portfolios={showcaseData.portfolios} />
           ) : (
-            <div className="glass-card !rounded-2xl p-12 text-center">
-              <p className="text-sm font-semibold text-foreground">
-                Sua coleção ainda não tem cartas.
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Adicione cartas e elas aparecem no seu perfil público.
-              </p>
-            </div>
+            <EstadoVazio
+              emCard
+              icon={Package}
+              titulo="Sua coleção ainda não tem cartas"
+              descricao="Adicione cartas e elas aparecem no seu perfil público."
+            />
           )}
         </main>
       ) : (
@@ -1564,33 +1563,27 @@ export default function PortfolioPage() {
                   </Button>
                 </div>
               ) : items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <Package className="size-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    Portfólio vazio
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                    Explore o catálogo e adicione cartas a este portfólio, ou
-                    escaneie as suas pelo app.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    <Button
-                      asChild
-                      className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
-                    >
-                      <Link href="/explore">
-                        <Plus className="size-4" />
-                        Explorar Cartas
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="gap-2">
-                      <Link href="/download">
-                        <ScanLine className="size-4" />
-                        Escanear no app
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
+                <EstadoVazio
+                  icon={Package}
+                  titulo="Portfólio vazio"
+                  descricao="Explore o catálogo e adicione cartas a este portfólio, ou escaneie as suas pelo app."
+                >
+                  <Button
+                    asChild
+                    className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
+                  >
+                    <Link href="/explore">
+                      <Plus className="size-4" />
+                      Explorar Cartas
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="gap-2">
+                    <Link href="/download">
+                      <ScanLine className="size-4" />
+                      Escanear no app
+                    </Link>
+                  </Button>
+                </EstadoVazio>
               ) : (
                 <div className="space-y-4">
                   {/* Busca — pill de vidro (igual showcase) */}
@@ -1776,14 +1769,12 @@ export default function PortfolioPage() {
                       </div>
 
                       {filteredItems.length === 0 ? (
-                        <div className="glass-card !rounded-2xl p-12 text-center">
-                          <p className="text-sm font-semibold text-foreground">
-                            Nenhuma carta encontrada.
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Ajuste a busca ou os filtros.
-                          </p>
-                        </div>
+                        <EstadoVazio
+                          emCard
+                          icon={Search}
+                          titulo="Nenhuma carta encontrada"
+                          descricao="Ajuste a busca ou os filtros."
+                        />
                       ) : viewType === "grid" ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                           {filteredItems.map((item) => (
@@ -1823,15 +1814,11 @@ export default function PortfolioPage() {
           )}
 
           {portfolios.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Package className="size-16 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                Nenhum portfólio criado
-              </h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                Crie seu primeiro portfólio para começar a rastrear sua coleção
-                de cartas.
-              </p>
+            <EstadoVazio
+              icon={Package}
+              titulo="Nenhum portfólio criado"
+              descricao="Crie seu primeiro portfólio para começar a rastrear sua coleção de cartas."
+            >
               {/*
                 Variante padrão do Button (bg-primary), sem override de cor: o
                 verde hardcoded que estava aqui não vem de token nenhum e
@@ -1840,7 +1827,7 @@ export default function PortfolioPage() {
               <Button onClick={openNewPortfolioOrPaywall} icon={<FolderPlus />}>
                 Criar Portfólio
               </Button>
-            </div>
+            </EstadoVazio>
           )}
 
           {/* New Portfolio Dialog */}

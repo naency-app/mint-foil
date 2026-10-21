@@ -19,6 +19,7 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -375,29 +376,28 @@ function TcgSetsPageContent() {
               ))}
             </div>
           ) : filteredSets.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Search className="size-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                Nenhum set encontrado
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {search
+            <EstadoVazio
+              icon={Search}
+              titulo="Nenhum set encontrado"
+              descricao={
+                search
                   ? `Nenhum set com "${search}" no nome.`
-                  : "Nenhum set disponível para este TCG."}
-              </p>
+                  : "Nenhum set disponível para este TCG."
+              }
+            >
               {/* Esta busca filtra SETS pelo nome. Quem digita o nome de uma
                   carta não acha nada e conclui que o app não tem — daqui se
                   chega ao catálogo, que é onde carta se procura. */}
               {search && (
                 <Link
                   href={`/explore?q=${encodeURIComponent(search)}`}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
                 >
                   <Search className="size-4" />
                   Buscar "{search}" nas cartas
                 </Link>
               )}
-            </div>
+            </EstadoVazio>
           ) : (
             <div className="space-y-8">
               {/* Sets com cartas — grid de SetCard */}
