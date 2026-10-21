@@ -942,7 +942,10 @@ function ExplorePageContent() {
           fina solta no topo. A busca é a ação principal desta tela: no desktop
           ela dividia a largura com o vazio e parecia um detalhe, enquanto o
           conteúdo abaixo tinha mais peso visual que ela. */}
-      <div className="glass-card relative w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
+      {/* z-20: o vidro do Mint (backdrop-filter) faz do card uma camada própria;
+          sem isso o histórico de busca, que abre por baixo dele, ficava atrás
+          da linha de ordenação e dos chips (21/10) */}
+      <div className="glass-card relative z-20 w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
         <h1 className="mb-3 text-xl font-bold tracking-tight text-foreground">
           Buscar cartas
         </h1>
