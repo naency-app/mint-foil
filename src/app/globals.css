@@ -82,6 +82,7 @@
   --card-foreground: #020617;
   /* Superfície translúcida: cards, busca, pills e o menu flutuante */
   --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-blur: none;
   --popover: #ffffff;
   --popover-foreground: #020617;
   --primary: #f856a7;
@@ -138,6 +139,8 @@
   --card-foreground: #ffffff;
   /* #0D0E24 (azul-marinho escuro, escolhido pelo usuário em 19/10) a 50% */
   --glass-bg: rgba(13, 14, 36, 0.5);
+  /* Sem blur no escuro; o Mint ganha um pouco no bloco dele, mais abaixo. */
+  --glass-blur: none;
   --popover: #0d1121;
   --popover-foreground: #ffffff;
   /* No dark a landing usa #B50D57 como primary de superfícies e #F856A7 como
@@ -190,21 +193,29 @@
   }
 }
 
+/* Mint: um pouco de blur no vidro (pedido do usuário, 21/10). Pouco de
+   propósito: com 24px o FundoFoil virava mancha atrás dos painéis (19/10). */
+.mint {
+  --glass-blur: blur(6px);
+}
+
 /* ── Superfícies de vidro (espelho de mint-foil-app/components/glass-card.tsx):
-   claro no light, escuro no dark, um pouco transparentes e sem blur — o fundo
-   aparece nítido por trás. Superfície padrão dos cards e pills do sistema. ── */
+   claro no light, escuro no dark, um pouco transparentes; blur só no Mint, e
+   leve (--glass-blur). Superfície padrão dos cards e pills do sistema. ── */
 
 @layer components {
   .glass-card,
   .glass-input,
   .glass-pill {
     border: 1px solid rgba(2, 6, 23, 0.08);
-    /* Translúcido e SEM blur, como no Collectr: o fundo aparece nítido
+    /* Translúcido e quase sem blur, como no Collectr: o fundo aparece nítido
        através do painel; com blur ele virava mancha. O Collectr usa 82%, mas
        o fundo dele é claro e cheio de desenho — no nosso, escuro, 82% parecia
        sólido (19/10); a 50%, com os detalhes do FundoFoil mais marcados, o
        fundo aparece sem atrapalhar a leitura. */
     background-color: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
   }
   .glass-card {
     border-radius: 20px;
@@ -231,6 +242,8 @@
   .glass-card .glass-input,
   :is(.dark, .mint) .glass-card .glass-input {
     background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   /* Pill ativa inverte: fundo = cor do texto do tema, texto = fundo do tema */
