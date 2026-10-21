@@ -194,9 +194,11 @@
 }
 
 /* Mint: um pouco de blur no vidro (pedido do usuário, 21/10). Pouco de
-   propósito: com 24px o FundoFoil virava mancha atrás dos painéis (19/10). */
+   propósito: com 24px o FundoFoil virava mancha atrás dos painéis (19/10), e
+   com 6px a grade de 1px sumia e o card parecia sólido. 2px suaviza sem
+   apagar os detalhes de trás. */
 .mint {
-  --glass-blur: blur(6px);
+  --glass-blur: blur(2px);
 }
 
 /* ── Superfícies de vidro (espelho de mint-foil-app/components/glass-card.tsx):
