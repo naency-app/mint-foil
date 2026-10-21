@@ -170,10 +170,12 @@ export function Navbar() {
               </SheetContent>
             </Sheet>
 
-            {/* Logo leva à landing, como em qualquer site; o Explorar tem o
-                próprio link no centro da barra */}
-            <Link
-              href="/"
+            {/* Esta barra só existe nas páginas do app (a landing tem a
+                dela): o logo recarrega o Explorar, do zero e sem filtros,
+                em vez de mandar de volta para a landing. <a> e não <Link>
+                de propósito: o pedido é recarregar a página. */}
+            <a
+              href="/explore"
               className="flex items-center gap-2"
               aria-label="Mint Foil — Início"
             >
@@ -197,7 +199,7 @@ export function Navbar() {
               >
                 Mint <span className="foil-text">Foil</span>
               </span>
-            </Link>
+            </a>
           </div>
 
           {/* ── Centro: links com pill deslizante (padrão landing) ── */}
