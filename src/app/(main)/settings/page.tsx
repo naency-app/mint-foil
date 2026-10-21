@@ -15,8 +15,6 @@ import {
   Smartphone,
   Sparkles,
   Sun,
-  TrendingDown,
-  TrendingUp,
   Trophy,
   User,
 } from "lucide-react";
@@ -542,45 +540,10 @@ function SettingsContent() {
                 </div>
               ) : (
                 <>
-                  {/* Profit / Loss card */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div
-                      className={cn(
-                        "rounded-xl border p-6 space-y-2",
-                        stats.profitLoss >= 0
-                          ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5"
-                          : "border-red-500/20 bg-red-500/5 dark:bg-red-950/5",
-                      )}
-                    >
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        {stats.profitLoss >= 0 ? (
-                          <TrendingUp className="size-4 text-emerald-500" />
-                        ) : (
-                          <TrendingDown className="size-4 text-red-500" />
-                        )}
-                        <span className="text-xs font-bold uppercase tracking-wider">
-                          Lucro / Prejuízo
-                        </span>
-                      </div>
-                      <div
-                        className={cn(
-                          "text-3xl font-extrabold font-mono",
-                          stats.profitLoss >= 0
-                            ? "text-emerald-500"
-                            : "text-red-500",
-                        )}
-                      >
-                        {stats.profitLoss >= 0 ? "+" : ""}
-                        {formatPrice(stats.profitLoss)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Total Investido:{" "}
-                        <span className="font-semibold text-foreground">
-                          {formatPrice(stats.totalInvested)}
-                        </span>
-                      </div>
-                    </div>
-
+                  {/* Sem o card de Lucro / Prejuízo (21/10): quem não informa o
+                      preço pago entrava com R$ 0 investido, e o valor inteiro
+                      da coleção aparecia como "lucro". */}
+                  <div>
                     <div className="glass-card !rounded-2xl p-6 space-y-2">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Sparkles className="size-4 text-primary" />
@@ -590,21 +553,6 @@ function SettingsContent() {
                       </div>
                       <div className="text-3xl font-extrabold text-foreground font-mono">
                         {formatPrice(stats.totalValue)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Retorno sobre Investimento:{" "}
-                        <span
-                          className={cn(
-                            "font-bold",
-                            stats.profitLoss >= 0
-                              ? "text-emerald-500"
-                              : "text-red-500",
-                          )}
-                        >
-                          {stats.totalInvested > 0
-                            ? `${((stats.profitLoss / stats.totalInvested) * 100).toFixed(1)}%`
-                            : "0.0%"}
-                        </span>
                       </div>
                     </div>
                   </div>
