@@ -11,12 +11,14 @@ import {
   useTransform,
 } from "motion/react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
+import { FilterSection, PainelFiltros } from "@/app/components/filters";
 import { api, type Card, type RarityExample } from "@/lib/api";
 import { queryKeys, useCardDetail } from "@/lib/queries";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
+import { cn } from "@/lib/utils";
 
 // Derivado do catálogo para não ficar pra trás quando um TCG é habilitado.
 const SHORT_NAME: Record<string, string> = {
@@ -435,8 +437,35 @@ function CardModal({
   );
 }
 
+/**
+ * No computador, grade de 5 colunas. No celular (max-md), carrossel que
+ * desliza para o lado com encaixe, como o guia do app: em 2 colunas a lista
+ * de um jogo com 40 raridades virava uma rolagem sem fim.
+ */
+const CARROSSEL =
+  "md:grid md:grid-cols-5 md:gap-x-4 md:gap-y-5 max-md:-mx-4 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:gap-3 max-md:overflow-x-auto max-md:px-4 max-md:pb-2 max-md:[scrollbar-width:none]";
+const ITEM_DO_CARROSSEL = "max-md:w-[42%] max-md:shrink-0 max-md:snap-start";
+
 export default function RaridadesPage() {
   const [selected, setSelected] = useState<RarityExample | null>(null);
+
+  // Jogo à vista, para marcar na gaveta lateral enquanto a página rola
+  const [jogoVisivel, setJogoVisivel] = useState(TCGS[0]?.slug ?? "");
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entradas) => {
+        const visivel = entradas.find((e) => e.isIntersecting);
+        if (visivel) setJogoVisivel(visivel.target.id.replace("jogo-", ""));
+      },
+      // Conta como "à vista" o jogo que está na faixa de cima da tela
+      { rootMargin: "-20% 0px -70% 0px" },
+    );
+    for (const t of TCGS) {
+      const el = document.getElementById(`jogo-${t.slug}`);
+      if (el) obs.observe(el);
+    }
+    return () => obs.disconnect();
+  }, []);
 
   // Uma query por TCG, chaveadas por slug — reabrir a página sai do cache. O
   // guia é catálogo puro: só muda quando a sync roda.
@@ -479,49 +508,104 @@ export default function RaridadesPage() {
         texto="No app a carta se mexe com o celular e o reflexo acompanha, como na carta física."
       />
 
-      <div className="space-y-14">
-        {TCGS.map((t) => {
-          const rows = data[t.slug];
-          return (
-            <section key={t.slug}>
-              <div className="mb-5 flex items-baseline gap-3">
-                <h2 className="text-xl font-bold text-foreground">{t.name}</h2>
-                {Array.isArray(rows) && rows.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {rows.length} raridades
-                  </span>
-                )}
-              </div>
+      {/* Computador: gaveta lateral com os jogos, para não rolar o Yu-Gi-Oh!
+          inteiro até o Pokémon (21/10). Celular: sem gaveta, cada jogo é um
+          carrossel que desliza para o lado, como no app. */}
+      <div className="flex gap-8">
+        <aside className="hidden w-52 shrink-0 lg:block">
+          <PainelFiltros>
+            <FilterSection title="Jogos">
+              <nav className="flex flex-col gap-1">
+                {TCGS.map((t) => {
+                  const rows = data[t.slug];
+                  const ativo = t.slug === jogoVisivel;
+                  return (
+                    <button
+                      key={t.slug}
+                      type="button"
+                      onClick={() =>
+                        document
+                          .getElementById(`jogo-${t.slug}`)
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          })
+                      }
+                      className={cn(
+                        "flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm font-semibold transition-colors",
+                        ativo
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      {t.name}
+                      {Array.isArray(rows) && rows.length > 0 && (
+                        <span className="text-[11px] font-medium tabular-nums opacity-70">
+                          {rows.length}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </FilterSection>
+          </PainelFiltros>
+        </aside>
 
-              {rows === "loading" ? (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      // biome-ignore lint/suspicious/noArrayIndexKey: placeholders estáticos
-                      key={i}
-                      className="aspect-[5/7] w-full animate-pulse rounded-xl bg-muted"
-                    />
-                  ))}
+        <div className="min-w-0 flex-1 space-y-14">
+          {TCGS.map((t) => {
+            const rows = data[t.slug];
+            return (
+              <section
+                key={t.slug}
+                id={`jogo-${t.slug}`}
+                className="scroll-mt-24"
+              >
+                <div className="mb-5 flex items-baseline gap-3">
+                  <h2 className="text-xl font-bold text-foreground">
+                    {t.name}
+                  </h2>
+                  {Array.isArray(rows) && rows.length > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {rows.length} raridades
+                    </span>
+                  )}
                 </div>
-              ) : rows.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Sem raridades sincronizadas ainda.
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 md:grid-cols-5">
-                  {rows.map((r, i) => (
-                    <RarityCard
-                      key={r.rarity}
-                      item={r}
-                      index={i}
-                      onOpen={() => setSelected(r)}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          );
-        })}
+
+                {rows === "loading" ? (
+                  <div className={CARROSSEL}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div
+                        // biome-ignore lint/suspicious/noArrayIndexKey: placeholders estáticos
+                        key={i}
+                        className={cn(
+                          ITEM_DO_CARROSSEL,
+                          "aspect-[5/7] animate-pulse rounded-xl bg-muted",
+                        )}
+                      />
+                    ))}
+                  </div>
+                ) : rows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Sem raridades sincronizadas ainda.
+                  </p>
+                ) : (
+                  <div className={CARROSSEL}>
+                    {rows.map((r, i) => (
+                      <div key={r.rarity} className={ITEM_DO_CARROSSEL}>
+                        <RarityCard
+                          item={r}
+                          index={i}
+                          onOpen={() => setSelected(r)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
       </div>
 
       <p className="mt-14 text-center text-xs text-muted-foreground">
