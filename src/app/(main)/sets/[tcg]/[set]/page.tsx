@@ -4,7 +4,6 @@ import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
   ArrowUpDown,
   Calendar,
-  ChevronRight,
   Loader2,
   Search,
   TrendingUp,
@@ -31,6 +30,7 @@ import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { getSetImageUrl } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
+import { Trilha } from "@/components/Trilha";
 import { Badge } from "@/components/ui/badge";
 import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Card, CardContent } from "@/components/ui/card";
@@ -374,23 +374,14 @@ function SetCardsPageContent() {
 
   return (
     <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-4">
-      {/* Breadcrumb (mesmo padrão da página da carta) */}
-      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link href="/sets" className="hover:text-primary transition-colors">
-          Sets
-        </Link>
-        <ChevronRight className="size-3" />
-        <Link
-          href={`/sets/${tcgSlug}`}
-          className="hover:text-primary transition-colors"
-        >
-          {tcgName}
-        </Link>
-        <ChevronRight className="size-3" />
-        <span className="text-foreground truncate max-w-50">
-          {setInfo?.name ?? setSlug}
-        </span>
-      </nav>
+      <Trilha
+        className="text-xs"
+        niveis={[
+          { label: "Sets", href: "/sets" },
+          { label: tcgName, href: `/sets/${tcgSlug}` },
+        ]}
+        atual={setInfo?.name ?? setSlug}
+      />
 
       {/* Banner do set — mesmo padrão do banner de set do Explore */}
       {loading && !setInfo ? (

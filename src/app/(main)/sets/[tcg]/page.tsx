@@ -2,7 +2,6 @@
 
 import {
   Calendar,
-  ChevronRight,
   Layers,
   Loader2,
   Search,
@@ -20,6 +19,7 @@ import {
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
+import { Trilha } from "@/components/Trilha";
 import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
@@ -237,14 +237,11 @@ function TcgSetsPageContent() {
 
   return (
     <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-4">
-      {/* Breadcrumb (mesmo padrão da página da carta) */}
-      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link href="/sets" className="hover:text-primary transition-colors">
-          Sets
-        </Link>
-        <ChevronRight className="size-3" />
-        <span className="text-foreground">{tcg?.name ?? tcgSlug}</span>
-      </nav>
+      <Trilha
+        className="text-xs"
+        niveis={[{ label: "Sets", href: "/sets" }]}
+        atual={tcg?.name ?? tcgSlug}
+      />
 
       {/* Header */}
       <div>
