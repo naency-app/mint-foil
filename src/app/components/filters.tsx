@@ -275,7 +275,9 @@ function CampoPreco({
 
   return (
     <label className="glass-input flex h-9 min-w-0 flex-1 items-center gap-1.5 px-2.5 text-xs">
-      <span className="shrink-0 text-muted-foreground">{rotulo} R$</span>
+      {/* Sem "R$": a seção já é de preço, e a lateral é estreita demais para
+          o símbolo e um valor de seis dígitos no mesmo campo */}
+      <span className="shrink-0 text-muted-foreground">{rotulo}</span>
       <input
         inputMode="decimal"
         value={texto}
