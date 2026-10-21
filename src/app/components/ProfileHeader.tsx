@@ -93,7 +93,9 @@ export function ProfileHeader({
   const info = (
     <>
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-black text-foreground">{displayName}</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-foreground">
+          {displayName}
+        </h1>
         {/*
                 Selo de assinante. Diz Pro, não "identidade verificada" — decisão
                 de produto tomada de olhos abertos, porque o símbolo é lido como
@@ -152,37 +154,42 @@ export function ProfileHeader({
         </div>
       )}
 
-      <p className="mt-4 text-[11px] uppercase tracking-wider text-muted-foreground">
-        {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
-                  ao lado do gráfico, que mostra só o portfólio escolhido. */}
-        Valor estimado da coleção
-      </p>
-      <p className="font-mono text-3xl font-black text-foreground">
-        R$ {formatPrice(totalValue)}
-      </p>
+      {/* Linha fina separando quem é a pessoa (acima) do que ela tem
+          (abaixo); números na fonte do sistema com algarismos alinhados, sem
+          a monoespaçada pesada de antes (21/10) */}
+      <div className="mt-5 w-full border-t border-border pt-5">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
+              ao lado do gráfico, que mostra só o portfólio escolhido. */}
+          Valor estimado da coleção
+        </p>
+        <p className="mt-1 text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
+          <span className="mr-1 text-lg font-bold text-muted-foreground">
+            R$
+          </span>
+          {formatPrice(totalValue)}
+        </p>
 
-      <div className="mt-4 flex items-stretch divide-x divide-border">
-        <div className="px-6">
-          <p className="font-mono text-lg font-black text-foreground">
-            {totalCards}
-          </p>
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Cartas
-          </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {[
+            { rotulo: "Cartas", valor: totalCards },
+            { rotulo: "Selados", valor: totalSealed },
+          ].map(({ rotulo, valor }) => (
+            <div key={rotulo} className="rounded-xl bg-muted/60 px-3 py-2.5">
+              <p className="text-lg font-bold text-foreground tabular-nums">
+                {valor}
+              </p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                {rotulo}
+              </p>
+            </div>
+          ))}
         </div>
-        <div className="px-6">
-          <p className="font-mono text-lg font-black text-foreground">
-            {totalSealed}
-          </p>
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Selados
-          </p>
-        </div>
+
+        <p className="mt-4 text-[11px] text-muted-foreground/70">
+          Membro desde {formatMonthYear(memberSince)}
+        </p>
       </div>
-
-      <p className="mt-3 text-[11px] text-muted-foreground/70">
-        Membro desde {formatMonthYear(memberSince)}
-      </p>
     </>
   );
 
