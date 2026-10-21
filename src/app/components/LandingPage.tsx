@@ -715,7 +715,12 @@ function Nav({
 
   return (
     <>
+      {/* Mobile × desktop pela media query (max-md), não pelo isMobile: o
+          HTML do servidor não sabe a largura e pintava a nav de desktop no
+          celular até o JS carregar. Mobile: flex space-between (logo ⟷
+          botões na borda); desktop: grid com os links centralizados */}
       <nav
+        className={`grid max-md:flex max-md:justify-between ${scrolled ? "" : "px-14 py-4 max-md:px-4 max-md:py-3"}`}
         style={{
           position: "fixed",
           top: scrolled ? "12px" : "0px",
@@ -728,11 +733,7 @@ function Nav({
             : "100%",
           zIndex: 9999,
           // Parada (topo): maior pra leitura; reduzida (pill) mantém compacta
-          padding: scrolled ? "5px 10px" : isMobile ? "12px 16px" : "16px 56px",
-          // Mobile: flex space-between (logo ⟷ botões cravados na borda);
-          // desktop: grid com os links realmente centralizados
-          display: isMobile ? "flex" : "grid",
-          justifyContent: isMobile ? "space-between" : undefined,
+          padding: scrolled ? "5px 10px" : undefined,
           gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
           // Tint translúcido da COR REAL atrás da nav (amostrada por frame):
@@ -759,18 +760,13 @@ function Nav({
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
+          className={scrolled ? "" : "pl-6 max-md:pl-0"}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "8px",
             justifySelf: "start",
-            paddingLeft: scrolled
-              ? isMobile
-                ? "2px"
-                : "10px"
-              : isMobile
-                ? "0px"
-                : "24px",
+            paddingLeft: scrolled ? (isMobile ? "2px" : "10px") : undefined,
             transition: "padding 0.35s ease",
             textDecoration: "none",
             cursor: "pointer",
@@ -825,8 +821,8 @@ function Nav({
           No mobile não cabem: somem (âncoras seguem acessíveis rolando) */}
         {/* biome-ignore lint/a11y/noStaticElementInteractions: onMouseLeave só reseta a pill decorativa do hover; os links (SmartLink) é que são interativos */}
         <div
+          className="flex max-md:hidden"
           style={{
-            display: isMobile ? "none" : "flex",
             alignItems: "center",
             gap: "2px",
           }}
@@ -869,18 +865,13 @@ function Nav({
 
         {/* Direita */}
         <div
+          className={scrolled ? "" : "pr-6 max-md:pr-0"}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "12px",
             justifySelf: "end",
-            paddingRight: scrolled
-              ? isMobile
-                ? "0px"
-                : "6px"
-              : isMobile
-                ? "0px"
-                : "24px",
+            paddingRight: scrolled ? (isMobile ? "0px" : "6px") : undefined,
             transition: "padding 0.35s ease",
           }}
         >
@@ -908,29 +899,27 @@ function Nav({
           </button>
 
           {/* Hambúrguer (mobile) */}
-          {isMobile && (
-            <button
-              type="button"
-              aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
-              onClick={() => setMenuOpen((o) => !o)}
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%",
-                background: t.primaryBg,
-                border: `1px solid ${t.primaryBorder}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: t.primary,
-              }}
-            >
-              {menuOpen ? <X size={15} /> : <Menu size={15} />}
-            </button>
-          )}
+          <button
+            type="button"
+            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            onClick={() => setMenuOpen((o) => !o)}
+            className="hidden max-md:flex"
+            style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "50%",
+              background: t.primaryBg,
+              border: `1px solid ${t.primaryBorder}`,
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: t.primary,
+            }}
+          >
+            {menuOpen ? <X size={15} /> : <Menu size={15} />}
+          </button>
 
-          {!isMobile && (
+          <div className="contents max-md:hidden">
             <PrimaryBtn
               small
               onClick={() => {
@@ -939,7 +928,7 @@ function Nav({
             >
               <ArrowRight size={13} /> Explorar agora
             </PrimaryBtn>
-          )}
+          </div>
         </div>
       </nav>
 
@@ -1006,11 +995,13 @@ function Nav({
 // serve — o que importa é ter câmera e poder instalar o app.
 function Hero({ noCelular }: { noCelular: boolean }) {
   const t = useTheme();
-  const isMobile = useIsMobile();
   const router = useRouter();
   return (
     <section
       id="hero"
+      // Mobile: conteúdo mais pro centro vertical (desktop mantém). Media
+      // query, não isMobile: o HTML do servidor já nasce no lugar certo
+      className="pt-[clamp(96px,16vh,130px)] max-md:pt-[21vh]"
       style={{
         position: "relative",
         minHeight: "100vh",
@@ -1018,8 +1009,6 @@ function Hero({ noCelular }: { noCelular: boolean }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        // Mobile: conteúdo mais pro centro vertical (desktop mantém)
-        paddingTop: isMobile ? "21vh" : "clamp(96px, 16vh, 130px)",
         overflow: "hidden",
         // Var pré-paint: o estado React nasce light e pintava o hero de
         // branco por um frame no reload em dark
@@ -1056,8 +1045,8 @@ function Hero({ noCelular }: { noCelular: boolean }) {
           textAlign: "center",
           position: "relative",
           zIndex: 10,
-          padding: isMobile ? "0 10px" : "0 24px",
         }}
+        className="px-6 max-md:px-2.5"
       >
         <motion.div variants={fadeUp}>
           {/* Vars pré-paint: sem flash de cor no reload em dark */}
