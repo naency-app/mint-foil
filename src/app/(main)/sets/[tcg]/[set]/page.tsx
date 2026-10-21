@@ -58,6 +58,7 @@ import {
   usePortfolios,
   useSetBySlug,
 } from "@/lib/queries";
+import { nomeDaRaridade } from "@/lib/raridade";
 import { precoAtual } from "@/lib/reference-price";
 
 type CollectionMap = Record<string, number>;
@@ -167,7 +168,8 @@ function ListRow({
             {card.name}
           </h3>
           <p className="text-xs text-muted-foreground">
-            {card.rarity} • {card.collectorNumber} • Qtd. {quantity}
+            {nomeDaRaridade(card.rarity, card.tcgId)} • {card.collectorNumber} •
+            Qtd. {quantity}
           </p>
         </div>
 
@@ -570,7 +572,7 @@ function SetCardsPageContent() {
                   idPrefix="rarity"
                   options={rarityOptions.map(({ rarity, count }) => ({
                     value: rarity,
-                    label: rarity,
+                    label: nomeDaRaridade(rarity, tcgSlug),
                     count,
                   }))}
                   selected={selectedRarities}

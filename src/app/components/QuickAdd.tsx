@@ -24,6 +24,7 @@ import { api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { resolveActiveId, usePortfolioStore } from "@/lib/portfolio-store";
 import { useInvalidateCollection } from "@/lib/queries";
+import { nomeDaRaridade } from "@/lib/raridade";
 
 /**
  * "Entrar para adicionar": o que acontece quando alguém deslogado toca no +.
@@ -179,7 +180,9 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
                     // inteiro, é por ele que se confere a impressão
                     <p className="flex min-w-0 items-baseline gap-1 text-[11px] text-muted-foreground">
                       {carta.rarity && (
-                        <span className="truncate">{carta.rarity}</span>
+                        <span className="truncate">
+                          {nomeDaRaridade(carta.rarity)}
+                        </span>
                       )}
                       {carta.rarity && carta.collectorNumber && (
                         <span className="shrink-0">•</span>

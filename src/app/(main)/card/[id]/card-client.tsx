@@ -46,6 +46,7 @@ import {
   useInvalidateCollection,
   usePortfolios,
 } from "@/lib/queries";
+import { nomeDaRaridade } from "@/lib/raridade";
 import { precoAnterior, precoAtual } from "@/lib/reference-price";
 import { cardName, cardNameEn, cn } from "@/lib/utils";
 
@@ -513,7 +514,7 @@ export function CardDetailClient({
             </Link>
             <span className="text-muted-foreground">•</span>
             <span className="text-base text-muted-foreground">
-              {card.rarity}
+              {nomeDaRaridade(card.rarity, card.tcgId)}
             </span>
             <span className="text-muted-foreground">•</span>
             <span className="text-base text-muted-foreground font-mono">
@@ -670,7 +671,7 @@ export function CardDetailClient({
                   Raridade
                 </p>
                 <p className="text-base text-foreground font-medium">
-                  {card.rarity}
+                  {nomeDaRaridade(card.rarity, card.tcgId)}
                 </p>
               </div>
               <div>
