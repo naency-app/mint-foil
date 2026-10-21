@@ -1,8 +1,10 @@
+import { Package } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { PerfilSocial } from "@/app/components/social/PerfilSocial";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { capaVisivel } from "@/lib/cover-catalog";
 import { ShowcaseBrowser } from "./showcase-browser";
 import type { Showcase } from "./types";
@@ -121,14 +123,12 @@ export default async function ShowcaseProfilePage({
         {hasCards ? (
           <ShowcaseBrowser portfolios={data.portfolios} />
         ) : (
-          <div className="glass-card !rounded-2xl p-12 text-center">
-            <p className="text-sm font-semibold text-foreground">
-              Esta coleção ainda não tem cartas.
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Quando {data.displayName} adicionar cartas, elas aparecem aqui.
-            </p>
-          </div>
+          <EstadoVazio
+            emCard
+            icon={Package}
+            titulo="Esta coleção ainda não tem cartas"
+            descricao={`Quando ${data.displayName} adicionar cartas, elas aparecem aqui.`}
+          />
         )}
       </main>
     </>

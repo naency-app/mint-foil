@@ -30,7 +30,9 @@ import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { getSetImageUrl } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
+import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Card, CardContent } from "@/components/ui/card";
 import { GlassPill, SectionLabel } from "@/components/ui/glass";
 import {
@@ -618,16 +620,15 @@ function SetCardsPageContent() {
               ))}
             </div>
           ) : filteredCards.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Search className="size-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                Nenhuma carta encontrada
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {search
+            <EstadoVazio
+              icon={Search}
+              titulo="Nenhuma carta encontrada"
+              descricao={
+                search
                   ? `Nenhum resultado para "${search}" nesta coleção.`
-                  : "Este set ainda não possui cartas catalogadas."}
-              </p>
+                  : "Este set ainda não possui cartas catalogadas."
+              }
+            >
               {/*
                 Sem esta saída a busca virava beco: quem digitava o nome de uma
                 carta de OUTRA coleção via "nenhum resultado" e não tinha para
@@ -635,15 +636,14 @@ function SetCardsPageContent() {
                 está aqui". A carta existe; muda só o escopo.
               */}
               {search && (
-                <Link
-                  href={`/explore?q=${encodeURIComponent(search)}`}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                >
-                  <Search className="size-4" />
-                  Buscar "{search}" em todo o catálogo
-                </Link>
+                <BotaoFoil asChild>
+                  <Link href={`/explore?q=${encodeURIComponent(search)}`}>
+                    <Search />
+                    Buscar "{search}" em todo o catálogo
+                  </Link>
+                </BotaoFoil>
               )}
-            </div>
+            </EstadoVazio>
           ) : viewType === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {filteredCards.map((card) => (
