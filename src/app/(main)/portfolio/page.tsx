@@ -1389,8 +1389,13 @@ export default function PortfolioPage() {
                           <Skeleton className="h-8 w-36" />
                         ) : (
                           <>
-                            <span className="text-2xl font-extrabold text-foreground font-mono">
-                              R$ {formatPrice(metrics.currentEstimatedValue)}
+                            {/* Mesmo número do card do perfil: fonte do
+                                sistema, R$ menor e em cinza */}
+                            <span className="text-2xl font-extrabold tracking-tight text-foreground tabular-nums">
+                              <span className="mr-1 text-base font-bold text-muted-foreground">
+                                R$
+                              </span>
+                              {formatPrice(metrics.currentEstimatedValue)}
                             </span>
                             {historyData.length >= 2 && (
                               <div className="flex items-center gap-1">
