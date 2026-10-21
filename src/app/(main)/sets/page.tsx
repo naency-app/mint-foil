@@ -5,6 +5,14 @@ import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import { Badge } from "@/components/ui/badge";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
 
+/**
+ * Quadro do jogo com o mesmo vidro dos cards do sistema em todos os temas
+ * (glass-card: cor, borda e blur). A arte já traz um quadro próprio, cinza a 7%
+ * com cantos de ~24px numa imagem de 317×200: o arredondamento em porcentagem
+ * acompanha esse quadro em qualquer largura.
+ */
+const VIDRO_DO_QUADRO = "glass-card rounded-[7.6%/12%]";
+
 export default function SetsPage() {
   return (
     <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -34,7 +42,7 @@ export default function SetsPage() {
             return (
               <div
                 key={item.categoryId}
-                className=" group relative aspect-[1.6] w-full select-none overflow-hidden  opacity-45"
+                className={`group relative aspect-[1.6] w-full select-none overflow-hidden opacity-45 ${VIDRO_DO_QUADRO}`}
               >
                 {/* biome-ignore lint/performance/noImgElement: artes locais dos TCGs, sem otimização necessária */}
                 <img
@@ -59,7 +67,7 @@ export default function SetsPage() {
             <Link
               key={item.categoryId}
               href={`/sets/${item.slug}`}
-              className=" group relative block aspect-[1.6] w-full overflow-hidden  transition-all duration-200 hover:-translate-y-0.5"
+              className={`group relative block aspect-[1.6] w-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 ${VIDRO_DO_QUADRO}`}
             >
               {/* biome-ignore lint/performance/noImgElement: artes locais dos TCGs, sem otimização necessária */}
               <img
