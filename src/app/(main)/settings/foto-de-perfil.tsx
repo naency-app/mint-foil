@@ -1,9 +1,9 @@
 "use client";
 
 import { Camera, Loader2, Trash2 } from "lucide-react";
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { FotoDoUsuario } from "@/components/FotoDoUsuario";
 import {
   Dialog,
   DialogContent,
@@ -122,7 +122,7 @@ export function FotoDePerfil({
         className="group relative h-20 w-20 cursor-pointer overflow-hidden rounded-full border-4 border-card bg-muted shadow-md"
       >
         {image ? (
-          <Image
+          <FotoDoUsuario
             src={image}
             alt={nome}
             width={80}

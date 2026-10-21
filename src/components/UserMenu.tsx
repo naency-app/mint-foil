@@ -6,11 +6,11 @@ import {
   IconPalette,
   IconSettings,
 } from "@tabler/icons-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { FotoDoUsuario } from "@/components/FotoDoUsuario";
 import { signOut, useSession } from "@/lib/auth-client";
 import { TEMAS } from "@/lib/temas";
 import { Button } from "./ui/button";
@@ -72,7 +72,7 @@ export function UserMenu() {
           className="flex items-center gap-2 rounded-lg px-1.5 py-1 transition-colors hover:bg-muted cursor-pointer outline-none"
         >
           {user.image ? (
-            <Image
+            <FotoDoUsuario
               src={user.image}
               alt={user.name ?? "Avatar"}
               width={32}
@@ -95,7 +95,7 @@ export function UserMenu() {
         {/* Header do usuário com avatar */}
         <div className="flex items-center gap-3 px-2 py-2">
           {user.image ? (
-            <Image
+            <FotoDoUsuario
               src={user.image}
               alt=""
               width={36}

@@ -1,9 +1,9 @@
 "use client";
 
 import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { FotoDoUsuario } from "@/components/FotoDoUsuario";
 
 /** Linha de pessoa (listas, pedidos, busca): foto, nome, @ e uma ação à direita. */
 export function UserRow({
@@ -30,7 +30,7 @@ export function UserRow({
       >
         <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15">
           {image ? (
-            <Image
+            <FotoDoUsuario
               src={image}
               alt={displayName}
               width={40}
