@@ -2,7 +2,6 @@
 
 import {
   AlertCircle,
-  ChevronRight,
   ExternalLink,
   Globe,
   Minus,
@@ -30,6 +29,7 @@ import Grid from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
 import { EstadoVazio } from "@/components/EstadoVazio";
+import { Trilha } from "@/components/Trilha";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -467,34 +467,25 @@ export function CardDetailClient({
 
   return (
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/sets" className="hover:text-primary transition-colors">
-          Sets
-        </Link>
-        <ChevronRight className="size-3" />
-        <Link
-          href={`/sets/${card.tcg?.slug ?? ""}`}
-          className="hover:text-primary transition-colors"
-        >
-          {card.tcg?.name ?? "TCG"}
-        </Link>
-        {card.set && (
-          <>
-            <ChevronRight className="size-3" />
-            <Link
-              href={`/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`}
-              className="hover:text-primary transition-colors"
-            >
-              {card.set.name ?? card.setName ?? card.setCode}
-            </Link>
-          </>
-        )}
-        <ChevronRight className="size-3" />
-        <span className="text-foreground truncate max-w-80">
-          {cardName(card)}
-        </span>
-      </nav>
+      <Trilha
+        className="text-sm"
+        niveis={[
+          { label: "Sets", href: "/sets" },
+          {
+            label: card.tcg?.name ?? "TCG",
+            href: `/sets/${card.tcg?.slug ?? ""}`,
+          },
+          ...(card.set
+            ? [
+                {
+                  label: card.set.name ?? card.setName ?? card.setCode ?? "",
+                  href: `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`,
+                },
+              ]
+            : []),
+        ]}
+        atual={cardName(card)}
+      />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
