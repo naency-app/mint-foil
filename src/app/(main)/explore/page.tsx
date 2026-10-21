@@ -95,6 +95,7 @@ import {
   usePortfolioDetail,
   usePortfolios,
 } from "@/lib/queries";
+import { agruparRaridades, nomeDaRaridade } from "@/lib/raridade";
 import { precoAtual } from "@/lib/reference-price";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
 import { cardName } from "@/lib/utils";
@@ -400,7 +401,7 @@ function ListRow({
             {card.setName ?? card.setCode}
           </p>
           <p className="text-xs text-muted-foreground">
-            {card.rarity} • {card.collectorNumber}
+            {nomeDaRaridade(card.rarity, card.tcgId)} • {card.collectorNumber}
           </p>
           {card.cardType && (
             <p className="text-xs text-muted-foreground">{card.cardType}</p>
@@ -862,9 +863,16 @@ function ExplorePageContent() {
   // R$ 0–10. Sumir é pior do que ser aproximado, então o resultado carregado
   // serve de rede: filtro degradado continua sendo filtro.
   const facets = facetsQuery.data;
-  const rarityOptions = useMemo(
-    () => facets?.rarity ?? facetOptions(cards, (c) => c.rarity),
-    [facets?.rarity, cards],
+  // Sigla vira nome ("R" → "Rare") e nomes iguais viram uma opção só ("C" do
+  // One Piece + "Common" do Yu-Gi-Oh!). Com um jogo só, a sigla ambígua ("L")
+  // é lida pelo jogo.
+  const rarityGroups = useMemo(
+    () =>
+      agruparRaridades(
+        facets?.rarity ?? facetOptions(cards, (c) => c.rarity),
+        activeTcgs.length === 1 ? activeTcgs[0] : undefined,
+      ),
+    [facets?.rarity, cards, activeTcgs],
   );
   const typeOptions = useMemo(
     () => facets?.cardType ?? facetOptions(cards, (c) => c.cardType),
@@ -1199,19 +1207,32 @@ function ExplorePageContent() {
             {/* Facetas dinâmicas, contadas no banco sobre o conjunto filtrado
                 inteiro — valem pra todos os TCGs (Yu-Gi-Oh tem atributo,
                 Pokémon tem tipo…). Só aparecem quando o conjunto tem valores. */}
-            {rarityOptions.length > 0 && (
+            {rarityGroups.length > 0 && (
               <FilterSection title="Raridade">
                 <CheckboxFilterList
                   idPrefix="rarity"
-                  options={rarityOptions.map(({ value, count }) => ({
-                    value,
-                    label: value,
+                  options={rarityGroups.map(({ nome, count }) => ({
+                    value: nome,
+                    label: nome,
                     count,
                   }))}
-                  selected={selectedRarities}
-                  onToggle={(v) =>
-                    setSelectedRarities((prev) => toggleValue(prev, v))
-                  }
+                  selected={rarityGroups
+                    .filter((g) =>
+                      g.valores.some((v) => selectedRarities.includes(v)),
+                    )
+                    .map((g) => g.nome)}
+                  onToggle={(nome) => {
+                    const grupo = rarityGroups.find((g) => g.nome === nome);
+                    if (!grupo) return;
+                    setSelectedRarities((prev) => {
+                      const marcado = grupo.valores.some((v) =>
+                        prev.includes(v),
+                      );
+                      return marcado
+                        ? prev.filter((v) => !grupo.valores.includes(v))
+                        : [...prev, ...grupo.valores];
+                    });
+                  }}
                 />
               </FilterSection>
             )}
