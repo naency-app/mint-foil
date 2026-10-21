@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
@@ -239,6 +239,57 @@ export function ProductTypeFilter({
   );
 }
 
+/** Posições da barra: a escala é logarítmica (ver PriceRangeFilter). */
+const PASSOS_DA_BARRA = 1000;
+
+/** Arredonda para um número "redondo" da própria grandeza (12, 340, 5.600). */
+function precoRedondo(v: number) {
+  if (v < 100) return Math.round(v);
+  const casa = 10 ** (Math.floor(Math.log10(v)) - 1);
+  return Math.round(v / casa) * casa;
+}
+
+/**
+ * Campo de valor embaixo da barra: digitar é mais rápido que acertar a barra
+ * num catálogo que vai de centavos a milhão (pedido do usuário, 21/10). Só
+ * aplica ao sair do campo ou no Enter, para não refazer a busca a cada tecla.
+ */
+function CampoPreco({
+  rotulo,
+  valor,
+  onConfirmar,
+}: {
+  rotulo: string;
+  valor: number;
+  onConfirmar: (v: number) => void;
+}) {
+  const [texto, setTexto] = useState(String(valor));
+  // A barra também muda o valor: o campo acompanha
+  useEffect(() => setTexto(String(valor)), [valor]);
+
+  function confirmar() {
+    const n = Number(texto.replace(/\./g, "").replace(",", "."));
+    if (Number.isFinite(n) && n >= 0) onConfirmar(n);
+    else setTexto(String(valor));
+  }
+
+  return (
+    <label className="glass-input flex h-9 min-w-0 flex-1 items-center gap-1.5 px-2.5 text-xs">
+      <span className="shrink-0 text-muted-foreground">{rotulo} R$</span>
+      <input
+        inputMode="decimal"
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={confirmar}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+        }}
+        className="w-full min-w-0 bg-transparent font-medium tabular-nums text-foreground outline-none"
+      />
+    </label>
+  );
+}
+
 export function PriceRangeFilter({
   value,
   ceil,
@@ -255,20 +306,44 @@ export function PriceRangeFilter({
     Filtrar não é mais recurso premium. O que o Pro limita é o scan, que tem
     custo por uso; achar carta na própria coleção é o básico da ferramenta, e
     cobrar por isso só ensinava que ela trabalha contra quem ainda não paga.
+
+    Escala logarítmica: o catálogo vai de centavos a grails de mais de R$ 1
+    milhão. Linear, R$ 33.710 ficava a 3% da barra, colado no começo, e todo
+    preço comum cabia no primeiro pixel (21/10). Em log cada casa decimal
+    (R$ 1, 10, 100, 1.000…) ocupa um trecho igual da barra.
   */
+  const log = Math.log1p(ceil);
+  const posicao = (v: number) =>
+    Math.round(
+      (Math.log1p(Math.min(Math.max(v, 0), ceil)) / log) * PASSOS_DA_BARRA,
+    );
+  const preco = (p: number) =>
+    p >= PASSOS_DA_BARRA
+      ? ceil
+      : precoRedondo(Math.expm1((p / PASSOS_DA_BARRA) * log));
+
+  const [min, max] = value ?? [0, ceil];
   return (
     <FilterSection title="Faixa de Preço">
       <div className="space-y-2 pt-3">
         <Slider
-          value={value ?? [0, ceil]}
-          onValueChange={(v) => onChange(v as [number, number])}
-          max={ceil}
-          step={5}
+          value={[posicao(min), posicao(max)]}
+          onValueChange={([a, b]) => onChange([preco(a), preco(b)])}
+          max={PASSOS_DA_BARRA}
+          step={1}
           className="mx-auto w-full"
         />
-        <div className="flex justify-between text-xs tabular-nums text-muted-foreground">
-          <span>R$ {(value?.[0] ?? 0).toFixed(0)}</span>
-          <span>R$ {(value?.[1] ?? ceil).toFixed(0)}</span>
+        <div className="flex gap-2 pt-1">
+          <CampoPreco
+            rotulo="Mín"
+            valor={min}
+            onConfirmar={(v) => onChange([Math.min(v, max), max])}
+          />
+          <CampoPreco
+            rotulo="Máx"
+            valor={Math.min(max, ceil)}
+            onConfirmar={(v) => onChange([min, Math.max(v, min)])}
+          />
         </div>
       </div>
     </FilterSection>
