@@ -140,12 +140,13 @@ export function FundoFoil() {
         }}
       />
 
-      {/* 2. Grade fina, mais forte nas bordas */}
+      {/* 2. Grade fina, mais forte nas bordas. 3% de branco: a 5,5% as
+          linhas apareciam demais (21/10) */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)",
+            "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
           maskImage:
             "radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0,0,0,0.7), black 95%)",
