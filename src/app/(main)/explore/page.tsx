@@ -948,10 +948,11 @@ function ExplorePageContent() {
         </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           {/* Cores invertidas a pedido (19/10): o painel leva a cor dos cards e o
-              campo, o navy translúcido que era do painel. No celular, mais alto e
-              de cantos quase retos para escrever com folga; no computador segue
-              como era (21/10) */}
-          <div className="glass-input flex h-14 flex-1 items-center gap-3 rounded-md bg-card/40 px-4 sm:h-12 sm:gap-2.5 sm:rounded-xl">
+              campo, o navy translúcido que era do painel.
+              Só no celular (max-sm): na coluna, o flex-1 encolhia o campo até a
+              altura do texto (22px); ali ele fica com 56px e cantos quase retos.
+              No computador nada muda (21/10). */}
+          <div className="glass-input flex h-12 flex-1 items-center gap-2.5 bg-card/40 px-4 max-sm:h-14 max-sm:flex-none max-sm:gap-3 max-sm:rounded-md">
             <Search className="size-5 shrink-0 text-muted-foreground" />
             <input
               value={searchInput}
@@ -973,7 +974,7 @@ function ExplorePageContent() {
             <button
               type="button"
               onClick={handleClear}
-              className="h-14 shrink-0 cursor-pointer rounded-md px-5 sm:h-12 sm:rounded-xl text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              className="h-12 shrink-0 cursor-pointer rounded-xl px-5 max-sm:h-14 max-sm:rounded-md text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
               Limpar
             </button>
