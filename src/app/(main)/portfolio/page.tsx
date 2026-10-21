@@ -61,6 +61,7 @@ import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
 import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
+import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -1494,17 +1495,12 @@ export default function PortfolioPage() {
                             <XAxis numTicks={6} />
                           </AreaChart>
                         ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                            <TrendingUp className="size-10 text-muted-foreground/30 mb-2" />
-                            <p className="text-sm text-muted-foreground font-medium">
-                              Histórico em construção
-                            </p>
-                            <p className="text-xs text-muted-foreground/60 max-w-xs mt-1">
-                              O gráfico de evolução histórica será desenhado à
-                              medida que sua coleção for atualizada nos próximos
-                              dias.
-                            </p>
-                          </div>
+                          <EstadoVazio
+                            className="absolute inset-0 p-4 py-0"
+                            icon={TrendingUp}
+                            titulo="Histórico em construção"
+                            descricao="O gráfico de evolução histórica será desenhado à medida que sua coleção for atualizada nos próximos dias."
+                          />
                         )}
                       </>
                     )}
@@ -1568,21 +1564,18 @@ export default function PortfolioPage() {
                   titulo="Portfólio vazio"
                   descricao="Explore o catálogo e adicione cartas a este portfólio, ou escaneie as suas pelo app."
                 >
-                  <Button
-                    asChild
-                    className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold gap-2"
-                  >
+                  <BotaoFoil asChild>
                     <Link href="/explore">
-                      <Plus className="size-4" />
-                      Explorar Cartas
+                      <Plus />
+                      Explorar cartas
                     </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="gap-2">
+                  </BotaoFoil>
+                  <GlassPill asChild className="h-9 px-4 text-sm">
                     <Link href="/download">
                       <ScanLine className="size-4" />
                       Escanear no app
                     </Link>
-                  </Button>
+                  </GlassPill>
                 </EstadoVazio>
               ) : (
                 <div className="space-y-4">
@@ -1824,9 +1817,10 @@ export default function PortfolioPage() {
                 verde hardcoded que estava aqui não vem de token nenhum e
                 destoava do resto do produto.
               */}
-              <Button onClick={openNewPortfolioOrPaywall} icon={<FolderPlus />}>
-                Criar Portfólio
-              </Button>
+              <BotaoFoil onClick={openNewPortfolioOrPaywall}>
+                <FolderPlus />
+                Criar portfólio
+              </BotaoFoil>
             </EstadoVazio>
           )}
 

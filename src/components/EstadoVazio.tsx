@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
  * sem cartas) passa por aqui, com a pilha de placas do IconStack como arte —
  * regra do usuário (21/10): nada de ícone solto nem texto sozinho.
  *
+ * Ações: BotaoFoil para a principal e GlassPill para a secundária, o padrão
+ * do sistema.
+ *
  * `emCard` põe dentro do vidro dos cards, para o vazio que fica no lugar de
  * uma grade; sem ele, o vazio ocupa a página.
  */
@@ -39,7 +42,10 @@ export function EstadoVazio({
       <IconStack size="lg" color={cor} className="mb-5">
         <IconStack.Icon icon={icon} />
       </IconStack>
-      <h3 className="mb-1 text-lg font-semibold text-foreground">{titulo}</h3>
+      {/* Mesmo título das seções (SectionHeader) */}
+      <h3 className="mb-1 text-[17px] font-extrabold tracking-tight text-foreground">
+        {titulo}
+      </h3>
       {descricao && (
         <p className="max-w-sm text-sm text-muted-foreground">{descricao}</p>
       )}

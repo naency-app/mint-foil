@@ -20,6 +20,7 @@ import {
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { SetCard } from "@/app/components/SetCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
+import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -389,13 +390,12 @@ function TcgSetsPageContent() {
                   carta não acha nada e conclui que o app não tem — daqui se
                   chega ao catálogo, que é onde carta se procura. */}
               {search && (
-                <Link
-                  href={`/explore?q=${encodeURIComponent(search)}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                >
-                  <Search className="size-4" />
-                  Buscar "{search}" nas cartas
-                </Link>
+                <BotaoFoil asChild>
+                  <Link href={`/explore?q=${encodeURIComponent(search)}`}>
+                    <Search />
+                    Buscar "{search}" nas cartas
+                  </Link>
+                </BotaoFoil>
               )}
             </EstadoVazio>
           ) : (

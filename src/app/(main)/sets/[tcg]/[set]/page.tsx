@@ -32,6 +32,7 @@ import { getSetImageUrl } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
+import { BotaoFoil } from "@/components/ui/botao-foil";
 import { Card, CardContent } from "@/components/ui/card";
 import { GlassPill, SectionLabel } from "@/components/ui/glass";
 import {
@@ -635,13 +636,12 @@ function SetCardsPageContent() {
                 está aqui". A carta existe; muda só o escopo.
               */}
               {search && (
-                <Link
-                  href={`/explore?q=${encodeURIComponent(search)}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                >
-                  <Search className="size-4" />
-                  Buscar "{search}" em todo o catálogo
-                </Link>
+                <BotaoFoil asChild>
+                  <Link href={`/explore?q=${encodeURIComponent(search)}`}>
+                    <Search />
+                    Buscar "{search}" em todo o catálogo
+                  </Link>
+                </BotaoFoil>
               )}
             </EstadoVazio>
           ) : viewType === "grid" ? (

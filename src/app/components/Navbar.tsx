@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
 import { UserMenu } from "@/components/UserMenu";
+import { BotaoFoil } from "@/components/ui/botao-foil";
 import {
   Popover,
   PopoverContent,
@@ -246,25 +247,16 @@ export function Navbar() {
             */}
             <Popover>
               <PopoverTrigger asChild>
-                {/* Chamada, não botão comum: degradê da marca correndo e um
-                    brilho rosa em volta, como o banner dos convites */}
-                <button
-                  type="button"
+                {/* Chamada, não botão comum: o BotaoFoil é a ação principal do sistema */}
+                <BotaoFoil
                   className={cn(
-                    "hidden cursor-pointer items-center gap-1.5 rounded-full px-4 font-bold text-white transition-transform hover:scale-[1.03] md:inline-flex",
-                    scrolled ? "h-8 text-[13px]" : "h-9 text-sm",
+                    "hidden md:inline-flex",
+                    scrolled && "h-8 text-[13px]",
                   )}
-                  style={{
-                    background:
-                      "linear-gradient(110deg, #B50D57 0%, #F856A7 35%, #887CFD 65%, #B50D57 100%)",
-                    backgroundSize: "200% 200%",
-                    animation: "mfFoilShift 5s linear infinite",
-                    boxShadow: "0 4px 18px rgba(248, 86, 167, 0.4)",
-                  }}
                 >
-                  <IconScan className="size-4" />
+                  <IconScan />
                   Baixar o app
-                </button>
+                </BotaoFoil>
               </PopoverTrigger>
               {/* No computador, o QR leva o download pro celular sem sair do
                   site — antes o botão trocava de página e a pessoa perdia o
