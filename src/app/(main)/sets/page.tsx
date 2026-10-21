@@ -6,12 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { TCG_CATALOG } from "@/lib/tcg-catalog";
 
 /**
- * Quadro do jogo com o mesmo vidro dos cards do sistema (glass-card: cor,
- * borda e blur do tema). A arte já traz um quadro próprio, cinza a 7% com
- * cantos de ~24px numa imagem de 317×200: o arredondamento em porcentagem
- * acompanha esse quadro em qualquer largura.
+ * Quadro do jogo com o mesmo vidro dos cards do sistema no escuro e no Mint
+ * (cor, borda e blur do tema). No claro não: as artes são feitas para fundo
+ * escuro e os logos brancos (Magic, One Piece, Star Wars) sumiam no vidro
+ * branco. A arte já traz um quadro próprio, cinza a 7% com cantos de ~24px
+ * numa imagem de 317×200: o arredondamento em porcentagem acompanha esse
+ * quadro em qualquer largura.
  */
-const VIDRO_DO_QUADRO = "glass-card rounded-[7.6%/12%]";
+const VIDRO_DO_QUADRO =
+  "rounded-[7.6%/12%] dark:border dark:border-white/10 dark:bg-[var(--glass-bg)] dark:[backdrop-filter:var(--glass-blur)]";
 
 export default function SetsPage() {
   return (
