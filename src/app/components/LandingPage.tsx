@@ -43,6 +43,7 @@ import {
   useState,
 } from "react";
 import { flushSync } from "react-dom";
+import { SelosLojas } from "@/app/components/ConviteApp";
 import { Badge } from "@/components/ui/badge";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import ScrollMorphSection from "@/components/ui/scroll-morph-section";
@@ -1294,6 +1295,7 @@ function VideoInner({
 }) {
   const t = useTheme();
   const isMobile = useIsMobile();
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const cardBg = t.isDark ? "rgba(255,255,255,0.03)" : t.cardBg;
   const cardBorder = t.isDark ? "rgba(255,255,255,0.08)" : t.border;
@@ -1390,6 +1392,47 @@ function VideoInner({
             <DemoWeb />
           </div>
         </motion.div>
+
+        {/* Só no celular: embaixo do vídeo sobrava a tela vazia (a seção fica
+            presa com 100vh). Os convites ocupam esse espaço (21/10). */}
+        {isMobile && (
+          <FadeIn delay={0.2}>
+            <div
+              style={{
+                marginTop: "24px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "12px",
+                opacity: 0.9,
+              }}
+            >
+              <SelosLojas
+                className="justify-center"
+                tamanho={118}
+                origem="landing-veja-em-acao"
+              />
+              {/* Link discreto em vez de outro botão grande (pedido: sutil) */}
+              <button
+                type="button"
+                onClick={() => router.push("/explore")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: t.primary,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                ou explore pela web <ArrowRight size={14} />
+              </button>
+            </div>
+          </FadeIn>
+        )}
       </div>
     </>
   );
