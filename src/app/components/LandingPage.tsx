@@ -1236,9 +1236,6 @@ function Hero({ noCelular }: { noCelular: boolean }) {
 // na cara logo depois do card escuro
 function VideoSection() {
   const t = useTheme();
-  // No celular sem o pin: a seção presa por 1,65 tela deixava um vão vazio
-  // embaixo do vídeo, que ali só ocupa o topo (21/10)
-  const isMobile = useIsMobile();
   // Pin igual ao tesouro: wrapper alto + seção sticky de 100vh. O scroll é
   // consumido DENTRO da seção alimentando a entrada do card do vídeo
   // (scale/y) — a tela fica travada nela até a animação terminar
@@ -1260,19 +1257,14 @@ function VideoSection() {
   return (
     // Pin curto (~2 scrolls) com a seção em TAMANHO NATURAL: sticky no topo,
     // sem flex/altura forçada — nada é redimensionado nunca
-    <div
-      ref={wrapRef}
-      style={{ height: isMobile ? "auto" : "165vh", position: "relative" }}
-    >
+    <div ref={wrapRef} style={{ height: "165vh", position: "relative" }}>
       <section
         style={{
-          position: isMobile ? "relative" : "sticky",
+          position: "sticky",
           top: 0,
-          minHeight: isMobile ? undefined : "100vh",
+          minHeight: "100vh",
           // Em cima, o menu flutuante; embaixo, só o necessário
-          padding: isMobile
-            ? `${MENU_H + 12}px 16px 48px`
-            : `clamp(${MENU_H + 12}px, 14vh, 120px) 24px clamp(20px, 6vh, 80px)`,
+          padding: `clamp(${MENU_H + 12}px, 14vh, 120px) 24px clamp(20px, 6vh, 80px)`,
           // Um passo mais claro que o bg da página no dark: marca a divisão
           // da seção sem inverter pro branco
           background: t.isDark ? "#070D1C" : t.bgAlt,
@@ -1327,7 +1319,7 @@ function VideoInner({
         <div
           style={{
             textAlign: "left",
-            maxWidth: isMobile ? "100%" : VIDEO_W,
+            maxWidth: VIDEO_W,
             margin: "0 auto clamp(16px, 4vh, 36px)",
           }}
         >
@@ -1375,16 +1367,14 @@ function VideoInner({
           </FadeIn>
         </div>
         {/* Entrada do card dirigida pelo scroll do pin (scale + subida) */}
-        <motion.div
-          style={isMobile ? undefined : { scale: cardScale, y: cardY }}
-        >
+        <motion.div style={{ scale: cardScale, y: cardY }}>
           {/* biome-ignore lint/a11y/noStaticElementInteractions: hover decorativo na borda */}
           <div
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
               width: "100%",
-              maxWidth: isMobile ? "100%" : VIDEO_W,
+              maxWidth: VIDEO_W,
               margin: "0 auto",
               borderRadius: isMobile ? "14px" : "20px",
               overflow: "hidden",
@@ -1437,19 +1427,6 @@ function DemoWeb() {
   const ref = useRef<HTMLVideoElement>(null);
   const perto = usePerto(ref);
   const [bloqueado, setBloqueado] = useState(false);
-  const isMobile = useIsMobile();
-
-  // No celular a gravação da web (deitada) fica pequena demais para ler: o
-  // toque abre em tela cheia, onde dá para virar o celular (21/10). O iPhone
-  // só aceita a tela cheia própria do vídeo (webkitEnterFullscreen).
-  function ampliar() {
-    const v = ref.current as
-      | (HTMLVideoElement & { webkitEnterFullscreen?: () => void })
-      | null;
-    if (!v) return;
-    if (v.requestFullscreen) v.requestFullscreen().catch(() => {});
-    else v.webkitEnterFullscreen?.();
-  }
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
@@ -1476,7 +1453,6 @@ function DemoWeb() {
         playsInline
         preload={perto ? "auto" : "none"}
         aria-label="Demonstração da versão web do Mint Foil"
-        onClick={isMobile ? ampliar : undefined}
         style={{
           position: "absolute",
           inset: 0,
@@ -1490,27 +1466,6 @@ function DemoWeb() {
         <BotaoTocar
           onPress={() => ref.current && tocar(ref.current, setBloqueado)}
         />
-      )}
-      {isMobile && !bloqueado && (
-        <button
-          type="button"
-          onClick={ampliar}
-          style={{
-            position: "absolute",
-            right: "10px",
-            bottom: "10px",
-            padding: "6px 12px",
-            borderRadius: "999px",
-            border: "none",
-            background: "rgba(2, 6, 23, 0.7)",
-            color: "#FFFFFF",
-            fontSize: "12px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Toque para ampliar
-        </button>
       )}
     </>
   );
