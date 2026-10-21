@@ -41,7 +41,8 @@ type IconStackColor =
   | "critical";
 
 const colorVariants: Record<IconStackColor, string> = {
-  neutral: "text-foreground",
+  // Placas em cinza, não na cor do texto: em preto elas pesavam (21/10)
+  neutral: "text-muted-foreground",
   primary: "text-primary",
   success: "text-emerald-500",
   warning: "text-amber-500",

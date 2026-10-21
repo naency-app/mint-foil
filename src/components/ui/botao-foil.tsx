@@ -29,7 +29,8 @@ export function BotaoFoil({
           "linear-gradient(110deg, #B50D57 0%, #F856A7 35%, #887CFD 65%, #B50D57 100%)",
         backgroundSize: "200% 200%",
         animation: "mfFoilShift 5s linear infinite",
-        boxShadow: "0 4px 18px rgba(248, 86, 167, 0.4)",
+        // Brilho leve: o de 18px a 40% pesava embaixo do botão (21/10)
+        boxShadow: "0 2px 10px rgba(248, 86, 167, 0.25)",
         ...style,
       }}
       {...props}

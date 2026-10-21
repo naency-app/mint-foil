@@ -1496,6 +1496,7 @@ export default function PortfolioPage() {
                           </AreaChart>
                         ) : (
                           <EstadoVazio
+                            compacto
                             className="absolute inset-0 p-4 py-0"
                             icon={TrendingUp}
                             titulo="Histórico em construção"
