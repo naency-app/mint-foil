@@ -260,30 +260,34 @@ export function TcgCard({
 
         <div className="flex items-end justify-between gap-2 pt-1">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-mono text-sm font-bold text-foreground">
+            {/* Celular: o tile é estreito e o "R$" quebrava longe do número;
+                o preço fica inteiro e a variação desce para a linha de baixo */}
+            <div className="flex items-center gap-1.5 max-sm:flex-wrap max-sm:gap-y-0">
+              <span className="font-mono text-sm font-bold text-foreground max-sm:whitespace-nowrap">
                 R$ {price}
               </span>
-              {/* Só o percentual no tile: o valor absoluto junto virava uma
+              <span className="flex items-center gap-1.5">
+                {/* Só o percentual no tile: o valor absoluto junto virava uma
                   linha longa que truncava em grade de 5 colunas. Ele continua
                   inteiro na página da carta. */}
-              {/* A seta fica: quem não distingue verde de vermelho lê a
+                {/* A seta fica: quem não distingue verde de vermelho lê a
                   direção pela forma, não só pela cor. */}
-              {isPositive ? (
-                <IconTrendingUp className="size-3 shrink-0 text-emerald-400" />
-              ) : (
-                <IconTrendingDown className="size-3 shrink-0 text-red-400" />
-              )}
-              <span
-                className={`font-mono text-[10px] ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-                title={
-                  priceChange !== undefined
-                    ? `${isPositive ? "+" : ""}R$ ${formatPrice(priceChange)}`
-                    : undefined
-                }
-              >
-                {isPositive ? "+" : ""}
-                {change.toFixed(2)}%
+                {isPositive ? (
+                  <IconTrendingUp className="size-3 shrink-0 text-emerald-400" />
+                ) : (
+                  <IconTrendingDown className="size-3 shrink-0 text-red-400" />
+                )}
+                <span
+                  className={`font-mono text-[10px] ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                  title={
+                    priceChange !== undefined
+                      ? `${isPositive ? "+" : ""}R$ ${formatPrice(priceChange)}`
+                      : undefined
+                  }
+                >
+                  {isPositive ? "+" : ""}
+                  {change.toFixed(2)}%
+                </span>
               </span>
             </div>
             <span className="block text-[9px] leading-tight text-muted-foreground">
