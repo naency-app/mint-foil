@@ -81,7 +81,8 @@
   --card: #ffffff;
   --card-foreground: #020617;
   /* Superfície translúcida: cards, busca, pills e o menu flutuante */
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  /* 90%: a 70% o card branco ficava quase da cor do fundo cinza (21/10) */
+  --glass-bg: rgba(255, 255, 255, 0.9);
   --glass-blur: none;
   --popover: #ffffff;
   --popover-foreground: #020617;
@@ -209,7 +210,7 @@
   .glass-card,
   .glass-input,
   .glass-pill {
-    border: 1px solid rgba(2, 6, 23, 0.08);
+    border: 1px solid rgba(2, 6, 23, 0.1);
     /* Translúcido e quase sem blur, como no Collectr: o fundo aparece nítido
        através do painel; com blur ele virava mancha. O Collectr usa 82%, mas
        o fundo dele é claro e cheio de desenho — no nosso, escuro, 82% parecia

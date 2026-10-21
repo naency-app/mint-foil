@@ -220,9 +220,10 @@ export function SetCard({ set, progress, onClick }: SetCardProps) {
       className="glass-card group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden !rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
     >
       <div>
-        {/* No Mint a área do leque fica transparente: sólida, ela cobria 60% do
-            card e o vidro com blur só aparecia na faixa do nome (21/10) */}
-        <div className="relative aspect-video w-full bg-muted mint:bg-transparent flex items-center justify-center overflow-hidden p-3">
+        {/* Área do leque sem fundo próprio: sólida, ela cobria 60% do card, no
+            Mint o vidro só aparecia na faixa do nome e no claro o card ficava
+            da cor da página (21/10) */}
+        <div className="relative aspect-video w-full flex items-center justify-center overflow-hidden p-3">
           <SetCover set={set} />
 
           {/* Date Badge */}
