@@ -942,7 +942,10 @@ function ExplorePageContent() {
           fina solta no topo. A busca é a ação principal desta tela: no desktop
           ela dividia a largura com o vazio e parecia um detalhe, enquanto o
           conteúdo abaixo tinha mais peso visual que ela. */}
-      <div className="glass-card relative w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
+      {/* z-20: o vidro do Mint (backdrop-filter) faz do card uma camada própria;
+          sem isso o histórico de busca, que abre por baixo dele, ficava atrás
+          da linha de ordenação e dos chips (21/10) */}
+      <div className="glass-card relative z-20 w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
         <h1 className="mb-3 text-xl font-bold tracking-tight text-foreground">
           Buscar cartas
         </h1>
@@ -1027,23 +1030,28 @@ function ExplorePageContent() {
           Fica logo abaixo da busca, fora da coluna de conteúdo: são controles
           da tela inteira (para onde vai a carta, como a lista é ordenada e
           exibida), não do bloco de resultados. Dentro da coluna eles nasciam
-          desalinhados da sidebar e o olho lia duas barras de ferramentas. */}
-      <div className="flex flex-wrap items-center gap-2">
+          desalinhados da sidebar e o olho lia duas barras de ferramentas.
+          No celular tudo numa linha só (21/10): a ordenação vira só o ícone e o
+          "Adicionando em" encolhe se faltar espaço. */}
+      <div className="flex flex-wrap items-center gap-2 max-sm:flex-nowrap">
         {portfolios.length > 0 && (
-          <PortfolioSelector
-            portfolios={portfolios}
-            activePortfolioId={activePortfolioId}
-            onSelect={setActivePortfolioId}
-            onRefresh={invalidateCollection}
-            labelPrefix="Adicionando em"
-          />
+          <div className="min-w-0 max-sm:overflow-hidden">
+            <PortfolioSelector
+              portfolios={portfolios}
+              activePortfolioId={activePortfolioId}
+              onSelect={setActivePortfolioId}
+              onRefresh={invalidateCollection}
+              labelPrefix="Adicionando em"
+            />
+          </div>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger
               size="sm"
-              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none ${
+              aria-label="Ordenar"
+              className={`cursor-pointer rounded-full border text-xs font-bold shadow-none max-sm:[&_[data-slot=select-value]]:hidden ${
                 sortActive
                   ? "border-primary/25 bg-primary/10 text-primary"
                   : "glass-pill text-foreground"
