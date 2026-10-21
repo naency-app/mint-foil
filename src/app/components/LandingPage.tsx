@@ -359,29 +359,30 @@ function PrimaryBtn({
         // Ghost com vidro: continua legível quando as cartas do marquee
         // passam por baixo
         background: ghost ? "var(--mf-ghost-bg, rgba(255,255,255,0.35))" : GRAD,
+        backgroundSize: ghost ? undefined : "200% 200%",
+        animation: ghost ? undefined : "mfFoilShift 5s linear infinite",
         backdropFilter: ghost ? "blur(10px)" : undefined,
         WebkitBackdropFilter: ghost ? "blur(10px)" : undefined,
         color: ghost ? ghostColor : "#FFFFFF",
         fontSize: small ? "13px" : "14px",
-        fontWeight: 600,
+        fontWeight: ghost ? 600 : 700,
         cursor: "pointer",
         width: full ? "100%" : "auto",
-        boxShadow: ghost ? "none" : "0 4px 16px rgba(248,86,167,0.35)",
+        boxShadow: ghost ? "none" : SOMBRA_FOIL,
         transition:
           "transform 0.2s ease, box-shadow 0.2s ease, opacity 0.18s ease",
         letterSpacing: "0.15px",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        if (!ghost)
-          e.currentTarget.style.boxShadow = "0 8px 24px rgba(248,86,167,0.45)";
-        else e.currentTarget.style.opacity = "0.85";
+        if (!ghost) e.currentTarget.style.transform = "scale(1.03)";
+        else {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.opacity = "0.85";
+        }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        if (!ghost)
-          e.currentTarget.style.boxShadow = "0 4px 16px rgba(248,86,167,0.35)";
-        else e.currentTarget.style.opacity = "1";
+        e.currentTarget.style.transform = ghost ? "translateY(0)" : "scale(1)";
+        if (ghost) e.currentTarget.style.opacity = "1";
       }}
     >
       {children}
@@ -389,8 +390,11 @@ function PrimaryBtn({
   );
 }
 
-// Gradient CTA (from develop's landing) — theme-aware ghost variant
-const GRAD = "linear-gradient(135deg, #F856A7 0%, #B50D57 100%)";
+// CTA cheio = o mesmo "Baixar o app" da barra do sistema (Navbar.tsx): degradê
+// da marca correndo (mfFoilShift, globals.css) e brilho rosa em volta
+const GRAD =
+  "linear-gradient(110deg, #B50D57 0%, #F856A7 35%, #887CFD 65%, #B50D57 100%)";
+const SOMBRA_FOIL = "0 4px 18px rgba(248, 86, 167, 0.4)";
 
 function PinkBadge({
   children,
