@@ -19,6 +19,7 @@ export function EstadoVazio({
   descricao,
   cor = "neutral",
   emCard = false,
+  compacto = false,
   className,
   children,
 }: {
@@ -27,6 +28,8 @@ export function EstadoVazio({
   descricao?: React.ReactNode;
   cor?: IconStackColor;
   emCard?: boolean;
+  /** Ícone menor, para o vazio dentro de um gráfico ou de um card pequeno */
+  compacto?: boolean;
   className?: string;
   /** Ações (botões, links) embaixo do texto */
   children?: React.ReactNode;
@@ -39,18 +42,24 @@ export function EstadoVazio({
         className,
       )}
     >
-      <IconStack size="lg" color={cor} className="mb-5">
+      <IconStack
+        size={compacto ? "sm" : "md"}
+        color={cor}
+        className={compacto ? "mb-3" : "mb-4"}
+      >
         <IconStack.Icon icon={icon} />
       </IconStack>
-      {/* Mesmo título das seções (SectionHeader) */}
-      <h3 className="mb-1 text-[17px] font-extrabold tracking-tight text-foreground">
-        {titulo}
-      </h3>
+      {/* Texto discreto, em cinza: o vazio informa, não chama atenção
+          (pedido do usuário, 21/10, a partir do antigo "Histórico em
+          construção") */}
+      <h3 className="text-sm font-medium text-muted-foreground">{titulo}</h3>
       {descricao && (
-        <p className="max-w-sm text-sm text-muted-foreground">{descricao}</p>
+        <p className="mt-1 max-w-xs text-xs text-muted-foreground/70">
+          {descricao}
+        </p>
       )}
       {children && (
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
           {children}
         </div>
       )}

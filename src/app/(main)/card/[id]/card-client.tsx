@@ -641,6 +641,7 @@ export function CardDetailClient({
               </AreaChart>
             ) : (
               <EstadoVazio
+                compacto
                 className="py-10"
                 icon={TrendingUp}
                 titulo={
