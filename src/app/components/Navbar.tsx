@@ -20,7 +20,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useSession } from "@/lib/auth-client";
 import { useExploreHref } from "@/lib/explore-href";
 import { cn } from "@/lib/utils";
 
@@ -63,10 +62,6 @@ export function Navbar() {
   // governa pill, hover e estado ativo; só o destino da navegação muda.
   const exploreHref = useExploreHref();
   const destino = (href: string) => (href === "/explore" ? exploreHref : href);
-
-  // Logado, o "início" é o Explorar: a landing é para quem ainda não entrou.
-  const { data: session } = useSession();
-  const inicio = session ? "/explore" : "/";
 
   return (
     <>
@@ -175,10 +170,12 @@ export function Navbar() {
               </SheetContent>
             </Sheet>
 
-            {/* Logo leva ao início: o Explorar sem filtros para quem está
-                logado, a landing para quem não está */}
-            <Link
-              href={inicio}
+            {/* Esta barra só existe nas páginas do app (a landing tem a
+                dela): o logo recarrega o Explorar, do zero e sem filtros,
+                em vez de mandar de volta para a landing. <a> e não <Link>
+                de propósito: o pedido é recarregar a página. */}
+            <a
+              href="/explore"
               className="flex items-center gap-2"
               aria-label="Mint Foil — Início"
             >
@@ -202,7 +199,7 @@ export function Navbar() {
               >
                 Mint <span className="foil-text">Foil</span>
               </span>
-            </Link>
+            </a>
           </div>
 
           {/* ── Centro: links com pill deslizante (padrão landing) ── */}
