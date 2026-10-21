@@ -941,7 +941,7 @@ function ExplorePageContent() {
           fina solta no topo. A busca é a ação principal desta tela: no desktop
           ela dividia a largura com o vazio e parecia um detalhe, enquanto o
           conteúdo abaixo tinha mais peso visual que ela. */}
-      <div className="relative w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
+      <div className="glass-card relative w-full rounded-2xl border border-border bg-[var(--glass-bg)] p-4 sm:p-5">
         <h1 className="mb-3 text-xl font-bold tracking-tight text-foreground">
           Buscar cartas
         </h1>
