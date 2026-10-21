@@ -33,6 +33,19 @@ export function facetOptions<T>(
     .map(([value, count]) => ({ value, count }));
 }
 
+/**
+ * Garante que o que está marcado continue na lista, com contagem 0. As
+ * facetas contam com as OUTRAS escolhas aplicadas, então marcar FIRE pode
+ * zerar uma raridade já marcada — sumindo da lista, não teria como desmarcar.
+ */
+export function comSelecionados(
+  options: { value: string; count: number }[],
+  selected: string[],
+): { value: string; count: number }[] {
+  const faltando = selected.filter((v) => !options.some((o) => o.value === v));
+  return [...options, ...faltando.map((value) => ({ value, count: 0 }))];
+}
+
 /** Toggle imutável de um valor numa lista de selecionados. */
 export function toggleValue(list: string[], value: string): string[] {
   return list.includes(value)
