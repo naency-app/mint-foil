@@ -60,8 +60,10 @@ export function UserMenu() {
     } catch {
       // ignore network errors — session cookie will expire naturally
     }
-    // Full page reload to clear all cached session state from React/Better-Auth
-    window.location.href = "/";
+    // Recarga completa para limpar a sessão guardada no React/Better-Auth. Vai
+    // para o Explorar, que funciona sem conta: de dentro do sistema não se
+    // volta para a landing (mesma regra do logo, 21/10).
+    window.location.href = "/explore";
   }
 
   return (

@@ -469,9 +469,11 @@ function SettingsContent() {
     refetchSession?.();
   }
 
+  // Mesmo destino do "Sair" do menu do avatar (UserMenu): o Explorar, com
+  // recarga completa para não sobrar sessão em memória.
   async function handleLogout() {
     await signOut();
-    router.replace("/login");
+    window.location.href = "/explore";
   }
 
   if (isPending) {
