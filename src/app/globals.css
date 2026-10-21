@@ -73,9 +73,10 @@
 /* Tokens espelhando a LANDING (LandingPage.tsx: LIGHT/DARK) — a landing é a
    fonte de verdade de cor e tipografia; web app e mobile seguem ela. */
 :root {
-  /* Light: página branca e cards sem cor própria (mesma cor do fundo) — a
-     separação vem só da borda. Só afeta o app; a landing usa --mf-* próprios. */
-  --background: #ffffff;
+  /* Light: página num cinza quase branco para os cards brancos se destacarem
+     (pedido do usuário, 21/10; antes era tudo branco e só a borda separava).
+     Só afeta o app; a landing usa --mf-* próprios. */
+  --background: #f4f5f7;
   --foreground: #020617;
   --card: #ffffff;
   --card-foreground: #020617;
