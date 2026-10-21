@@ -10,8 +10,9 @@ import { CardImage } from "@/app/components/CardImage";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
-import { api, ApiError } from "@/lib/api";
+import { ApiError, api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { nomeDaRaridade } from "@/lib/raridade";
 
 export interface TcgCardProps {
   name: string;
@@ -246,7 +247,11 @@ export function TcgCard({
 
         {(rarity || collectorNumber) && (
           <p className="truncate text-[10px] leading-tight">
-            {rarity && <span className="text-muted-foreground">{rarity}</span>}
+            {rarity && (
+              <span className="text-muted-foreground">
+                {nomeDaRaridade(rarity, tcgSlug)}
+              </span>
+            )}
             {rarity && collectorNumber && (
               <span className="text-muted-foreground"> • </span>
             )}
