@@ -54,6 +54,7 @@ import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { SetCover, type SetProgress, temCapa } from "@/app/components/SetCard";
 import { TcgCard } from "@/app/components/TcgCard";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1358,17 +1359,15 @@ function ExplorePageContent() {
               ))}
             </div>
           ) : error ? null : sortedCards.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Search className="size-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                Nenhuma carta encontrada
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {search
+            <EstadoVazio
+              icon={Search}
+              titulo="Nenhuma carta encontrada"
+              descricao={
+                search
                   ? `Nenhum resultado para "${search}". Tente outro termo.`
-                  : "Nenhuma carta com esses filtros. Tente tirar algum."}
-              </p>
-            </div>
+                  : "Nenhuma carta com esses filtros. Tente tirar algum."
+              }
+            />
           ) : viewType === "grid" ? (
             <div
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"

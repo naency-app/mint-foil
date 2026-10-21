@@ -17,6 +17,7 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { TcgCard } from "@/app/components/TcgCard";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { GlassPill } from "@/components/ui/glass";
 import {
   Select,
@@ -269,14 +270,12 @@ export function ShowcaseBrowser({
           </div>
 
           {items.length === 0 ? (
-            <div className="glass-card !rounded-2xl p-12 text-center">
-              <p className="text-sm font-semibold text-foreground">
-                Nenhuma carta encontrada.
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ajuste a busca ou os filtros.
-              </p>
-            </div>
+            <EstadoVazio
+              emCard
+              icon={Search}
+              titulo="Nenhuma carta encontrada"
+              descricao="Ajuste a busca ou os filtros."
+            />
           ) : view === "grid" ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((item) => (
