@@ -50,6 +50,7 @@ import {
   ShowMoreToggle,
   toggleValue,
 } from "@/app/components/filters";
+import { LinkTutorialRaridade } from "@/app/components/LinkTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
@@ -1242,24 +1243,10 @@ function ExplorePageContent() {
                     });
                   }}
                 />
-                {/* Quem não joga aquele jogo não sabe o que é "Illustration
-                    Rare": leva ao tutorial, já na seção do jogo filtrado. */}
-                <Link
-                  href={
-                    activeTcgs.length === 1
-                      ? `/raridades#jogo-${activeTcgs[0]}`
-                      : "/raridades"
-                  }
-                  className="group block space-y-0.5 pt-1 text-xs"
-                >
-                  <span className="block text-muted-foreground">
-                    Não sabe a raridade da sua carta?
-                  </span>
-                  <span className="flex items-center gap-1 font-bold text-tertiary transition-colors group-hover:text-tertiary-hover">
-                    Identifique a raridade
-                    <ChevronRight className="size-3" />
-                  </span>
-                </Link>
+                <LinkTutorialRaridade
+                  jogo={activeTcgs.length === 1 ? activeTcgs[0] : undefined}
+                  className="pt-1"
+                />
               </FilterSection>
             )}
 

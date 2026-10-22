@@ -261,10 +261,11 @@ export function TcgCard({
 
         <div className="flex items-end justify-between gap-2 pt-1">
           <div className="min-w-0">
-            {/* Celular: o tile é estreito e o "R$" quebrava longe do número;
-                o preço fica inteiro e a variação desce para a linha de baixo */}
-            <div className="flex items-center gap-1.5 max-sm:flex-wrap max-sm:gap-y-0">
-              <span className="font-mono text-sm font-bold text-foreground max-sm:whitespace-nowrap">
+            {/* O "R$" quebrava longe do número no celular e, com preço de
+                sete dígitos, também na grade de 5 colunas: o preço fica
+                inteiro e a variação desce para a linha de baixo se não couber */}
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0">
+              <span className="whitespace-nowrap font-mono text-sm font-bold text-foreground">
                 R$ {price}
               </span>
               <span className="flex items-center gap-1.5">
