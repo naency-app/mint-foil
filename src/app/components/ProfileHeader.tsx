@@ -64,36 +64,32 @@ export function ProfileHeader({
     return url ? [{ link, url }] : [];
   });
 
-  // Foto do perfil (círculo): 96px no cartão, 140px na capa estilo Facebook
-  const avatar = (px: number, classe: string) => (
+  // Foto do perfil (círculo). O tamanho vem em classes para poder mudar por
+  // tela sem renderizar duas fotos: 96px no cartão do celular, 144px no do
+  // computador, 140px na capa estilo Facebook.
+  const avatar = (classe: string) => (
     <div
       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 ring-4 ring-background ${classe}`}
-      style={{ width: px, height: px }}
     >
       {image ? (
         <FotoDoUsuario
           src={image}
           alt={displayName}
-          width={px}
-          height={px}
+          width={144}
+          height={144}
           className="size-full object-cover"
         />
       ) : (
-        <span
-          className="font-black text-primary"
-          style={{ fontSize: px * 0.4 }}
-        >
-          {initial}
-        </span>
+        <span className="font-black text-primary">{initial}</span>
       )}
     </div>
   );
 
-  // Nome, @, seguidores, bio, links, valor e números — o mesmo nos dois layouts
-  const info = (
+  // Quem é a pessoa: nome, @, seguidores, bio e links
+  const identidade = (
     <>
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-extrabold tracking-tight text-foreground">
+        <h1 className="text-xl font-extrabold tracking-tight text-foreground md:group-data-[lado]/perfil:text-2xl">
           {displayName}
         </h1>
         {/*
@@ -124,7 +120,7 @@ export function ProfileHeader({
         /* Quebra em linhas em vez de rolar: o card tem largura fixa, e
                  rolagem horizontal aqui não tem affordance nenhuma — o terceiro
                  link simplesmente sumia cortado na borda. */
-        <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2">
+        <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2 md:group-data-[lado]/perfil:justify-start">
           {links.map(({ link, url }) => (
             <a
               key={link.key}
@@ -153,43 +149,51 @@ export function ProfileHeader({
           ))}
         </div>
       )}
+    </>
+  );
 
-      {/* Linha fina separando quem é a pessoa (acima) do que ela tem
-          (abaixo); números na fonte do sistema com algarismos alinhados, sem
-          a monoespaçada pesada de antes (21/10) */}
-      <div className="mt-5 w-full border-t border-border pt-5">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
+  // O que ela tem: valor, cartas e selados
+  const numeros = (
+    <>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
               ao lado do gráfico, que mostra só o portfólio escolhido. */}
-          Valor estimado da coleção
-        </p>
-        <p className="mt-1 text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
-          <span className="mr-1 text-lg font-bold text-muted-foreground">
-            R$
-          </span>
-          {formatPrice(totalValue)}
-        </p>
+        Valor estimado da coleção
+      </p>
+      <p className="mt-1 text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
+        <span className="mr-1 text-lg font-bold text-muted-foreground">R$</span>
+        {formatPrice(totalValue)}
+      </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {[
-            { rotulo: "Cartas", valor: totalCards },
-            { rotulo: "Selados", valor: totalSealed },
-          ].map(({ rotulo, valor }) => (
-            <div key={rotulo} className="rounded-xl bg-muted/60 px-3 py-2.5">
-              <p className="text-lg font-bold text-foreground tabular-nums">
-                {valor}
-              </p>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {rotulo}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <p className="mt-4 text-[11px] text-muted-foreground/70">
-          Membro desde {formatMonthYear(memberSince)}
-        </p>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {[
+          { rotulo: "Cartas", valor: totalCards },
+          { rotulo: "Selados", valor: totalSealed },
+        ].map(({ rotulo, valor }) => (
+          <div key={rotulo} className="rounded-xl bg-muted/60 px-3 py-2.5">
+            <p className="text-lg font-bold text-foreground tabular-nums">
+              {valor}
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              {rotulo}
+            </p>
+          </div>
+        ))}
       </div>
+
+      <p className="mt-4 text-[11px] text-muted-foreground/70">
+        Membro desde {formatMonthYear(memberSince)}
+      </p>
+    </>
+  );
+
+  // Uma coluna (celular e capa com foto): números abaixo de uma linha fina que
+  // separa quem é a pessoa do que ela tem; números na fonte do sistema com
+  // algarismos alinhados, sem a monoespaçada pesada de antes (21/10)
+  const info = (
+    <>
+      {identidade}
+      <div className="mt-5 w-full border-t border-border pt-5">{numeros}</div>
     </>
   );
 
@@ -236,7 +240,7 @@ export function ProfileHeader({
 
         <div className="relative -mt-6 rounded-t-3xl bg-background">
           <div className="mx-auto flex w-full max-w-sm flex-col items-center px-4 pb-10 text-center">
-            {avatar(140, "-mt-[70px] mb-3")}
+            {avatar("-mt-[70px] mb-3 size-[140px] text-[56px]")}
             {info}
           </div>
         </div>
@@ -246,10 +250,23 @@ export function ProfileHeader({
 
   return (
     <ProfileCover cover={cover} actions={actions}>
-      <div className="mx-auto w-full max-w-sm">
-        <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center">
-          {avatar(96, "-mt-16 mb-3")}
-          {info}
+      {/* No celular, coluna única com a foto saindo do topo. No computador o
+          cartão deita: foto grande à esquerda, quem é a pessoa no meio e os
+          números à direita, separados por uma linha vertical. */}
+      <div className="mx-auto w-full max-w-sm md:max-w-3xl">
+        <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center md:flex-row md:gap-8 md:p-8">
+          {avatar(
+            "-mt-16 mb-3 size-24 text-[38px] md:m-0 md:size-36 md:text-[58px]",
+          )}
+          <div
+            data-lado
+            className="group/perfil flex min-w-0 flex-1 flex-col items-center md:items-start md:text-left"
+          >
+            {identidade}
+          </div>
+          <div className="mt-5 w-full border-t border-border pt-5 md:mt-0 md:w-60 md:shrink-0 md:self-stretch md:border-t-0 md:border-l md:pt-0 md:pl-8 md:flex md:flex-col md:justify-center">
+            {numeros}
+          </div>
         </div>
       </div>
     </ProfileCover>
