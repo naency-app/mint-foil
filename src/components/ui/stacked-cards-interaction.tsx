@@ -76,7 +76,15 @@ const StackedCardsInteraction = ({
 
   return (
     <div className="relative flex h-full w-full items-center justify-center">
-      <div className="relative h-[300px] w-[215px] md:h-[380px] md:w-[272px]">
+      {/* O hover fica no grupo, não só na carta da frente: senão o leque
+          fechava no caminho do mouse até uma carta de trás (22/10). As cartas
+          abertas saem da caixa, mas continuam filhas dela, então o mouse em
+          cima delas conta como dentro. */}
+      <motion.div
+        className="relative h-[300px] w-[215px] md:h-[380px] md:w-[272px]"
+        onHoverStart={() => setIsHovering(true)}
+        onHoverEnd={() => setIsHovering(false)}
+      >
         {limitedCards.map((card, index) => {
           const isFirst = index === 0;
 
@@ -111,8 +119,6 @@ const StackedCardsInteraction = ({
                 type: "spring",
               }}
               {...(isFirst && {
-                onHoverStart: () => setIsHovering(true),
-                onHoverEnd: () => setIsHovering(false),
                 // Touch fallback: tap toggles the spread
                 onTap: () => setIsHovering((h) => !h),
               })}
@@ -132,7 +138,7 @@ const StackedCardsInteraction = ({
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 };
