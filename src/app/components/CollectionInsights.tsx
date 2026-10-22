@@ -38,7 +38,9 @@ export function CollectionInsights({ stats }: { stats: UserStats | null }) {
           <div className="space-y-3">
             {topCards.map((card, i) => (
               <Link
-                key={card.id}
+                // A mesma carta pode vir duas vezes: uma por portfólio e uma
+                // por variação (Normal e Reverse são entradas separadas)
+                key={`${card.id}-${i}`}
                 href={`/card/${card.id}`}
                 className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background hover:bg-muted/40 transition-colors"
               >

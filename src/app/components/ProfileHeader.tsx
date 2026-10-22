@@ -203,14 +203,27 @@ export function ProfileHeader({
     return (
       <div className="relative -mt-14 w-full md:-mt-16">
         <div className="relative h-56 w-full overflow-hidden sm:h-72">
+          {/* A foto sobe do app com 1200px de largura: esticada na tela
+              inteira de um monitor ela estoura. No desktop a nítida fica numa
+              coluna que não passa disso, e as laterais são ela desfocada,
+              com a borda da coluna sumindo nelas. */}
           <Image
             src={cover.value}
             alt=""
             fill
-            priority
             sizes="100vw"
-            className="object-cover"
+            className="hidden scale-110 object-cover blur-2xl md:block"
           />
+          <div className="relative mx-auto h-full w-full md:max-w-6xl md:[mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+            <Image
+              src={cover.value}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 768px) 1152px, 100vw"
+              className="object-cover"
+            />
+          </div>
           {/* Só o topo escurece: a navbar fixa fica legível sobre a foto */}
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
         </div>
