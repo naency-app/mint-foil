@@ -2539,7 +2539,7 @@ function VideosEmSequencia({
           poster={lado === 0 ? poster : undefined}
           muted
           playsInline
-          // Só o card do centro baixa vídeo (9–22 MB cada, em 720px), e só
+          // Só o card do centro baixa vídeo (2–8 MB cada, em 540px), e só
           // com a seção perto da tela: os vizinhos mostram o poster. No do
           // centro os dois players carregam, para o de trás estar pronto
           // quando o da frente acabar.
