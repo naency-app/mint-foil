@@ -27,10 +27,35 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
+/**
+ * Os três temas como itens de rádio, compartilhados pelo submenu Aparência
+ * (logado) e pelo botão de tema (sem login). `onSelect` com preventDefault
+ * para o menu não fechar ao trocar: dá para ver o resultado na hora e voltar
+ * atrás sem reabrir.
+ */
+function OpcoesTema() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+      {TEMAS.map((t) => (
+        <DropdownMenuRadioItem
+          key={t.value}
+          value={t.value}
+          onSelect={(e) => e.preventDefault()}
+          className="cursor-pointer gap-2 rounded-lg py-2 text-sm font-medium focus:bg-muted/60"
+        >
+          <t.icon className="size-4 text-muted-foreground" />
+          {t.label}
+        </DropdownMenuRadioItem>
+      ))}
+    </DropdownMenuRadioGroup>
+  );
+}
+
 export function UserMenu() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -42,13 +67,37 @@ export function UserMenu() {
   }
 
   if (!session) {
+    // Sem conta o tema também muda: o botão mostra o ícone do tema atual. Só
+    // no computador — no celular a Aparência já fica no menu lateral.
+    const TemaAtual = TEMAS.find((t) => t.value === theme)?.icon ?? IconPalette;
     return (
-      <Link href="/login">
-        <Button size="sm">
-          <IconLogin className="size-4" />
-          Entrar
-        </Button>
-      </Link>
+      <>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Aparência"
+              className="text-muted-foreground hover:text-foreground max-md:hidden"
+            >
+              <TemaAtual className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="glass-card w-44 !rounded-2xl border-border p-1.5 shadow-xl"
+          >
+            <OpcoesTema />
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Link href="/login">
+          <Button size="sm">
+            <IconLogin className="size-4" />
+            Entrar
+          </Button>
+        </Link>
+      </>
     );
   }
 
@@ -137,9 +186,6 @@ export function UserMenu() {
           Aparência mora aqui, junto de Configurações e Sair: é preferência de
           conta, não ação de navegação. Submenu porque são três temas — o Mint
           é o escuro com o fundo foil.
-
-          `onSelect` com preventDefault para o menu não fechar ao trocar — dá
-          para ver o resultado na hora e voltar atrás sem reabrir.
         */}
         <DropdownMenuSub>
           {/* md:hidden igual ao menu lateral: no celular o tema já fica lá,
@@ -152,19 +198,7 @@ export function UserMenu() {
             sideOffset={8}
             className="glass-card w-44 !rounded-2xl border-border p-1.5 shadow-xl"
           >
-            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-              {TEMAS.map((t) => (
-                <DropdownMenuRadioItem
-                  key={t.value}
-                  value={t.value}
-                  onSelect={(e) => e.preventDefault()}
-                  className="cursor-pointer gap-2 rounded-lg py-2 text-sm font-medium focus:bg-muted/60"
-                >
-                  <t.icon className="size-4 text-muted-foreground" />
-                  {t.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
+            <OpcoesTema />
           </DropdownMenuSubContent>
         </DropdownMenuSub>
 
