@@ -106,7 +106,12 @@ export function FilterSection({
  * Lista de checkboxes com limite de itens visíveis — listas derivadas dos
  * dados (anos, raridades…) podem crescer muito; acima de `limit` entra o
  * "Ver mais/menos" pra sidebar não virar um paredão.
+ *
+ * Só recolhe se for esconder pelo menos `MIN_ESCONDIDOS`: um "Ver mais (2)"
+ * não economiza espaço e ainda obriga a clicar para ver duas linhas (22/10).
  */
+const MIN_ESCONDIDOS = 5;
+
 export function CheckboxFilterList({
   idPrefix,
   options,
@@ -121,11 +126,13 @@ export function CheckboxFilterList({
   limit?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const recolhe = options.length - limit >= MIN_ESCONDIDOS;
   // Selecionados nunca somem ao recolher — senão o usuário perde de vista
   // um filtro ativo
-  const visible = expanded
-    ? options
-    : options.filter((o, i) => i < limit || selected.includes(o.value));
+  const visible =
+    expanded || !recolhe
+      ? options
+      : options.filter((o, i) => i < limit || selected.includes(o.value));
   const hiddenCount = options.length - visible.length;
 
   return (
@@ -153,7 +160,7 @@ export function CheckboxFilterList({
         </div>
       ))}
 
-      {(hiddenCount > 0 || expanded) && options.length > limit && (
+      {recolhe && (hiddenCount > 0 || expanded) && (
         <ShowMoreToggle
           expanded={expanded}
           hiddenCount={hiddenCount}
