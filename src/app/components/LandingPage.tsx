@@ -2058,8 +2058,9 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
           <div style={{ position: "relative" }}>
             <StackedCardsInteraction
               cards={STACK_CARDS}
-              spreadDistance={isMobile ? 44 : 120}
-              rotationAngle={10}
+              // Desktop: abre bem para ver as cartas de trás (22/10)
+              spreadDistance={isMobile ? 44 : 175}
+              rotationAngle={isMobile ? 10 : 12}
             />
             <p
               style={{
