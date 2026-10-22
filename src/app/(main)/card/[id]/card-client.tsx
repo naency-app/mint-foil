@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
-import { TagTutorialRaridade } from "@/app/components/LinkTutorialRaridade";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";

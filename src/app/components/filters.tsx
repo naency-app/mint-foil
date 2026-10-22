@@ -2,7 +2,6 @@
 
 import { ChevronDown } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -80,22 +79,19 @@ export function PainelFiltros({ children }: { children: ReactNode }) {
 
 export function FilterSection({
   title,
-  badge,
+  tag,
   children,
 }: {
   title: string;
-  badge?: string;
+  /** Ao lado do título (ex.: a tag do tutorial de raridades). */
+  tag?: ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <SectionLabel>{title}</SectionLabel>
-        {badge && (
-          <Badge variant="default" className="h-4 px-1.5 text-[9px]">
-            {badge}
-          </Badge>
-        )}
+        {tag}
       </div>
       {children}
     </div>
