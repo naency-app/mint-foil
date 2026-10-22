@@ -3,7 +3,7 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 if (typeof window !== "undefined") {
@@ -159,6 +159,9 @@ export interface CinematicHeroProps
   metricLabel?: string;
 }
 
+/** Altura do iPhone desenhado (h-[565px]), para escalar pela tela. */
+const MOCKUP_H = 565;
+
 export function CinematicHero({
   isDark = false,
   tagline1 = "Saber o preço da sua carta",
@@ -184,6 +187,26 @@ export function CinematicHero({
   const mainCardRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
+
+  // Celular: o mockup cresce com a altura da tela. Com tamanho fixo ficava
+  // bom no 14 Pro e minúsculo no Pro Max, com sobra em volta (22/10).
+  // null = ainda não mediu (SSR) ou desktop: valem as classes do CSS.
+  const [escalaMobile, setEscalaMobile] = useState<number | null>(null);
+  useEffect(() => {
+    const medir = () => {
+      if (window.innerWidth >= 768) {
+        setEscalaMobile(null);
+        return;
+      }
+      // O que não é mockup: navbar, título, "Coleção inteligente", lojas e
+      // os respiros entre eles
+      const sobra = window.innerHeight - 380;
+      setEscalaMobile(Math.min(0.85, Math.max(0.5, sobra / MOCKUP_H)));
+    };
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -510,7 +533,7 @@ export function CinematicHero({
           <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 py-6 max-md:pt-24 lg:py-0">
             {/* Right / top-mobile: BRAND wordmark */}
             <div className="mf-card-right mf-gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full">
-              <h2 className="text-5xl max-md:text-4xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
+              <h2 className="text-5xl max-md:text-[clamp(2.25rem,6vh,3.5rem)] md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
                 <span className="mf-card-silver">MINT</span>
                 <br />
                 <span className="mf-card-foil">FOIL</span>
@@ -520,9 +543,21 @@ export function CinematicHero({
             {/* Center: iPhone mockup */}
             <div
               className="mf-mockup-wrap order-2 lg:order-2 relative w-full h-[360px] max-md:h-[300px] lg:h-[580px] flex items-center justify-center z-10"
-              style={{ perspective: "1000px" }}
+              style={{
+                perspective: "1000px",
+                height: escalaMobile
+                  ? `${Math.round(MOCKUP_H * escalaMobile)}px`
+                  : undefined,
+              }}
             >
-              <div className="relative w-full h-full flex items-center justify-center transform scale-[0.65] max-md:scale-[0.53] md:scale-90 lg:scale-100">
+              <div
+                className="relative w-full h-full flex items-center justify-center transform scale-[0.65] max-md:scale-[0.53] md:scale-90 lg:scale-100"
+                style={
+                  escalaMobile
+                    ? { transform: `scale(${escalaMobile})` }
+                    : undefined
+                }
+              >
                 <div
                   ref={mockupRef}
                   className="relative w-[272px] h-[565px] rounded-[3rem] mf-iphone-bezel flex flex-col"
