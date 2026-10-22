@@ -50,7 +50,7 @@ import {
   ShowMoreToggle,
   toggleValue,
 } from "@/app/components/filters";
-import { LinkTutorialRaridade } from "@/app/components/LinkTutorialRaridade";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
@@ -1217,7 +1217,14 @@ function ExplorePageContent() {
                 inteiro — valem pra todos os TCGs (Yu-Gi-Oh tem atributo,
                 Pokémon tem tipo…). Só aparecem quando o conjunto tem valores. */}
             {rarityGroups.length > 0 && (
-              <FilterSection title="Raridade">
+              <FilterSection
+                title="Raridade"
+                tag={
+                  <TagTutorialRaridade
+                    jogo={activeTcgs.length === 1 ? activeTcgs[0] : undefined}
+                  />
+                }
+              >
                 <CheckboxFilterList
                   idPrefix="rarity"
                   options={rarityGroups.map(({ nome, count }) => ({
@@ -1242,10 +1249,6 @@ function ExplorePageContent() {
                         : [...prev, ...grupo.valores];
                     });
                   }}
-                />
-                <LinkTutorialRaridade
-                  jogo={activeTcgs.length === 1 ? activeTcgs[0] : undefined}
-                  className="pt-1"
                 />
               </FilterSection>
             )}
