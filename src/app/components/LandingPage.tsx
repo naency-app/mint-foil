@@ -2058,8 +2058,9 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
           <div style={{ position: "relative" }}>
             <StackedCardsInteraction
               cards={STACK_CARDS}
-              spreadDistance={isMobile ? 44 : 120}
-              rotationAngle={10}
+              // Desktop: abre bem para ver as cartas de trás (22/10)
+              spreadDistance={isMobile ? 44 : 175}
+              rotationAngle={isMobile ? 10 : 12}
             />
             <p
               style={{
@@ -2433,6 +2434,8 @@ const TEXTO_W = 340;
 // linha do "6 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
 const LEGENDA_H = 122;
 const PONTOS_H = 24;
+// No celular a legenda tem a largura da tela e quebra em mais linhas
+const LEGENDA_MOBILE_H = 170;
 
 /**
  * Toca vários vídeos um depois do outro, em loop, sem piscar na troca.
@@ -2537,7 +2540,7 @@ function VideosEmSequencia({
           poster={lado === 0 ? poster : undefined}
           muted
           playsInline
-          // Só o card do centro baixa vídeo (9–22 MB cada, em 720px), e só
+          // Só o card do centro baixa vídeo (2–8 MB cada, em 540px), e só
           // com a seção perto da tela: os vizinhos mostram o poster. No do
           // centro os dois players carregam, para o de trás estar pronto
           // quando o da frente acabar.
@@ -2599,27 +2602,35 @@ function KeyFeatures() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const tamanho = isMobile
-    ? 1
-    : Math.min(
-        1,
-        Math.max(
-          0.55,
-          // Só metade do menu entra na conta: o cabeçalho da seção pode passar
-          // por baixo dele; o que precisa aparecer inteiro é o celular
-          (winH - MENU_H / 2 - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
-        ),
-      );
-  const celW = CELULAR_W * tamanho;
-  const celH = CELULAR_H * tamanho;
   // Celular do ativo: tamanho cheio no desktop, um pouco menor no celular.
   // Os vizinhos ficam a `passo` do centro — no celular eles só espiam na borda.
   const escalaAtivo = isMobile ? 0.82 : 1;
+  const tamanho = Math.min(
+    1,
+    Math.max(
+      0.55,
+      isMobile
+        ? // Celular: a seção inteira (cabeçalho, celular, legenda e pontos)
+          // abaixo do menu. Com tamanho fixo o celular era cortado pela barra
+          // do Safari (22/10).
+          (winH - MENU_H - cabecalhoH - LEGENDA_MOBILE_H - PONTOS_H - 16) /
+            (CELULAR_H * escalaAtivo)
+        : // Só metade do menu entra na conta: o cabeçalho da seção pode passar
+          // por baixo dele; o que precisa aparecer inteiro é o celular
+          (winH - MENU_H / 2 - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
+    ),
+  );
+  const celW = CELULAR_W * tamanho;
+  const celH = CELULAR_H * tamanho;
+  // Celular de tela baixa (Safari com as barras à vista): sem o subtítulo,
+  // como no notebook, senão o celular encolhe demais
+  const semSubtitulo = telaBaixa || (isMobile && winH < 760);
   const passo = isMobile
     ? Math.round(winW * 0.62)
     : Math.round(330 * Math.max(tamanho, 0.6));
   // Altura do palco: celular + título + descrição de até 3 linhas
-  const palco = Math.round(celH * escalaAtivo) + (isMobile ? 170 : LEGENDA_H);
+  const palco =
+    Math.round(celH * escalaAtivo) + (isMobile ? LEGENDA_MOBILE_H : LEGENDA_H);
 
   const prev = () =>
     setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
@@ -2696,7 +2707,7 @@ function KeyFeatures() {
             Cada recurso em ação, passo a passo
           </h2>
         </FadeIn>
-        {!telaBaixa && (
+        {!semSubtitulo && (
           <FadeIn delay={0.18}>
             <p
               style={{

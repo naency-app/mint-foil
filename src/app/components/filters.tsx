@@ -2,9 +2,9 @@
 
 import { ChevronDown } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 
 /**
@@ -59,38 +59,39 @@ export function toggleValue(list: string[], value: string): string[] {
  * as pontas esmaecidas: a lista some antes da borda em vez de ser cortada rente
  * a ela — com o painel translúcido, o corte rente parecia quebrado (19/10).
  *
- * O max-h reserva 12rem, não 6rem: com `top-20` o painel precisa caber entre o
- * topo grudado e o fim do aside, senão o sticky recua no fim da página.
+ * O painel vai até 2rem da borda de baixo da tela (22/10: com 12rem sobrava
+ * um vão vazio embaixo). No fim da página o aside termina antes do rodapé e o
+ * sticky recua junto com ele — só ali, e é o rodapé entrando.
  */
 export function PainelFiltros({ children }: { children: ReactNode }) {
   return (
-    // O py do painel não rola: a caixa de rolagem termina 8px antes da borda
-    <div className="glass-card sticky top-20 flex max-h-[calc(100vh-12rem)] flex-col py-2">
-      <div className="space-y-5 overflow-y-auto px-4 py-2 [mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
-        {children}
-      </div>
+    // O py do painel não rola: a caixa de rolagem termina 8px antes da borda.
+    // A altura máxima fica no Root e o Viewport herda (o Viewport do Radix
+    // usa height:100%, que não resolve contra um max-h de flex); o degradê
+    // vai no Viewport para não apagar as pontas da barra.
+    <div className="glass-card sticky top-20 py-2">
+      <ScrollArea className="max-h-[calc(100vh-8rem)] *:data-[slot=scroll-area-viewport]:max-h-[inherit] *:data-[slot=scroll-area-viewport]:[mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
+        <div className="space-y-5 px-4 py-2">{children}</div>
+      </ScrollArea>
     </div>
   );
 }
 
 export function FilterSection({
   title,
-  badge,
+  tag,
   children,
 }: {
   title: string;
-  badge?: string;
+  /** Ao lado do título (ex.: a tag do tutorial de raridades). */
+  tag?: ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <SectionLabel>{title}</SectionLabel>
-        {badge && (
-          <Badge variant="default" className="h-4 px-1.5 text-[9px]">
-            {badge}
-          </Badge>
-        )}
+        {tag}
       </div>
       {children}
     </div>
@@ -101,7 +102,12 @@ export function FilterSection({
  * Lista de checkboxes com limite de itens visíveis — listas derivadas dos
  * dados (anos, raridades…) podem crescer muito; acima de `limit` entra o
  * "Ver mais/menos" pra sidebar não virar um paredão.
+ *
+ * Só recolhe se for esconder pelo menos `MIN_ESCONDIDOS`: um "Ver mais (2)"
+ * não economiza espaço e ainda obriga a clicar para ver duas linhas (22/10).
  */
+const MIN_ESCONDIDOS = 5;
+
 export function CheckboxFilterList({
   idPrefix,
   options,
@@ -116,11 +122,13 @@ export function CheckboxFilterList({
   limit?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const recolhe = options.length - limit >= MIN_ESCONDIDOS;
   // Selecionados nunca somem ao recolher — senão o usuário perde de vista
   // um filtro ativo
-  const visible = expanded
-    ? options
-    : options.filter((o, i) => i < limit || selected.includes(o.value));
+  const visible =
+    expanded || !recolhe
+      ? options
+      : options.filter((o, i) => i < limit || selected.includes(o.value));
   const hiddenCount = options.length - visible.length;
 
   return (
@@ -148,7 +156,7 @@ export function CheckboxFilterList({
         </div>
       ))}
 
-      {(hiddenCount > 0 || expanded) && options.length > limit && (
+      {recolhe && (hiddenCount > 0 || expanded) && (
         <ShowMoreToggle
           expanded={expanded}
           hiddenCount={hiddenCount}

@@ -220,12 +220,12 @@ export function TcgCard({
             para cima e a deixava pequena. */}
         {cardHref ? (
           <Link href={cardHref}>
-            <h3 className="truncate text-sm font-bold leading-snug text-foreground transition-colors hover:text-primary">
+            <h3 className="truncate text-sm font-semibold leading-snug text-foreground transition-colors hover:text-primary">
               {displayName}
             </h3>
           </Link>
         ) : (
-          <h3 className="truncate text-sm font-bold leading-snug text-foreground">
+          <h3 className="truncate text-sm font-semibold leading-snug text-foreground">
             {displayName}
           </h3>
         )}
@@ -235,28 +235,24 @@ export function TcgCard({
             <Link
               href={setHref}
               onClick={(e) => e.stopPropagation()}
-              className="block truncate text-[11px] leading-tight text-tertiary underline underline-offset-2 transition-colors hover:text-tertiary-hover"
+              className="block truncate text-xs leading-tight text-tertiary underline decoration-tertiary/40 underline-offset-2 transition-colors hover:text-tertiary-hover hover:decoration-current"
             >
               {setName}
             </Link>
           ) : (
-            <p className="truncate text-[11px] leading-tight text-tertiary">
+            <p className="truncate text-xs leading-tight text-tertiary">
               {setName}
             </p>
           ))}
 
         {(rarity || collectorNumber) && (
-          <p className="truncate text-[10px] leading-tight">
-            {rarity && (
-              <span className="text-muted-foreground">
-                {nomeDaRaridade(rarity, tcgSlug)}
-              </span>
-            )}
-            {rarity && collectorNumber && (
-              <span className="text-muted-foreground"> • </span>
-            )}
+          // Linha de apoio, toda no mesmo cinza: o código em negrito e quase
+          // branco competia com o nome e o preço (22/10).
+          <p className="truncate text-[11px] leading-tight text-muted-foreground">
+            {rarity && nomeDaRaridade(rarity, tcgSlug)}
+            {rarity && collectorNumber && " · "}
             {collectorNumber && (
-              <span className="font-mono font-bold tracking-tight text-foreground/85">
+              <span className="font-mono tracking-tight">
                 {collectorNumber}
               </span>
             )}
@@ -265,10 +261,11 @@ export function TcgCard({
 
         <div className="flex items-end justify-between gap-2 pt-1">
           <div className="min-w-0">
-            {/* Celular: o tile é estreito e o "R$" quebrava longe do número;
-                o preço fica inteiro e a variação desce para a linha de baixo */}
-            <div className="flex items-center gap-1.5 max-sm:flex-wrap max-sm:gap-y-0">
-              <span className="font-mono text-sm font-bold text-foreground max-sm:whitespace-nowrap">
+            {/* O "R$" quebrava longe do número no celular e, com preço de
+                sete dígitos, também na grade de 5 colunas: o preço fica
+                inteiro e a variação desce para a linha de baixo se não couber */}
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0">
+              <span className="whitespace-nowrap font-mono text-sm font-bold text-foreground">
                 R$ {price}
               </span>
               <span className="flex items-center gap-1.5">
@@ -283,7 +280,7 @@ export function TcgCard({
                   <IconTrendingDown className="size-3 shrink-0 text-red-400" />
                 )}
                 <span
-                  className={`font-mono text-[10px] ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                  className={`font-mono text-[11px] ${isPositive ? "text-emerald-400" : "text-red-400"}`}
                   title={
                     priceChange !== undefined
                       ? `${isPositive ? "+" : ""}R$ ${formatPrice(priceChange)}`
@@ -291,11 +288,12 @@ export function TcgCard({
                   }
                 >
                   {isPositive ? "+" : ""}
-                  {change.toFixed(2)}%
+                  {/* Vírgula, como no preço ao lado */}
+                  {change.toFixed(2).replace(".", ",")}%
                 </span>
               </span>
             </div>
-            <span className="block text-[9px] leading-tight text-muted-foreground">
+            <span className="block text-[10px] leading-tight text-muted-foreground">
               internacional
             </span>
             {/* O rótulo fica parado; só os algarismos rolam.
@@ -303,14 +301,14 @@ export function TcgCard({
                 — a mesma cor do botão de adicionar. Numa grade de 5 colunas é
                 o que responde "eu já tenho essa?" sem ter que ler o número. */}
             <span
-              className={`mt-0.5 flex items-center gap-1 font-mono text-[10px] ${
+              className={`mt-0.5 flex items-center gap-1 font-mono text-[11px] ${
                 localQty > 0
                   ? "font-bold text-emerald-400"
                   : "text-muted-foreground"
               }`}
             >
               Quant.
-              <RollingNumber value={localQty} fontSize={10} />
+              <RollingNumber value={localQty} fontSize={11} />
             </span>
           </div>
 

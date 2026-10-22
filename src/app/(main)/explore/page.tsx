@@ -50,6 +50,7 @@ import {
   ShowMoreToggle,
   toggleValue,
 } from "@/app/components/filters";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
@@ -1142,12 +1143,8 @@ function ExplorePageContent() {
 
       {/* ── Marketplace: sidebar de filtros aparente + conteúdo ── */}
       {/* Sem items-start: o aside precisa esticar na altura da linha para o
-          sticky interno ter percurso e acompanhar o scroll.
-          O max-h do card reserva 12rem, não 6rem: com `top-20` (5rem) o card
-          precisa caber entre o topo grudado e o fim do aside. Como o aside
-          termina antes do fim da página (padding do main + rodapé), um card de
-          `100vh-6rem` não cabia lá no fim e o sticky recuava — a sidebar subia
-          para trás da navbar ao carregar a última página do scroll infinito. */}
+          sticky interno ter percurso e acompanhar o scroll. A altura do
+          painel está no PainelFiltros. */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
           <PainelFiltros>
@@ -1220,7 +1217,14 @@ function ExplorePageContent() {
                 inteiro — valem pra todos os TCGs (Yu-Gi-Oh tem atributo,
                 Pokémon tem tipo…). Só aparecem quando o conjunto tem valores. */}
             {rarityGroups.length > 0 && (
-              <FilterSection title="Raridade">
+              <FilterSection
+                title="Raridade"
+                tag={
+                  <TagTutorialRaridade
+                    jogo={activeTcgs.length === 1 ? activeTcgs[0] : undefined}
+                  />
+                }
+              >
                 <CheckboxFilterList
                   idPrefix="rarity"
                   options={rarityGroups.map(({ nome, count }) => ({

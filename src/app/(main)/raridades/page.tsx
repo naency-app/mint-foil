@@ -484,6 +484,20 @@ export default function RaridadesPage() {
       ) as Record<string, RarityExample[] | "loading">,
   });
 
+  // Link com #jogo-… (vem do filtro de raridade do Explorar): o navegador rola
+  // antes de os jogos de cima carregarem, e eles empurram o alvo para baixo.
+  // Rola de novo uma vez, quando tudo chegou.
+  const carregando = Object.values(data).some((rows) => rows === "loading");
+  const rolouParaOJogo = useRef(false);
+  useEffect(() => {
+    if (carregando || rolouParaOJogo.current) return;
+    rolouParaOJogo.current = true;
+    if (!window.location.hash.startsWith("#jogo-")) return;
+    document
+      .getElementById(window.location.hash.slice(1))
+      ?.scrollIntoView({ block: "start" });
+  }, [carregando]);
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-10 max-w-2xl">

@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
@@ -667,9 +668,12 @@ export function CardDetailClient({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                  Raridade
-                </p>
+                <div className="mb-1 flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Raridade
+                  </p>
+                  <TagTutorialRaridade jogo={card.tcgId} />
+                </div>
                 <p className="text-base text-foreground font-medium">
                   {nomeDaRaridade(card.rarity, card.tcgId)}
                 </p>

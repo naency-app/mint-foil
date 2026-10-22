@@ -503,10 +503,14 @@ export function CinematicHero({
         >
           <div className="mf-card-sheen" aria-hidden="true" />
 
-          <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 py-6 lg:py-0">
+          {/* Celular: o card cresce até a tela inteira e fica por baixo da
+              navbar fixa, que cobria o "MINT FOIL" (22/10). O pt-24 abre
+              espaço para ela, e título, mockup e lojas encolhem para caber
+              nos ~660px que sobram com as barras do Safari à vista. */}
+          <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 py-6 max-md:pt-24 lg:py-0">
             {/* Right / top-mobile: BRAND wordmark */}
             <div className="mf-card-right mf-gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full">
-              <h2 className="text-5xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
+              <h2 className="text-5xl max-md:text-4xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
                 <span className="mf-card-silver">MINT</span>
                 <br />
                 <span className="mf-card-foil">FOIL</span>
@@ -515,10 +519,10 @@ export function CinematicHero({
 
             {/* Center: iPhone mockup */}
             <div
-              className="mf-mockup-wrap order-2 lg:order-2 relative w-full h-[360px] lg:h-[580px] flex items-center justify-center z-10"
+              className="mf-mockup-wrap order-2 lg:order-2 relative w-full h-[360px] max-md:h-[300px] lg:h-[580px] flex items-center justify-center z-10"
               style={{ perspective: "1000px" }}
             >
-              <div className="relative w-full h-full flex items-center justify-center transform scale-[0.65] md:scale-90 lg:scale-100">
+              <div className="relative w-full h-full flex items-center justify-center transform scale-[0.65] max-md:scale-[0.53] md:scale-90 lg:scale-100">
                 <div
                   ref={mockupRef}
                   className="relative w-[272px] h-[565px] rounded-[3rem] mf-iphone-bezel flex flex-col"
@@ -639,7 +643,7 @@ export function CinematicHero({
                 {cardDescription}
               </p>
               {storeBadges && (
-                <div className="mt-9">
+                <div className="mt-9 max-md:mt-5">
                   <p
                     className="mb-3 font-bold text-xs uppercase tracking-[0.22em]"
                     style={{ color: "#C49AFF" }}
