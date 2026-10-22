@@ -40,7 +40,7 @@ export function PerfilSocial({
         <div className="mt-3 h-9" />
       ) : (
         status !== "self" && (
-          <div className="mt-3 flex justify-center">
+          <div className="mt-3 flex justify-center md:group-data-[lado]/perfil:justify-start">
             {/* Sem sessão o botão continua à vista e leva ao login */}
             <FollowButton handle={handle} status={status} tamanho="md" />
           </div>
