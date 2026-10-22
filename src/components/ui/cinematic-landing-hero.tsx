@@ -553,9 +553,10 @@ export function CinematicHero({
               <div
                 className="relative w-full h-full flex items-center justify-center transform scale-[0.65] max-md:scale-[0.53] md:scale-90 lg:scale-100"
                 style={
-                  escalaMobile
-                    ? { transform: `scale(${escalaMobile})` }
-                    : undefined
+                  // `scale`, não `transform`: no Tailwind 4 o scale-[0.53] é a
+                  // propriedade `scale`, que se multiplica com um transform —
+                  // o celular saía com 0,53 × a escala (22/10)
+                  escalaMobile ? { scale: String(escalaMobile) } : undefined
                 }
               >
                 <div
