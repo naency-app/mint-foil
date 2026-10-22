@@ -1254,11 +1254,15 @@ function ExplorePageContent() {
                       ? `/raridades#jogo-${activeTcgs[0]}`
                       : "/raridades"
                   }
-                  className="flex items-center gap-1 pt-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  className="group block space-y-0.5 pt-1 text-xs"
                 >
-                  Não sabe a raridade da sua carta?
-                  <span className="font-bold text-primary">Identifique</span>
-                  <ChevronRight className="size-3 text-primary" />
+                  <span className="block text-muted-foreground">
+                    Não sabe a raridade da sua carta?
+                  </span>
+                  <span className="flex items-center gap-1 font-bold text-primary transition-colors group-hover:text-tertiary-hover">
+                    Identifique a raridade
+                    <ChevronRight className="size-3" />
+                  </span>
                 </Link>
               </FilterSection>
             )}
