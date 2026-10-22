@@ -60,8 +60,9 @@ export function toggleValue(list: string[], value: string): string[] {
  * as pontas esmaecidas: a lista some antes da borda em vez de ser cortada rente
  * a ela — com o painel translúcido, o corte rente parecia quebrado (19/10).
  *
- * O max-h reserva 12rem, não 6rem: com `top-20` o painel precisa caber entre o
- * topo grudado e o fim do aside, senão o sticky recua no fim da página.
+ * O painel vai até 2rem da borda de baixo da tela (22/10: com 12rem sobrava
+ * um vão vazio embaixo). No fim da página o aside termina antes do rodapé e o
+ * sticky recua junto com ele — só ali, e é o rodapé entrando.
  */
 export function PainelFiltros({ children }: { children: ReactNode }) {
   return (
@@ -70,7 +71,7 @@ export function PainelFiltros({ children }: { children: ReactNode }) {
     // usa height:100%, que não resolve contra um max-h de flex); o degradê
     // vai no Viewport para não apagar as pontas da barra.
     <div className="glass-card sticky top-20 py-2">
-      <ScrollArea className="max-h-[calc(100vh-13rem)] *:data-[slot=scroll-area-viewport]:max-h-[inherit] *:data-[slot=scroll-area-viewport]:[mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
+      <ScrollArea className="max-h-[calc(100vh-8rem)] *:data-[slot=scroll-area-viewport]:max-h-[inherit] *:data-[slot=scroll-area-viewport]:[mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
         <div className="space-y-5 px-4 py-2">{children}</div>
       </ScrollArea>
     </div>

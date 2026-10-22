@@ -1142,12 +1142,8 @@ function ExplorePageContent() {
 
       {/* ── Marketplace: sidebar de filtros aparente + conteúdo ── */}
       {/* Sem items-start: o aside precisa esticar na altura da linha para o
-          sticky interno ter percurso e acompanhar o scroll.
-          O max-h do card reserva 12rem, não 6rem: com `top-20` (5rem) o card
-          precisa caber entre o topo grudado e o fim do aside. Como o aside
-          termina antes do fim da página (padding do main + rodapé), um card de
-          `100vh-6rem` não cabia lá no fim e o sticky recuava — a sidebar subia
-          para trás da navbar ao carregar a última página do scroll infinito. */}
+          sticky interno ter percurso e acompanhar o scroll. A altura do
+          painel está no PainelFiltros. */}
       <div className="flex gap-6">
         <aside className="hidden w-60 shrink-0 lg:block">
           <PainelFiltros>
