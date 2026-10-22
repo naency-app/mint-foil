@@ -41,7 +41,7 @@ export function SocialStats({
 
   return (
     <>
-      <div className="mt-2 flex items-center justify-center gap-2 md:group-data-[lado]/perfil:justify-start">
+      <div className="mt-2 flex items-center justify-center gap-2">
         {item(
           "followers",
           followers,
