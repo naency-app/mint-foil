@@ -2599,22 +2599,29 @@ function KeyFeatures() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const tamanho = isMobile
-    ? 1
-    : Math.min(
-        1,
-        Math.max(
-          0.55,
-          // Só metade do menu entra na conta: o cabeçalho da seção pode passar
-          // por baixo dele; o que precisa aparecer inteiro é o celular
-          (winH - MENU_H / 2 - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
-        ),
-      );
-  const celW = CELULAR_W * tamanho;
-  const celH = CELULAR_H * tamanho;
   // Celular do ativo: tamanho cheio no desktop, um pouco menor no celular.
   // Os vizinhos ficam a `passo` do centro — no celular eles só espiam na borda.
   const escalaAtivo = isMobile ? 0.82 : 1;
+  const tamanho = Math.min(
+    1,
+    Math.max(
+      0.55,
+      isMobile
+        ? // Celular: a seção inteira (cabeçalho, celular, legenda e pontos)
+          // abaixo do menu. Com tamanho fixo o celular era cortado pela barra
+          // do Safari (22/10).
+          (winH - MENU_H - cabecalhoH - LEGENDA_H - PONTOS_H - 16) /
+            (CELULAR_H * escalaAtivo)
+        : // Só metade do menu entra na conta: o cabeçalho da seção pode passar
+          // por baixo dele; o que precisa aparecer inteiro é o celular
+          (winH - MENU_H / 2 - cabecalhoH - LEGENDA_H - PONTOS_H) / CELULAR_H,
+    ),
+  );
+  const celW = CELULAR_W * tamanho;
+  const celH = CELULAR_H * tamanho;
+  // Celular de tela baixa (Safari com as barras à vista): sem o subtítulo,
+  // como no notebook, senão o celular encolhe demais
+  const semSubtitulo = telaBaixa || (isMobile && winH < 760);
   const passo = isMobile
     ? Math.round(winW * 0.62)
     : Math.round(330 * Math.max(tamanho, 0.6));
@@ -2696,7 +2703,7 @@ function KeyFeatures() {
             Cada recurso em ação, passo a passo
           </h2>
         </FadeIn>
-        {!telaBaixa && (
+        {!semSubtitulo && (
           <FadeIn delay={0.18}>
             <p
               style={{
