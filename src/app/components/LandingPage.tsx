@@ -2433,6 +2433,8 @@ const TEXTO_W = 340;
 // linha do "6 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
 const LEGENDA_H = 122;
 const PONTOS_H = 24;
+// No celular a legenda tem a largura da tela e quebra em mais linhas
+const LEGENDA_MOBILE_H = 170;
 
 /**
  * Toca vários vídeos um depois do outro, em loop, sem piscar na troca.
@@ -2610,7 +2612,7 @@ function KeyFeatures() {
         ? // Celular: a seção inteira (cabeçalho, celular, legenda e pontos)
           // abaixo do menu. Com tamanho fixo o celular era cortado pela barra
           // do Safari (22/10).
-          (winH - MENU_H - cabecalhoH - LEGENDA_H - PONTOS_H - 16) /
+          (winH - MENU_H - cabecalhoH - LEGENDA_MOBILE_H - PONTOS_H - 16) /
             (CELULAR_H * escalaAtivo)
         : // Só metade do menu entra na conta: o cabeçalho da seção pode passar
           // por baixo dele; o que precisa aparecer inteiro é o celular
@@ -2626,7 +2628,8 @@ function KeyFeatures() {
     ? Math.round(winW * 0.62)
     : Math.round(330 * Math.max(tamanho, 0.6));
   // Altura do palco: celular + título + descrição de até 3 linhas
-  const palco = Math.round(celH * escalaAtivo) + (isMobile ? 170 : LEGENDA_H);
+  const palco =
+    Math.round(celH * escalaAtivo) + (isMobile ? LEGENDA_MOBILE_H : LEGENDA_H);
 
   const prev = () =>
     setActiveIdx((i) => (i - 1 + FEATURE_TABS.length) % FEATURE_TABS.length);
