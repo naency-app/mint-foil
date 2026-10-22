@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
+import { LinkTutorialRaridade } from "@/app/components/LinkTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
@@ -673,6 +674,12 @@ export function CardDetailClient({
                 <p className="text-base text-foreground font-medium">
                   {nomeDaRaridade(card.rarity, card.tcgId)}
                 </p>
+                <LinkTutorialRaridade
+                  jogo={card.tcgId}
+                  pergunta="Não sabe o que é?"
+                  acao="Veja no tutorial"
+                  className="mt-1.5"
+                />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
