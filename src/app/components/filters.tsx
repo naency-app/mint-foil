@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 
 /**
@@ -64,11 +65,14 @@ export function toggleValue(list: string[], value: string): string[] {
  */
 export function PainelFiltros({ children }: { children: ReactNode }) {
   return (
-    // O py do painel não rola: a caixa de rolagem termina 8px antes da borda
-    <div className="glass-card sticky top-20 flex max-h-[calc(100vh-12rem)] flex-col py-2">
-      <div className="space-y-5 overflow-y-auto px-4 py-2 [mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
-        {children}
-      </div>
+    // O py do painel não rola: a caixa de rolagem termina 8px antes da borda.
+    // A altura máxima fica no Root e o Viewport herda (o Viewport do Radix
+    // usa height:100%, que não resolve contra um max-h de flex); o degradê
+    // vai no Viewport para não apagar as pontas da barra.
+    <div className="glass-card sticky top-20 py-2">
+      <ScrollArea className="max-h-[calc(100vh-13rem)] *:data-[slot=scroll-area-viewport]:max-h-[inherit] *:data-[slot=scroll-area-viewport]:[mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
+        <div className="space-y-5 px-4 py-2">{children}</div>
+      </ScrollArea>
     </div>
   );
 }
