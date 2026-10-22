@@ -1255,7 +1255,7 @@ function ExplorePageContent() {
                   <span className="block text-muted-foreground">
                     Não sabe a raridade da sua carta?
                   </span>
-                  <span className="flex items-center gap-1 font-bold text-primary transition-colors group-hover:text-tertiary-hover">
+                  <span className="flex items-center gap-1 font-bold text-tertiary transition-colors group-hover:text-tertiary-hover">
                     Identifique a raridade
                     <ChevronRight className="size-3" />
                   </span>
