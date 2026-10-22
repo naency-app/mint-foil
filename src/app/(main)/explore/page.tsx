@@ -1246,6 +1246,20 @@ function ExplorePageContent() {
                     });
                   }}
                 />
+                {/* Quem não joga aquele jogo não sabe o que é "Illustration
+                    Rare": leva ao tutorial, já na seção do jogo filtrado. */}
+                <Link
+                  href={
+                    activeTcgs.length === 1
+                      ? `/raridades#jogo-${activeTcgs[0]}`
+                      : "/raridades"
+                  }
+                  className="flex items-center gap-1 pt-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Não sabe a raridade da sua carta?
+                  <span className="font-bold text-primary">Identifique</span>
+                  <ChevronRight className="size-3 text-primary" />
+                </Link>
               </FilterSection>
             )}
 
