@@ -623,14 +623,19 @@ function ExplorePageContent() {
     return unicas;
   }, [cardsQuery.data]);
   const cardsLoading = cardsQuery.isPending;
+  // Trocando a busca, as cartas anteriores ficam na tela (esmaecidas) até as
+  // novas chegarem, em vez de o grid virar esqueleto a cada letra (23/10)
+  const cardsTrocando = cardsQuery.isPlaceholderData;
 
   // Scroll infinito: um observador na sentinela do fim da grade. `rootMargin`
   // generoso para a próxima página chegar antes de o usuário ver o vazio.
   const sentinelaRef = useRef<HTMLDivElement | null>(null);
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = cardsQuery;
+  const { hasNextPage, isFetchingNextPage, fetchNextPage, isPlaceholderData } =
+    cardsQuery;
   useEffect(() => {
     const alvo = sentinelaRef.current;
-    if (!alvo || !hasNextPage) return;
+    // Com a busca anterior na tela, a "próxima página" seria a dela
+    if (!alvo || !hasNextPage || isPlaceholderData) return;
     const observador = new IntersectionObserver(
       ([entrada]) => {
         if (entrada.isIntersecting && !isFetchingNextPage) fetchNextPage();
@@ -639,7 +644,7 @@ function ExplorePageContent() {
     );
     observador.observe(alvo);
     return () => observador.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isPlaceholderData]);
   const error = cardsQuery.error
     ? (cardsQuery.error.message ?? "Erro ao buscar cartas")
     : null;
@@ -707,7 +712,7 @@ function ExplorePageContent() {
     // um resultado) — mesma regra do app.
     debounceRef.current = setTimeout(() => {
       setSearch(value);
-    }, 300);
+    }, 250);
   }
 
   /**
@@ -1418,7 +1423,8 @@ function ExplorePageContent() {
             />
           ) : viewType === "grid" ? (
             <div
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
+              className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-opacity ${cardsTrocando ? "opacity-60" : ""}`}
+              aria-busy={cardsTrocando}
               onClickCapture={registrarAoAbrir}
             >
               {sortedCards.map((card) => (
@@ -1449,7 +1455,11 @@ function ExplorePageContent() {
               ))}
             </div>
           ) : (
-            <div className="space-y-2" onClickCapture={registrarAoAbrir}>
+            <div
+              className={`space-y-2 transition-opacity ${cardsTrocando ? "opacity-60" : ""}`}
+              aria-busy={cardsTrocando}
+              onClickCapture={registrarAoAbrir}
+            >
               {sortedCards.map((card) => (
                 <ListRow
                   key={card.id}
