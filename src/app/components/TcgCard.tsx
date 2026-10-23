@@ -2,8 +2,8 @@
 
 import {
   IconCheck,
-  IconFilter,
-  IconFilterOff,
+  IconFilter2,
+  IconFilter2X,
   IconTrendingDown,
   IconTrendingUp,
 } from "@tabler/icons-react";
@@ -279,7 +279,7 @@ export function TcgCard({
                     : "bg-black/55 hover:bg-black/70"
                 } opacity-0 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100`}
               >
-                <IconFilter className="size-4" />
+                <IconFilter2 className="size-4" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -322,7 +322,7 @@ export function TcgCard({
                     onSelect={onLimparFiltros}
                     className="cursor-pointer gap-2 font-medium"
                   >
-                    <IconFilterOff className="size-4" />
+                    <IconFilter2X className="size-4" />
                     Limpar filtros
                   </DropdownMenuItem>
                 </>
