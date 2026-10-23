@@ -564,6 +564,11 @@
   box-shadow: inset 0 0 0 1px rgb(52 211 153);
 }
 
+/* o check animado se posiciona pelo botão (como no AddIconButton) */
+.rct-mais {
+  position: relative;
+}
+
 .rct-mais[data-sucesso] {
   overflow: hidden;
   background: transparent;
