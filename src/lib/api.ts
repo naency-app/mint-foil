@@ -236,6 +236,41 @@ export interface CardFacets {
   priceMax: number;
 }
 
+/** Autocomplete da busca — GET /cards/sugestoes. */
+export interface SugestoesBusca {
+  /** Nomes-base (sem o printing), em PT quando há; escolher busca por ele. */
+  nomes: {
+    nome: string;
+    tcg: string;
+    tcgNome: string;
+    imageUrl: string;
+    images?: { thumb: string; grid: string; full: string } | null;
+    impressoes: number;
+  }[];
+  colecoes: {
+    id: string;
+    name: string;
+    slug: string;
+    code: string;
+    imageUrl: string | null;
+    coverFallbackUrl: string | null;
+    totalCards: number | null;
+    tcg: { slug: string; name: string };
+  }[];
+  /** Só com número no termo: a carta exata pelo código. */
+  cartas: {
+    id: string;
+    name: string;
+    namePt: string | null;
+    imageUrl: string;
+    images?: { thumb: string; grid: string; full: string } | null;
+    collectorNumber: string | null;
+    setName: string | null;
+    latestPriceBrl: number | null;
+    tcg: { slug: string; name: string };
+  }[];
+}
+
 /**
  * `CardQuery` → query string. Um único lugar monta os parâmetros para o grid e
  * para as facetas: se os dois divergirem, as contagens passam a descrever um
@@ -525,6 +560,12 @@ export const api = {
         offset: undefined,
       }).toString();
       return apiFetch<CardFacets>(`/cards/facets${qs ? `?${qs}` : ""}`);
+    },
+    /** Autocomplete da busca: nomes, coleções e a carta exata pelo código. */
+    sugestoes: (q: string, tcg?: string) => {
+      const qs = new URLSearchParams({ q });
+      if (tcg) qs.set("tcg", tcg);
+      return apiFetch<SugestoesBusca>(`/cards/sugestoes?${qs}`);
     },
     get: (id: string) => apiFetch<Card>(`/cards/${id}`),
     /** Raridades de um TCG com carta de exemplo — guia "Identifique sua raridade" */

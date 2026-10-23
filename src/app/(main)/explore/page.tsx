@@ -16,7 +16,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   parseAsArrayOf,
   parseAsFloat,
@@ -52,6 +52,10 @@ import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingCounter } from "@/app/components/RollingCounter";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { SetCover, type SetProgress, temCapa } from "@/app/components/SetCard";
+import {
+  SugestoesBusca as ListaDeSugestoes,
+  type SugestoesBuscaRef,
+} from "@/app/components/SugestoesBusca";
 import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { type FiltroRapido, TcgCard } from "@/app/components/TcgCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
@@ -75,6 +79,7 @@ import type {
   CardSort,
   Card as CardType,
   Portfolio,
+  SugestoesBusca,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { lembrarExplore } from "@/lib/explore-href";
@@ -461,6 +466,13 @@ const ROTULO_DA_ORDEM: Record<string, string> = {
 
 function ExplorePageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  // Autocomplete: o campo manda o teclado para a lista; Esc fecha até a
+  // próxima letra
+  const sugestoesRef = useRef<SugestoesBuscaRef>(null);
+  const campoRef = useRef<HTMLInputElement>(null);
+  const [sugestoesAbertas, setSugestoesAbertas] = useState(true);
+  const [sugestaoAtiva, setSugestaoAtiva] = useState<string>();
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useQueryState("sort", {
     defaultValue: "best-match",
@@ -802,6 +814,7 @@ function ExplorePageContent() {
   // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
   function handleChangeQuery(value: string) {
     setSearchInput(value);
+    setSugestoesAbertas(true);
     if (value) setSelectedSetId(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     // O histórico NÃO grava aqui: digitar "Pikachu" gravava "P", "Pik",
@@ -973,6 +986,29 @@ function ExplorePageContent() {
     }
     handleClear();
     setSelectedSetId(set.id);
+  }
+
+  // ── Escolhas do autocomplete ──
+  /** Nome sugerido: busca por ele na hora (sem esperar o debounce). */
+  function escolherNome(nome: string) {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSelectedSetId(null);
+    setSearchInput(nome);
+    setSearch(nome);
+    saveRecentSearch(nome);
+    campoRef.current?.blur();
+  }
+  /** Coleção sugerida: abre ela, como o carrossel, já no jogo dela. */
+  function escolherColecao(colecao: SugestoesBusca["colecoes"][number]) {
+    handleClear();
+    setSelectedTcg(colecao.tcg.slug);
+    setSelectedSetId(colecao.id);
+    campoRef.current?.blur();
+  }
+  /** Carta exata (pelo código): vai direto para ela. */
+  function escolherCarta(carta: SugestoesBusca["cartas"][number]) {
+    if (searchInput.trim()) saveRecentSearch(searchInput.trim());
+    router.push(`/card/${carta.id}`);
   }
 
   function applyRecentSearch(term: string) {
@@ -1187,11 +1223,19 @@ function ExplorePageContent() {
               className={`size-5 shrink-0 ${searchInput.length > 0 ? "text-primary" : "text-muted-foreground"}`}
             />
             <input
+              ref={campoRef}
               value={searchInput}
               onChange={(e) => handleChangeQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="sugestoes-busca"
+              aria-expanded={searchFocused && sugestoesAbertas}
+              aria-activedescendant={sugestaoAtiva}
               onKeyDown={(e) => {
+                // ↑ ↓ Enter Esc na lista de sugestões, quando ela está aberta
+                if (sugestoesRef.current?.teclado(e)) return;
                 if (e.key === "Enter") {
                   confirmarBusca();
                   e.currentTarget.blur();
@@ -1241,6 +1285,20 @@ function ExplorePageContent() {
             </button>
           </div>
         )}
+
+        {/* Sugestões enquanto digita (2+ letras); com o campo vazio, o
+            histórico abaixo */}
+        <ListaDeSugestoes
+          ref={sugestoesRef}
+          termo={searchInput}
+          tcg={activeTcgs.length > 0 ? activeTcgs.join(",") : undefined}
+          aberto={searchFocused && sugestoesAbertas}
+          onFechar={() => setSugestoesAbertas(false)}
+          onAtivo={setSugestaoAtiva}
+          onNome={escolherNome}
+          onColecao={escolherColecao}
+          onCarta={escolherCarta}
+        />
 
         {/* Histórico de busca — só enquanto o input está focado e vazio,
             como no mobile (histórico mora no gesto de buscar) */}
