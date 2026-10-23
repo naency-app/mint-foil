@@ -64,11 +64,12 @@ export function ProfileHeader({
     return url ? [{ link, url }] : [];
   });
 
-  // Foto do perfil (círculo): 96px no cartão, 140px na capa estilo Facebook
+  // Foto do perfil (círculo), metade para fora do cartão. O tamanho vem nas
+  // classes (cresce no computador); `px` é o maior deles, para a foto pedida
+  // ao otimizador não sair borrada.
   const avatar = (px: number, classe: string) => (
     <div
       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 ring-4 ring-background ${classe}`}
-      style={{ width: px, height: px }}
     >
       {image ? (
         <FotoDoUsuario
@@ -79,10 +80,7 @@ export function ProfileHeader({
           className="size-full object-cover"
         />
       ) : (
-        <span
-          className="font-black text-primary"
-          style={{ fontSize: px * 0.4 }}
-        >
+        <span className="text-5xl font-black text-primary md:text-6xl">
           {initial}
         </span>
       )}
@@ -93,7 +91,7 @@ export function ProfileHeader({
   const info = (
     <>
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-extrabold tracking-tight text-foreground">
+        <h1 className="text-xl font-extrabold tracking-tight text-foreground md:text-2xl">
           {displayName}
         </h1>
         {/*
@@ -112,12 +110,22 @@ export function ProfileHeader({
           />
         )}
       </div>
-      <p className="text-sm font-medium text-muted-foreground">@{handle}</p>
+      {/* "Membro desde" sobe para junto do @: é sobre quem é a pessoa, e
+          sozinho no rodapé do cartão parecia sobra */}
+      <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-sm font-medium text-muted-foreground">
+        <span>@{handle}</span>
+        <span className="text-muted-foreground/50">·</span>
+        <span className="font-normal">
+          Membro desde {formatMonthYear(memberSince)}
+        </span>
+      </p>
 
       {social}
 
       {bio && (
-        <p className="mt-3 text-sm leading-relaxed text-foreground">{bio}</p>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-foreground">
+          {bio}
+        </p>
       )}
 
       {links.length > 0 && (
@@ -154,41 +162,39 @@ export function ProfileHeader({
         </div>
       )}
 
-      {/* Linha fina separando quem é a pessoa (acima) do que ela tem
-          (abaixo); números na fonte do sistema com algarismos alinhados, sem
-          a monoespaçada pesada de antes (21/10) */}
-      <div className="mt-5 w-full border-t border-border pt-5">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
-              ao lado do gráfico, que mostra só o portfólio escolhido. */}
-          Valor estimado da coleção
-        </p>
-        <p className="mt-1 text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
-          <span className="mr-1 text-lg font-bold text-muted-foreground">
-            R$
-          </span>
-          {formatPrice(totalValue)}
-        </p>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {[
-            { rotulo: "Cartas", valor: totalCards },
-            { rotulo: "Selados", valor: totalSealed },
-          ].map(({ rotulo, valor }) => (
-            <div key={rotulo} className="rounded-xl bg-muted/60 px-3 py-2.5">
-              <p className="text-lg font-bold text-foreground tabular-nums">
-                {valor}
-              </p>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {rotulo}
-              </p>
-            </div>
-          ))}
+      {/* O que a pessoa tem, num painel só: valor, cartas e selados lado a
+          lado no computador, separados por linhas finas; no celular o valor
+          fica sozinho em cima. Números na fonte do sistema com algarismos
+          alinhados, sem a monoespaçada pesada de antes (21/10). */}
+      <div className="mt-6 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1.6fr_1fr_1fr]">
+        <div className="col-span-2 flex flex-col items-center justify-center border-b border-border/60 px-5 py-4 md:col-span-1 md:border-r md:border-b-0">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
+                ao lado do gráfico, que mostra só o portfólio escolhido. */}
+            Valor estimado da coleção
+          </p>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
+            <span className="mr-1 text-lg font-bold text-primary">R$</span>
+            {formatPrice(totalValue)}
+          </p>
         </div>
 
-        <p className="mt-4 text-[11px] text-muted-foreground/70">
-          Membro desde {formatMonthYear(memberSince)}
-        </p>
+        {[
+          { rotulo: "Cartas", valor: totalCards },
+          { rotulo: "Selados", valor: totalSealed },
+        ].map(({ rotulo, valor }, i) => (
+          <div
+            key={rotulo}
+            className={`flex flex-col items-center justify-center px-5 py-4 ${i === 0 ? "border-r border-border/60" : ""}`}
+          >
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {valor}
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              {rotulo}
+            </p>
+          </div>
+        ))}
       </div>
     </>
   );
@@ -235,8 +241,8 @@ export function ProfileHeader({
         )}
 
         <div className="relative -mt-6 rounded-t-3xl bg-background">
-          <div className="mx-auto flex w-full max-w-sm flex-col items-center px-4 pb-10 text-center">
-            {avatar(140, "-mt-[70px] mb-3")}
+          <div className="mx-auto flex w-full max-w-sm flex-col items-center px-4 pb-10 text-center md:max-w-2xl">
+            {avatar(160, "-mt-[70px] mb-3 size-[140px] md:-mt-20 md:size-40")}
             {info}
           </div>
         </div>
@@ -246,9 +252,15 @@ export function ProfileHeader({
 
   return (
     <ProfileCover cover={cover} actions={actions}>
-      <div className="mx-auto w-full max-w-sm">
-        <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center">
-          {avatar(96, "-mt-16 mb-3")}
+      {/* Retângulo deitado no computador, com a foto metade para fora da
+          borda de cima; a margem de cima abre espaço para ela não encostar
+          na navbar */}
+      <div className="mx-auto mt-6 w-full max-w-sm md:mt-10 md:max-w-2xl">
+        <div className="glass-card flex flex-col items-center !rounded-2xl p-6 text-center md:px-10 md:pb-8">
+          {avatar(
+            160,
+            "-mt-[88px] mb-3 size-32 md:-mt-[104px] md:mb-4 md:size-40",
+          )}
           {info}
         </div>
       </div>
