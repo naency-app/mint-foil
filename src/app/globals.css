@@ -499,8 +499,13 @@
   letter-spacing: -0.02em;
   line-height: var(--rct-cell);
   cursor: ns-resize;
-  touch-action: none;
+  /* none no original; pan-y deixa o dedo rolar a página até o toque longo
+     pegar o número (aí o touchmove é cancelado no componente) */
+  touch-action: pan-y;
   user-select: none;
+  -webkit-user-select: none;
+  /* sem o menu de "copiar" do iOS no toque longo */
+  -webkit-touch-callout: none;
   border-radius: 8px;
   /* rolling digits fade at the window's top and bottom edge */
   mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
@@ -551,9 +556,39 @@
 }
 
 /* ── variante redonda (não está no original) ─────────────────
-   A cara do contador de antes: pílula e botões em círculo, e o "+" com o
-   anel verde do AddIconButton. Na confirmação quem desenha o disco verde é o
-   próprio check animado, então o botão some por baixo dele. */
+   A aparência do contador de antes (23/10), com a mecânica deste: sem a
+   pílula, os dois botões em círculo com um respiro entre eles e o número.
+   "−" com borda fina sobre o fundo do card; "+" com o anel verde do
+   AddIconButton. Na confirmação quem desenha o disco verde é o próprio
+   check animado, então o botão some por baixo dele. */
+.rct--redondo {
+  padding: 0;
+  gap: 6px;
+  background: transparent;
+}
+
+.rct--redondo .rct-btn {
+  background: transparent;
+}
+
+.rct--redondo .rct-btn:active {
+  scale: 0.85;
+}
+
+.rct--redondo .rct-btn:disabled {
+  opacity: 0.3;
+  scale: 1;
+}
+
+/* número em mono negrito, como era; 16px num botão de 36 */
+.rct--redondo .rct-num {
+  padding: 0 2px;
+  font-family: var(--font-mono);
+  font-size: calc(var(--rct-cell) * 0.45);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 .rct--redondo .rct-mais {
   box-shadow: inset 0 0 0 1px rgb(16 185 129 / 0.5);
   color: var(--muted-foreground);
@@ -568,16 +603,15 @@
    antes: tirar uma cópia é a ação que apaga, e tem que parecer */
 .rct--redondo .rct-menos {
   color: var(--muted-foreground);
+  /* borda fina sobre o fundo do card, como o "−" de antes */
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .rct--redondo .rct-menos:not(:disabled):hover,
 .rct--redondo .rct-menos:not(:disabled):active {
   color: var(--destructive);
-  background: color-mix(
-    in srgb,
-    var(--destructive) 12%,
-    var(--fill-slab, #ffffff)
-  );
+  background: color-mix(in srgb, var(--destructive) 10%, var(--card));
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--destructive) 40%, transparent);
 }
@@ -597,4 +631,9 @@
 .rct--tem .rct-num {
   color: rgb(52 211 153);
   font-weight: 700;
+}
+
+/* Toque longo pegou o número: um fundo leve diz "agora arraste" */
+.rct-num[data-pegou] {
+  background: color-mix(in srgb, var(--fill-on, #17181a) 8%, transparent);
 }

@@ -8,9 +8,10 @@
    - ícones do Tabler no lugar do lucide-react (o projeto só usa Tabler)
    - separador de milhar com ponto (1.284) e textos em português
    - `cell` vira prop: o painel da carta usa uma janela menor que os 46px
-   - `redondo`: pílula e botões totalmente redondos, o "+" com o anel verde
-     do AddIconButton e, com `sucesso`, o mesmo check animado dele — a cara do
-     contador de antes, com a mecânica deste
+   - `redondo`: a APARÊNCIA do contador de antes com a mecânica deste —
+     sem a pílula, "−" em círculo com borda, "+" com o anel verde do
+     AddIconButton (e, com `sucesso`, o mesmo check animado dele), número em
+     mono negrito. O que muda é só o visual: os dígitos rolam como aqui
    Os comentários abaixo são os do original. */
 
 import { IconMinus, IconPlus } from "@tabler/icons-react";
@@ -152,6 +153,9 @@ export function RollingCounter({
      arremesso de 300 cópias é acidente, não gesto */
   inercia = true,
   redondo = false,
+  /* só o "+" (com o check e o segurar-para-repetir): o card da grade, onde
+     o contador inteiro não coube bem e a quantidade fica no "Quant." */
+  unico = false,
   /* enquanto true, o "+" mostra o check animado (troque `sucessoId` para
      ele rodar de novo) */
   sucesso = false,
@@ -170,6 +174,7 @@ export function RollingCounter({
   corner?: number;
   inercia?: boolean;
   redondo?: boolean;
+  unico?: boolean;
   sucesso?: boolean;
   sucessoId?: number;
   className?: string;
@@ -304,24 +309,40 @@ export function RollingCounter({
   }, [valorDeFora]);
 
   /* ── holding a button ──────────────────────────────────── */
-  const hold = useRef({ t: 0, since: 0 });
+  /* No toque o passo NÃO sai ao encostar: numa grade que rola, o dedo que
+     começa a rolar em cima do botão somaria uma carta. Sai ao levantar (um
+     toque) ou ao segurar (a repetição); se o dedo sai rolando, o navegador
+     manda pointercancel e nada acontece. No mouse segue o original: o passo
+     sai ao apertar. (23/10) */
+  const hold = useRef({ t: 0, since: 0, repetiu: false, toque: false });
   const release = () => {
     clearTimeout(hold.current.t);
     hold.current.t = 0;
   };
   // biome-ignore lint/correctness/useExhaustiveDependencies: só limpa o timer ao desmontar
   useEffect(() => release, []);
-  const press = (dir: 1 | -1) => {
+  const press = (dir: 1 | -1, e: React.PointerEvent) => {
     release();
-    if (!bump(dir)) return;
+    const toque = e.pointerType === "touch";
+    hold.current.toque = toque;
+    hold.current.repetiu = false;
+    if (!toque && !bump(dir)) return;
     hold.current.since = performance.now();
     const repeat = () => {
+      hold.current.repetiu = true;
       const held = performance.now() - hold.current.since;
       /* ones, then tens after a second and a half */
       if (!bump(dir * (held > 1500 ? 10 : 1))) return release();
       hold.current.t = window.setTimeout(repeat, held > 900 ? 55 : 90);
     };
     hold.current.t = window.setTimeout(repeat, 380);
+  };
+  /* Levantar o dedo antes de a repetição começar é um toque: um passo */
+  const soltar = (dir: 1 | -1) => {
+    const toque =
+      hold.current.toque && hold.current.t !== 0 && !hold.current.repetiu;
+    release();
+    if (toque) bump(dir);
   };
 
   /* ── taking the number itself ──────────────────────────── */
@@ -336,16 +357,65 @@ export function RollingCounter({
     return acc - n * PX;
   };
 
-  const onDown = (e: React.PointerEvent) => {
-    cancelAnimationFrame(fling.current);
+  /* Toque longo (não está no original). No dedo, arrastar o número logo de
+     cara roubava a rolagem da página: quem rolava a grade começando em cima
+     dele mudava a quantidade. Agora o dedo precisa SEGURAR ~0,3s parado no
+     número para ele "pegar" (vibra, se o aparelho deixa); antes disso, mexer
+     é rolar a página. Mouse e caneta pegam na hora, como no original. */
+  const numRef = useRef<HTMLDivElement | null>(null);
+  const espera = useRef<{ t: number; x: number; y: number } | null>(null);
+  const [pegou, setPegou] = useState(false);
+  const comecar = (el: Element, id: number, y: number) => {
     try {
-      e.currentTarget.setPointerCapture(e.pointerId);
+      el.setPointerCapture(id);
     } catch {
       /* a scripted pointer */
     }
-    drag.current = { y: e.clientY, acc: 0, v: 0, t: performance.now() };
+    drag.current = { y, acc: 0, v: 0, t: performance.now() };
+  };
+  const desarmar = () => {
+    if (espera.current) clearTimeout(espera.current.t);
+    espera.current = null;
+  };
+  // biome-ignore lint/correctness/useExhaustiveDependencies: só limpa a espera ao desmontar
+  useEffect(() => desarmar, []);
+  /* Com o número pego, o dedo não rola a página: o touchmove é cancelado
+     enquanto há arrasto (precisa ser nativo e não-passivo para isso valer) */
+  useEffect(() => {
+    const el = numRef.current;
+    if (!el) return;
+    const bloquear = (ev: TouchEvent) => {
+      if (drag.current && ev.cancelable) ev.preventDefault();
+    };
+    el.addEventListener("touchmove", bloquear, { passive: false });
+    return () => el.removeEventListener("touchmove", bloquear);
+  }, []);
+
+  const onDown = (e: React.PointerEvent) => {
+    cancelAnimationFrame(fling.current);
+    if (e.pointerType !== "touch") {
+      comecar(e.currentTarget, e.pointerId, e.clientY);
+      return;
+    }
+    desarmar();
+    const el = e.currentTarget;
+    const id = e.pointerId;
+    espera.current = {
+      x: e.clientX,
+      y: e.clientY,
+      t: window.setTimeout(() => {
+        const y = espera.current?.y ?? 0;
+        espera.current = null;
+        comecar(el, id, y);
+        setPegou(true);
+        navigator.vibrate?.(8);
+      }, 300),
+    };
   };
   const onMove = (e: React.PointerEvent) => {
+    const w = espera.current;
+    // Ainda esperando: mexeu mais de 6px, é rolagem — desiste de pegar
+    if (w && Math.hypot(e.clientX - w.x, e.clientY - w.y) > 6) desarmar();
     const g = drag.current;
     if (!g) return;
     const now = performance.now();
@@ -358,6 +428,8 @@ export function RollingCounter({
     g.acc = steps(g.acc + dy);
   };
   const onUp = (e: React.PointerEvent) => {
+    desarmar();
+    setPegou(false);
     const g = drag.current;
     drag.current = null;
     try {
@@ -382,94 +454,106 @@ export function RollingCounter({
   /* redondo: o canto é metade da altura, e o dos botões (canto menos o
      respiro) dá metade do botão — que fica com a largura igual à altura,
      então vira círculo */
-  const r = redondo ? H / 2 : clamp(corner, 0, H / 2);
+  const r = redondo || unico ? H / 2 : clamp(corner, 0, H / 2);
   const inner = Math.max(0, r - PAD);
-  const icone = Math.round(CELL * (redondo ? 0.42 : 0.35));
+  /* redondo/único: 14px e traço 2,5, o "size-3.5" do botão de antes, em
+     qualquer tamanho de botão. Tem que ser PAR: com 11px o ícone caía em meio
+     pixel, borrava e parecia fora do centro (23/10) */
+  const classico = redondo || unico;
+  const icone = classico ? 14 : Math.round(CELL * 0.35);
+  const traco = classico ? 2.5 : 2.2;
 
   return (
     <div
-      className={`rct${redondo ? " rct--redondo" : ""}${className ? ` ${className}` : ""}`}
+      className={`rct${redondo || unico ? " rct--redondo" : ""}${unico ? " rct--unico" : ""}${className ? ` ${className}` : ""}`}
       style={
         {
           "--rct-r": `${r}px`,
           "--rct-in": `${inner}px`,
           "--rct-cell": `${CELL}px`,
-          "--rct-btn": redondo ? `${BTN}px` : "40px",
+          "--rct-btn": redondo || unico ? `${BTN}px` : "40px",
           /* 30px numa janela de 46: a mesma proporção em qualquer `cell` */
           "--rct-font": `${Math.round(CELL * 0.65)}px`,
         } as React.CSSProperties
       }
     >
-      <button
-        type="button"
-        className="rct-btn rct-menos"
-        aria-label="Menos"
-        disabled={value <= min}
-        onPointerDown={() => press(-1)}
-        onPointerUp={release}
-        onPointerLeave={release}
-        onPointerCancel={release}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            bump(-1);
-          }
-        }}
-      >
-        <IconMinus size={icone} strokeWidth={2.2} />
-      </button>
+      {!unico && (
+        <>
+          <button
+            type="button"
+            className="rct-btn rct-menos"
+            aria-label="Menos"
+            disabled={value <= min}
+            onPointerDown={(e) => press(-1, e)}
+            onPointerUp={() => soltar(-1)}
+            onPointerLeave={release}
+            onPointerCancel={release}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                bump(-1);
+              }
+            }}
+          >
+            <IconMinus size={icone} strokeWidth={traco} />
+          </button>
 
-      <div
-        className="rct-num"
-        role="spinbutton"
-        aria-valuenow={value}
-        aria-valuemin={min}
-        aria-valuemax={teto}
-        aria-label="Quantidade. Arraste para cima ou para baixo para mudar."
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowUp") {
-            e.preventDefault();
-            bump(1);
-          }
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            bump(-1);
-          }
-        }}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-      >
-        {Array.from({ length: PLACES }, (_, i) => {
-          const p = PLACES - 1 - i;
-          return (
-            // As fitas de 0–9 não são texto: o número sai pelo aria-valuenow
-            <span key={p} className="rct-pair" aria-hidden="true">
-              <span className="rct-col" data-on={p < shown || undefined}>
-                <span
-                  className="rct-strip"
-                  ref={(el) => {
-                    strips.current[p] = el as HTMLDivElement | null;
-                  }}
-                >
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, j) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: a fita é fixa, 0–9 e um segundo 0
-                    <span key={j}>{d}</span>
-                  ))}
+          <div
+            ref={numRef}
+            className="rct-num"
+            data-pegou={pegou || undefined}
+            onContextMenu={(e) => e.preventDefault()}
+            role="spinbutton"
+            aria-valuenow={value}
+            aria-valuemin={min}
+            aria-valuemax={teto}
+            aria-label="Quantidade. Segure e arraste para cima ou para baixo para mudar."
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                bump(1);
+              }
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                bump(-1);
+              }
+            }}
+            onPointerDown={onDown}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={onUp}
+          >
+            {Array.from({ length: PLACES }, (_, i) => {
+              const p = PLACES - 1 - i;
+              return (
+                // As fitas de 0–9 não são texto: o número sai pelo aria-valuenow
+                <span key={p} className="rct-pair" aria-hidden="true">
+                  <span className="rct-col" data-on={p < shown || undefined}>
+                    <span
+                      className="rct-strip"
+                      ref={(el) => {
+                        strips.current[p] = el as HTMLDivElement | null;
+                      }}
+                    >
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, j) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: a fita é fixa, 0–9 e um segundo 0
+                        <span key={j}>{d}</span>
+                      ))}
+                    </span>
+                  </span>
+                  {/* milhar com ponto, como se escreve no Brasil */}
+                  {p === 3 && (
+                    <span className="rct-sep" data-on={shown > 3 || undefined}>
+                      .
+                    </span>
+                  )}
                 </span>
-              </span>
-              {/* milhar com ponto, como se escreve no Brasil */}
-              {p === 3 && (
-                <span className="rct-sep" data-on={shown > 3 || undefined}>
-                  .
-                </span>
-              )}
-            </span>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <button
         type="button"
@@ -477,8 +561,8 @@ export function RollingCounter({
         aria-label="Mais"
         data-sucesso={sucesso || undefined}
         disabled={value >= teto}
-        onPointerDown={() => press(1)}
-        onPointerUp={release}
+        onPointerDown={(e) => press(1, e)}
+        onPointerUp={() => soltar(1)}
         onPointerLeave={release}
         onPointerCancel={release}
         onKeyDown={(e) => {
@@ -491,7 +575,7 @@ export function RollingCounter({
         {sucesso ? (
           <AnimatedCheck key={sucessoId} size={BTN} />
         ) : (
-          <IconPlus size={icone} strokeWidth={2.2} />
+          <IconPlus size={icone} strokeWidth={traco} />
         )}
       </button>
     </div>

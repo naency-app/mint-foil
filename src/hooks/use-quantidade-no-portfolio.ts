@@ -124,3 +124,75 @@ export function useQuantidadeNoPortfolio({
 
   return { quantidade, definir, minimo: outras, sucesso, sucessoId };
 }
+
+/**
+ * Quantidade de UM item do portfólio (uma condição, uma variação), editada
+ * pelo contador dos cards e da lista do Portfólio. Mesmo ritmo do de cima:
+ * otimista, um request ~320ms depois do último passo e o check ao somar.
+ *
+ * Abaixo de 1 não grava: pede a confirmação de remover, como o "−" fazia, e
+ * o contador volta ao número de antes.
+ */
+export function useQuantidadeDoItem({
+  itemId,
+  quantidadeServidor,
+  onUpdate,
+  pedirRemover,
+}: {
+  itemId: string;
+  quantidadeServidor: number;
+  onUpdate: (id: string, data: { quantity: number }) => Promise<void>;
+  pedirRemover: () => void;
+}) {
+  const [quantidade, setQuantidade] = useState(quantidadeServidor);
+  const pendente = useRef<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [sucesso, setSucesso] = useState(false);
+  const [sucessoId, setSucessoId] = useState(0);
+
+  useEffect(() => {
+    if (pendente.current === null) setQuantidade(quantidadeServidor);
+  }, [quantidadeServidor]);
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  async function gravar(alvo: number) {
+    pendente.current = null;
+    const somou = alvo > quantidadeServidor;
+    if (somou) {
+      setSucesso(true);
+      setSucessoId((n) => n + 1);
+      setTimeout(() => setSucesso(false), 1700);
+    }
+    try {
+      await onUpdate(itemId, { quantity: alvo });
+      toast.success(
+        somou ? "Adicionado ao portfólio!" : "Removido do portfólio",
+      );
+    } catch {
+      setSucesso(false);
+      setQuantidade(quantidadeServidor);
+      toast.error("Erro ao atualizar quantidade");
+    }
+  }
+
+  function definir(alvo: number) {
+    if (alvo < 1) {
+      pedirRemover();
+      return false;
+    }
+    if (alvo === (pendente.current ?? quantidade)) return true;
+    setQuantidade(alvo);
+    pendente.current = alvo;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => gravar(alvo), 320);
+    return true;
+  }
+
+  return { quantidade, definir, sucesso, sucessoId };
+}
