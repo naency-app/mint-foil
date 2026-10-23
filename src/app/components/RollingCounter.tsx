@@ -8,9 +8,10 @@
    - ícones do Tabler no lugar do lucide-react (o projeto só usa Tabler)
    - separador de milhar com ponto (1.284) e textos em português
    - `cell` vira prop: o painel da carta usa uma janela menor que os 46px
-   - `redondo`: pílula e botões totalmente redondos, o "+" com o anel verde
-     do AddIconButton e, com `sucesso`, o mesmo check animado dele — a cara do
-     contador de antes, com a mecânica deste
+   - `redondo`: a APARÊNCIA do contador de antes com a mecânica deste —
+     sem a pílula, "−" em círculo com borda, "+" com o anel verde do
+     AddIconButton (e, com `sucesso`, o mesmo check animado dele), número em
+     mono negrito. O que muda é só o visual: os dígitos rolam como aqui
    Os comentários abaixo são os do original. */
 
 import { IconMinus, IconPlus } from "@tabler/icons-react";
@@ -451,7 +452,8 @@ export function RollingCounter({
      então vira círculo */
   const r = redondo ? H / 2 : clamp(corner, 0, H / 2);
   const inner = Math.max(0, r - PAD);
-  const icone = Math.round(CELL * (redondo ? 0.42 : 0.35));
+  /* redondo: 14px num botão de 36, o "size-3.5" do contador de antes */
+  const icone = Math.round(CELL * (redondo ? 0.39 : 0.35));
 
   return (
     <div
