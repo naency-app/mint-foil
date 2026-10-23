@@ -731,48 +731,63 @@ function ExplorePageContent() {
       .replace(/\s*\([^)]*\)\s*$/, "")
       .replace(/\s+-\s+[^-]*\d+\/\d+\s*$/, "")
       .trim();
-    if (nomeBase && search.trim().toLowerCase() !== nomeBase.toLowerCase()) {
+    // Todos aparecem sempre; o que já está valendo vem marcado e, clicado de
+    // novo, sai — antes ele sumia do menu e não havia como desfazer por ali,
+    // nem dava para saber que a grade estava filtrada por esta carta (23/10)
+    if (nomeBase) {
+      const ativo = search.trim().toLowerCase() === nomeBase.toLowerCase();
       filtros.push({
         rotulo: "Mesmo nome",
         valor: nomeBase,
+        ativo,
         aplicar: () => {
+          if (ativo) return handleClear();
           trocarContexto(nomeBase, jogo, null);
           setSelectedRarities([]);
         },
       });
     }
-    if (card.set?.id && selectedSetId !== card.set.id) {
+    if (card.set?.id) {
       const setId = card.set.id;
+      const ativo = selectedSetId === setId;
       filtros.push({
         rotulo: "Mesma coleção",
         valor: card.setName ?? card.set.name,
+        ativo,
         aplicar: () => {
+          if (ativo) return setSelectedSetId(null);
           trocarContexto("", jogo, setId);
           setSelectedRarities([]);
         },
       });
     }
-    if (
-      card.rarity &&
-      !(selectedRarities.length === 1 && selectedRarities[0] === card.rarity)
-    ) {
+    if (card.rarity) {
       const raridade = card.rarity;
+      const ativo = selectedRarities.includes(raridade);
       filtros.push({
         rotulo: "Mesma raridade",
         valor: nomeDaRaridade(raridade, jogo),
+        ativo,
         // Fica na busca e na coleção de agora; só o jogo vira o da carta, que
         // o nome da raridade muda de um jogo para outro
         aplicar: () => {
+          if (ativo)
+            return setSelectedRarities(
+              selectedRarities.filter((r) => r !== raridade),
+            );
           trocarContexto(search, jogo, selectedSetId);
           setSelectedRarities([raridade]);
         },
       });
     }
-    if (jogo && selectedTcg !== jogo) {
+    if (jogo) {
+      const ativo = activeTcgs.includes(jogo);
       filtros.push({
         rotulo: "Mesmo jogo",
         valor: card.tcg?.name ?? jogo,
+        ativo,
         aplicar: () => {
+          if (ativo) return toggleTcg(jogo);
           trocarContexto(search, jogo, null);
           setSelectedRarities([]);
         },
@@ -1652,6 +1667,11 @@ function ExplorePageContent() {
                   defaultPortfolioId={activePortfolioId}
                   onAdd={invalidateCollection}
                   filtrosRapidos={filtrosDaCarta(card)}
+                  onLimparFiltros={
+                    filtrosAtivos.length > 0 || search.trim()
+                      ? limparTudo
+                      : undefined
+                  }
                 />
               ))}
             </div>

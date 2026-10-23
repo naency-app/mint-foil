@@ -1,7 +1,9 @@
 "use client";
 
 import {
-  IconFilter,
+  IconCheck,
+  IconFilter2,
+  IconFilter2X,
   IconTrendingDown,
   IconTrendingUp,
 } from "@tabler/icons-react";
@@ -19,6 +21,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ApiError, api } from "@/lib/api";
@@ -29,6 +32,8 @@ import { nomeDaRaridade } from "@/lib/raridade";
 export interface FiltroRapido {
   rotulo: string;
   valor: string;
+  /** Já está valendo na grade: vem marcado, e clicar de novo tira. */
+  ativo?: boolean;
   aplicar: () => void;
 }
 
@@ -54,6 +59,8 @@ export interface TcgCardProps {
   onAdd?: () => void;
   /** Atalhos do botão de filtro que aparece no hover (só no Explorar). */
   filtrosRapidos?: FiltroRapido[];
+  /** "Limpar filtros" no fim do menu; ausente quando nada está filtrado. */
+  onLimparFiltros?: () => void;
 }
 
 function formatPrice(value: number) {
@@ -82,8 +89,10 @@ export function TcgCard({
   defaultPortfolioId,
   onAdd,
   filtrosRapidos,
+  onLimparFiltros,
 }: TcgCardProps) {
   const displayName = namePt?.trim() || name;
+  const filtrandoPorEla = filtrosRapidos?.some((f) => f.ativo) ?? false;
   const isPositive = change >= 0;
   const [localQty, setLocalQty] = useState(quantity);
   const [success, setSuccess] = useState(false);
@@ -240,21 +249,37 @@ export function TcgCard({
             toque não há hover, e um botão fixo em cada carta poluiria a grade
             de duas colunas. O menu vai num portal, mas o clique ainda sobe
             pela árvore do React até o Link da carta; o stopPropagation segura
-            a navegação. */}
+            a navegação.
+            Com algum filtro desta carta valendo, o botão vem rosa. Só no
+            hover, como o normal: aceso o tempo todo, ele acendia em TODA carta
+            da grade (todas casam com o filtro), e quem diz que a grade está
+            filtrada é o "Filtrando por" embaixo da busca (23/10). */}
         {filtrosRapidos && filtrosRapidos.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                aria-label="Filtrar por esta carta"
-                title="Filtrar por esta carta"
+                aria-label={
+                  filtrandoPorEla
+                    ? "Filtrado por esta carta"
+                    : "Filtrar por esta carta"
+                }
+                title={
+                  filtrandoPorEla
+                    ? "Filtrado por esta carta"
+                    : "Filtrar por esta carta"
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="absolute top-2.5 right-2.5 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white opacity-0 shadow-sm backdrop-blur-md transition-opacity duration-150 hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:hidden"
+                className={`absolute top-2.5 right-2.5 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full text-white shadow-sm backdrop-blur-md transition-opacity duration-150 [@media(hover:none)]:hidden ${
+                  filtrandoPorEla
+                    ? "bg-primary hover:bg-primary/90"
+                    : "bg-black/55 hover:bg-black/70"
+                } opacity-0 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100`}
               >
-                <IconFilter className="size-4" />
+                <IconFilter2 className="size-4" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -269,16 +294,39 @@ export function TcgCard({
                 <DropdownMenuItem
                   key={filtro.rotulo}
                   onSelect={filtro.aplicar}
-                  className="flex cursor-pointer flex-col items-start gap-0"
+                  className={`flex cursor-pointer items-center gap-2 ${
+                    filtro.ativo ? "bg-primary/10 focus:bg-primary/15" : ""
+                  }`}
                 >
-                  <span className="text-xs text-muted-foreground">
-                    {filtro.rotulo}
+                  <span className="flex min-w-0 flex-1 flex-col items-start">
+                    <span className="text-xs text-muted-foreground">
+                      {filtro.ativo
+                        ? `${filtro.rotulo} · clique para tirar`
+                        : filtro.rotulo}
+                    </span>
+                    <span
+                      className={`w-full truncate font-medium ${filtro.ativo ? "text-primary" : ""}`}
+                    >
+                      {filtro.valor}
+                    </span>
                   </span>
-                  <span className="w-full truncate font-medium">
-                    {filtro.valor}
-                  </span>
+                  {filtro.ativo && (
+                    <IconCheck className="size-4 shrink-0 text-primary" />
+                  )}
                 </DropdownMenuItem>
               ))}
+              {onLimparFiltros && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={onLimparFiltros}
+                    className="cursor-pointer gap-2 font-medium"
+                  >
+                    <IconFilter2X className="size-4" />
+                    Limpar filtros
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
