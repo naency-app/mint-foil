@@ -12,8 +12,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useMemo } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
@@ -30,7 +29,8 @@ import { Trilha } from "@/components/Trilha";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError, api, type Card, type CollectionItem } from "@/lib/api";
+import { useQuantidadeNoPortfolio } from "@/hooks/use-quantidade-no-portfolio";
+import { ApiError, type Card, type CollectionItem } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -333,13 +333,6 @@ export function CardDetailClient({
     () => (ownershipData ?? []) as unknown as CollectionItem[],
     [ownershipData],
   );
-  const lastDelta = useRef(1);
-  // Stepper controla direto a quantidade no portfólio ativo: cada clique
-  // atualiza otimista e um único request (add/update/remove) sai ~500ms depois
-  // do último clique. Sem botão separado de "Adicionar".
-  const [optimisticQty, setOptimisticQty] = useState(0);
-  const pendingTargetRef = useRef<number | null>(null);
-  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Qual portfólio fica ativo quando a lista chega (favorito > salvo > primeiro).
   useEffect(() => {
@@ -369,91 +362,34 @@ export function CardDetailClient({
     [ownedItems, activePortfolioId],
   );
 
-  // Sincroniza o display com o servidor quando não há edição pendente
-  useEffect(() => {
-    if (pendingTargetRef.current === null) setOptimisticQty(ownedQtyActive);
-  }, [ownedQtyActive]);
-
-  // Limpa o timer se desmontar com commit pendente
-  useEffect(() => {
-    return () => {
-      if (commitTimer.current) clearTimeout(commitTimer.current);
-    };
-  }, []);
-
-  async function commitQty(target: number) {
-    pendingTargetRef.current = null;
-    try {
-      if (activeNmItem) {
-        if (target <= 0) {
-          await api.collection.remove(activeNmItem.id);
-        } else {
-          await api.collection.update(activeNmItem.id, { quantity: target });
-        }
-      } else if (target > 0) {
-        await api.collection.add({
-          cardId: id,
-          quantity: target,
-          condition: "NM",
-          portfolioId: activePortfolioId || undefined,
-        });
-      }
-      // Uma invalidação cobre lista, detalhes, stats e histórico — antes eram
-      // dois fetches manuais que rebaixavam TODA a coleção a cada clique.
-      await invalidateCollection();
-      // Mesmo aviso do card do Explorar: a ação sempre se anuncia
-      const nome = portfolios.find((p) => p.id === activePortfolioId)?.name;
-      if (target <= 0) {
-        toast.success("Removido do portfólio");
-      } else {
-        toast.success(
-          nome ? `Atualizado em "${nome}"` : "Atualizado no portfólio",
-        );
-      }
-    } catch {
-      toast.error("Erro ao atualizar o portfólio");
-      setOptimisticQty(ownedQtyActive); // desfaz o otimista
-    }
-  }
-
-  // Recebe a quantidade FINAL, não um passo: o contador soma de 10 em 10
-  // segurando o botão e pula vários de uma vez quando é arrastado (23/10).
-  // `false` recusa, e ele volta ao número de antes.
-  const definirQuantidade = (alvo: number) => {
-    const next = Math.max(0, alvo);
-    // A base é o alvo ainda não gravado, se houver: vários passos chegam no
-    // mesmo render, antes de o `optimisticQty` do closure mudar
-    const atual = pendingTargetRef.current ?? optimisticQty;
-    const delta = next - atual;
-    if (!session?.user) {
-      // Só faz sentido oferecer login para SOMAR — quem está deslogado não tem
-      // o que remover.
-      if (delta > 0 && card) {
-        pedirLogin({
-          id: card.id,
-          name: card.name,
-          namePt: card.namePt,
-          imageUrl: card.imageUrl,
-          images: card.images,
-          setName: card.setName,
-          rarity: card.rarity,
-          collectorNumber: card.collectorNumber,
-          price: formatPrice(headlineBrl),
-          change: changePercent,
-        });
-      }
-      return false;
-    }
-    if (delta === 0) return true;
-    lastDelta.current = delta;
-    setOptimisticQty(next);
-    pendingTargetRef.current = next;
-    if (commitTimer.current) clearTimeout(commitTimer.current);
-    // Os dígitos rolando já são a confirmação na tela; grava ~320ms depois
-    // do último passo, um request só
-    commitTimer.current = setTimeout(() => commitQty(next), 320);
-    return true;
-  };
+  // Contador controla direto a quantidade no portfólio ativo: otimista, um
+  // único request ~320ms depois do último passo, check animado ao somar. A
+  // mesma lógica dos cards do Explorar (hooks/use-quantidade-no-portfolio).
+  const qtd = useQuantidadeNoPortfolio({
+    cardId: id,
+    portfolioId: activePortfolioId || undefined,
+    quantidadeServidor: ownedQtyActive,
+    itemNm: activeNmItem,
+    logado: !!session?.user,
+    pedirLogin: () => {
+      if (!card) return;
+      pedirLogin({
+        id: card.id,
+        name: card.name,
+        namePt: card.namePt,
+        imageUrl: card.imageUrl,
+        images: card.images,
+        setName: card.setName,
+        rarity: card.rarity,
+        collectorNumber: card.collectorNumber,
+        price: formatPrice(headlineBrl),
+        change: changePercent,
+      });
+    },
+    // Uma invalidação cobre lista, detalhes, stats e histórico
+    aoGravar: invalidateCollection,
+    nomePortfolio: portfolios.find((p) => p.id === activePortfolioId)?.name,
+  });
 
   if (loading) return <CardDetailSkeleton />;
 
@@ -806,10 +742,13 @@ export function CardDetailClient({
                 </Badge>
                 <div className="flex items-center gap-3">
                   <RollingCounter
-                    value={optimisticQty}
-                    onChange={definirQuantidade}
+                    value={qtd.quantidade}
+                    onChange={qtd.definir}
+                    min={qtd.minimo}
                     cell={30}
-                    corner={14}
+                    redondo
+                    sucesso={qtd.sucesso}
+                    sucessoId={qtd.sucessoId}
                     inercia={false}
                   />
 

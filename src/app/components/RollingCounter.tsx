@@ -8,10 +8,14 @@
    - ícones do Tabler no lugar do lucide-react (o projeto só usa Tabler)
    - separador de milhar com ponto (1.284) e textos em português
    - `cell` vira prop: o painel da carta usa uma janela menor que os 46px
+   - `redondo`: pílula e botões totalmente redondos, o "+" com o anel verde
+     do AddIconButton e, com `sucesso`, o mesmo check animado dele — a cara do
+     contador de antes, com a mecânica deste
    Os comentários abaixo são os do original. */
 
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
+import { AnimatedCheck } from "@/app/components/AnimatedCheck";
 
 /* ══ Rolling counter ══════════════════════════════════════
    A number between a minus and a plus. Every digit is a strip
@@ -147,6 +151,11 @@ export function RollingCounter({
      original). Desligável: numa quantidade que vai para o banco, um
      arremesso de 300 cópias é acidente, não gesto */
   inercia = true,
+  redondo = false,
+  /* enquanto true, o "+" mostra o check animado (troque `sucessoId` para
+     ele rodar de novo) */
+  sucesso = false,
+  sucessoId = 0,
   className,
 }: {
   value: number;
@@ -160,6 +169,9 @@ export function RollingCounter({
   blur?: number;
   corner?: number;
   inercia?: boolean;
+  redondo?: boolean;
+  sucesso?: boolean;
+  sucessoId?: number;
   className?: string;
 }) {
   const CELL = cell;
@@ -367,18 +379,22 @@ export function RollingCounter({
   };
 
   const shown = Math.max(1, String(value).length);
-  const r = clamp(corner, 0, H / 2);
+  /* redondo: o canto é metade da altura, e o dos botões (canto menos o
+     respiro) dá metade do botão — que fica com a largura igual à altura,
+     então vira círculo */
+  const r = redondo ? H / 2 : clamp(corner, 0, H / 2);
   const inner = Math.max(0, r - PAD);
-  const icone = Math.round(CELL * 0.35);
+  const icone = Math.round(CELL * (redondo ? 0.42 : 0.35));
 
   return (
     <div
-      className={`rct${className ? ` ${className}` : ""}`}
+      className={`rct${redondo ? " rct--redondo" : ""}${className ? ` ${className}` : ""}`}
       style={
         {
           "--rct-r": `${r}px`,
           "--rct-in": `${inner}px`,
           "--rct-cell": `${CELL}px`,
+          "--rct-btn": redondo ? `${BTN}px` : "40px",
           /* 30px numa janela de 46: a mesma proporção em qualquer `cell` */
           "--rct-font": `${Math.round(CELL * 0.65)}px`,
         } as React.CSSProperties
@@ -457,8 +473,9 @@ export function RollingCounter({
 
       <button
         type="button"
-        className="rct-btn"
+        className="rct-btn rct-mais"
         aria-label="Mais"
+        data-sucesso={sucesso || undefined}
         disabled={value >= teto}
         onPointerDown={() => press(1)}
         onPointerUp={release}
@@ -471,7 +488,11 @@ export function RollingCounter({
           }
         }}
       >
-        <IconPlus size={icone} strokeWidth={2.2} />
+        {sucesso ? (
+          <AnimatedCheck key={sucessoId} size={BTN} />
+        ) : (
+          <IconPlus size={icone} strokeWidth={2.2} />
+        )}
       </button>
     </div>
   );

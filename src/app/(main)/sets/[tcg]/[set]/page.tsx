@@ -300,6 +300,20 @@ function SetCardsPageContent() {
     return { collectionMap: map, setProgressMap: progressMap };
   }, [portfolioDetail.data]);
 
+  // Item NM de cada carta no portfólio ativo: é nele que o contador do card
+  // soma e tira (o mesmo da tela da carta)
+  const itemNmPorCarta = useMemo(() => {
+    const map: Record<string, { id: string; quantity: number }> = {};
+    for (const item of portfolioDetail.data?.items ?? []) {
+      if (item.condition === "NM" && !map[item.cardId])
+        map[item.cardId] = { id: item.id, quantity: item.quantity };
+    }
+    return map;
+  }, [portfolioDetail.data]);
+  const nomePortfolioAtivo = portfolios.find(
+    (p) => p.id === activePortfolioId,
+  )?.name;
+
   // Raridades presentes no set, para o filtro da sidebar
   const rarityOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -663,6 +677,8 @@ function SetCardsPageContent() {
                   quantity={collectionMap[card.id] ?? 0}
                   defaultPortfolioId={activePortfolioId}
                   onAdd={invalidateCollection}
+                  itemNm={itemNmPorCarta[card.id] ?? null}
+                  nomePortfolio={nomePortfolioAtivo}
                 />
               ))}
             </div>
