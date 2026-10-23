@@ -1,6 +1,10 @@
 "use client";
 
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconTrendingDown,
+  IconTrendingUp,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -10,9 +14,23 @@ import { CardImage } from "@/app/components/CardImage";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ApiError, api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { nomeDaRaridade } from "@/lib/raridade";
+
+/** Um atalho do menu de filtro rápido: "Coleção · Plasma Freeze". */
+export interface FiltroRapido {
+  rotulo: string;
+  valor: string;
+  aplicar: () => void;
+}
 
 export interface TcgCardProps {
   name: string;
@@ -34,6 +52,8 @@ export interface TcgCardProps {
   cardHref?: string;
   defaultPortfolioId?: string;
   onAdd?: () => void;
+  /** Atalhos do botão de filtro que aparece no hover (só no Explorar). */
+  filtrosRapidos?: FiltroRapido[];
 }
 
 function formatPrice(value: number) {
@@ -61,6 +81,7 @@ export function TcgCard({
   cardHref,
   defaultPortfolioId,
   onAdd,
+  filtrosRapidos,
 }: TcgCardProps) {
   const displayName = namePt?.trim() || name;
   const isPositive = change >= 0;
@@ -211,6 +232,55 @@ export function TcgCard({
               height={560}
             />
           </div>
+        )}
+
+        {/* Filtro rápido: no hover aparece um botão no canto da arte que
+            filtra o Explorar pelo nome, coleção, raridade ou jogo desta carta,
+            sem abrir a barra de filtros (23/10). Só em tela com mouse: no
+            toque não há hover, e um botão fixo em cada carta poluiria a grade
+            de duas colunas. O menu vai num portal, mas o clique ainda sobe
+            pela árvore do React até o Link da carta; o stopPropagation segura
+            a navegação. */}
+        {filtrosRapidos && filtrosRapidos.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Filtrar por esta carta"
+                title="Filtrar por esta carta"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="absolute top-2.5 right-2.5 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white opacity-0 shadow-sm backdrop-blur-md transition-opacity duration-150 hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:hidden"
+              >
+                <IconFilter className="size-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-60"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Filtrar por
+              </DropdownMenuLabel>
+              {filtrosRapidos.map((filtro) => (
+                <DropdownMenuItem
+                  key={filtro.rotulo}
+                  onSelect={filtro.aplicar}
+                  className="flex cursor-pointer flex-col items-start gap-0"
+                >
+                  <span className="text-xs text-muted-foreground">
+                    {filtro.rotulo}
+                  </span>
+                  <span className="w-full truncate font-medium">
+                    {filtro.valor}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </CardContent>
 

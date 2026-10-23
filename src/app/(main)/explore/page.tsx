@@ -40,8 +40,8 @@ import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
-  FilterSection,
   comSelecionados,
+  FilterSection,
   facetOptions,
   PainelFiltros,
   PriceRangeFilter,
@@ -50,12 +50,12 @@ import {
   ShowMoreToggle,
   toggleValue,
 } from "@/app/components/filters";
-import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { SetCover, type SetProgress, temCapa } from "@/app/components/SetCard";
-import { TcgCard } from "@/app/components/TcgCard";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
+import { type FiltroRapido, TcgCard } from "@/app/components/TcgCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -697,6 +697,85 @@ function ExplorePageContent() {
     setPriceRange,
   ]);
 
+  // Atalhos do botão de filtro da carta (hover na grade). Cada um troca o
+  // contexto inteiro de uma vez: o efeito acima zeraria as facetas escolhidas
+  // aqui junto com as antigas, então quem mexe no jogo/busca/coleção também
+  // avisa o ref do contexto novo e zera o resto por conta própria.
+  function filtrosDaCarta(card: CardType): FiltroRapido[] {
+    const jogo = card.tcg?.slug ?? null;
+    const filtros: FiltroRapido[] = [];
+    const trocarContexto = (
+      q: string,
+      tcg: string | null,
+      set: string | null,
+    ) => {
+      contextoRef.current = `${q}|${tcg ?? ""}|${set ?? ""}`;
+      setSearch(q || null);
+      setSelectedTcg(tcg);
+      setSelectedSetId(set);
+      setSelectedTypes([]);
+      setSelectedAttributes([]);
+      setPriceRange(null);
+    };
+
+    // "Garchomp (120 Secret Rare)" e "Garchomp ex - 038/182": o sufixo é do
+    // printing, não do nome — a busca pelo nome-base acha todas as versões da
+    // carta. O nome em PT vem primeiro, que é o que o card mostra e a busca
+    // também entende ("Garchomp ex da Cíntia").
+    const nomeBase = (card.namePt?.trim() || card.name)
+      .replace(/\s*\([^)]*\)\s*$/, "")
+      .replace(/\s+-\s+[^-]*\d+\/\d+\s*$/, "")
+      .trim();
+    if (nomeBase && search.trim().toLowerCase() !== nomeBase.toLowerCase()) {
+      filtros.push({
+        rotulo: "Mesmo nome",
+        valor: nomeBase,
+        aplicar: () => {
+          trocarContexto(nomeBase, jogo, null);
+          setSelectedRarities([]);
+        },
+      });
+    }
+    if (card.set?.id && selectedSetId !== card.set.id) {
+      const setId = card.set.id;
+      filtros.push({
+        rotulo: "Mesma coleção",
+        valor: card.setName ?? card.set.name,
+        aplicar: () => {
+          trocarContexto("", jogo, setId);
+          setSelectedRarities([]);
+        },
+      });
+    }
+    if (
+      card.rarity &&
+      !(selectedRarities.length === 1 && selectedRarities[0] === card.rarity)
+    ) {
+      const raridade = card.rarity;
+      filtros.push({
+        rotulo: "Mesma raridade",
+        valor: nomeDaRaridade(raridade, jogo),
+        // Fica na busca e na coleção de agora; só o jogo vira o da carta, que
+        // o nome da raridade muda de um jogo para outro
+        aplicar: () => {
+          trocarContexto(search, jogo, selectedSetId);
+          setSelectedRarities([raridade]);
+        },
+      });
+    }
+    if (jogo && selectedTcg !== jogo) {
+      filtros.push({
+        rotulo: "Mesmo jogo",
+        valor: card.tcg?.name ?? jogo,
+        aplicar: () => {
+          trocarContexto(search, jogo, null);
+          setSelectedRarities([]);
+        },
+      });
+    }
+    return filtros;
+  }
+
   // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
   function handleChangeQuery(value: string) {
     setSearchInput(value);
@@ -816,6 +895,18 @@ function ExplorePageContent() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setSearchInput("");
     setSearch("");
+  }
+
+  /** Tudo de volta ao estado inicial: busca, jogos, coleção e facetas. */
+  function limparTudo() {
+    handleClear();
+    setSelectedTcg(null);
+    setSelectedSetId(null);
+    setProductType(null);
+    setSelectedRarities([]);
+    setSelectedTypes([]);
+    setSelectedAttributes([]);
+    setPriceRange(null);
   }
 
   // Filtro de jogo estilo marketplace: toggle de cada jogo na lista.
@@ -943,6 +1034,75 @@ function ExplorePageContent() {
           ? `Em Alta · ${activeTcgLabel}`
           : "Em Alta";
 
+  // Chips do "Filtrando por", embaixo da busca: antes só a sidebar mostrava o
+  // que estava valendo, e quem chegava por link ou pelo filtro rápido da carta
+  // via a grade encolher sem saber por quê (23/10). A busca não vira chip: o
+  // próprio campo, com borda acesa e X, já diz isso.
+  const reais = (v: number) => `R$ ${Math.round(v).toLocaleString("pt-BR")}`;
+  const filtrosAtivos: {
+    chave: string;
+    rotulo: string;
+    remover: () => void;
+  }[] = [
+    ...activeTcgs.map((slug) => ({
+      chave: `tcg:${slug}`,
+      rotulo: SUPPORTED_TCGS.find((t) => t.slug === slug)?.chip ?? slug,
+      remover: () => toggleTcg(slug),
+    })),
+    ...(selectedSetId
+      ? [
+          {
+            chave: "set",
+            rotulo: selectedSet?.name ?? "Coleção",
+            remover: () => setSelectedSetId(null),
+          },
+        ]
+      : []),
+    ...(productType !== "single"
+      ? [
+          {
+            chave: "tipo",
+            rotulo: productType === "sealed" ? "Selados" : "Cartas e selados",
+            remover: () => setProductType(null),
+          },
+        ]
+      : []),
+    // Raridades agrupadas pelo nome que a sidebar mostra: "Secret Rare" de
+    // grafias diferentes é um chip só, e o × tira o grupo inteiro
+    ...[
+      ...new Set(selectedRarities.map((r) => nomeDaRaridade(r, carouselTcg))),
+    ].map((nome) => ({
+      chave: `raridade:${nome}`,
+      rotulo: nome,
+      remover: () =>
+        setSelectedRarities(
+          selectedRarities.filter(
+            (r) => nomeDaRaridade(r, carouselTcg) !== nome,
+          ),
+        ),
+    })),
+    ...selectedTypes.map((t) => ({
+      chave: `tipoCarta:${t}`,
+      rotulo: t,
+      remover: () => setSelectedTypes(selectedTypes.filter((x) => x !== t)),
+    })),
+    ...selectedAttributes.map((a) => ({
+      chave: `atributo:${a}`,
+      rotulo: a,
+      remover: () =>
+        setSelectedAttributes(selectedAttributes.filter((x) => x !== a)),
+    })),
+    ...(priceRange
+      ? [
+          {
+            chave: "preco",
+            rotulo: `${reais(priceRange[0])} – ${reais(priceRange[1])}`,
+            remover: () => setPriceRange(null),
+          },
+        ]
+      : []),
+  ];
+
   const sortActive = sortBy !== "best-match";
   const selectedSetTotal =
     selectedSet?.totalCards ?? selectedSet?._count?.cards ?? 0;
@@ -976,8 +1136,19 @@ function ExplorePageContent() {
               Só no celular (max-sm): na coluna, o flex-1 encolhia o campo até a
               altura do texto (22px); ali ele fica com 56px e cantos quase retos.
               No computador nada muda (21/10). */}
-          <div className="glass-input flex h-12 flex-1 items-center gap-2.5 bg-card/40 px-4 max-sm:h-14 max-sm:flex-none max-sm:gap-3 max-sm:rounded-md">
-            <Search className="size-5 shrink-0 text-muted-foreground" />
+          {/* Com busca, a borda acende na cor da marca e a lupa também: o
+              "Limpar" cinza do lado, solto, não dizia que havia filtro valendo
+              (23/10). O X dentro do campo substitui aquele botão. */}
+          <div
+            className={`glass-input flex h-12 flex-1 items-center gap-2.5 bg-card/40 pr-2 pl-4 transition-colors max-sm:h-14 max-sm:flex-none max-sm:gap-3 max-sm:rounded-md ${
+              searchInput.length > 0
+                ? "!border-primary/60 ring-1 ring-primary/25"
+                : ""
+            }`}
+          >
+            <Search
+              className={`size-5 shrink-0 ${searchInput.length > 0 ? "text-primary" : "text-muted-foreground"}`}
+            />
             <input
               value={searchInput}
               onChange={(e) => handleChangeQuery(e.target.value)}
@@ -991,19 +1162,48 @@ function ExplorePageContent() {
               }}
               enterKeyHint="search"
               placeholder="Nome, número ou coleção — ex.: Umbreon, 095/084"
-              className="h-full flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+              className="h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
             />
+            {searchInput.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClear}
+                aria-label="Apagar busca"
+                title="Apagar busca"
+                className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
           </div>
-          {searchInput.length > 0 && (
+        </div>
+
+        {filtrosAtivos.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">
+              Filtrando por:
+            </span>
+            {filtrosAtivos.map((filtro) => (
+              <button
+                key={filtro.chave}
+                type="button"
+                onClick={filtro.remover}
+                aria-label={`Tirar o filtro ${filtro.rotulo}`}
+                className="flex max-w-60 cursor-pointer items-center gap-1 rounded-full border border-primary/25 bg-primary/10 py-1 pr-2 pl-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/15"
+              >
+                <span className="truncate">{filtro.rotulo}</span>
+                <X className="size-3 shrink-0" />
+              </button>
+            ))}
             <button
               type="button"
-              onClick={handleClear}
-              className="h-12 shrink-0 cursor-pointer rounded-xl px-5 max-sm:h-14 max-sm:rounded-md text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              onClick={limparTudo}
+              className="cursor-pointer px-1 text-xs font-semibold text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
             >
-              Limpar
+              Limpar tudo
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Histórico de busca — só enquanto o input está focado e vazio,
             como no mobile (histórico mora no gesto de buscar) */}
@@ -1445,6 +1645,7 @@ function ExplorePageContent() {
                   quantity={collectionMap[card.id] ?? 0}
                   defaultPortfolioId={activePortfolioId}
                   onAdd={invalidateCollection}
+                  filtrosRapidos={filtrosDaCarta(card)}
                 />
               ))}
             </div>
