@@ -456,8 +456,12 @@ export function RollingCounter({
      então vira círculo */
   const r = redondo || unico ? H / 2 : clamp(corner, 0, H / 2);
   const inner = Math.max(0, r - PAD);
-  /* redondo: 14px num botão de 36, o "size-3.5" do contador de antes */
-  const icone = Math.round(CELL * (redondo || unico ? 0.39 : 0.35));
+  /* redondo/único: 14px e traço 2,5, o "size-3.5" do botão de antes, em
+     qualquer tamanho de botão. Tem que ser PAR: com 11px o ícone caía em meio
+     pixel, borrava e parecia fora do centro (23/10) */
+  const classico = redondo || unico;
+  const icone = classico ? 14 : Math.round(CELL * 0.35);
+  const traco = classico ? 2.5 : 2.2;
 
   return (
     <div
@@ -491,7 +495,7 @@ export function RollingCounter({
               }
             }}
           >
-            <IconMinus size={icone} strokeWidth={2.2} />
+            <IconMinus size={icone} strokeWidth={traco} />
           </button>
 
           <div
@@ -571,7 +575,7 @@ export function RollingCounter({
         {sucesso ? (
           <AnimatedCheck key={sucessoId} size={BTN} />
         ) : (
-          <IconPlus size={icone} strokeWidth={2.2} />
+          <IconPlus size={icone} strokeWidth={traco} />
         )}
       </button>
     </div>
