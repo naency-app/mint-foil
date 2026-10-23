@@ -333,6 +333,23 @@ export function useCardFacets(query: CardQuery) {
 }
 
 /**
+ * Autocomplete da busca do Explorar. Só com 2+ letras; enquanto a próxima
+ * chega, a lista anterior fica (sem piscar a cada letra). Sem retry: se a rota
+ * não responder (backend antigo), o dropdown simplesmente não aparece.
+ */
+export function useSugestoesBusca(q: string, tcg?: string) {
+  const termo = q.trim();
+  return useQuery({
+    queryKey: ["sugestoes-busca", termo.toLowerCase(), tcg ?? ""],
+    queryFn: () => api.cards.sugestoes(termo, tcg),
+    enabled: termo.length >= 2,
+    staleTime: CATALOGO_STALE_MS,
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
+/**
  * Grid de cartas do Explore: busca / por jogo / por set.
  * Estado puro (sem busca/jogo/set) = descoberta → "Em Alta" real
  * (maiores variações do dia). Ver adr/0002.
