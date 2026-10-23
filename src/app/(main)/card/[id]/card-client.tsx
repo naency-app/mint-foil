@@ -3,26 +3,21 @@
 import {
   IconAlertCircle,
   IconExternalLink,
-  IconMinus,
   IconPackage,
-  IconPlus,
   IconShoppingCart,
   IconTrendingDown,
   IconTrendingUp,
   IconWorld,
 } from "@tabler/icons-react";
-import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import { AddIconButton } from "@/app/components/AddIconButton";
+import { useEffect, useMemo } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
-import { RollingNumber } from "@/app/components/RollingNumber";
+import { RollingCounter } from "@/app/components/RollingCounter";
 import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
@@ -34,7 +29,8 @@ import { Trilha } from "@/components/Trilha";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError, api, type Card, type CollectionItem } from "@/lib/api";
+import { useQuantidadeNoPortfolio } from "@/hooks/use-quantidade-no-portfolio";
+import { ApiError, type Card, type CollectionItem } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -337,16 +333,6 @@ export function CardDetailClient({
     () => (ownershipData ?? []) as unknown as CollectionItem[],
     [ownershipData],
   );
-  const lastDelta = useRef(1);
-  // Confirmação visual: mesmo check animado dos cards
-  const [success, setSuccess] = useState(false);
-  const [successId, setSuccessId] = useState(0);
-  // Stepper controla direto a quantidade no portfólio ativo: cada clique
-  // atualiza otimista e um único request (add/update/remove) sai ~500ms depois
-  // do último clique. Sem botão separado de "Adicionar".
-  const [optimisticQty, setOptimisticQty] = useState(0);
-  const pendingTargetRef = useRef<number | null>(null);
-  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Qual portfólio fica ativo quando a lista chega (favorito > salvo > primeiro).
   useEffect(() => {
@@ -376,89 +362,34 @@ export function CardDetailClient({
     [ownedItems, activePortfolioId],
   );
 
-  // Sincroniza o display com o servidor quando não há edição pendente
-  useEffect(() => {
-    if (pendingTargetRef.current === null) setOptimisticQty(ownedQtyActive);
-  }, [ownedQtyActive]);
-
-  // Limpa o timer se desmontar com commit pendente
-  useEffect(() => {
-    return () => {
-      if (commitTimer.current) clearTimeout(commitTimer.current);
-    };
-  }, []);
-
-  async function commitQty(target: number) {
-    pendingTargetRef.current = null;
-    try {
-      if (activeNmItem) {
-        if (target <= 0) {
-          await api.collection.remove(activeNmItem.id);
-        } else {
-          await api.collection.update(activeNmItem.id, { quantity: target });
-        }
-      } else if (target > 0) {
-        await api.collection.add({
-          cardId: id,
-          quantity: target,
-          condition: "NM",
-          portfolioId: activePortfolioId || undefined,
-        });
-      }
-      // Uma invalidação cobre lista, detalhes, stats e histórico — antes eram
-      // dois fetches manuais que rebaixavam TODA a coleção a cada clique.
-      await invalidateCollection();
-      // Mesmo aviso do card do Explorar: a ação sempre se anuncia
-      const nome = portfolios.find((p) => p.id === activePortfolioId)?.name;
-      if (target <= 0) {
-        toast.success("Removido do portfólio");
-      } else {
-        toast.success(
-          nome ? `Atualizado em "${nome}"` : "Atualizado no portfólio",
-        );
-      }
-    } catch {
-      toast.error("Erro ao atualizar o portfólio");
-      setOptimisticQty(ownedQtyActive); // desfaz o otimista
-    }
-  }
-
-  const handleQtyChange = (delta: number) => {
-    if (!session?.user) {
-      // Só faz sentido oferecer login para SOMAR — quem está deslogado não tem
-      // o que remover.
-      if (delta > 0 && card) {
-        pedirLogin({
-          id: card.id,
-          name: card.name,
-          namePt: card.namePt,
-          imageUrl: card.imageUrl,
-          images: card.images,
-          setName: card.setName,
-          rarity: card.rarity,
-          collectorNumber: card.collectorNumber,
-          price: formatPrice(headlineBrl),
-          change: changePercent,
-        });
-      }
-      return;
-    }
-    lastDelta.current = delta;
-    const next = Math.max(0, optimisticQty + delta);
-    if (next === optimisticQty) return;
-    setOptimisticQty(next);
-    pendingTargetRef.current = next;
-    if (commitTimer.current) clearTimeout(commitTimer.current);
-    commitTimer.current = setTimeout(() => {
-      // Só confirma visualmente quando está somando — remover não é "sucesso"
-      if (delta > 0) {
-        setSuccess(true);
-        setSuccessId((n) => n + 1);
-        setTimeout(() => setSuccess(false), 1700);
-      }
-      commitQty(next);
-    }, 320);
-  };
+  // Contador controla direto a quantidade no portfólio ativo: otimista, um
+  // único request ~320ms depois do último passo, check animado ao somar. A
+  // mesma lógica dos cards do Explorar (hooks/use-quantidade-no-portfolio).
+  const qtd = useQuantidadeNoPortfolio({
+    cardId: id,
+    portfolioId: activePortfolioId || undefined,
+    quantidadeServidor: ownedQtyActive,
+    itemNm: activeNmItem,
+    logado: !!session?.user,
+    pedirLogin: () => {
+      if (!card) return;
+      pedirLogin({
+        id: card.id,
+        name: card.name,
+        namePt: card.namePt,
+        imageUrl: card.imageUrl,
+        images: card.images,
+        setName: card.setName,
+        rarity: card.rarity,
+        collectorNumber: card.collectorNumber,
+        price: formatPrice(headlineBrl),
+        change: changePercent,
+      });
+    },
+    // Uma invalidação cobre lista, detalhes, stats e histórico
+    aoGravar: invalidateCollection,
+    nomePortfolio: portfolios.find((p) => p.id === activePortfolioId)?.name,
+  });
 
   if (loading) return <CardDetailSkeleton />;
 
@@ -810,38 +741,16 @@ export function CardDetailClient({
                   NM
                 </Badge>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.78 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 18,
-                      }}
-                      onClick={() => handleQtyChange(-1)}
-                      disabled={optimisticQty <= 0}
-                      className="size-9 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border disabled:hover:text-muted-foreground"
-                    >
-                      <IconMinus className="size-3.5" strokeWidth={2.5} />
-                    </motion.button>
-
-                    <div className="w-9 flex items-center justify-center overflow-hidden">
-                      <RollingNumber
-                        value={optimisticQty}
-                        fontSize={16}
-                        className="font-bold text-foreground font-mono"
-                      />
-                    </div>
-
-                    <AddIconButton
-                      onClick={() => handleQtyChange(1)}
-                      success={success}
-                      successId={successId}
-                      size={36}
-                      title="Adicionar uma cópia"
-                    />
-                  </div>
+                  <RollingCounter
+                    value={qtd.quantidade}
+                    onChange={qtd.definir}
+                    min={qtd.minimo}
+                    cell={30}
+                    redondo
+                    sucesso={qtd.sucesso}
+                    sucessoId={qtd.sucessoId}
+                    inercia={false}
+                  />
 
                   <div className="text-right shrink-0">
                     <div className="flex items-center justify-end gap-1">

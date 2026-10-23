@@ -69,8 +69,13 @@ export function PainelFiltros({ children }: { children: ReactNode }) {
     // A altura máxima fica no Root e o Viewport herda (o Viewport do Radix
     // usa height:100%, que não resolve contra um max-h de flex); o degradê
     // vai no Viewport para não apagar as pontas da barra.
+    // O Radix embrulha o conteúdo num <div style="display:table">, que cresce
+    // além da largura do painel quando algo dentro é largo (o slider de
+    // preço, os campos Mín/Máx) — e o que passa fica cortado à direita: o
+    // slider, os selos "Breve" e as contagens das raridades sumiam (23/10).
+    // Como bloco, ele respeita a largura do painel.
     <div className="glass-card sticky top-20 py-2">
-      <ScrollArea className="max-h-[calc(100vh-8rem)] *:data-[slot=scroll-area-viewport]:max-h-[inherit] *:data-[slot=scroll-area-viewport]:[mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)]">
+      <ScrollArea className="max-h-[calc(100vh-8rem)] *:data-[slot=scroll-area-viewport]:max-h-[inherit] *:data-[slot=scroll-area-viewport]:[mask-image:linear-gradient(to_bottom,transparent,black_12px,black_calc(100%-12px),transparent)] [&_[data-slot=scroll-area-viewport]>div]:!block">
         <div className="space-y-5 px-4 py-2">{children}</div>
       </ScrollArea>
     </div>
