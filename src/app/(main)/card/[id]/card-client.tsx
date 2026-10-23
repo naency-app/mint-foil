@@ -20,10 +20,10 @@ import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
-import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingNumber } from "@/app/components/RollingNumber";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
@@ -50,6 +50,42 @@ import {
 import { nomeDaRaridade } from "@/lib/raridade";
 import { precoAnterior, precoAtual } from "@/lib/reference-price";
 import { cardName, cardNameEn, cn } from "@/lib/utils";
+
+// O texto vem da base do jogo com HTML: "<br>" para quebra, "<strong>" nos
+// títulos ("Pendulum Effect"), "<em>" e às vezes "<div>"/"<span>" de enfeite.
+// Antes só o <br> era tratado e o resto aparecia cru ("<strong>Pendulum
+// Effect</strong>", 23/10). Negrito e itálico viram elementos de verdade, o
+// resto das tags sai, e sem dangerouslySetInnerHTML: o texto é de terceiro.
+function TextoDaCarta({ html }: { html: string }) {
+  const texto = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/?(?!strong\b|em\b)[a-z][^>]*>/gi, "")
+    .replace(/[ \t]*\n[ \t]*/g, "\n")
+    // "<br>\n<br><br>\n<br>" virava um buraco de quatro linhas
+    .replace(/\n{3,}/g, "\n\n")
+    // Título colado no texto dele, com o espaço só entre os blocos
+    .replace(/<\/strong>\n+/gi, "</strong>\n")
+    .trim();
+
+  return texto
+    .split(/(<strong>[\s\S]*?<\/strong>|<em>[\s\S]*?<\/em>)/gi)
+    .map((parte, i) => {
+      const dentro = parte.replace(/<[^>]+>/g, "");
+      if (/^<strong>/i.test(parte)) {
+        return (
+          // biome-ignore lint/suspicious/noArrayIndexKey: pedaços fixos do texto
+          <strong key={i} className="font-semibold text-foreground">
+            {dentro}
+          </strong>
+        );
+      }
+      if (/^<em>/i.test(parte)) {
+        // biome-ignore lint/suspicious/noArrayIndexKey: pedaços fixos do texto
+        return <em key={i}>{dentro}</em>;
+      }
+      return dentro;
+    });
+}
 
 // Código utilizável na busca da Liga: precisa ser prefixado por set
 // ("JUSH-EN022", "OP12-108"). Fração/número solto (Pokémon "094/162", Magic
@@ -659,10 +695,8 @@ export function CardDetailClient({
             </h2>
 
             {card.description && (
-              // O texto vem da base do jogo com "<br>" no meio ("monsters
-              // <br>You can…"): vira quebra de linha em vez de aparecer cru.
               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                {card.description.replace(/<br\s*\/?>/gi, "\n")}
+                <TextoDaCarta html={card.description} />
               </p>
             )}
 
