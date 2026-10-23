@@ -3,26 +3,22 @@
 import {
   IconAlertCircle,
   IconExternalLink,
-  IconMinus,
   IconPackage,
-  IconPlus,
   IconShoppingCart,
   IconTrendingDown,
   IconTrendingUp,
   IconWorld,
 } from "@tabler/icons-react";
-import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
-import { RollingNumber } from "@/app/components/RollingNumber";
+import { RollingCounter } from "@/app/components/RollingCounter";
 import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
@@ -338,9 +334,6 @@ export function CardDetailClient({
     [ownershipData],
   );
   const lastDelta = useRef(1);
-  // Confirmação visual: mesmo check animado dos cards
-  const [success, setSuccess] = useState(false);
-  const [successId, setSuccessId] = useState(0);
   // Stepper controla direto a quantidade no portfólio ativo: cada clique
   // atualiza otimista e um único request (add/update/remove) sai ~500ms depois
   // do último clique. Sem botão separado de "Adicionar".
@@ -423,7 +416,15 @@ export function CardDetailClient({
     }
   }
 
-  const handleQtyChange = (delta: number) => {
+  // Recebe a quantidade FINAL, não um passo: o contador soma de 10 em 10
+  // segurando o botão e pula vários de uma vez quando é arrastado (23/10).
+  // `false` recusa, e ele volta ao número de antes.
+  const definirQuantidade = (alvo: number) => {
+    const next = Math.max(0, alvo);
+    // A base é o alvo ainda não gravado, se houver: vários passos chegam no
+    // mesmo render, antes de o `optimisticQty` do closure mudar
+    const atual = pendingTargetRef.current ?? optimisticQty;
+    const delta = next - atual;
     if (!session?.user) {
       // Só faz sentido oferecer login para SOMAR — quem está deslogado não tem
       // o que remover.
@@ -441,23 +442,17 @@ export function CardDetailClient({
           change: changePercent,
         });
       }
-      return;
+      return false;
     }
+    if (delta === 0) return true;
     lastDelta.current = delta;
-    const next = Math.max(0, optimisticQty + delta);
-    if (next === optimisticQty) return;
     setOptimisticQty(next);
     pendingTargetRef.current = next;
     if (commitTimer.current) clearTimeout(commitTimer.current);
-    commitTimer.current = setTimeout(() => {
-      // Só confirma visualmente quando está somando — remover não é "sucesso"
-      if (delta > 0) {
-        setSuccess(true);
-        setSuccessId((n) => n + 1);
-        setTimeout(() => setSuccess(false), 1700);
-      }
-      commitQty(next);
-    }, 320);
+    // Os dígitos rolando já são a confirmação na tela; grava ~320ms depois
+    // do último passo, um request só
+    commitTimer.current = setTimeout(() => commitQty(next), 320);
+    return true;
   };
 
   if (loading) return <CardDetailSkeleton />;
@@ -810,38 +805,12 @@ export function CardDetailClient({
                   NM
                 </Badge>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.78 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 18,
-                      }}
-                      onClick={() => handleQtyChange(-1)}
-                      disabled={optimisticQty <= 0}
-                      className="size-9 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border disabled:hover:text-muted-foreground"
-                    >
-                      <IconMinus className="size-3.5" strokeWidth={2.5} />
-                    </motion.button>
-
-                    <div className="w-9 flex items-center justify-center overflow-hidden">
-                      <RollingNumber
-                        value={optimisticQty}
-                        fontSize={16}
-                        className="font-bold text-foreground font-mono"
-                      />
-                    </div>
-
-                    <AddIconButton
-                      onClick={() => handleQtyChange(1)}
-                      success={success}
-                      successId={successId}
-                      size={36}
-                      title="Adicionar uma cópia"
-                    />
-                  </div>
+                  <RollingCounter
+                    value={optimisticQty}
+                    onChange={definirQuantidade}
+                    cell={30}
+                    corner={14}
+                  />
 
                   <div className="text-right shrink-0">
                     <div className="flex items-center justify-end gap-1">
