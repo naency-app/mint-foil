@@ -290,6 +290,9 @@ export function useInfiniteCards(query: CardQuery) {
         ? undefined
         : todas.reduce((n, p) => n + p.length, 0),
     staleTime: CATALOGO_STALE_MS,
+    // Nova busca mantém a anterior na tela até chegar (a tela esmaece): sem
+    // isto, cada letra digitada trocava o grid por esqueleto e parecia lento
+    placeholderData: keepPreviousData,
   });
 }
 
