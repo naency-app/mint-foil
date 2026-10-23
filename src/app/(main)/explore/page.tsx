@@ -10,13 +10,12 @@ import {
   IconLayoutGrid,
   IconListDetails,
   IconLoader2,
-  IconPlus,
   IconSearch,
   IconTrendingUp,
   IconX,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   parseAsArrayOf,
   parseAsFloat,
@@ -32,7 +31,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
@@ -50,12 +48,13 @@ import {
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
+import { RollingCounter } from "@/app/components/RollingCounter";
+import { RollingNumber } from "@/app/components/RollingNumber";
 import { SetCover, type SetProgress, temCapa } from "@/app/components/SetCard";
 import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { type FiltroRapido, TcgCard } from "@/app/components/TcgCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GlassPill, SectionLabel } from "@/components/ui/glass";
@@ -68,14 +67,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ApiError,
-  api,
-  type CardQuery,
-  type CardSet,
-  type CardSort,
-  type Card as CardType,
-  type Portfolio,
+import { useQuantidadeNoPortfolio } from "@/hooks/use-quantidade-no-portfolio";
+import type {
+  CardQuery,
+  CardSet,
+  CardSort,
+  Card as CardType,
+  Portfolio,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { lembrarExplore } from "@/lib/explore-href";
@@ -311,15 +309,19 @@ function ListRow({
   card,
   activePortfolioId,
   onAdd,
+  quantity,
+  itemNm,
+  nomePortfolio,
 }: {
   card: CardType;
   activePortfolioId: string;
   onAdd: () => void;
+  quantity: number;
+  itemNm: { id: string; quantity: number } | null;
+  nomePortfolio?: string;
 }) {
   const tcgPrice = getLatestPrice(card);
   const displayPrice = tcgPrice;
-  const [adding, setAdding] = useState(false);
-  const router = useRouter();
   const { data: session, isPending: sessaoCarregando } = useSession();
   const { pedirLogin } = useQuickAdd();
 
@@ -338,41 +340,19 @@ function ListRow({
     };
   }
 
-  async function handleAdd(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (adding) return;
-
-    // Sessão ANTES de portfólio: o portfólio ativo mora no navegador e
-    // sobrevive ao logout. Na ordem inversa, a gravação saía sem sessão e o 401
-    // virava "Erro ao adicionar carta".
-    if (sessaoCarregando) return;
-    if (!session?.user) {
-      pedirLogin(cartaParaLogin());
-      return;
-    }
-    // Sem portfólio ativo (conta sem nenhum) segue sem `portfolioId`: o
-    // servidor grava no padrão e cria o "Principal" se preciso.
-    setAdding(true);
-    try {
-      await api.collection.add({
-        cardId: card.id,
-        quantity: 1,
-        condition: "NM",
-        ...(activePortfolioId ? { portfolioId: activePortfolioId } : {}),
-      });
-      toast.success("Adicionado ao portfólio!");
-      onAdd();
-    } catch (erro) {
-      if (erro instanceof ApiError && erro.status === 401) {
-        pedirLogin(cartaParaLogin());
-      } else {
-        toast.error("Erro ao adicionar carta");
-      }
-    } finally {
-      setAdding(false);
-    }
-  }
+  // O mesmo botão único do card da grade (23/10): "+" redondo com o check,
+  // segurar para repetir e a gravação do hook. Antes era um quadrado que só
+  // somava 1 por clique, sem dizer quantas você já tinha.
+  const qtd = useQuantidadeNoPortfolio({
+    cardId: card.id,
+    portfolioId: activePortfolioId || undefined,
+    quantidadeServidor: quantity,
+    itemNm,
+    logado: !!session?.user,
+    pedirLogin: () => pedirLogin(cartaParaLogin()),
+    aoGravar: onAdd,
+    nomePortfolio,
+  });
 
   return (
     <Link href={`/card/${card.id}`} className="block">
@@ -415,25 +395,42 @@ function ListRow({
             </span>
           </div>
           {tcgPrice > 0 && (
-            <span className="text-[9px] text-muted-foreground">
+            <span className="block text-[9px] text-muted-foreground">
               internacional
             </span>
           )}
+          <span
+            className={`flex items-center justify-end gap-1 font-mono text-[11px] ${
+              qtd.quantidade > 0
+                ? "font-bold text-emerald-400"
+                : "text-muted-foreground"
+            }`}
+          >
+            Quant.
+            <RollingNumber value={qtd.quantidade} fontSize={11} />
+          </span>
         </div>
 
-        <Button
-          variant="outline"
-          size="icon"
-          className="shrink-0 size-8 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10"
-          onClick={handleAdd}
-          disabled={adding}
+        {/* A linha inteira é um link: o clique no "+" não pode abrir a carta */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: só barra o clique do link; o teclado vai nos botões do contador */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: idem */}
+        <div
+          className="shrink-0"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
-          {adding ? (
-            <IconLoader2 className="size-4 animate-spin" />
-          ) : (
-            <IconPlus className="size-4" />
-          )}
-        </Button>
+          <RollingCounter
+            value={qtd.quantidade}
+            onChange={(v) => (sessaoCarregando ? false : qtd.definir(v))}
+            min={qtd.minimo}
+            cell={28}
+            unico
+            sucesso={qtd.sucesso}
+            sucessoId={qtd.sucessoId}
+          />
+        </div>
       </div>
     </Link>
   );
@@ -1700,6 +1697,9 @@ function ExplorePageContent() {
                   card={card}
                   activePortfolioId={activePortfolioId}
                   onAdd={invalidateCollection}
+                  quantity={collectionMap[card.id] ?? 0}
+                  itemNm={itemNmPorCarta[card.id] ?? null}
+                  nomePortfolio={nomePortfolioAtivo}
                 />
               ))}
             </div>
