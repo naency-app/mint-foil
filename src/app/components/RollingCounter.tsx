@@ -304,24 +304,40 @@ export function RollingCounter({
   }, [valorDeFora]);
 
   /* ── holding a button ──────────────────────────────────── */
-  const hold = useRef({ t: 0, since: 0 });
+  /* No toque o passo NÃO sai ao encostar: numa grade que rola, o dedo que
+     começa a rolar em cima do botão somaria uma carta. Sai ao levantar (um
+     toque) ou ao segurar (a repetição); se o dedo sai rolando, o navegador
+     manda pointercancel e nada acontece. No mouse segue o original: o passo
+     sai ao apertar. (23/10) */
+  const hold = useRef({ t: 0, since: 0, repetiu: false, toque: false });
   const release = () => {
     clearTimeout(hold.current.t);
     hold.current.t = 0;
   };
   // biome-ignore lint/correctness/useExhaustiveDependencies: só limpa o timer ao desmontar
   useEffect(() => release, []);
-  const press = (dir: 1 | -1) => {
+  const press = (dir: 1 | -1, e: React.PointerEvent) => {
     release();
-    if (!bump(dir)) return;
+    const toque = e.pointerType === "touch";
+    hold.current.toque = toque;
+    hold.current.repetiu = false;
+    if (!toque && !bump(dir)) return;
     hold.current.since = performance.now();
     const repeat = () => {
+      hold.current.repetiu = true;
       const held = performance.now() - hold.current.since;
       /* ones, then tens after a second and a half */
       if (!bump(dir * (held > 1500 ? 10 : 1))) return release();
       hold.current.t = window.setTimeout(repeat, held > 900 ? 55 : 90);
     };
     hold.current.t = window.setTimeout(repeat, 380);
+  };
+  /* Levantar o dedo antes de a repetição começar é um toque: um passo */
+  const soltar = (dir: 1 | -1) => {
+    const toque =
+      hold.current.toque && hold.current.t !== 0 && !hold.current.repetiu;
+    release();
+    if (toque) bump(dir);
   };
 
   /* ── taking the number itself ──────────────────────────── */
@@ -336,16 +352,65 @@ export function RollingCounter({
     return acc - n * PX;
   };
 
-  const onDown = (e: React.PointerEvent) => {
-    cancelAnimationFrame(fling.current);
+  /* Toque longo (não está no original). No dedo, arrastar o número logo de
+     cara roubava a rolagem da página: quem rolava a grade começando em cima
+     dele mudava a quantidade. Agora o dedo precisa SEGURAR ~0,3s parado no
+     número para ele "pegar" (vibra, se o aparelho deixa); antes disso, mexer
+     é rolar a página. Mouse e caneta pegam na hora, como no original. */
+  const numRef = useRef<HTMLDivElement | null>(null);
+  const espera = useRef<{ t: number; x: number; y: number } | null>(null);
+  const [pegou, setPegou] = useState(false);
+  const comecar = (el: Element, id: number, y: number) => {
     try {
-      e.currentTarget.setPointerCapture(e.pointerId);
+      el.setPointerCapture(id);
     } catch {
       /* a scripted pointer */
     }
-    drag.current = { y: e.clientY, acc: 0, v: 0, t: performance.now() };
+    drag.current = { y, acc: 0, v: 0, t: performance.now() };
+  };
+  const desarmar = () => {
+    if (espera.current) clearTimeout(espera.current.t);
+    espera.current = null;
+  };
+  // biome-ignore lint/correctness/useExhaustiveDependencies: só limpa a espera ao desmontar
+  useEffect(() => desarmar, []);
+  /* Com o número pego, o dedo não rola a página: o touchmove é cancelado
+     enquanto há arrasto (precisa ser nativo e não-passivo para isso valer) */
+  useEffect(() => {
+    const el = numRef.current;
+    if (!el) return;
+    const bloquear = (ev: TouchEvent) => {
+      if (drag.current && ev.cancelable) ev.preventDefault();
+    };
+    el.addEventListener("touchmove", bloquear, { passive: false });
+    return () => el.removeEventListener("touchmove", bloquear);
+  }, []);
+
+  const onDown = (e: React.PointerEvent) => {
+    cancelAnimationFrame(fling.current);
+    if (e.pointerType !== "touch") {
+      comecar(e.currentTarget, e.pointerId, e.clientY);
+      return;
+    }
+    desarmar();
+    const el = e.currentTarget;
+    const id = e.pointerId;
+    espera.current = {
+      x: e.clientX,
+      y: e.clientY,
+      t: window.setTimeout(() => {
+        const y = espera.current?.y ?? 0;
+        espera.current = null;
+        comecar(el, id, y);
+        setPegou(true);
+        navigator.vibrate?.(8);
+      }, 300),
+    };
   };
   const onMove = (e: React.PointerEvent) => {
+    const w = espera.current;
+    // Ainda esperando: mexeu mais de 6px, é rolagem — desiste de pegar
+    if (w && Math.hypot(e.clientX - w.x, e.clientY - w.y) > 6) desarmar();
     const g = drag.current;
     if (!g) return;
     const now = performance.now();
@@ -358,6 +423,8 @@ export function RollingCounter({
     g.acc = steps(g.acc + dy);
   };
   const onUp = (e: React.PointerEvent) => {
+    desarmar();
+    setPegou(false);
     const g = drag.current;
     drag.current = null;
     try {
@@ -405,8 +472,8 @@ export function RollingCounter({
         className="rct-btn rct-menos"
         aria-label="Menos"
         disabled={value <= min}
-        onPointerDown={() => press(-1)}
-        onPointerUp={release}
+        onPointerDown={(e) => press(-1, e)}
+        onPointerUp={() => soltar(-1)}
         onPointerLeave={release}
         onPointerCancel={release}
         onKeyDown={(e) => {
@@ -420,12 +487,15 @@ export function RollingCounter({
       </button>
 
       <div
+        ref={numRef}
         className="rct-num"
+        data-pegou={pegou || undefined}
+        onContextMenu={(e) => e.preventDefault()}
         role="spinbutton"
         aria-valuenow={value}
         aria-valuemin={min}
         aria-valuemax={teto}
-        aria-label="Quantidade. Arraste para cima ou para baixo para mudar."
+        aria-label="Quantidade. Segure e arraste para cima ou para baixo para mudar."
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "ArrowUp") {
@@ -477,8 +547,8 @@ export function RollingCounter({
         aria-label="Mais"
         data-sucesso={sucesso || undefined}
         disabled={value >= teto}
-        onPointerDown={() => press(1)}
-        onPointerUp={release}
+        onPointerDown={(e) => press(1, e)}
+        onPointerUp={() => soltar(1)}
         onPointerLeave={release}
         onPointerCancel={release}
         onKeyDown={(e) => {
