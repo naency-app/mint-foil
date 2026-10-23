@@ -357,13 +357,15 @@ function ListRow({
   return (
     <Link href={`/card/${card.id}`} className="block">
       <div className="glass-card flex items-center gap-4 !rounded-2xl px-4 py-3 transition-all hover:bg-muted/30 group">
-        <div className="shrink-0 size-12 rounded-md overflow-hidden">
+        {/* No formato da carta (5:7): o quadrado de 48px cortava o topo e o
+            pé de toda carta (23/10) */}
+        <div className="shrink-0 w-12 aspect-[5/7] rounded-md overflow-hidden">
           <CardImage
             carta={card}
             tamanho="grade"
             alt={card.name}
             width={48}
-            height={48}
+            height={67}
             rotulo={false}
             className="w-full h-full object-cover"
           />
