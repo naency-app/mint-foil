@@ -14,7 +14,6 @@ import {
   IconListDetails,
   IconShare2,
   IconLoader2 as Loader2,
-  IconMinus as Minus,
   IconPackage as Package,
   IconPlus as Plus,
   IconScan as ScanLine,
@@ -26,14 +25,12 @@ import {
   IconX as X,
 } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
-import { AddIconButton } from "@/app/components/AddIconButton";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
@@ -50,7 +47,7 @@ import {
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProfileHeader } from "@/app/components/ProfileHeader";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
-import { RollingNumber } from "@/app/components/RollingNumber";
+import { RollingCounter } from "@/app/components/RollingCounter";
 import { AdicionarAmigos } from "@/app/components/social/AdicionarAmigos";
 import { PedidosButton } from "@/app/components/social/PedidosButton";
 import { SocialStats } from "@/app/components/social/SocialStats";
@@ -84,6 +81,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuantidadeDoItem } from "@/hooks/use-quantidade-no-portfolio";
 import { api, type CollectionItem, type PortfolioMetrics } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { useBuscaEntreCartas } from "@/lib/busca-entre-cartas";
@@ -186,38 +184,18 @@ function PortfolioItemRow({
   isSelectionMode: boolean;
   portfolioId: string | null;
 }) {
-  const [optimisticQty, setOptimisticQty] = useState(item.quantity);
-  const lastDelta = useRef(0);
   const [removing, setRemoving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-
-  // Keep local qty in sync if parent changes from elsewhere (e.g. rollback)
-  useEffect(() => {
-    setOptimisticQty(item.quantity);
-  }, [item.quantity]);
+  // Contador compacto, o mesmo dos cards (hooks/use-quantidade-no-portfolio)
+  const qtd = useQuantidadeDoItem({
+    itemId: item.id,
+    quantidadeServidor: item.quantity,
+    onUpdate,
+    pedirRemover: () => setConfirmDelete(true),
+  });
 
   const currentPrice = precoAtual(item.card.prices);
-  const totalValue = currentPrice * optimisticQty;
-
-  async function handleQuantityChange(delta: number) {
-    const newQty = optimisticQty + delta;
-    if (newQty < 1) {
-      setConfirmDelete(true);
-      return;
-    }
-    lastDelta.current = delta;
-    setOptimisticQty(newQty);
-    try {
-      await onUpdate(item.id, { quantity: newQty });
-      // Mesmo aviso do card do Explorar: a ação sempre se anuncia
-      toast.success(
-        delta > 0 ? "Adicionado ao portfólio!" : "Removido do portfólio",
-      );
-    } catch {
-      setOptimisticQty(optimisticQty);
-      toast.error("Erro ao atualizar quantidade");
-    }
-  }
+  const totalValue = currentPrice * qtd.quantidade;
 
   async function handleRemove() {
     setRemoving(true);
@@ -323,46 +301,16 @@ function PortfolioItemRow({
           className="hidden sm:flex items-center gap-1.5"
           onClick={(e) => e.stopPropagation()}
         >
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.78 }}
-            transition={{ type: "spring", stiffness: 500, damping: 18 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleQuantityChange(-1);
-            }}
-            className="size-7 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <Minus className="size-3" strokeWidth={2.5} />
-          </motion.button>
-
-          <div className="w-7 flex items-center justify-center overflow-hidden">
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.span
-                key={optimisticQty}
-                initial={{ y: lastDelta.current > 0 ? 10 : -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: lastDelta.current > 0 ? -10 : 10, opacity: 0 }}
-                transition={{ duration: 0.13 }}
-                className="text-sm font-bold text-foreground font-mono"
-              >
-                {optimisticQty}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.78 }}
-            transition={{ type: "spring", stiffness: 500, damping: 18 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleQuantityChange(1);
-            }}
-            className="size-7 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <Plus className="size-3" strokeWidth={2.5} />
-          </motion.button>
+          <RollingCounter
+            value={qtd.quantidade}
+            onChange={qtd.definir}
+            min={0}
+            cell={24}
+            redondo
+            inercia={false}
+            sucesso={qtd.sucesso}
+            sucessoId={qtd.sucessoId}
+          />
         </div>
 
         <div className="text-right shrink-0 w-32">
@@ -459,14 +407,19 @@ function PortfolioItemCard({
   isSelectionMode: boolean;
   portfolioId: string | null;
 }) {
-  // Confirmação visual do "+", igual aos outros pontos de adição
-  const [success, setSuccess] = useState(false);
-  const [successId, setSuccessId] = useState(0);
-
-  const currentPrice = precoAtual(item.card.prices);
-  const totalValue = currentPrice * item.quantity;
   const [removing, setRemoving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Contador compacto: um request ~320ms depois do último passo, o check ao
+  // somar e, abaixo de 1, a confirmação de remover
+  const qtd = useQuantidadeDoItem({
+    itemId: item.id,
+    quantidadeServidor: item.quantity,
+    onUpdate,
+    pedirRemover: () => setConfirmDelete(true),
+  });
+
+  const currentPrice = precoAtual(item.card.prices);
+  const totalValue = currentPrice * qtd.quantidade;
 
   async function handleRemove() {
     setRemoving(true);
@@ -478,28 +431,6 @@ function PortfolioItemCard({
     } finally {
       setRemoving(false);
       setConfirmDelete(false);
-    }
-  }
-
-  async function handleQuantityChange(delta: number) {
-    const newQty = item.quantity + delta;
-    if (newQty < 1) {
-      setConfirmDelete(true);
-      return;
-    }
-    // Só somar confirma; remover não é "sucesso"
-    if (delta > 0) {
-      setSuccess(true);
-      setSuccessId((n) => n + 1);
-      setTimeout(() => setSuccess(false), 1700);
-    }
-    try {
-      await onUpdate(item.id, { quantity: newQty });
-      toast.success(
-        delta > 0 ? "Adicionado ao portfólio!" : "Removido do portfólio",
-      );
-    } catch {
-      toast.error("Erro ao atualizar quantidade");
     }
   }
 
@@ -570,7 +501,7 @@ function PortfolioItemCard({
           {/* Quantity badge */}
           {!isSelectionMode && (
             <div className="absolute top-3 right-3 bg-black/70 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center">
-              {item.quantity}
+              {qtd.quantidade}
             </div>
           )}
           {!isSelectionMode && <AddToPortfolioButton cardId={item.card.id} />}
@@ -620,7 +551,7 @@ function PortfolioItemCard({
                   R$ {formatPrice(totalValue)}
                 </span>
                 <span className="whitespace-nowrap text-[10px] text-muted-foreground font-mono">
-                  ({item.quantity}x R$ {formatPrice(currentPrice)})
+                  ({qtd.quantidade}x R$ {formatPrice(currentPrice)})
                 </span>
               </div>
             </div>
@@ -630,35 +561,17 @@ function PortfolioItemCard({
               className="flex items-center justify-between gap-1 pt-1"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Mesmo par de botões redondos da tela da carta e dos cards */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleQuantityChange(-1);
-                  }}
-                  className="size-7 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  <Minus className="size-3" />
-                </button>
-                <div className="w-7 flex items-center justify-center overflow-hidden">
-                  <RollingNumber
-                    value={item.quantity}
-                    fontSize={12}
-                    className="font-bold text-foreground font-mono"
-                  />
-                </div>
-                <AddIconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleQuantityChange(1);
-                  }}
-                  success={success}
-                  successId={successId}
-                  title="Adicionar uma cópia"
-                />
-              </div>
+              {/* O mesmo contador da tela da carta e dos cards */}
+              <RollingCounter
+                value={qtd.quantidade}
+                onChange={qtd.definir}
+                min={0}
+                cell={22}
+                redondo
+                inercia={false}
+                sucesso={qtd.sucesso}
+                sucessoId={qtd.sucessoId}
+              />
               <button
                 type="button"
                 onClick={(e) => {
