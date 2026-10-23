@@ -250,9 +250,10 @@ export function TcgCard({
             de duas colunas. O menu vai num portal, mas o clique ainda sobe
             pela árvore do React até o Link da carta; o stopPropagation segura
             a navegação.
-            Com algum filtro desta carta valendo, o botão fica aceso e à vista
-            mesmo sem hover: a grade está filtrada por ela, e isso tem que ser
-            óbvio (23/10). */}
+            Com algum filtro desta carta valendo, o botão vem rosa. Só no
+            hover, como o normal: aceso o tempo todo, ele acendia em TODA carta
+            da grade (todas casam com o filtro), e quem diz que a grade está
+            filtrada é o "Filtrando por" embaixo da busca (23/10). */}
         {filtrosRapidos && filtrosRapidos.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -274,9 +275,9 @@ export function TcgCard({
                 }}
                 className={`absolute top-2.5 right-2.5 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full text-white shadow-sm backdrop-blur-md transition-opacity duration-150 [@media(hover:none)]:hidden ${
                   filtrandoPorEla
-                    ? "bg-primary opacity-100 ring-2 ring-white/70 hover:bg-primary/90"
-                    : "bg-black/55 opacity-0 hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"
-                }`}
+                    ? "bg-primary hover:bg-primary/90"
+                    : "bg-black/55 hover:bg-black/70"
+                } opacity-0 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100`}
               >
                 <IconFilter className="size-4" />
               </button>
