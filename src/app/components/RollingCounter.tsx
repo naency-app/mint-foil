@@ -143,6 +143,10 @@ export function RollingCounter({
   blur = 50,
   /* the slab's corner, px */
   corner = 16,
+  /* soltar o arrasto em movimento continua rolando (o "fling" do
+     original). Desligável: numa quantidade que vai para o banco, um
+     arremesso de 300 cópias é acidente, não gesto */
+  inercia = true,
   className,
 }: {
   value: number;
@@ -155,6 +159,7 @@ export function RollingCounter({
   stagger?: number;
   blur?: number;
   corner?: number;
+  inercia?: boolean;
   className?: string;
 }) {
   const CELL = cell;
@@ -348,7 +353,7 @@ export function RollingCounter({
     } catch {
       /* never captured */
     }
-    if (!g || still) return;
+    if (!g || still || !inercia) return;
     /* a hand that stopped before letting go threw nothing */
     let v = performance.now() - g.t > 90 ? 0 : g.v * 16.67;
     if (Math.abs(v) < 2) return;
@@ -424,7 +429,8 @@ export function RollingCounter({
         {Array.from({ length: PLACES }, (_, i) => {
           const p = PLACES - 1 - i;
           return (
-            <span key={p} className="rct-pair">
+            // As fitas de 0–9 não são texto: o número sai pelo aria-valuenow
+            <span key={p} className="rct-pair" aria-hidden="true">
               <span className="rct-col" data-on={p < shown || undefined}>
                 <span
                   className="rct-strip"
