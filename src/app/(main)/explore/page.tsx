@@ -1046,7 +1046,7 @@ function ExplorePageContent() {
   }[] = [
     ...activeTcgs.map((slug) => ({
       chave: `tcg:${slug}`,
-      rotulo: CHIP_LABEL[slug] ?? slug,
+      rotulo: SUPPORTED_TCGS.find((t) => t.slug === slug)?.chip ?? slug,
       remover: () => toggleTcg(slug),
     })),
     ...(selectedSetId
