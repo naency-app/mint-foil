@@ -402,7 +402,7 @@ export function RollingCounter({
     >
       <button
         type="button"
-        className="rct-btn"
+        className="rct-btn rct-menos"
         aria-label="Menos"
         disabled={value <= min}
         onPointerDown={() => press(-1)}
