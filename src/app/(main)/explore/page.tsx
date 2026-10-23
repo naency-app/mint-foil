@@ -1,23 +1,20 @@
 "use client";
 
 import {
+  IconArrowsSort,
+  IconCalendar,
+  IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
+  IconClock,
   IconLayoutGrid,
   IconListDetails,
   IconLoader2,
   IconPlus,
+  IconSearch,
+  IconTrendingUp,
+  IconX,
 } from "@tabler/icons-react";
-import {
-  ArrowUpDown,
-  Calendar,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Loader2,
-  Search,
-  TrendingUp,
-  X,
-} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -227,7 +224,7 @@ function SetCarousel({ children }: { children: React.ReactNode }) {
           onClick={() => scroll(-1)}
           className="glass-card absolute left-1 top-[38%] z-10 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center !rounded-full opacity-0 shadow-md transition-opacity hover:bg-muted/60 group-hover/car:opacity-100"
         >
-          <ChevronLeft className="size-4 text-foreground" />
+          <IconChevronLeft className="size-4 text-foreground" />
         </button>
       )}
       {canRight && (
@@ -237,7 +234,7 @@ function SetCarousel({ children }: { children: React.ReactNode }) {
           onClick={() => scroll(1)}
           className="glass-card absolute right-1 top-[38%] z-10 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center !rounded-full opacity-0 shadow-md transition-opacity hover:bg-muted/60 group-hover/car:opacity-100"
         >
-          <ChevronRight className="size-4 text-foreground" />
+          <IconChevronRight className="size-4 text-foreground" />
         </button>
       )}
     </div>
@@ -277,7 +274,7 @@ function CarouselSetItem({
         {selected && (
           // z-10: o leque e o logo da capa têm camada própria (até z-[5]) e cobriam o selo
           <span className="absolute right-1.5 top-1.5 z-10 flex size-4 items-center justify-center rounded-full bg-primary">
-            <Check
+            <IconCheck
               className="size-2.5 text-primary-foreground"
               strokeWidth={3}
             />
@@ -412,7 +409,7 @@ function ListRow({
 
         <div className="text-right shrink-0 w-36">
           <div className="flex items-center justify-end gap-1">
-            <TrendingUp className="size-3 text-emerald-500" />
+            <IconTrendingUp className="size-3 text-emerald-500" />
             <span className="text-sm font-bold text-foreground font-mono">
               R$ {formatPrice(displayPrice)}
             </span>
@@ -1166,7 +1163,7 @@ function ExplorePageContent() {
                 : ""
             }`}
           >
-            <Search
+            <IconSearch
               className={`size-5 shrink-0 ${searchInput.length > 0 ? "text-primary" : "text-muted-foreground"}`}
             />
             <input
@@ -1192,7 +1189,7 @@ function ExplorePageContent() {
                 title="Apagar busca"
                 className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
-                <X className="size-4" />
+                <IconX className="size-4" />
               </button>
             )}
           </div>
@@ -1212,7 +1209,7 @@ function ExplorePageContent() {
                 className="flex max-w-60 cursor-pointer items-center gap-1 rounded-full border border-primary/25 bg-primary/10 py-1 pr-2 pl-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/15"
               >
                 <span className="truncate">{filtro.rotulo}</span>
-                <X className="size-3 shrink-0" />
+                <IconX className="size-3 shrink-0" />
               </button>
             ))}
             <button
@@ -1240,7 +1237,7 @@ function ExplorePageContent() {
                   onClick={() => applyRecentSearch(term)}
                   className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-foreground"
                 >
-                  <Clock className="size-3.5 shrink-0 text-muted-foreground" />
+                  <IconClock className="size-3.5 shrink-0 text-muted-foreground" />
                   <span className="truncate">{term}</span>
                 </button>
                 <button
@@ -1250,7 +1247,7 @@ function ExplorePageContent() {
                   onClick={() => removeRecentSearch(term)}
                   className="cursor-pointer px-3 py-3 text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  <X className="size-3.5" />
+                  <IconX className="size-3.5" />
                 </button>
               </div>
             ))}
@@ -1298,7 +1295,7 @@ function ExplorePageContent() {
                   : "glass-pill text-foreground"
               }`}
             >
-              <ArrowUpDown
+              <IconArrowsSort
                 className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
               />
               <SelectValue />
@@ -1569,7 +1566,7 @@ function ExplorePageContent() {
                 className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/15"
               >
                 Limpar
-                <X className="size-3" />
+                <IconX className="size-3" />
               </button>
             )}
           </div>
@@ -1589,7 +1586,7 @@ function ExplorePageContent() {
                   {selectedSet.tcg?.name && <span>{selectedSet.tcg.name}</span>}
                   {selectedSetRelDate && (
                     <span className="flex items-center gap-1">
-                      <Calendar className="size-2.5" />
+                      <IconCalendar className="size-2.5" />
                       {selectedSetRelDate}
                     </span>
                   )}
@@ -1628,7 +1625,7 @@ function ExplorePageContent() {
             </div>
           ) : error ? null : sortedCards.length === 0 ? (
             <EstadoVazio
-              icon={Search}
+              icon={IconSearch}
               titulo="Nenhuma carta encontrada"
               descricao={
                 search
@@ -1701,7 +1698,7 @@ function ExplorePageContent() {
               aria-hidden
             >
               {cardsQuery.isFetchingNextPage && (
-                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                <IconLoader2 className="size-6 animate-spin text-muted-foreground" />
               )}
             </div>
           )}
@@ -1721,7 +1718,7 @@ export default function ExplorePage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="animate-spin text-primary size-8" />
+          <IconLoader2 className="animate-spin text-primary size-8" />
         </div>
       }
     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Search, UserPlus } from "lucide-react";
+import { IconLoader2, IconSearch, IconUserPlus } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -34,7 +34,7 @@ export function AdicionarAmigos() {
         onClick={() => setAberto(true)}
         className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
       >
-        <UserPlus className="size-3.5" /> Adicionar amigos
+        <IconUserPlus className="size-3.5" /> Adicionar amigos
       </button>
 
       <Dialog open={aberto} onOpenChange={setAberto}>
@@ -43,7 +43,7 @@ export function AdicionarAmigos() {
             <DialogTitle>Adicionar amigos</DialogTitle>
           </DialogHeader>
           <div className="glass-input flex h-11 items-center gap-2.5 px-4">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <IconSearch className="size-4 shrink-0 text-muted-foreground" />
             <input
               autoFocus
               value={texto}
@@ -52,7 +52,7 @@ export function AdicionarAmigos() {
               className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
             {isFetching && (
-              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              <IconLoader2 className="size-4 animate-spin text-muted-foreground" />
             )}
           </div>
 

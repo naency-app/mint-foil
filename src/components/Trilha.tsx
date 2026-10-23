@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +30,13 @@ export function Trilha({
       >
         {niveis.map((n) => (
           <span key={n.href} className="flex items-center gap-1.5">
-            <Link href={n.href} className="transition-colors hover:text-primary">
+            <Link
+              href={n.href}
+              className="transition-colors hover:text-primary"
+            >
               {n.label}
             </Link>
-            <ChevronRight className="size-3" />
+            <IconChevronRight className="size-3" />
           </span>
         ))}
         <span className="max-w-80 truncate text-foreground">{atual}</span>
@@ -43,7 +46,7 @@ export function Trilha({
           href={anterior.href}
           className="flex max-w-full items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary md:hidden"
         >
-          <ChevronLeft className="size-4 shrink-0" />
+          <IconChevronLeft className="size-4 shrink-0" />
           <span className="truncate">{anterior.label}</span>
         </Link>
       )}

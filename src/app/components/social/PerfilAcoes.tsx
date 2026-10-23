@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, Flag, Loader2, MoreHorizontal } from "lucide-react";
+import { IconBan, IconDots, IconFlag, IconLoader2 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -100,7 +100,7 @@ export function PerfilAcoes({
             aria-label={`Mais ações para @${handle}`}
             className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition-colors hover:bg-muted/60"
           >
-            <MoreHorizontal className="size-4" />
+            <IconDots className="size-4" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -108,13 +108,13 @@ export function PerfilAcoes({
             className="cursor-pointer"
             onSelect={() => setDenunciarAberto(true)}
           >
-            <Flag className="size-4" /> Denunciar perfil
+            <IconFlag className="size-4" /> Denunciar perfil
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer text-destructive focus:text-destructive"
             onSelect={() => setBloquearAberto(true)}
           >
-            <Ban className="size-4" /> Bloquear
+            <IconBan className="size-4" /> Bloquear
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -162,7 +162,7 @@ export function PerfilAcoes({
               onClick={() => void bloquear()}
               className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-destructive px-4 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-50"
             >
-              {enviando && <Loader2 className="size-4 animate-spin" />}
+              {enviando && <IconLoader2 className="size-4 animate-spin" />}
               Bloquear
             </button>
           </AlertDialogFooter>

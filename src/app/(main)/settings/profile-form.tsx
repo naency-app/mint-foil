@@ -1,6 +1,12 @@
 "use client";
 
-import { Check, Loader2, Lock, User, X } from "lucide-react";
+import {
+  IconCheck,
+  IconLoader2,
+  IconLock,
+  IconUser,
+  IconX,
+} from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,7 +163,7 @@ export function ProfileForm({
   return (
     <section className="glass-card !rounded-2xl p-6 space-y-4">
       <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-foreground">
-        <User className="size-4 text-primary" />
+        <IconUser className="size-4 text-primary" />
         Perfil público
       </h2>
       <Separator />
@@ -193,14 +199,16 @@ export function ProfileForm({
             />
             <span className="-translate-y-1/2 absolute top-1/2 right-3">
               {status === "checking" && (
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                <IconLoader2 className="size-4 animate-spin text-muted-foreground" />
               )}
-              {status === "ok" && <Check className="size-4 text-emerald-500" />}
+              {status === "ok" && (
+                <IconCheck className="size-4 text-emerald-500" />
+              )}
               {(status === "taken" || status === "short") && (
-                <X className="size-4 text-destructive" />
+                <IconX className="size-4 text-destructive" />
               )}
               {status === "locked" && (
-                <Lock className="size-4 text-muted-foreground" />
+                <IconLock className="size-4 text-muted-foreground" />
               )}
             </span>
           </div>
@@ -284,7 +292,7 @@ export function ProfileForm({
           size="sm"
           className="cursor-pointer"
         >
-          {saving && <Loader2 className="size-4 animate-spin" />}
+          {saving && <IconLoader2 className="size-4 animate-spin" />}
           Salvar
         </Button>
       </div>

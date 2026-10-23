@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, Loader2 } from "lucide-react";
+import { IconBan, IconLoader2 } from "@tabler/icons-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { UserRow } from "@/app/components/social/UserRow";
@@ -40,13 +40,13 @@ export function ContasBloqueadas() {
   return (
     <section className="glass-card !rounded-2xl p-6 space-y-4">
       <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-        <Ban className="size-4 text-primary" />
+        <IconBan className="size-4 text-primary" />
         Contas bloqueadas
       </h2>
       <Separator />
       {isLoading ? (
         <div className="flex justify-center py-4">
-          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          <IconLoader2 className="size-5 animate-spin text-muted-foreground" />
         </div>
       ) : isError ? (
         <div className="flex items-center justify-between gap-4">
@@ -83,7 +83,7 @@ export function ContasBloqueadas() {
                 disabled={emAndamento === u.handle}
               >
                 {emAndamento === u.handle ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <IconLoader2 className="size-4 animate-spin" />
                 ) : (
                   "Desbloquear"
                 )}

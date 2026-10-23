@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { IconLoader2 } from "@tabler/icons-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -127,7 +127,7 @@ export function FollowButton({
             : "bg-primary text-primary-foreground hover:bg-primary/90",
         )}
       >
-        {busy ? <Loader2 className="size-4 animate-spin" /> : LABEL[local]}
+        {busy ? <IconLoader2 className="size-4 animate-spin" /> : LABEL[local]}
       </button>
 
       <AlertDialog open={confirmar} onOpenChange={setConfirmar}>

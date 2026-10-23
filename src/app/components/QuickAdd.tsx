@@ -1,7 +1,10 @@
 "use client";
 
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
-import { LogIn } from "lucide-react";
+import {
+  IconLogin,
+  IconTrendingDown,
+  IconTrendingUp,
+} from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -219,7 +222,7 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
                   Entre para guardar esta carta e acompanhar o preço dela.
                 </p>
                 <Button className="mt-3 w-full" onClick={entrar}>
-                  <LogIn className="size-4" />
+                  <IconLogin className="size-4" />
                   Entrar para adicionar
                 </Button>
                 <p className="mt-2 text-center text-[11px] text-muted-foreground">

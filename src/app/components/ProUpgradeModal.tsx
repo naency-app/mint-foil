@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  BadgeCheck,
-  Camera,
-  FileDown,
-  FolderOpen,
-  SlidersHorizontal,
-  X,
-} from "lucide-react";
+  IconAdjustmentsHorizontal,
+  IconCamera,
+  IconFileDownload,
+  IconFolderOpen,
+  IconRosetteDiscountCheck,
+  IconX,
+} from "@tabler/icons-react";
 import {
   Dialog,
   DialogClose,
@@ -18,27 +18,27 @@ import { QrDoApp, SelosLojas } from "./ConviteApp";
 
 const features = [
   {
-    icon: Camera,
+    icon: IconCamera,
     title: "Scans Ilimitados",
     description: "Identifique qualquer carta sem limites diários",
   },
   {
-    icon: FolderOpen,
+    icon: IconFolderOpen,
     title: "Portfólios Ilimitados",
     description: "Organize sua coleção sem restrições",
   },
   {
-    icon: SlidersHorizontal,
+    icon: IconAdjustmentsHorizontal,
     title: "Filtros de Preço Avançados",
     description: "Encontre cartas dentro do seu orçamento",
   },
   {
-    icon: BadgeCheck,
+    icon: IconRosetteDiscountCheck,
     title: "Selo de Assinante",
     description: "Check azul no seu nome, no perfil, nas listas e no showcase",
   },
   {
-    icon: FileDown,
+    icon: IconFileDownload,
     title: "Exportar em Planilha",
     description:
       "Baixe a coleção inteira em .xlsx, uma aba por portfólio, pronta pro Excel",
@@ -68,7 +68,7 @@ export function ProUpgradeModal({
               className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors cursor-pointer"
               aria-label="Fechar"
             >
-              <X className="size-5" />
+              <IconX className="size-5" />
             </button>
           </DialogClose>
 
