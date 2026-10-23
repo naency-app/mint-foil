@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Loader2, X } from "lucide-react";
+import { IconCheck, IconLoader2, IconX } from "@tabler/icons-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { FotoDePerfil } from "@/app/(main)/settings/foto-de-perfil";
@@ -133,7 +133,7 @@ function CompletarPerfil() {
   if (!decidido || !u) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <IconLoader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -193,13 +193,13 @@ function CompletarPerfil() {
           />
           <span className="-translate-y-1/2 absolute top-1/2 right-3">
             {campo.status === "checking" && (
-              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              <IconLoader2 className="size-4 animate-spin text-muted-foreground" />
             )}
             {campo.status === "ok" && (
-              <Check className="size-4 text-emerald-500" />
+              <IconCheck className="size-4 text-emerald-500" />
             )}
             {(campo.status === "taken" || campo.status === "short") && (
-              <X className="size-4 text-destructive" />
+              <IconX className="size-4 text-destructive" />
             )}
           </span>
         </div>
@@ -219,7 +219,11 @@ function CompletarPerfil() {
           disabled={!podeContinuar}
           className="mt-6 inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-primary font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-default disabled:opacity-45"
         >
-          {salvando ? <Loader2 className="size-4 animate-spin" /> : "Continuar"}
+          {salvando ? (
+            <IconLoader2 className="size-4 animate-spin" />
+          ) : (
+            "Continuar"
+          )}
         </button>
         <button
           type="button"

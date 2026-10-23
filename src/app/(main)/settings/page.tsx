@@ -1,23 +1,23 @@
 "use client";
 
 import {
-  BarChart3,
-  Crown,
-  Download,
-  ExternalLink,
-  Info,
-  LogOut,
-  Mail,
-  RefreshCw,
-  Scan,
-  Settings2,
-  ShieldCheck,
-  Smartphone,
-  Sparkles,
-  Sun,
-  Trophy,
-  User,
-} from "lucide-react";
+  IconAdjustments,
+  IconChartBar,
+  IconCrown,
+  IconDeviceMobile,
+  IconDownload,
+  IconExternalLink,
+  IconInfoCircle,
+  IconLogout,
+  IconMail,
+  IconRefresh,
+  IconScan,
+  IconShieldCheck,
+  IconSparkles,
+  IconSun,
+  IconTrophy,
+  IconUser,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -139,7 +139,7 @@ function AdminPanel() {
   return (
     <section className="glass-card !rounded-2xl p-6 space-y-5">
       <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-        <Settings2 className="size-4 text-muted-foreground" />
+        <IconAdjustments className="size-4 text-muted-foreground" />
         Admin
         <Badge variant="outline" className="ml-1 text-[10px]">
           internal
@@ -191,7 +191,7 @@ function AdminPanel() {
                 className="shrink-0 text-xs cursor-pointer"
               >
                 {status === "running" ? (
-                  <RefreshCw className="size-3 animate-spin mr-1" />
+                  <IconRefresh className="size-3 animate-spin mr-1" />
                 ) : null}
                 {status === "running" ? "Rodando…" : "Executar"}
               </Button>
@@ -499,26 +499,26 @@ function SettingsContent() {
           <nav className="flex flex-row flex-wrap md:flex-col gap-1 max-md:gap-2 pb-3 md:pb-0 border-b border-border md:border-b-0">
             <SidebarButton
               label="Estatísticas"
-              icon={BarChart3}
+              icon={IconChartBar}
               active={activeTab === "stats"}
               onClick={() => setActiveTab("stats")}
             />
             <SidebarButton
               label="Conta & Aparência"
-              icon={User}
+              icon={IconUser}
               active={activeTab === "account"}
               onClick={() => setActiveTab("account")}
             />
             <SidebarButton
               label="Ajuda & Suporte"
-              icon={Info}
+              icon={IconInfoCircle}
               active={activeTab === "support"}
               onClick={() => setActiveTab("support")}
             />
             {user.email === ADMIN_EMAIL && (
               <SidebarButton
                 label="Painel Admin"
-                icon={Settings2}
+                icon={IconAdjustments}
                 active={activeTab === "admin"}
                 onClick={() => setActiveTab("admin")}
               />
@@ -546,7 +546,7 @@ function SettingsContent() {
                   <div>
                     <div className="glass-card !rounded-2xl p-6 space-y-2">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Sparkles className="size-4 text-primary" />
+                        <IconSparkles className="size-4 text-primary" />
                         <span className="text-xs font-bold uppercase tracking-wider">
                           Valor Estimado
                         </span>
@@ -563,22 +563,22 @@ function SettingsContent() {
                       {
                         label: "Scans Realizados",
                         value: stats.lifetimeScans,
-                        icon: Scan,
+                        icon: IconScan,
                       },
                       {
                         label: "Cartas Únicas",
                         value: stats.uniqueCards,
-                        icon: Sparkles,
+                        icon: IconSparkles,
                       },
                       {
                         label: "Total de Cartas",
                         value: stats.totalCards,
-                        icon: User,
+                        icon: IconUser,
                       },
                       {
                         label: "Portfólios",
                         value: stats.portfolioCount,
-                        icon: Settings2,
+                        icon: IconAdjustments,
                       },
                     ].map((m) => (
                       <div
@@ -632,7 +632,7 @@ function SettingsContent() {
                           href={`/showcase/profile/@${handleExibido}`}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-semibold text-xs transition hover:bg-muted"
                         >
-                          <ExternalLink className="size-3.5" />
+                          <IconExternalLink className="size-3.5" />
                           Ver perfil público
                         </Link>
                       )}
@@ -651,7 +651,7 @@ function SettingsContent() {
                       </h2>
                       {(stats?.isPro || user.isPro) && (
                         <Badge className="gap-1 bg-primary px-2 py-0.5 font-bold text-[10px] text-white hover:bg-primary/95">
-                          <Crown className="size-3" /> PRO
+                          <IconCrown className="size-3" /> PRO
                         </Badge>
                       )}
                     </div>
@@ -690,7 +690,7 @@ function SettingsContent() {
               {/* Exportar coleção (PRO) */}
               <section className="glass-card !rounded-2xl p-6 space-y-4">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Download className="size-4 text-primary" />
+                  <IconDownload className="size-4 text-primary" />
                   Exportar coleção
                 </h2>
                 <Separator />
@@ -711,7 +711,7 @@ function SettingsContent() {
                       */}
                       <Button asChild size="sm">
                         <a href={`${API_URL}/collection/export.xlsx`}>
-                          <Download className="size-4" />
+                          <IconDownload className="size-4" />
                           Baixar .xlsx
                         </a>
                       </Button>
@@ -728,7 +728,7 @@ function SettingsContent() {
                       className="shrink-0 cursor-pointer"
                       onClick={() => setProModalOpen(true)}
                     >
-                      <Sparkles className="size-4" />
+                      <IconSparkles className="size-4" />
                       Recurso PRO
                     </Button>
                   )}
@@ -738,7 +738,7 @@ function SettingsContent() {
               {/* Appearance */}
               <section className="glass-card !rounded-2xl p-6 space-y-4">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Sun className="size-4 text-primary" />
+                  <IconSun className="size-4 text-primary" />
                   Aparência
                 </h2>
                 <Separator />
@@ -755,7 +755,7 @@ function SettingsContent() {
               {/* Session Control */}
               <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-4">
                 <h2 className="text-sm font-bold text-destructive uppercase tracking-wider flex items-center gap-2">
-                  <LogOut className="size-4" />
+                  <IconLogout className="size-4" />
                   Sessão
                 </h2>
                 <Separator className="bg-destructive/20" />
@@ -774,7 +774,7 @@ function SettingsContent() {
                     onClick={handleLogout}
                     className="cursor-pointer"
                   >
-                    <LogOut className="size-4" />
+                    <IconLogout className="size-4" />
                     Sair da Conta
                   </Button>
                 </div>
@@ -786,7 +786,7 @@ function SettingsContent() {
               {!stats?.isPro && !user.isPro && (
                 <section className="rounded-xl border border-primary/30 bg-gradient-to-br from-pink-950/10 to-slate-900/10 backdrop-blur-sm p-6 space-y-4">
                   <h2 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="size-4 animate-pulse" />
+                    <IconSparkles className="size-4 animate-pulse" />
                     Mint Foil PRO
                   </h2>
                   <Separator className="bg-primary/20" />
@@ -806,7 +806,7 @@ function SettingsContent() {
                       className="bg-primary hover:bg-primary/95 text-white font-semibold gap-2 shrink-0 cursor-pointer"
                       size="sm"
                     >
-                      <Smartphone className="size-4" />
+                      <IconDeviceMobile className="size-4" />
                       Baixar App
                     </Button>
                   </div>
@@ -819,13 +819,13 @@ function SettingsContent() {
             <div className="space-y-6 animate-in fade-in duration-300">
               <section className="glass-card !rounded-2xl p-6 space-y-4">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Info className="size-4 text-primary" />
+                  <IconInfoCircle className="size-4 text-primary" />
                   Ajuda & Informações
                 </h2>
                 <div className="divide-y divide-border">
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <Sparkles className="size-4 text-tertiary" />
+                      <IconSparkles className="size-4 text-tertiary" />
                       <span className="text-sm font-medium text-foreground">
                         Identifique sua Raridade
                       </span>
@@ -839,7 +839,7 @@ function SettingsContent() {
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <Mail className="size-4 text-primary" />
+                      <IconMail className="size-4 text-primary" />
                       <span className="text-sm font-medium text-foreground">
                         Contato / Suporte
                       </span>
@@ -853,7 +853,7 @@ function SettingsContent() {
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <ShieldCheck className="size-4 text-primary" />
+                      <IconShieldCheck className="size-4 text-primary" />
                       <span className="text-sm font-medium text-foreground">
                         Termos de Uso
                       </span>
@@ -867,7 +867,7 @@ function SettingsContent() {
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <ShieldCheck className="size-4 text-primary" />
+                      <IconShieldCheck className="size-4 text-primary" />
                       <span className="text-sm font-medium text-foreground">
                         Política de Privacidade
                       </span>
@@ -881,7 +881,7 @@ function SettingsContent() {
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <Info className="size-4 text-muted-foreground" />
+                      <IconInfoCircle className="size-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-foreground">
                         Versão do Aplicativo
                       </span>

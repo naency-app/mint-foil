@@ -1,7 +1,12 @@
 "use client";
 
-import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
-import { ArrowUpDown, Search, X } from "lucide-react";
+import {
+  IconArrowsSort,
+  IconLayoutGrid,
+  IconListDetails,
+  IconSearch,
+  IconX,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
@@ -156,7 +161,7 @@ export function ShowcaseBrowser({
       {/* Busca — mesmo pill de vidro do /explore, largura total */}
       <div className="relative w-full">
         <div className="glass-input flex h-11 items-center gap-2.5 px-4">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <IconSearch className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -169,7 +174,7 @@ export function ShowcaseBrowser({
               onClick={() => setSearch("")}
               className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
             >
-              <X className="size-4" />
+              <IconX className="size-4" />
             </button>
           )}
         </div>
@@ -237,7 +242,7 @@ export function ShowcaseBrowser({
                   size="sm"
                   className="glass-pill cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
                 >
-                  <ArrowUpDown className="size-3.5 text-muted-foreground" />
+                  <IconArrowsSort className="size-3.5 text-muted-foreground" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,7 +277,7 @@ export function ShowcaseBrowser({
           {items.length === 0 ? (
             <EstadoVazio
               emCard
-              icon={Search}
+              icon={IconSearch}
               titulo="Nenhuma carta encontrada"
               descricao="Ajuste a busca ou os filtros."
             />

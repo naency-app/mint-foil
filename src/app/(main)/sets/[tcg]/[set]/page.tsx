@@ -1,14 +1,15 @@
 "use client";
 
-import { IconLayoutGrid, IconListDetails } from "@tabler/icons-react";
 import {
-  ArrowUpDown,
-  Calendar,
-  Loader2,
-  Search,
-  TrendingUp,
-  X,
-} from "lucide-react";
+  IconArrowsSort,
+  IconCalendar,
+  IconLayoutGrid,
+  IconListDetails,
+  IconLoader2,
+  IconSearch,
+  IconTrendingUp,
+  IconX,
+} from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -175,7 +176,7 @@ function ListRow({
 
         <div className="text-right shrink-0 w-32">
           <div className="flex items-center justify-end gap-1">
-            <TrendingUp className="size-3 text-emerald-500" />
+            <IconTrendingUp className="size-3 text-emerald-500" />
             <span className="text-sm font-bold text-foreground font-mono">
               R$ {formatPrice(displayPrice)}
             </span>
@@ -420,7 +421,7 @@ function SetCardsPageContent() {
                 <span>{cards.length} cartas catalogadas</span>
                 {relDate && (
                   <span className="flex items-center gap-1">
-                    <Calendar className="size-2.5" />
+                    <IconCalendar className="size-2.5" />
                     {relDate}
                   </span>
                 )}
@@ -462,7 +463,7 @@ function SetCardsPageContent() {
           </h2>
           <div className="flex flex-wrap items-center gap-3">
             <div className="glass-input flex h-12 min-w-0 flex-1 items-center gap-2.5 px-4">
-              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <IconSearch className="size-4 shrink-0 text-muted-foreground" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -475,7 +476,7 @@ function SetCardsPageContent() {
                   onClick={() => setSearch("")}
                   className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  <X className="size-4" />
+                  <IconX className="size-4" />
                 </button>
               )}
             </div>
@@ -514,7 +515,7 @@ function SetCardsPageContent() {
                     : "glass-pill text-foreground"
                 }`}
               >
-                <ArrowUpDown
+                <IconArrowsSort
                   className={`size-3.5 ${sortActive ? "text-primary" : "text-muted-foreground"}`}
                 />
                 <SelectValue />
@@ -614,7 +615,7 @@ function SetCardsPageContent() {
             </div>
           ) : filteredCards.length === 0 ? (
             <EstadoVazio
-              icon={Search}
+              icon={IconSearch}
               titulo="Nenhuma carta encontrada"
               descricao={
                 search
@@ -631,7 +632,7 @@ function SetCardsPageContent() {
               {search && (
                 <BotaoFoil asChild>
                   <Link href={`/explore?q=${encodeURIComponent(search)}`}>
-                    <Search />
+                    <IconSearch />
                     Buscar "{search}" em todo o catálogo
                   </Link>
                 </BotaoFoil>
@@ -694,7 +695,7 @@ export default function SetCardsPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="animate-spin text-primary size-8" />
+          <IconLoader2 className="animate-spin text-primary size-8" />
         </div>
       }
     >

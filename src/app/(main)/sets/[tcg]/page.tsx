@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Calendar,
-  Layers,
-  Loader2,
-  Search,
-  X,
-} from "lucide-react";
+  IconCalendar,
+  IconLoader2,
+  IconSearch,
+  IconStack2,
+  IconX,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
@@ -83,7 +83,7 @@ function SetRow({ set }: { set: CardSet }) {
             className="size-full object-cover"
           />
         ) : (
-          <Layers className="size-4 text-muted-foreground" />
+          <IconStack2 className="size-4 text-muted-foreground" />
         )}
       </div>
       <div className="min-w-0 flex-1">
@@ -96,7 +96,7 @@ function SetRow({ set }: { set: CardSet }) {
           </span>
           {date && (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="size-3" />
+              <IconCalendar className="size-3" />
               {date}
             </span>
           )}
@@ -263,7 +263,7 @@ function TcgSetsPageContent() {
           Buscar sets
         </h2>
         <div className="glass-input flex h-12 w-full items-center gap-2.5 px-4">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <IconSearch className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -276,7 +276,7 @@ function TcgSetsPageContent() {
               onClick={() => setSearch("")}
               className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
             >
-              <X className="size-4" />
+              <IconX className="size-4" />
             </button>
           )}
         </div>
@@ -375,7 +375,7 @@ function TcgSetsPageContent() {
             </div>
           ) : filteredSets.length === 0 ? (
             <EstadoVazio
-              icon={Search}
+              icon={IconSearch}
               titulo="Nenhum set encontrado"
               descricao={
                 search
@@ -389,7 +389,7 @@ function TcgSetsPageContent() {
               {search && (
                 <BotaoFoil asChild>
                   <Link href={`/explore?q=${encodeURIComponent(search)}`}>
-                    <Search />
+                    <IconSearch />
                     Buscar "{search}" nas cartas
                   </Link>
                 </BotaoFoil>
@@ -450,7 +450,7 @@ export default function TcgSetsPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="animate-spin text-primary size-8" />
+          <IconLoader2 className="animate-spin text-primary size-8" />
         </div>
       }
     >

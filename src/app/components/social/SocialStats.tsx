@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { IconLoader2 } from "@tabler/icons-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -92,7 +92,7 @@ function ListaDePessoas({
   if (isPending) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <IconLoader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
   }

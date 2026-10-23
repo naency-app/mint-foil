@@ -1,7 +1,7 @@
 "use client";
 
+import { IconLineScan, IconX } from "@tabler/icons-react";
 import { track } from "@vercel/analytics";
-import { ScanLine, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -172,7 +172,7 @@ function IconeConvite({ grande = false }: { grande?: boolean }) {
         grande ? "size-10" : "size-9",
       )}
     >
-      <ScanLine
+      <IconLineScan
         className={cn(
           "animate-pulse text-primary",
           grande ? "size-5" : "size-4",
@@ -227,7 +227,7 @@ export function ConviteAppCartao({
             href="/download"
             onClick={() => registrarClique("carta", "download")}
           >
-            <ScanLine />
+            <IconLineScan />
             Baixar o app
           </Link>
         </Button>
@@ -326,7 +326,7 @@ export function ConviteAppFaixa({
               href="/download"
               onClick={() => registrarClique(id, "download")}
             >
-              <ScanLine />
+              <IconLineScan />
               Baixar o app grátis
             </Link>
           </Button>
@@ -373,7 +373,7 @@ export function ConviteAppFaixa({
           aria-label="Dispensar"
           className="absolute top-3 right-3 z-10 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <X className="size-4" />
+          <IconX className="size-4" />
         </button>
       </div>
     </div>

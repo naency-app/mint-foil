@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Eye, Share2 } from "lucide-react";
+import { IconCheck, IconEye, IconShare } from "@tabler/icons-react";
 import { useState } from "react";
 import { PerfilAcoes } from "@/app/components/social/PerfilAcoes";
 import { useSession } from "@/lib/auth-client";
@@ -53,7 +53,7 @@ export function ViewerBanner({
   return (
     <div className="flex items-center gap-2">
       <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-semibold text-muted-foreground backdrop-blur">
-        <Eye className="size-3.5" />
+        <IconEye className="size-3.5" />
         Seu perfil público
       </span>
       <button
@@ -63,11 +63,11 @@ export function ViewerBanner({
       >
         {copied ? (
           <>
-            <Check className="size-3.5" /> Copiado!
+            <IconCheck className="size-3.5" /> Copiado!
           </>
         ) : (
           <>
-            <Share2 className="size-3.5" /> Compartilhar
+            <IconShare className="size-3.5" /> Compartilhar
           </>
         )}
       </button>

@@ -1,10 +1,15 @@
 "use client";
 
-import { Check, Crown, Image as ImageIcon, Lock } from "lucide-react";
+import {
+  IconCheck,
+  IconCrown,
+  IconLock,
+  IconPhoto as ImageIcon,
+} from "@tabler/icons-react";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/lib/api";
-import { COVER_PRESETS, coverCss, type CoverPreset } from "@/lib/cover-catalog";
+import { COVER_PRESETS, type CoverPreset, coverCss } from "@/lib/cover-catalog";
 
 /**
  * Galeria de fundos do perfil, espelho da tela do app.
@@ -100,7 +105,7 @@ export function CoverPicker({
 
       <div className="flex items-center gap-2 pt-2">
         <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-0.5 font-black text-[10px] text-white tracking-wide">
-          <Crown className="size-3" />
+          <IconCrown className="size-3" />
           PRO
         </span>
         <h3 className="font-extrabold text-base text-foreground">Fundos Pro</h3>
@@ -131,7 +136,7 @@ export function CoverPicker({
 function Selo() {
   return (
     <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-primary">
-      <Check className="size-3.5 text-white" strokeWidth={3} />
+      <IconCheck className="size-3.5 text-white" strokeWidth={3} />
     </span>
   );
 }
@@ -163,7 +168,7 @@ function CardFundo({
       </span>
       {bloqueado ? (
         <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-black/45">
-          <Lock className="size-3 text-white" />
+          <IconLock className="size-3 text-white" />
         </span>
       ) : (
         selecionado && <Selo />

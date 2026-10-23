@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  ArrowLeft,
-  Minus,
-  Moon,
-  Plus,
-  ShoppingBag,
-  ShoppingCart,
-  Star,
-  Sun,
-  Trash2,
-  X,
-} from "lucide-react";
+  IconArrowLeft,
+  IconMinus,
+  IconMoon,
+  IconPlus,
+  IconShoppingBag,
+  IconShoppingCart,
+  IconStar,
+  IconSun,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useState } from "react";
 
@@ -228,7 +228,7 @@ function StarRating({ stars, t }: { stars: number; t: Theme }) {
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star
+        <IconStar
           key={n}
           size={11}
           fill={n <= Math.round(stars) ? accent : "transparent"}
@@ -290,7 +290,7 @@ function ProductArt({
           justifyContent: "center",
         }}
       >
-        <ShoppingBag size={sm ? 15 : 26} color={color} strokeWidth={1.7} />
+        <IconShoppingBag size={sm ? 15 : 26} color={color} strokeWidth={1.7} />
       </div>
       {!sm && (
         <span style={{ fontSize: 11, color: t.muted }}>Foto em breve</span>
@@ -559,7 +559,7 @@ function CartDrawer({
               padding: 4,
             }}
           >
-            <X size={20} />
+            <IconX size={20} />
           </button>
         </div>
 
@@ -577,7 +577,7 @@ function CartDrawer({
                 color: t.muted,
               }}
             >
-              <ShoppingCart size={36} strokeWidth={1.4} />
+              <IconShoppingCart size={36} strokeWidth={1.4} />
               <p style={{ fontSize: 14, margin: 0 }}>Seu carrinho está vazio</p>
             </div>
           ) : (
@@ -641,7 +641,7 @@ function CartDrawer({
                           padding: 0,
                         }}
                       >
-                        <Minus size={13} />
+                        <IconMinus size={13} />
                       </button>
                       <span
                         style={{
@@ -668,7 +668,7 @@ function CartDrawer({
                           padding: 0,
                         }}
                       >
-                        <Plus size={13} />
+                        <IconPlus size={13} />
                       </button>
                     </div>
                     <button
@@ -684,7 +684,7 @@ function CartDrawer({
                         padding: 4,
                       }}
                     >
-                      <Trash2 size={15} />
+                      <IconTrash size={15} />
                     </button>
                   </div>
                 </div>
@@ -905,7 +905,7 @@ export function LojaClient({ initialDark = false }: { initialDark?: boolean }) {
             fontSize: 14,
           }}
         >
-          <ArrowLeft size={16} />
+          <IconArrowLeft size={16} />
           Voltar
         </Link>
 
@@ -966,7 +966,7 @@ export function LojaClient({ initialDark = false }: { initialDark?: boolean }) {
             color: accent,
           }}
         >
-          <ShoppingCart size={15} />
+          <IconShoppingCart size={15} />
           {cartCount > 0 && (
             <span
               style={{
@@ -1010,7 +1010,7 @@ export function LojaClient({ initialDark = false }: { initialDark?: boolean }) {
             color: accent,
           }}
         >
-          {isDark ? <Sun size={15} /> : <Moon size={15} />}
+          {isDark ? <IconSun size={15} /> : <IconMoon size={15} />}
         </button>
       </nav>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SectionLabel } from "@/components/ui/glass";
@@ -195,7 +195,7 @@ export function ShowMoreToggle({
       className="flex cursor-pointer items-center gap-1 rounded-md text-xs font-bold text-primary transition-colors hover:text-tertiary-hover focus-visible:outline-offset-2"
     >
       {expanded ? "Ver menos" : `Ver mais (${hiddenCount})`}
-      <ChevronDown
+      <IconChevronDown
         className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`}
       />
     </button>

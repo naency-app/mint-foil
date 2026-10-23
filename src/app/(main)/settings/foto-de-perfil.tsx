@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Loader2, Trash2 } from "lucide-react";
+import { IconCamera, IconLoader2, IconTrash } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { FotoDoUsuario } from "@/components/FotoDoUsuario";
@@ -136,9 +136,9 @@ export function FotoDePerfil({
         )}
         <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
           {salvando ? (
-            <Loader2 className="size-5 animate-spin text-white" />
+            <IconLoader2 className="size-5 animate-spin text-white" />
           ) : (
-            <Camera className="size-5 text-white" />
+            <IconCamera className="size-5 text-white" />
           )}
         </span>
       </button>
@@ -177,7 +177,7 @@ export function FotoDePerfil({
                 }}
                 className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
               >
-                <Trash2 className="size-4" /> Remover foto atual
+                <IconTrash className="size-4" /> Remover foto atual
               </button>
             ) : (
               <span />
@@ -197,7 +197,7 @@ export function FotoDePerfil({
                 onClick={() => void salvar()}
                 className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
-                {salvando && <Loader2 className="size-4 animate-spin" />}
+                {salvando && <IconLoader2 className="size-4 animate-spin" />}
                 Salvar
               </button>
             </div>

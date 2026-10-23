@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  Check,
-  ChevronsUpDown,
-  Edit2,
-  Folder,
-  Loader2,
-  Plus,
-  Search,
-  Star,
-  Trash2,
-  X,
-} from "lucide-react";
+  IconCheck,
+  IconFolder,
+  IconLoader2,
+  IconPencil,
+  IconPlus,
+  IconSearch,
+  IconSelector,
+  IconStar,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -210,14 +210,14 @@ export function PortfolioSelector({
               ({activePortfolio._count.items})
             </span>
           )}
-          <ChevronsUpDown className="size-4 shrink-0 text-primary" />
+          <IconSelector className="size-4 shrink-0 text-primary" />
         </button>
       </PopoverTrigger>
 
       <PopoverContent className="w-80 p-0 overflow-hidden bg-background border-border shadow-xl rounded-xl z-50">
         {/* Search header */}
         <div className="relative border-b border-border p-2">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -263,9 +263,9 @@ export function PortfolioSelector({
                         disabled={isUpdating}
                       >
                         {isUpdating ? (
-                          <Loader2 className="size-3.5 animate-spin" />
+                          <IconLoader2 className="size-3.5 animate-spin" />
                         ) : (
-                          <Check className="size-3.5" />
+                          <IconCheck className="size-3.5" />
                         )}
                       </Button>
                       <Button
@@ -276,7 +276,7 @@ export function PortfolioSelector({
                         className="size-6 text-muted-foreground hover:bg-muted cursor-pointer"
                         disabled={isUpdating}
                       >
-                        <X className="size-3.5" />
+                        <IconX className="size-3.5" />
                       </Button>
                     </div>
                   </form>
@@ -302,7 +302,7 @@ export function PortfolioSelector({
                         disabled={isDeleting}
                       >
                         {isDeleting ? (
-                          <Loader2 className="size-3 animate-spin" />
+                          <IconLoader2 className="size-3 animate-spin" />
                         ) : (
                           "Excluir"
                         )}
@@ -336,7 +336,7 @@ export function PortfolioSelector({
                   )}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Folder
+                    <IconFolder
                       className={cn(
                         "size-3.5 shrink-0",
                         isActive ? "text-primary" : "text-muted-foreground",
@@ -363,7 +363,7 @@ export function PortfolioSelector({
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-yellow-500 transition-colors"
                       title="Favoritar"
                     >
-                      <Star
+                      <IconStar
                         className={cn(
                           "size-3.5",
                           isFavorite
@@ -378,7 +378,7 @@ export function PortfolioSelector({
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                       title="Renomear"
                     >
-                      <Edit2 className="size-3.5 text-muted-foreground/60 hover:text-foreground" />
+                      <IconPencil className="size-3.5 text-muted-foreground/60 hover:text-foreground" />
                     </button>
                     <button
                       type="button"
@@ -386,7 +386,7 @@ export function PortfolioSelector({
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
                       title="Deletar"
                     >
-                      <Trash2 className="size-3.5 text-muted-foreground/60 hover:text-destructive" />
+                      <IconTrash className="size-3.5 text-muted-foreground/60 hover:text-destructive" />
                     </button>
                   </div>
                 </div>
@@ -417,7 +417,7 @@ export function PortfolioSelector({
                 disabled={isCreating}
               >
                 {isCreating ? (
-                  <Loader2 className="size-3 animate-spin" />
+                  <IconLoader2 className="size-3 animate-spin" />
                 ) : (
                   "Criar"
                 )}
@@ -430,7 +430,7 @@ export function PortfolioSelector({
                 className="size-8 shrink-0 text-muted-foreground cursor-pointer"
                 disabled={isCreating}
               >
-                <X className="size-4" />
+                <IconX className="size-4" />
               </Button>
             </form>
           ) : (
@@ -439,7 +439,7 @@ export function PortfolioSelector({
               onClick={() => setIsAddingMode(true)}
               className="w-full h-9 px-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer text-left"
             >
-              <Plus className="size-3.5 text-primary" />
+              <IconPlus className="size-3.5 text-primary" />
               <span>Adicionar Novo Portfólio</span>
             </button>
           )}

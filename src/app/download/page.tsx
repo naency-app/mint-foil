@@ -11,7 +11,7 @@
 // As URLs das lojas só resolvem depois que o app for publicado: até lá o
 // selo aparece como "Em breve" (PUBLICADO_NA_LOJA em app-links.ts).
 
-import { ScanLine, TrendingUp, Wallet } from "lucide-react";
+import { IconLineScan, IconTrendingUp, IconWallet } from "@tabler/icons-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { StoreBadge } from "@/app/components/StoreBadge";
@@ -23,17 +23,17 @@ const GRAD = "linear-gradient(135deg, #F856A7 0%, #B50D57 100%)";
 
 const FEATURES = [
   {
-    icon: ScanLine,
+    icon: IconLineScan,
     title: "Escaneie pela câmera",
     text: "Aponte para a carta e o app identifica na hora.",
   },
   {
-    icon: TrendingUp,
+    icon: IconTrendingUp,
     title: "Preço em real, todo dia",
     text: "Acompanhe quanto a sua coleção vale e como ela varia.",
   },
   {
-    icon: Wallet,
+    icon: IconWallet,
     title: "Portfólios organizados",
     text: "Pokémon, Yu-Gi-Oh!, Magic, One Piece e mais, tudo num lugar.",
   },

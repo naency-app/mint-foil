@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -87,7 +87,7 @@ export function AbrirNoApp() {
             aria-label="Dispensar"
             className="-mr-1 shrink-0 p-1 text-muted-foreground"
           >
-            <X className="size-4" />
+            <IconX className="size-4" />
           </button>
         </div>
       </div>
