@@ -718,9 +718,14 @@ function ExplorePageContent() {
       setPriceRange(null);
     };
 
-    // "Garchomp (120 Secret Rare)": o sufixo entre parênteses é do printing,
-    // não do nome — a busca pelo nome-base acha todas as versões da carta
-    const nomeBase = card.name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+    // "Garchomp (120 Secret Rare)" e "Garchomp ex - 038/182": o sufixo é do
+    // printing, não do nome — a busca pelo nome-base acha todas as versões da
+    // carta. O nome em PT vem primeiro, que é o que o card mostra e a busca
+    // também entende ("Garchomp ex da Cíntia").
+    const nomeBase = (card.namePt?.trim() || card.name)
+      .replace(/\s*\([^)]*\)\s*$/, "")
+      .replace(/\s+-\s+\S*\d+\/\d+\s*$/, "")
+      .trim();
     if (nomeBase && search.trim().toLowerCase() !== nomeBase.toLowerCase()) {
       filtros.push({
         rotulo: "Mesmo nome",
