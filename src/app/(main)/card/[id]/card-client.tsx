@@ -810,6 +810,7 @@ export function CardDetailClient({
                     onChange={definirQuantidade}
                     cell={30}
                     corner={14}
+                    inercia={false}
                   />
 
                   <div className="text-right shrink-0">
