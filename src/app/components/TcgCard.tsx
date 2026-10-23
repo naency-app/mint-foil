@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { AddIconButton } from "@/app/components/AddIconButton";
 import { CardImage } from "@/app/components/CardImage";
 import { useQuickAdd } from "@/app/components/QuickAdd";
+import { RollingCounter } from "@/app/components/RollingCounter";
 import { RollingNumber } from "@/app/components/RollingNumber";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -24,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useQuantidadeNoPortfolio } from "@/hooks/use-quantidade-no-portfolio";
 import { ApiError, api } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { nomeDaRaridade } from "@/lib/raridade";
@@ -61,6 +63,14 @@ export interface TcgCardProps {
   filtrosRapidos?: FiltroRapido[];
   /** "Limpar filtros" no fim do menu; ausente quando nada está filtrado. */
   onLimparFiltros?: () => void;
+  /**
+   * O item NM desta carta no portfólio ativo (`null` se ainda não tem).
+   * Passado, o card troca o "Quant." e o "+" pelo contador compacto, que
+   * soma E tira — só onde a quantidade é a sua (Explorar, coleções); no
+   * perfil de outra pessoa fica o "+" de sempre.
+   */
+  itemNm?: { id: string; quantity: number } | null;
+  nomePortfolio?: string;
 }
 
 function formatPrice(value: number) {
@@ -90,6 +100,8 @@ export function TcgCard({
   onAdd,
   filtrosRapidos,
   onLimparFiltros,
+  itemNm,
+  nomePortfolio,
 }: TcgCardProps) {
   const displayName = namePt?.trim() || name;
   const filtrandoPorEla = filtrosRapidos?.some((f) => f.ativo) ?? false;
@@ -132,6 +144,20 @@ export function TcgCard({
       change,
     };
   }
+
+  // Contador compacto: a mesma lógica da tela da carta (otimista, um request
+  // ~320ms depois do último passo, check animado ao somar)
+  const comContador = itemNm !== undefined && !!cardId;
+  const qtd = useQuantidadeNoPortfolio({
+    cardId: cardId ?? "",
+    portfolioId: defaultPortfolioId,
+    quantidadeServidor: quantity,
+    itemNm: itemNm ?? null,
+    logado: !!session?.user,
+    pedirLogin: () => cardId && pedirLogin(cartaParaLogin()),
+    aoGravar: onAdd,
+    nomePortfolio,
+  });
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
@@ -414,29 +440,49 @@ export function TcgCard({
             <span className="block text-[10px] leading-tight text-muted-foreground">
               internacional
             </span>
-            {/* O rótulo fica parado; só os algarismos rolam.
+            {/* Com o contador, a quantidade já está nele.
+                O rótulo fica parado; só os algarismos rolam.
                 Com carta na coleção o número sai do cinza e vai para o emerald
                 — a mesma cor do botão de adicionar. Numa grade de 5 colunas é
                 o que responde "eu já tenho essa?" sem ter que ler o número. */}
-            <span
-              className={`mt-0.5 flex items-center gap-1 font-mono text-[11px] ${
-                localQty > 0
-                  ? "font-bold text-emerald-400"
-                  : "text-muted-foreground"
-              }`}
-            >
-              Quant.
-              <RollingNumber value={localQty} fontSize={11} />
-            </span>
+            {!comContador && (
+              <span
+                className={`mt-0.5 flex items-center gap-1 font-mono text-[11px] ${
+                  localQty > 0
+                    ? "font-bold text-emerald-400"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Quant.
+                <RollingNumber value={localQty} fontSize={11} />
+              </span>
+            )}
           </div>
 
-          {cardId && (
-            <AddIconButton
-              onClick={handleAdd}
-              success={success}
-              successId={successId}
-              title="Adicionar ao portfólio"
+          {comContador ? (
+            // O número fica verde com a carta na coleção — o que o "Quant."
+            // fazia: na grade, responde "eu já tenho essa?" de relance.
+            // Sessão ainda chegando: recusa sem oferecer login (seria palpite)
+            <RollingCounter
+              value={qtd.quantidade}
+              onChange={(v) => (sessaoCarregando ? false : qtd.definir(v))}
+              min={qtd.minimo}
+              cell={22}
+              redondo
+              inercia={false}
+              sucesso={qtd.sucesso}
+              sucessoId={qtd.sucessoId}
+              className={`shrink-0 ${qtd.quantidade > 0 ? "rct--tem" : ""}`}
             />
+          ) : (
+            cardId && (
+              <AddIconButton
+                onClick={handleAdd}
+                success={success}
+                successId={successId}
+                title="Adicionar ao portfólio"
+              />
+            )
           )}
         </div>
       </div>

@@ -889,6 +889,20 @@ function ExplorePageContent() {
     return map;
   }, [portfolioDetail.data]);
 
+  // Item NM de cada carta no portfólio ativo: é nele que o contador do card
+  // soma e tira (o mesmo da tela da carta)
+  const itemNmPorCarta = useMemo(() => {
+    const map: Record<string, { id: string; quantity: number }> = {};
+    for (const item of portfolioDetail.data?.items ?? []) {
+      if (item.condition === "NM" && !map[item.cardId])
+        map[item.cardId] = { id: item.id, quantity: item.quantity };
+    }
+    return map;
+  }, [portfolioDetail.data]);
+  const nomePortfolioAtivo = portfolios.find(
+    (p) => p.id === activePortfolioId,
+  )?.name;
+
   // Progresso da coleção conta TODOS os portfólios, como no app: a pergunta é
   // "quanto desta coleção eu tenho", e ela não muda com o portfólio ativo.
   const todosOsItens = useAllCollectionItems(!!session?.user);
@@ -1663,6 +1677,8 @@ function ExplorePageContent() {
                   quantity={collectionMap[card.id] ?? 0}
                   defaultPortfolioId={activePortfolioId}
                   onAdd={invalidateCollection}
+                  itemNm={itemNmPorCarta[card.id] ?? null}
+                  nomePortfolio={nomePortfolioAtivo}
                   filtrosRapidos={filtrosDaCarta(card)}
                   onLimparFiltros={
                     filtrosAtivos.length > 0 || search.trim()
