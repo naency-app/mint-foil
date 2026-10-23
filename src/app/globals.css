@@ -499,8 +499,13 @@
   letter-spacing: -0.02em;
   line-height: var(--rct-cell);
   cursor: ns-resize;
-  touch-action: none;
+  /* none no original; pan-y deixa o dedo rolar a página até o toque longo
+     pegar o número (aí o touchmove é cancelado no componente) */
+  touch-action: pan-y;
   user-select: none;
+  -webkit-user-select: none;
+  /* sem o menu de "copiar" do iOS no toque longo */
+  -webkit-touch-callout: none;
   border-radius: 8px;
   /* rolling digits fade at the window's top and bottom edge */
   mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
@@ -597,4 +602,9 @@
 .rct--tem .rct-num {
   color: rgb(52 211 153);
   font-weight: 700;
+}
+
+/* Toque longo pegou o número: um fundo leve diz "agora arraste" */
+.rct-num[data-pegou] {
+  background: color-mix(in srgb, var(--fill-on, #17181a) 8%, transparent);
 }
