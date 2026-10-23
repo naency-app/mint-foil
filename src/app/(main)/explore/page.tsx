@@ -40,8 +40,8 @@ import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
   CheckboxFilterList,
-  FilterSection,
   comSelecionados,
+  FilterSection,
   facetOptions,
   PainelFiltros,
   PriceRangeFilter,
@@ -50,12 +50,12 @@ import {
   ShowMoreToggle,
   toggleValue,
 } from "@/app/components/filters";
-import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { SetCover, type SetProgress, temCapa } from "@/app/components/SetCard";
-import { TcgCard } from "@/app/components/TcgCard";
+import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
+import { type FiltroRapido, TcgCard } from "@/app/components/TcgCard";
 import { EstadoVazio } from "@/components/EstadoVazio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -696,6 +696,80 @@ function ExplorePageContent() {
     setSelectedAttributes,
     setPriceRange,
   ]);
+
+  // Atalhos do botão de filtro da carta (hover na grade). Cada um troca o
+  // contexto inteiro de uma vez: o efeito acima zeraria as facetas escolhidas
+  // aqui junto com as antigas, então quem mexe no jogo/busca/coleção também
+  // avisa o ref do contexto novo e zera o resto por conta própria.
+  function filtrosDaCarta(card: CardType): FiltroRapido[] {
+    const jogo = card.tcg?.slug ?? null;
+    const filtros: FiltroRapido[] = [];
+    const trocarContexto = (
+      q: string,
+      tcg: string | null,
+      set: string | null,
+    ) => {
+      contextoRef.current = `${q}|${tcg ?? ""}|${set ?? ""}`;
+      setSearch(q || null);
+      setSelectedTcg(tcg);
+      setSelectedSetId(set);
+      setSelectedTypes([]);
+      setSelectedAttributes([]);
+      setPriceRange(null);
+    };
+
+    // "Garchomp (120 Secret Rare)": o sufixo entre parênteses é do printing,
+    // não do nome — a busca pelo nome-base acha todas as versões da carta
+    const nomeBase = card.name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+    if (nomeBase && search.trim().toLowerCase() !== nomeBase.toLowerCase()) {
+      filtros.push({
+        rotulo: "Mesmo nome",
+        valor: nomeBase,
+        aplicar: () => {
+          trocarContexto(nomeBase, jogo, null);
+          setSelectedRarities([]);
+        },
+      });
+    }
+    if (card.set?.id && selectedSetId !== card.set.id) {
+      const setId = card.set.id;
+      filtros.push({
+        rotulo: "Mesma coleção",
+        valor: card.setName ?? card.set.name,
+        aplicar: () => {
+          trocarContexto("", jogo, setId);
+          setSelectedRarities([]);
+        },
+      });
+    }
+    if (
+      card.rarity &&
+      !(selectedRarities.length === 1 && selectedRarities[0] === card.rarity)
+    ) {
+      const raridade = card.rarity;
+      filtros.push({
+        rotulo: "Mesma raridade",
+        valor: nomeDaRaridade(raridade, jogo),
+        // Fica na busca e na coleção de agora; só o jogo vira o da carta, que
+        // o nome da raridade muda de um jogo para outro
+        aplicar: () => {
+          trocarContexto(search, jogo, selectedSetId);
+          setSelectedRarities([raridade]);
+        },
+      });
+    }
+    if (jogo && selectedTcg !== jogo) {
+      filtros.push({
+        rotulo: "Mesmo jogo",
+        valor: card.tcg?.name ?? jogo,
+        aplicar: () => {
+          trocarContexto(search, jogo, null);
+          setSelectedRarities([]);
+        },
+      });
+    }
+    return filtros;
+  }
 
   // Busca ao digitar, com debounce — mesmo comportamento do explore mobile
   function handleChangeQuery(value: string) {
@@ -1445,6 +1519,7 @@ function ExplorePageContent() {
                   quantity={collectionMap[card.id] ?? 0}
                   defaultPortfolioId={activePortfolioId}
                   onAdd={invalidateCollection}
+                  filtrosRapidos={filtrosDaCarta(card)}
                 />
               ))}
             </div>
