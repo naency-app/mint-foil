@@ -724,7 +724,7 @@ function ExplorePageContent() {
     // também entende ("Garchomp ex da Cíntia").
     const nomeBase = (card.namePt?.trim() || card.name)
       .replace(/\s*\([^)]*\)\s*$/, "")
-      .replace(/\s+-\s+\S*\d+\/\d+\s*$/, "")
+      .replace(/\s+-\s+[^-]*\d+\/\d+\s*$/, "")
       .trim();
     if (nomeBase && search.trim().toLowerCase() !== nomeBase.toLowerCase()) {
       filtros.push({
