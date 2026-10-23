@@ -454,10 +454,10 @@ export function RollingCounter({
   /* redondo: o canto é metade da altura, e o dos botões (canto menos o
      respiro) dá metade do botão — que fica com a largura igual à altura,
      então vira círculo */
-  const r = redondo ? H / 2 : clamp(corner, 0, H / 2);
+  const r = redondo || unico ? H / 2 : clamp(corner, 0, H / 2);
   const inner = Math.max(0, r - PAD);
   /* redondo: 14px num botão de 36, o "size-3.5" do contador de antes */
-  const icone = Math.round(CELL * (redondo ? 0.39 : 0.35));
+  const icone = Math.round(CELL * (redondo || unico ? 0.39 : 0.35));
 
   return (
     <div
@@ -467,7 +467,7 @@ export function RollingCounter({
           "--rct-r": `${r}px`,
           "--rct-in": `${inner}px`,
           "--rct-cell": `${CELL}px`,
-          "--rct-btn": redondo ? `${BTN}px` : "40px",
+          "--rct-btn": redondo || unico ? `${BTN}px` : "40px",
           /* 30px numa janela de 46: a mesma proporção em qualquer `cell` */
           "--rct-font": `${Math.round(CELL * 0.65)}px`,
         } as React.CSSProperties
