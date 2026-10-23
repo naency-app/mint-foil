@@ -1372,164 +1372,169 @@ export default function PortfolioPage() {
               )}
 
               {/* Dashboard Metrics and Chart Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                {/* Gráfico na largura toda, como o topo do Portfólio no app. O
+              {/* Portfólio sem cartas não tem gráfico: os pontos do histórico
+                  são todos R$ 0, e a linha zerada com "+0.00%" parecia erro.
+                  O "Portfólio vazio" logo abaixo já diz o que fazer (23/10). */}
+              {(loading || items.length > 0) && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  {/* Gráfico na largura toda, como o topo do Portfólio no app. O
                     card de resumo (Total investido / Lucro / ROI) saiu: o app
                     não tem, e o "preço de compra" era o preço do dia em que a
                     carta foi adicionada — o "lucro" era só a variação desde
                     então, e parte dos valores tinha sido gravada em dólar. */}
-                <Card
-                  className={cn(
-                    "relative lg:col-span-12 glass-card bg-[var(--glass-bg)] shadow-none overflow-hidden p-5 flex flex-col justify-between",
-                    // Sem gráfico o card fica da altura do conteúdo: os 380px
-                    // eram para o gráfico e deixavam o aviso solto (21/10)
-                    (loading || historyData.length > 1) && "min-h-[380px]",
-                  )}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                    <div>
-                      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                        Histórico de Valor da Coleção
-                      </h3>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        {loading ? (
-                          <Skeleton className="h-8 w-36" />
-                        ) : (
-                          <>
-                            {/* Mesmo número do card do perfil: fonte do
-                                sistema, R$ menor e em cinza */}
-                            <span className="text-2xl font-extrabold tracking-tight text-foreground tabular-nums">
-                              <span className="mr-1 text-base font-bold text-muted-foreground">
-                                R$
-                              </span>
-                              {formatPrice(metrics.currentEstimatedValue)}
-                            </span>
-                            {historyData.length >= 2 && (
-                              <div className="flex items-center gap-1">
-                                {chartDiffPercent >= 0 ? (
-                                  <TrendingUp className="size-3 text-emerald-400" />
-                                ) : (
-                                  <TrendingDown className="size-3 text-red-400" />
-                                )}
-                                <span
-                                  className={cn(
-                                    "text-xs font-bold font-mono",
-                                    chartDiffPercent >= 0
-                                      ? "text-emerald-400"
-                                      : "text-red-400",
-                                  )}
-                                >
-                                  {chartDiffPercent >= 0 ? "+" : ""}
-                                  {chartDiffPercent.toFixed(2)}% (
-                                  {chartDiffValue >= 0 ? "+" : ""}R${" "}
-                                  {formatPrice(chartDiffValue)})
-                                </span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Range Selector */}
-                    <Tabs
-                      value={historyRange}
-                      onValueChange={(v) =>
-                        setHistoryRange(v as typeof historyRange)
-                      }
-                      className="self-start sm:self-auto"
-                    >
-                      <TabsList>
-                        {(["7d", "1m", "3m", "6m"] as const).map((r) => (
-                          <TabsTrigger
-                            key={r}
-                            value={r}
-                            className="text-xs font-bold px-2.5"
-                          >
-                            {r.toUpperCase()}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                    </Tabs>
-                  </div>
-
-                  {/* Chart container */}
-                  {/* Sem histórico não há gráfico: a área vira só o espaço do
-                      aviso, centralizado abaixo do valor e dos botões de
-                      período, e o card encolhe junto (21/10) */}
-                  <div
+                  <Card
                     className={cn(
-                      "flex-1 w-full",
-                      loading || historyData.length > 1
-                        ? "relative min-h-[220px]"
-                        : "flex items-center justify-center py-8",
+                      "relative lg:col-span-12 glass-card bg-[var(--glass-bg)] shadow-none overflow-hidden p-5 flex flex-col justify-between",
+                      // Sem gráfico o card fica da altura do conteúdo: os 380px
+                      // eram para o gráfico e deixavam o aviso solto (21/10)
+                      (loading || historyData.length > 1) && "min-h-[380px]",
                     )}
                   >
-                    {loading ? (
-                      <Skeleton className="absolute inset-0 rounded-xl" />
-                    ) : (
-                      <>
-                        {historyLoading && (
-                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/25 backdrop-blur-xs rounded-xl">
-                            <Loader2 className="size-8 animate-spin text-primary" />
-                          </div>
-                        )}
-                        {historyData.length > 1 ? (
-                          <AreaChart
-                            data={historyData as any[]}
-                            xDataKey="date"
-                            margin={{
-                              top: 10,
-                              right: 10,
-                              bottom: 25,
-                              left: 10,
-                            }}
-                            aspectRatio="2.8 / 1"
-                            // Teto de altura: só a proporção deixava o gráfico
-                            // com ~360px numa tela larga. No celular ele fica
-                            // abaixo disso e segue a proporção.
-                            className="w-full h-full max-h-[240px]"
-                          >
-                            <Grid
-                              horizontal
-                              vertical={false}
-                              numTicksRows={4}
-                              stroke="var(--chart-grid)"
-                              strokeDasharray="4,4"
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                      <div>
+                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                          Histórico de Valor da Coleção
+                        </h3>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          {loading ? (
+                            <Skeleton className="h-8 w-36" />
+                          ) : (
+                            <>
+                              {/* Mesmo número do card do perfil: fonte do
+                                sistema, R$ menor e em cinza */}
+                              <span className="text-2xl font-extrabold tracking-tight text-foreground tabular-nums">
+                                <span className="mr-1 text-base font-bold text-muted-foreground">
+                                  R$
+                                </span>
+                                {formatPrice(metrics.currentEstimatedValue)}
+                              </span>
+                              {historyData.length >= 2 && (
+                                <div className="flex items-center gap-1">
+                                  {chartDiffPercent >= 0 ? (
+                                    <TrendingUp className="size-3 text-emerald-400" />
+                                  ) : (
+                                    <TrendingDown className="size-3 text-red-400" />
+                                  )}
+                                  <span
+                                    className={cn(
+                                      "text-xs font-bold font-mono",
+                                      chartDiffPercent >= 0
+                                        ? "text-emerald-400"
+                                        : "text-red-400",
+                                    )}
+                                  >
+                                    {chartDiffPercent >= 0 ? "+" : ""}
+                                    {chartDiffPercent.toFixed(2)}% (
+                                    {chartDiffValue >= 0 ? "+" : ""}R${" "}
+                                    {formatPrice(chartDiffValue)})
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Range Selector */}
+                      <Tabs
+                        value={historyRange}
+                        onValueChange={(v) =>
+                          setHistoryRange(v as typeof historyRange)
+                        }
+                        className="self-start sm:self-auto"
+                      >
+                        <TabsList>
+                          {(["7d", "1m", "3m", "6m"] as const).map((r) => (
+                            <TabsTrigger
+                              key={r}
+                              value={r}
+                              className="text-xs font-bold px-2.5"
+                            >
+                              {r.toUpperCase()}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </Tabs>
+                    </div>
+
+                    {/* Chart container */}
+                    {/* Sem histórico não há gráfico: a área vira só o espaço do
+                      aviso, centralizado abaixo do valor e dos botões de
+                      período, e o card encolhe junto (21/10) */}
+                    <div
+                      className={cn(
+                        "flex-1 w-full",
+                        loading || historyData.length > 1
+                          ? "relative min-h-[220px]"
+                          : "flex items-center justify-center py-8",
+                      )}
+                    >
+                      {loading ? (
+                        <Skeleton className="absolute inset-0 rounded-xl" />
+                      ) : (
+                        <>
+                          {historyLoading && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/25 backdrop-blur-xs rounded-xl">
+                              <Loader2 className="size-8 animate-spin text-primary" />
+                            </div>
+                          )}
+                          {historyData.length > 1 ? (
+                            <AreaChart
+                              data={historyData as any[]}
+                              xDataKey="date"
+                              margin={{
+                                top: 10,
+                                right: 10,
+                                bottom: 25,
+                                left: 10,
+                              }}
+                              aspectRatio="2.8 / 1"
+                              // Teto de altura: só a proporção deixava o gráfico
+                              // com ~360px numa tela larga. No celular ele fica
+                              // abaixo disso e segue a proporção.
+                              className="w-full h-full max-h-[240px]"
+                            >
+                              <Grid
+                                horizontal
+                                vertical={false}
+                                numTicksRows={4}
+                                stroke="var(--chart-grid)"
+                                strokeDasharray="4,4"
+                              />
+                              <Area
+                                dataKey="value"
+                                fill="var(--primary)" // vibrant primary brand pink
+                                fillOpacity={0.15}
+                                stroke="var(--primary)"
+                                strokeWidth={2.5}
+                                gradientToOpacity={0.01}
+                              />
+                              <ChartTooltip
+                                rows={(point) => [
+                                  {
+                                    color: "var(--primary)",
+                                    label: "Valor Total",
+                                    value: `R$ ${formatPrice(Number(point.value))}`,
+                                  },
+                                ]}
+                              />
+                              <XAxis numTicks={6} />
+                            </AreaChart>
+                          ) : (
+                            <EstadoVazio
+                              compacto
+                              className="py-0"
+                              icon={TrendingUp}
+                              titulo="Histórico em construção"
+                              descricao="O gráfico de evolução histórica será desenhado à medida que sua coleção for atualizada nos próximos dias."
                             />
-                            <Area
-                              dataKey="value"
-                              fill="var(--primary)" // vibrant primary brand pink
-                              fillOpacity={0.15}
-                              stroke="var(--primary)"
-                              strokeWidth={2.5}
-                              gradientToOpacity={0.01}
-                            />
-                            <ChartTooltip
-                              rows={(point) => [
-                                {
-                                  color: "var(--primary)",
-                                  label: "Valor Total",
-                                  value: `R$ ${formatPrice(Number(point.value))}`,
-                                },
-                              ]}
-                            />
-                            <XAxis numTicks={6} />
-                          </AreaChart>
-                        ) : (
-                          <EstadoVazio
-                            compacto
-                            className="py-0"
-                            icon={TrendingUp}
-                            titulo="Histórico em construção"
-                            descricao="O gráfico de evolução histórica será desenhado à medida que sua coleção for atualizada nos próximos dias."
-                          />
-                        )}
-                      </>
-                    )}
-                  </div>
-                </Card>
-              </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              )}
 
               {/* Top cartas / Por jogo logo abaixo do gráfico: no rodapé, quem
                   tem muitas cartas nunca chegava até eles. */}
