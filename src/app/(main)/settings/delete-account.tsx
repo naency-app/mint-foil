@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Trash2, TriangleAlert } from "lucide-react";
+import { IconAlertTriangle, IconLoader2, IconTrash } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -56,7 +56,7 @@ export function DeleteAccount({ handle }: { handle: string }) {
   return (
     <section className="space-y-4 rounded-xl border border-destructive/30 bg-destructive/5 p-6">
       <h2 className="flex items-center gap-2 font-bold text-destructive text-sm uppercase tracking-wider">
-        <TriangleAlert className="size-4" />
+        <IconAlertTriangle className="size-4" />
         Excluir conta
       </h2>
       <Separator className="bg-destructive/20" />
@@ -80,7 +80,7 @@ export function DeleteAccount({ handle }: { handle: string }) {
             setOpen(true);
           }}
         >
-          <Trash2 className="size-4" />
+          <IconTrash className="size-4" />
           Excluir conta
         </Button>
       </div>
@@ -129,7 +129,7 @@ export function DeleteAccount({ handle }: { handle: string }) {
               onClick={excluir}
               className="cursor-pointer"
             >
-              {excluindo && <Loader2 className="size-4 animate-spin" />}
+              {excluindo && <IconLoader2 className="size-4 animate-spin" />}
               {excluindo ? "Excluindo…" : "Excluir tudo"}
             </Button>
           </AlertDialogFooter>

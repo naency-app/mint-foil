@@ -10,8 +10,15 @@
  * @github https://github.com/kokonut-labs/kokonutui
  */
 
-import type { LucideIcon } from "lucide-react";
-import { Cloud, Code, Cpu, Globe, Lock, Zap } from "lucide-react";
+import type { TablerIcon } from "@tabler/icons-react";
+import {
+  IconBolt,
+  IconCloud,
+  IconCode,
+  IconCpu,
+  IconLock,
+  IconWorld,
+} from "@tabler/icons-react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import NextImage from "next/image";
 import Link from "next/link";
@@ -27,7 +34,7 @@ const GLOW_SPRING = { stiffness: 180, damping: 22 } as const;
 // ─── Data ────────────────────────────────────────────────────────────────────────
 
 export interface SpotlightItem {
-  icon?: LucideIcon;
+  icon?: TablerIcon;
   image?: string;
   title: string;
   description: string;
@@ -37,42 +44,42 @@ export interface SpotlightItem {
 
 const DEFAULT_ITEMS: SpotlightItem[] = [
   {
-    icon: Zap,
+    icon: IconBolt,
     title: "Instant",
     description:
       "Sub-100ms latency on every request, globally distributed across every region.",
     color: "#f59e0b",
   },
   {
-    icon: Lock,
+    icon: IconLock,
     title: "Secure",
     description:
       "Zero-trust by default. SOC 2 certified with end-to-end encryption throughout.",
     color: "#60a5fa",
   },
   {
-    icon: Globe,
+    icon: IconWorld,
     title: "Global",
     description:
       "Edge-deployed to 300+ locations. Your users always hit a nearby server.",
     color: "#34d399",
   },
   {
-    icon: Code,
+    icon: IconCode,
     title: "Developer first",
     description:
       "Type-safe SDKs in five languages, a complete REST API, and honest docs.",
     color: "#a78bfa",
   },
   {
-    icon: Cpu,
+    icon: IconCpu,
     title: "Scalable",
     description:
       "From side project to Series B without touching your infrastructure config.",
     color: "#38bdf8",
   },
   {
-    icon: Cloud,
+    icon: IconCloud,
     title: "Serverless",
     description:
       "No servers to provision, patch, or babysit. Just deploy and move on.",

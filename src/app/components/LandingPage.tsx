@@ -1,28 +1,28 @@
 "use client";
 
-import gsap from "gsap";
 import {
-  ArrowRight,
-  BarChart3,
-  Camera,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  DollarSign,
-  Gamepad2,
-  Instagram,
-  Menu,
-  Moon,
-  Play,
-  ScanLine,
-  Share2,
-  Sun,
-  TrendingUp,
-  Users,
-  Wallet,
-  X,
-} from "lucide-react";
+  IconArrowRight,
+  IconBrandInstagram,
+  IconCamera,
+  IconChartBar,
+  IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronUp,
+  IconCurrencyDollar,
+  IconDeviceGamepad2,
+  IconLineScan,
+  IconMenu2,
+  IconMoon,
+  IconPlayerPlay,
+  IconShare,
+  IconSun,
+  IconTrendingUp,
+  IconUsers,
+  IconWallet,
+  IconX,
+} from "@tabler/icons-react";
+import gsap from "gsap";
 import {
   type MotionValue,
   motion,
@@ -895,7 +895,7 @@ function Nav({
             }}
             aria-label="Alternar tema"
           >
-            {isDark ? <Sun size={14} /> : <Moon size={14} />}
+            {isDark ? <IconSun size={14} /> : <IconMoon size={14} />}
           </button>
 
           {/* Hambúrguer (mobile) */}
@@ -916,7 +916,7 @@ function Nav({
               color: t.primary,
             }}
           >
-            {menuOpen ? <X size={15} /> : <Menu size={15} />}
+            {menuOpen ? <IconX size={15} /> : <IconMenu2 size={15} />}
           </button>
 
           <div className="contents max-md:hidden">
@@ -926,7 +926,7 @@ function Nav({
                 router.push("/explore");
               }}
             >
-              <ArrowRight size={13} /> Explorar agora
+              <IconArrowRight size={13} /> Explorar agora
             </PrimaryBtn>
           </div>
         </div>
@@ -979,7 +979,7 @@ function Nav({
                 router.push("/explore");
               }}
             >
-              <ArrowRight size={16} /> Explorar Agora
+              <IconArrowRight size={16} /> Explorar Agora
             </PrimaryBtn>
           </div>
         </div>
@@ -1140,7 +1140,7 @@ function Hero({ noCelular }: { noCelular: boolean }) {
                   router.push("/download");
                 }}
               >
-                <ScanLine size={16} /> Comece a escanear
+                <IconLineScan size={16} /> Comece a escanear
               </PrimaryBtn>
             ) : (
               <PrimaryBtn
@@ -1148,11 +1148,11 @@ function Hero({ noCelular }: { noCelular: boolean }) {
                   router.push("/explore");
                 }}
               >
-                <ArrowRight size={16} /> Explorar agora
+                <IconArrowRight size={16} /> Explorar agora
               </PrimaryBtn>
             )}
             <PrimaryBtn ghost onClick={() => irParaSecao("recursos")}>
-              <Play size={14} /> Ver como funciona
+              <IconPlayerPlay size={14} /> Ver como funciona
             </PrimaryBtn>
           </div>
         </motion.div>
@@ -1417,7 +1417,7 @@ function VideoInner({
                   color: t.primary,
                 }}
               >
-                <BarChart3 size={18} />
+                <IconChartBar size={18} />
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span
@@ -1443,7 +1443,7 @@ function VideoInner({
                   direto do navegador.
                 </span>
               </span>
-              <ArrowRight
+              <IconArrowRight
                 size={18}
                 style={{ flexShrink: 0, color: t.primary }}
               />
@@ -1597,7 +1597,7 @@ function BotaoTocar({ onPress }: { onPress: () => void }) {
           boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
         }}
       >
-        <Play size={26} color="#FFFFFF" fill="#FFFFFF" />
+        <IconPlayerPlay size={26} color="#FFFFFF" fill="#FFFFFF" />
       </span>
     </button>
   );
@@ -1894,7 +1894,7 @@ function WatchDemoBtn() {
           flexShrink: 0,
         }}
       >
-        <Play size={9} />
+        <IconPlayerPlay size={9} />
       </div>
       Assistir o passo a passo
     </button>
@@ -1923,25 +1923,25 @@ const STACK_CARDS = [
 const WHY_POINTS = [
   {
     id: "brasil",
-    icon: <DollarSign size={17} />,
+    icon: <IconCurrencyDollar size={17} />,
     title: "Feito pro Brasil",
     desc: "Valores em reais e links direto pras lojas brasileiras.",
   },
   {
     id: "multi",
-    icon: <Gamepad2 size={17} />,
+    icon: <IconDeviceGamepad2 size={17} />,
     title: "6 jogos, 1 app",
     desc: "Sem pular entre seis sites pra cuidar da coleção.",
   },
   {
     id: "semconta",
-    icon: <ScanLine size={17} />,
+    icon: <IconLineScan size={17} />,
     title: "Comece sem conta",
     desc: "10 scans grátis por dia — sem cadastro, sem cartão.",
   },
   {
     id: "portfolio",
-    icon: <TrendingUp size={17} />,
+    icon: <IconTrendingUp size={17} />,
     title: "Coleção como portfólio",
     desc: "Valorização acompanhada dia a dia, como numa corretora.",
   },
@@ -2104,7 +2104,7 @@ const SOLUTION_STEPS = [
   {
     id: "scan",
     span: 7,
-    icon: <Camera size={22} />,
+    icon: <IconCamera size={22} />,
     title: "Escaneie",
     desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana ou Digimon.",
     // O scan só existe no app nativo: o CTA leva ao download, não à web.
@@ -2114,7 +2114,7 @@ const SOLUTION_STEPS = [
   {
     id: "valor",
     span: 5,
-    icon: <DollarSign size={22} />,
+    icon: <IconCurrencyDollar size={22} />,
     title: "Veja o valor",
     desc: "Valor de referência em reais na hora — e o link pra conferir nas lojas brasileiras.",
     cta: "Explore os preços",
@@ -2123,7 +2123,7 @@ const SOLUTION_STEPS = [
   {
     id: "portfolio",
     span: 5,
-    icon: <Wallet size={22} />,
+    icon: <IconWallet size={22} />,
     title: "Adicione ao portfólio",
     desc: "Coleção catalogada e monitorada dia a dia, com gráficos de valorização.",
     cta: "Monte o seu",
@@ -2132,7 +2132,7 @@ const SOLUTION_STEPS = [
   {
     id: "share",
     span: 7,
-    icon: <Share2 size={22} />,
+    icon: <IconShare size={22} />,
     title: "Compartilhe",
     desc: "Mostre sua coleção pra quem quiser com um link só seu.",
     cta: "Mostre sua coleção",
@@ -2339,7 +2339,7 @@ function SolutionSection() {
                     }}
                   >
                     {s.cta}
-                    <ArrowRight size={14} />
+                    <IconArrowRight size={14} />
                   </SmartLink>
                 </div>
               </FadeIn>
@@ -2367,10 +2367,10 @@ const FEATURE_TABS: {
 }[] = [
   {
     value: "scan",
-    icon: <Camera size={15} />,
+    icon: <IconCamera size={15} />,
     label: "Scan Inteligente",
     desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
-    mockupIcon: <ScanLine size={40} />,
+    mockupIcon: <IconLineScan size={40} />,
     // Carta a carta, depois várias ao mesmo tempo (já acelerados 1,25x)
     videos: ["/landing/scan-uma.mp4", "/landing/scan-varias.mp4"],
     poster: "/landing/scan-uma.jpg",
@@ -2378,10 +2378,10 @@ const FEATURE_TABS: {
   {
     // Ocupa o lugar de "Preços em Reais" até termos o vídeo dos preços
     value: "amigos",
-    icon: <Users size={15} />,
+    icon: <IconUsers size={15} />,
     label: "Perfil Colecionador",
     desc: "Encontre amigos pelo @, peça para seguir e aceite pedidos. Depois, veja a coleção de quem você segue, jogo por jogo.",
-    mockupIcon: <Users size={40} />,
+    mockupIcon: <IconUsers size={40} />,
     // Achar o amigo → pedir para seguir → aceitar o pedido → ver a coleção
     // (quatro gravações juntas, 1,25x; conta de terceiro desfocada na busca)
     videos: ["/landing/social.mp4"],
@@ -2389,10 +2389,10 @@ const FEATURE_TABS: {
   },
   {
     value: "portfolio",
-    icon: <BarChart3 size={15} />,
+    icon: <IconChartBar size={15} />,
     label: "Portfólio Inteligente",
     desc: "Portfólio digital. Gráficos mostram quais cartas estão subindo e caindo.",
-    mockupIcon: <BarChart3 size={40} />,
+    mockupIcon: <IconChartBar size={40} />,
     // Portfólio: cartas, Top cartas, Por jogo, troca de portfólio e criação
     // de um novo (1,25x, mesma regra dos outros)
     videos: ["/landing/portfolio.mp4"],
@@ -2400,20 +2400,20 @@ const FEATURE_TABS: {
   },
   {
     value: "historico",
-    icon: <TrendingUp size={15} />,
+    icon: <IconTrendingUp size={15} />,
     label: "Histórico de Preços",
     desc: "Veja quanto cada carta valeu no passado. Antecipe movimentos de mercado e saiba a hora certa de vender.",
-    mockupIcon: <TrendingUp size={40} />,
+    mockupIcon: <IconTrendingUp size={40} />,
     // Carta com lojas BR, histórico de preço e portfólio (1,25x)
     videos: ["/landing/historico.mp4"],
     poster: "/landing/historico.jpg",
   },
   {
     value: "multi-tcg",
-    icon: <Gamepad2 size={15} />,
+    icon: <IconDeviceGamepad2 size={15} />,
     label: "6 Jogos, 1 App",
     desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana e Digimon em um único portfólio. Sem precisar de seis sites.",
-    mockupIcon: <Gamepad2 size={40} />,
+    mockupIcon: <IconDeviceGamepad2 size={40} />,
     // Explorar passando pelos jogos (1,25x)
     videos: ["/landing/jogos.mp4"],
     poster: "/landing/jogos.jpg",
@@ -2886,9 +2886,9 @@ function KeyFeatures() {
             }}
           >
             {lado === "left" ? (
-              <ChevronLeft size={18} color={t.text} />
+              <IconChevronLeft size={18} color={t.text} />
             ) : (
-              <ChevronRight size={18} color={t.text} />
+              <IconChevronRight size={18} color={t.text} />
             )}
           </button>
         ))}
@@ -3098,7 +3098,7 @@ function ProBanner() {
                 key={f}
                 style={{ display: "flex", alignItems: "center", gap: "8px" }}
               >
-                <Check size={14} color="#FF9AD5" />
+                <IconCheck size={14} color="#FF9AD5" />
                 <span
                   style={{
                     fontSize: "13px",
@@ -3387,7 +3387,7 @@ const SOCIAL_LINKS: {
 }[] = [
   {
     id: "instagram",
-    icon: <Instagram size={15} />,
+    icon: <IconBrandInstagram size={15} />,
     label: "Instagram",
     href: "https://instagram.com/mintfoil",
   },
@@ -3567,7 +3567,7 @@ function FooterSection() {
               router.push("/explore");
             }}
           >
-            <ArrowRight size={16} /> Explorar Agora
+            <IconArrowRight size={16} /> Explorar Agora
           </PrimaryBtn>
         </div>
       </div>
@@ -3717,7 +3717,7 @@ function FooterSection() {
               e.currentTarget.style.color = "rgba(255,255,255,0.4)";
             }}
           >
-            <ChevronUp size={16} />
+            <IconChevronUp size={16} />
           </button>
         </div>
       </div>

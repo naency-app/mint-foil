@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers } from "lucide-react";
+import { IconStack2 } from "@tabler/icons-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
@@ -192,7 +192,7 @@ export function SetCover({
           className="max-h-[60%] w-auto object-contain opacity-80"
         />
       ) : (
-        <Layers className="size-8 text-muted-foreground stroke-[1.5]" />
+        <IconStack2 className="size-8 text-muted-foreground stroke-[1.5]" />
       )}
     </>
   );

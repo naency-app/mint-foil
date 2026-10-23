@@ -1,4 +1,4 @@
-import { Package } from "lucide-react";
+import { IconPackage } from "@tabler/icons-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -125,7 +125,7 @@ export default async function ShowcaseProfilePage({
         ) : (
           <EstadoVazio
             emCard
-            icon={Package}
+            icon={IconPackage}
             titulo="Esta coleção ainda não tem cartas"
             descricao={`Quando ${data.displayName} adicionar cartas, elas aparecem aqui.`}
           />

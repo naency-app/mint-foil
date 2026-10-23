@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus } from "lucide-react";
+import { IconUserPlus } from "@tabler/icons-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -30,7 +30,7 @@ export function PedidosButton() {
         onClick={() => setAberto(true)}
         className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
       >
-        <UserPlus className="size-3.5" />
+        <IconUserPlus className="size-3.5" />
         Pedidos
         <span className="rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">
           {pedidos.length}

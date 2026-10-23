@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp } from "lucide-react";
+import { IconArrowUp } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 /** A partir de quanto scroll o botão aparece (≈ uma tela). */
@@ -50,7 +50,7 @@ export function BackToTop() {
           : "pointer-events-none translate-y-3 opacity-0"
       }`}
     >
-      <ArrowUp className="size-5" />
+      <IconArrowUp className="size-5" />
     </button>
   );
 }

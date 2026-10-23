@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  AlertCircle,
-  ExternalLink,
-  Globe,
-  Minus,
-  Package,
-  Plus,
-  ShoppingCart,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
+  IconAlertCircle,
+  IconExternalLink,
+  IconMinus,
+  IconPackage,
+  IconPlus,
+  IconShoppingCart,
+  IconTrendingDown,
+  IconTrendingUp,
+  IconWorld,
+} from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -465,7 +465,7 @@ export function CardDetailClient({
   if (error || !card) {
     return (
       <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <AlertCircle className="size-12 text-red-400 mx-auto mb-4" />
+        <IconAlertCircle className="size-12 text-red-400 mx-auto mb-4" />
         <h1 className="text-xl font-bold text-foreground mb-2">
           {naoExiste
             ? "Carta não encontrada"
@@ -565,7 +565,7 @@ export function CardDetailClient({
             moldura na página. */}
         <div className="flex flex-col gap-1 md:items-end md:text-right">
           <span className="text-xs text-tertiary uppercase tracking-wider font-semibold flex items-center gap-1">
-            <Globe className="size-3.5" />
+            <IconWorld className="size-3.5" />
             Preço internacional (estimado)
           </span>
           <div className="flex items-center gap-2">
@@ -582,9 +582,9 @@ export function CardDetailClient({
                 )}
               >
                 {isPositive ? (
-                  <TrendingUp className="size-3" />
+                  <IconTrendingUp className="size-3" />
                 ) : (
-                  <TrendingDown className="size-3" />
+                  <IconTrendingDown className="size-3" />
                 )}
                 <span>
                   {isPositive ? "+" : ""}
@@ -631,7 +631,7 @@ export function CardDetailClient({
         <div className="lg:col-span-5 space-y-5">
           <div className="glass-card !rounded-2xl p-5">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-              <TrendingUp className="size-5 text-primary" />
+              <IconTrendingUp className="size-5 text-primary" />
               Histórico de Preço (Ungraded)
             </h2>
             {priceHistory.length > 1 ? (
@@ -672,7 +672,7 @@ export function CardDetailClient({
               <EstadoVazio
                 compacto
                 className="py-10"
-                icon={TrendingUp}
+                icon={IconTrendingUp}
                 titulo={
                   priceHistory.length === 0
                     ? "Sem histórico de preço"
@@ -690,7 +690,7 @@ export function CardDetailClient({
           {/* Details */}
           <div className="glass-card !rounded-2xl p-5 space-y-5">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <AlertCircle className="size-5 text-tertiary" />
+              <IconAlertCircle className="size-5 text-tertiary" />
               Detalhes
             </h2>
 
@@ -823,7 +823,7 @@ export function CardDetailClient({
                       disabled={optimisticQty <= 0}
                       className="size-9 rounded-full border border-border bg-card hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-muted-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border disabled:hover:text-muted-foreground"
                     >
-                      <Minus className="size-3.5" strokeWidth={2.5} />
+                      <IconMinus className="size-3.5" strokeWidth={2.5} />
                     </motion.button>
 
                     <div className="w-9 flex items-center justify-center overflow-hidden">
@@ -846,9 +846,9 @@ export function CardDetailClient({
                   <div className="text-right shrink-0">
                     <div className="flex items-center justify-end gap-1">
                       {isPositive ? (
-                        <TrendingUp className="size-3.5 text-emerald-400" />
+                        <IconTrendingUp className="size-3.5 text-emerald-400" />
                       ) : (
-                        <TrendingDown className="size-3.5 text-rose-400" />
+                        <IconTrendingDown className="size-3.5 text-rose-400" />
                       )}
                       <span className="text-base font-bold text-foreground font-mono">
                         R$ {formatPrice(latestPrice)}
@@ -872,7 +872,7 @@ export function CardDetailClient({
           {session?.user && ownedItems.length > 0 && (
             <div className="glass-card !rounded-2xl p-5 space-y-3">
               <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                <Package className="size-5 text-primary animate-in zoom-in duration-200" />
+                <IconPackage className="size-5 text-primary animate-in zoom-in duration-200" />
                 Suas cópias (
                 {ownedItems.reduce((acc, item) => acc + item.quantity, 0)})
               </h3>
@@ -915,7 +915,7 @@ export function CardDetailClient({
           {/* Preço real nas lojas BR — links de conferência (ver adr/0002) */}
           <div className="glass-card !rounded-2xl p-5 space-y-1">
             <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-              <ShoppingCart className="size-5 text-emerald-400" />
+              <IconShoppingCart className="size-5 text-emerald-400" />
               Preço nas lojas BR
             </h3>
 
@@ -951,7 +951,7 @@ export function CardDetailClient({
                       {link.label}
                     </span>
                   </div>
-                  <ExternalLink
+                  <IconExternalLink
                     className={`size-4 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
                   />
                 </a>

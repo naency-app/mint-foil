@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy } from "lucide-react";
+import { IconTrophy } from "@tabler/icons-react";
 import Link from "next/link";
 import { CardImage } from "@/app/components/CardImage";
 import type { UserStats } from "@/lib/api";
@@ -30,7 +30,7 @@ export function CollectionInsights({ stats }: { stats: UserStats | null }) {
       {topCards.length > 0 && (
         <div className="glass-card !rounded-2xl p-6 space-y-4">
           <div className="flex items-center gap-2">
-            <Trophy className="size-4 text-primary" />
+            <IconTrophy className="size-4 text-primary" />
             <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
               Top cartas
             </h3>
