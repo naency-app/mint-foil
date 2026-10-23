@@ -440,39 +440,39 @@ export function TcgCard({
             <span className="block text-[10px] leading-tight text-muted-foreground">
               internacional
             </span>
-            {/* Com o contador, a quantidade já está nele.
-                O rótulo fica parado; só os algarismos rolam.
+            {/* O rótulo fica parado; só os algarismos rolam.
                 Com carta na coleção o número sai do cinza e vai para o emerald
                 — a mesma cor do botão de adicionar. Numa grade de 5 colunas é
                 o que responde "eu já tenho essa?" sem ter que ler o número. */}
-            {!comContador && (
-              <span
-                className={`mt-0.5 flex items-center gap-1 font-mono text-[11px] ${
-                  localQty > 0
-                    ? "font-bold text-emerald-400"
-                    : "text-muted-foreground"
-                }`}
-              >
-                Quant.
-                <RollingNumber value={localQty} fontSize={11} />
-              </span>
-            )}
+            <span
+              className={`mt-0.5 flex items-center gap-1 font-mono text-[11px] ${
+                (comContador ? qtd.quantidade : localQty) > 0
+                  ? "font-bold text-emerald-400"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Quant.
+              <RollingNumber
+                value={comContador ? qtd.quantidade : localQty}
+                fontSize={11}
+              />
+            </span>
           </div>
 
           {comContador ? (
-            // O número fica verde com a carta na coleção — o que o "Quant."
-            // fazia: na grade, responde "eu já tenho essa?" de relance.
-            // Sessão ainda chegando: recusa sem oferecer login (seria palpite)
+            // Botão único do contador (23/10: o contador inteiro no card não
+            // ficou bom): o "+" de antes, com o check, segurar para repetir e
+            // a mesma gravação da tela da carta. Tirar fica na tela da carta e
+            // no Portfólio. Sessão ainda chegando: recusa sem oferecer login.
             <RollingCounter
               value={qtd.quantidade}
               onChange={(v) => (sessaoCarregando ? false : qtd.definir(v))}
               min={qtd.minimo}
               cell={28}
-              redondo
-              inercia={false}
+              unico
               sucesso={qtd.sucesso}
               sucessoId={qtd.sucessoId}
-              className={`shrink-0 ${qtd.quantidade > 0 ? "rct--tem" : ""}`}
+              className="shrink-0"
             />
           ) : (
             cardId && (

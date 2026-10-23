@@ -153,6 +153,9 @@ export function RollingCounter({
      arremesso de 300 cópias é acidente, não gesto */
   inercia = true,
   redondo = false,
+  /* só o "+" (com o check e o segurar-para-repetir): o card da grade, onde
+     o contador inteiro não coube bem e a quantidade fica no "Quant." */
+  unico = false,
   /* enquanto true, o "+" mostra o check animado (troque `sucessoId` para
      ele rodar de novo) */
   sucesso = false,
@@ -171,6 +174,7 @@ export function RollingCounter({
   corner?: number;
   inercia?: boolean;
   redondo?: boolean;
+  unico?: boolean;
   sucesso?: boolean;
   sucessoId?: number;
   className?: string;
@@ -457,7 +461,7 @@ export function RollingCounter({
 
   return (
     <div
-      className={`rct${redondo ? " rct--redondo" : ""}${className ? ` ${className}` : ""}`}
+      className={`rct${redondo || unico ? " rct--redondo" : ""}${unico ? " rct--unico" : ""}${className ? ` ${className}` : ""}`}
       style={
         {
           "--rct-r": `${r}px`,
@@ -469,79 +473,83 @@ export function RollingCounter({
         } as React.CSSProperties
       }
     >
-      <button
-        type="button"
-        className="rct-btn rct-menos"
-        aria-label="Menos"
-        disabled={value <= min}
-        onPointerDown={(e) => press(-1, e)}
-        onPointerUp={() => soltar(-1)}
-        onPointerLeave={release}
-        onPointerCancel={release}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            bump(-1);
-          }
-        }}
-      >
-        <IconMinus size={icone} strokeWidth={2.2} />
-      </button>
+      {!unico && (
+        <>
+          <button
+            type="button"
+            className="rct-btn rct-menos"
+            aria-label="Menos"
+            disabled={value <= min}
+            onPointerDown={(e) => press(-1, e)}
+            onPointerUp={() => soltar(-1)}
+            onPointerLeave={release}
+            onPointerCancel={release}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                bump(-1);
+              }
+            }}
+          >
+            <IconMinus size={icone} strokeWidth={2.2} />
+          </button>
 
-      <div
-        ref={numRef}
-        className="rct-num"
-        data-pegou={pegou || undefined}
-        onContextMenu={(e) => e.preventDefault()}
-        role="spinbutton"
-        aria-valuenow={value}
-        aria-valuemin={min}
-        aria-valuemax={teto}
-        aria-label="Quantidade. Segure e arraste para cima ou para baixo para mudar."
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowUp") {
-            e.preventDefault();
-            bump(1);
-          }
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            bump(-1);
-          }
-        }}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-      >
-        {Array.from({ length: PLACES }, (_, i) => {
-          const p = PLACES - 1 - i;
-          return (
-            // As fitas de 0–9 não são texto: o número sai pelo aria-valuenow
-            <span key={p} className="rct-pair" aria-hidden="true">
-              <span className="rct-col" data-on={p < shown || undefined}>
-                <span
-                  className="rct-strip"
-                  ref={(el) => {
-                    strips.current[p] = el as HTMLDivElement | null;
-                  }}
-                >
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, j) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: a fita é fixa, 0–9 e um segundo 0
-                    <span key={j}>{d}</span>
-                  ))}
+          <div
+            ref={numRef}
+            className="rct-num"
+            data-pegou={pegou || undefined}
+            onContextMenu={(e) => e.preventDefault()}
+            role="spinbutton"
+            aria-valuenow={value}
+            aria-valuemin={min}
+            aria-valuemax={teto}
+            aria-label="Quantidade. Segure e arraste para cima ou para baixo para mudar."
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                bump(1);
+              }
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                bump(-1);
+              }
+            }}
+            onPointerDown={onDown}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={onUp}
+          >
+            {Array.from({ length: PLACES }, (_, i) => {
+              const p = PLACES - 1 - i;
+              return (
+                // As fitas de 0–9 não são texto: o número sai pelo aria-valuenow
+                <span key={p} className="rct-pair" aria-hidden="true">
+                  <span className="rct-col" data-on={p < shown || undefined}>
+                    <span
+                      className="rct-strip"
+                      ref={(el) => {
+                        strips.current[p] = el as HTMLDivElement | null;
+                      }}
+                    >
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, j) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: a fita é fixa, 0–9 e um segundo 0
+                        <span key={j}>{d}</span>
+                      ))}
+                    </span>
+                  </span>
+                  {/* milhar com ponto, como se escreve no Brasil */}
+                  {p === 3 && (
+                    <span className="rct-sep" data-on={shown > 3 || undefined}>
+                      .
+                    </span>
+                  )}
                 </span>
-              </span>
-              {/* milhar com ponto, como se escreve no Brasil */}
-              {p === 3 && (
-                <span className="rct-sep" data-on={shown > 3 || undefined}>
-                  .
-                </span>
-              )}
-            </span>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <button
         type="button"
