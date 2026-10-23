@@ -11,6 +11,7 @@ import {
   IconListDetails,
   IconLoader2,
   IconSearch,
+  IconTrendingDown,
   IconTrendingUp,
   IconX,
 } from "@tabler/icons-react";
@@ -391,7 +392,13 @@ function ListRow({
 
         <div className="text-right shrink-0 w-36">
           <div className="flex items-center justify-end gap-1">
-            <IconTrendingUp className="size-3 text-emerald-500" />
+            {/* A seta segue a variação, como no card da grade: antes era
+                sempre verde para cima, mesmo com o preço caindo (23/10) */}
+            {getPriceChange(card) >= 0 ? (
+              <IconTrendingUp className="size-3 text-emerald-500" />
+            ) : (
+              <IconTrendingDown className="size-3 text-red-400" />
+            )}
             <span className="text-sm font-bold text-foreground font-mono">
               R$ {formatPrice(displayPrice)}
             </span>
