@@ -305,7 +305,7 @@ function PortfolioItemRow({
             value={qtd.quantidade}
             onChange={qtd.definir}
             min={0}
-            cell={24}
+            cell={28}
             redondo
             inercia={false}
             sucesso={qtd.sucesso}
@@ -566,7 +566,7 @@ function PortfolioItemCard({
                 value={qtd.quantidade}
                 onChange={qtd.definir}
                 min={0}
-                cell={22}
+                cell={28}
                 redondo
                 inercia={false}
                 sucesso={qtd.sucesso}

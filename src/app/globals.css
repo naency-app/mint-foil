@@ -556,9 +556,39 @@
 }
 
 /* ── variante redonda (não está no original) ─────────────────
-   A cara do contador de antes: pílula e botões em círculo, e o "+" com o
-   anel verde do AddIconButton. Na confirmação quem desenha o disco verde é o
-   próprio check animado, então o botão some por baixo dele. */
+   A aparência do contador de antes (23/10), com a mecânica deste: sem a
+   pílula, os dois botões em círculo com um respiro entre eles e o número.
+   "−" com borda fina sobre o fundo do card; "+" com o anel verde do
+   AddIconButton. Na confirmação quem desenha o disco verde é o próprio
+   check animado, então o botão some por baixo dele. */
+.rct--redondo {
+  padding: 0;
+  gap: 6px;
+  background: transparent;
+}
+
+.rct--redondo .rct-btn {
+  background: transparent;
+}
+
+.rct--redondo .rct-btn:active {
+  scale: 0.85;
+}
+
+.rct--redondo .rct-btn:disabled {
+  opacity: 0.3;
+  scale: 1;
+}
+
+/* número em mono negrito, como era; 16px num botão de 36 */
+.rct--redondo .rct-num {
+  padding: 0 2px;
+  font-family: var(--font-mono);
+  font-size: calc(var(--rct-cell) * 0.45);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 .rct--redondo .rct-mais {
   box-shadow: inset 0 0 0 1px rgb(16 185 129 / 0.5);
   color: var(--muted-foreground);
@@ -573,16 +603,15 @@
    antes: tirar uma cópia é a ação que apaga, e tem que parecer */
 .rct--redondo .rct-menos {
   color: var(--muted-foreground);
+  /* borda fina sobre o fundo do card, como o "−" de antes */
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .rct--redondo .rct-menos:not(:disabled):hover,
 .rct--redondo .rct-menos:not(:disabled):active {
   color: var(--destructive);
-  background: color-mix(
-    in srgb,
-    var(--destructive) 12%,
-    var(--fill-slab, #ffffff)
-  );
+  background: color-mix(in srgb, var(--destructive) 10%, var(--card));
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--destructive) 40%, transparent);
 }

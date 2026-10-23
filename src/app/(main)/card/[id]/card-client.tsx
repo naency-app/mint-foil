@@ -745,7 +745,7 @@ export function CardDetailClient({
                     value={qtd.quantidade}
                     onChange={qtd.definir}
                     min={qtd.minimo}
-                    cell={30}
+                    cell={36}
                     redondo
                     sucesso={qtd.sucesso}
                     sucessoId={qtd.sucessoId}

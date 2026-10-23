@@ -467,7 +467,7 @@ export function TcgCard({
               value={qtd.quantidade}
               onChange={(v) => (sessaoCarregando ? false : qtd.definir(v))}
               min={qtd.minimo}
-              cell={22}
+              cell={28}
               redondo
               inercia={false}
               sucesso={qtd.sucesso}
