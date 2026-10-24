@@ -185,11 +185,14 @@ export const SugestoesBusca = forwardRef<
             tabIndex={-1}
             // Sem perder o foco do campo (o histórico faz igual)
             onMouseDown={(e) => e.preventDefault()}
-            onMouseEnter={() => setAtivo(i)}
             onClick={() => escolher(item)}
             className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm ${
-              // Rosa leve: o cinza do muted sumia contra a lista no escuro
-              i === ativo ? "bg-primary/10" : ""
+              // Rosa leve: o cinza do muted sumia contra a lista no escuro.
+              // O hover é CSS puro, sem estado e sem transição (23/10): marcar
+              // a opção por estado no mouseenter redesenhava a página inteira
+              // do Explorar a cada linha cruzada e o destaque chegava
+              // atrasado. O estado `ativo` fica só para as setas do teclado.
+              i === ativo ? "bg-primary/10" : "hover:bg-primary/10"""
             }`}
           >
             <Linha item={item} termo={termo} />
