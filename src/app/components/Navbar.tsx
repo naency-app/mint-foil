@@ -32,6 +32,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useExploreHref } from "@/lib/explore-href";
+import { navbarRolada } from "@/lib/navbar-rolada";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -57,7 +58,8 @@ export function Navbar() {
   const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
+    const fn = () =>
+      setScrolled((antes) => navbarRolada(antes, window.scrollY));
     fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);

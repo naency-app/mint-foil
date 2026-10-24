@@ -48,6 +48,7 @@ import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import ScrollMorphSection from "@/components/ui/scroll-morph-section";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
 import { PUBLICADO_NA_LOJA } from "@/lib/app-links";
+import { navbarRolada } from "@/lib/navbar-rolada";
 import { StoreBadge } from "./StoreBadge";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -646,8 +647,9 @@ function Nav({
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", fn);
+    const fn = () =>
+      setScrolled((antes) => navbarRolada(antes, window.scrollY));
+    window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
