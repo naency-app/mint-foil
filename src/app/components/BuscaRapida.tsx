@@ -235,8 +235,10 @@ export function BuscaRapida() {
     !isFetching &&
     esperado === termo &&
     cartas.length + nomes.length + colecoes.length === 0;
+  // Ícone na cor do texto: o CommandItem do shadcn pinta todo ícone de
+  // muted-foreground, e no escuro eles pareciam translúcidos (24/10)
   const item =
-    "gap-3 rounded-lg px-3 py-2.5 data-[selected=true]:bg-primary/10 data-[selected=true]:text-foreground";
+    "gap-3 rounded-lg px-3 py-2.5 data-[selected=true]:bg-primary/10 data-[selected=true]:text-foreground [&_svg:not([class*='text-'])]:text-foreground";
 
   return (
     <>
