@@ -57,22 +57,23 @@ export const TCG_CATALOG: TcgCatalogEntry[] = [
     supported: true,
     image: `${IMG}/c26565ab-b555-483e-9e1f-ab53baa26329.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
   },
-
-  // ── Em breve (sem dados no backend) ─────────────────────────
+  // Dragon Ball Super: o original (hoje "Masters") e o Fusion World (24/10)
   {
     categoryId: 27,
     name: "Dragon Ball Super",
-    slug: null,
-    supported: false,
+    slug: "dragonball",
+    supported: true,
     image: `${IMG}/44c326a5-0d8f-4106-8e41-7b809df95622.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
   },
   {
     categoryId: 80,
     name: "Dragon Ball Super Fusion World",
-    slug: null,
-    supported: false,
+    slug: "fusionworld",
+    supported: true,
     image: `${IMG}/e5da86e3-4ad3-4c2c-81c7-9c0afe592c52.png?optimizer=image&format=webp&width=1200&quality=80&strip=metadata`,
   },
+
+  // ── Em breve (sem dados no backend) ─────────────────────────
   {
     categoryId: 24,
     name: "Final Fantasy TCG",

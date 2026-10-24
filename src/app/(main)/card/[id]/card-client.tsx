@@ -175,13 +175,28 @@ function getSearchUrls(
       logo: "/logos/sites/favicons/ligadigimon.png",
     });
   }
+  // A LigaDragonBall cobre os dois jogos de Dragon Ball (24/10)
+  if (!tcgSlug || tcgSlug === "dragonball" || tcgSlug === "fusionworld") {
+    urls.push({
+      name: "LigaDragonBall",
+      url: ligaUrl("https://www.ligadragonball.com.br", cardName, ligaCode),
+      color: "text-orange-400",
+      label: "Buscar no LigaDragonBall",
+      logo: "/logos/sites/favicons/ligadragonball.png",
+    });
+  }
   // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)
   // que não temos como derivar — o link de conferência vai pra busca, com a
   // mesma regra da Liga: código só quando ele identifica a carta sozinho
   // ("OP12-108"); senão, o nome completo. Buscar só a fração ("173/193") caía
   // em OUTRA versão quando a loja não tinha a da pessoa — agora ela mostra
   // que não tem.
-  const myPTcg = tcgSlug ?? "yugioh";
+  // Na MyPCards os dois Dragon Ball têm endereço próprio
+  const MYP_SLUG: Record<string, string> = {
+    dragonball: "dbsmasters",
+    fusionworld: "dbsfusion",
+  };
+  const myPTcg = (tcgSlug && MYP_SLUG[tcgSlug]) ?? tcgSlug ?? "yugioh";
   const myPUrl = `https://mypcards.com/${myPTcg}?${new URLSearchParams({
     "ProdutoSearch[marca]": myPTcg,
     "ProdutoSearch[query]": ligaCode ?? cardName,
