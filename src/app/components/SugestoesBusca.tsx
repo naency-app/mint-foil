@@ -192,7 +192,7 @@ export const SugestoesBusca = forwardRef<
               // a opção por estado no mouseenter redesenhava a página inteira
               // do Explorar a cada linha cruzada e o destaque chegava
               // atrasado. O estado `ativo` fica só para as setas do teclado.
-              i === ativo ? "bg-primary/10" : "hover:bg-primary/10"""
+              i === ativo ? "bg-primary/10" : "hover:bg-primary/10"
             }`}
           >
             <Linha item={item} termo={termo} />
