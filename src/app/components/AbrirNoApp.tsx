@@ -8,6 +8,7 @@ import {
   linkDeApp,
   lojaPara,
   type Plataforma,
+  PUBLICADO_NA_LOJA,
 } from "@/lib/app-links";
 
 /**
@@ -53,7 +54,11 @@ export function AbrirNoApp() {
     }
   }
 
-  if (dispensado || !plataforma || plataforma === "outra") return null;
+  // iPhone sem app na App Store (24/10): convidar a baixar só levaria a um
+  // "em breve" — a pessoa segue na web, sem faixa no rodapé
+  const semAppNaLoja = plataforma === "ios" && !PUBLICADO_NA_LOJA.ios;
+  if (dispensado || !plataforma || plataforma === "outra" || semAppNaLoja)
+    return null;
 
   return (
     <>
