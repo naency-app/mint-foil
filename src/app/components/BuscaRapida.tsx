@@ -7,11 +7,12 @@ import {
   IconCompass,
   IconSearch,
   IconStack2,
+  IconX,
 } from "@tabler/icons-react";
 import { Command as CommandPrimitive } from "cmdk";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { FAN_POSITIONS } from "@/app/components/SetCard";
 import { destacar, formatPrice } from "@/app/components/SugestoesBusca";
@@ -62,6 +63,16 @@ function lerRecentes(): string[] {
   }
 }
 
+/** Grava a lista de recentes (vazia = apaga a chave). */
+function gravarRecentes(lista: string[]) {
+  try {
+    if (lista.length) localStorage.setItem(RECENTES, JSON.stringify(lista));
+    else localStorage.removeItem(RECENTES);
+  } catch {
+    // Modo privado / storage bloqueado: só não lembra
+  }
+}
+
 function guardarRecente(termo: string) {
   const limpo = termo.trim();
   if (!limpo) return;
@@ -106,6 +117,7 @@ export function BuscaRapida() {
   const [esperado, setEsperado] = useState("");
   const [marcado, setMarcado] = useState("");
   const [recentes, setRecentes] = useState<string[]>([]);
+  const campoRef = useRef<HTMLInputElement>(null);
   // "⌘" no Mac, "Ctrl" no resto — decidido no cliente, sem divergir do SSR
   const [mac, setMac] = useState(true);
 
@@ -156,6 +168,18 @@ export function BuscaRapida() {
   const cartas = buscando ? (data?.cartas ?? []) : [];
   const nomes = buscando ? (data?.nomes ?? []) : [];
   const colecoes = buscando ? (data?.colecoes ?? []) : [];
+
+  function limparRecentes() {
+    gravarRecentes([]);
+    setRecentes([]);
+    campoRef.current?.focus();
+  }
+  function removerRecente(termo: string) {
+    const lista = recentes.filter((r) => r !== termo);
+    gravarRecentes(lista);
+    setRecentes(lista);
+    campoRef.current?.focus();
+  }
 
   function ir(href: string) {
     setAberto(false);
@@ -287,6 +311,7 @@ export function BuscaRapida() {
             <div className="flex h-14 items-center gap-3 border-b border-border px-4">
               <IconSearch className="size-5 shrink-0 text-muted-foreground" />
               <CommandPrimitive.Input
+                ref={campoRef}
                 value={termo}
                 onValueChange={setTermo}
                 placeholder="Buscar carta, coleção ou código (ex.: OP01-001)…"
@@ -294,6 +319,22 @@ export function BuscaRapida() {
               />
               {buscando && isFetching && (
                 <Spinner className="size-4 text-muted-foreground" />
+              )}
+              {termo && (
+                // Limpa o que foi digitado e volta às recentes; o foco fica no campo
+                <button
+                  type="button"
+                  aria-label="Limpar busca"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setTermo("");
+                    setEsperado("");
+                    campoRef.current?.focus();
+                  }}
+                  className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <IconX className="size-4" />
+                </button>
               )}
               <Kbd className="hidden sm:inline-flex">esc</Kbd>
             </div>
@@ -421,16 +462,44 @@ export function BuscaRapida() {
                 )}
 
                 {!buscando && recentes.length > 0 && (
-                  <CommandGroup heading="Buscas recentes">
+                  <CommandGroup
+                    heading={
+                      <span className="flex items-center justify-between">
+                        Buscas recentes
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={limparRecentes}
+                          className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground"
+                        >
+                          Limpar
+                        </button>
+                      </span>
+                    }
+                  >
                     {recentes.map((r) => (
                       <CommandItem
                         key={r}
                         value={`recente:${r}`}
                         onSelect={() => buscar(r)}
-                        className={item}
+                        className={`group ${item}`}
                       >
                         <IconClock />
                         <span className="min-w-0 flex-1 truncate">{r}</span>
+                        {/* Tira só esta busca, sem abrir ela */}
+                        <button
+                          type="button"
+                          aria-label={`Remover "${r}" das recentes`}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removerRecente(r);
+                          }}
+                          className="flex size-6 cursor-pointer items-center justify-center rounded-full opacity-0 hover:bg-muted group-hover:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100"
+                        >
+                          <IconX className="size-3.5" />
+                        </button>
                       </CommandItem>
                     ))}
                   </CommandGroup>
