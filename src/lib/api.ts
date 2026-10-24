@@ -256,6 +256,11 @@ export interface SugestoesBusca {
     coverFallbackUrl: string | null;
     totalCards: number | null;
     tcg: { slug: string; name: string };
+    /** As 3 cartas mais valiosas, para o leque (backend de 24/10 em diante). */
+    coverCards?: {
+      imageUrl: string;
+      images?: { thumb: string; grid: string; full: string } | null;
+    }[];
   }[];
   /** Só com número no termo: a carta exata pelo código. */
   cartas: {

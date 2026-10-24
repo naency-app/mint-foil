@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { type ReactNode, useEffect, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
+import { FAN_POSITIONS } from "@/app/components/SetCard";
 import { destacar, formatPrice } from "@/app/components/SugestoesBusca";
 import {
   Command,
@@ -504,10 +505,33 @@ function PreviaDoItem({ previa }: { previa: Previa | undefined }) {
   if (previa.tipo === "colecao") {
     const { colecao } = previa;
     const capa = colecao.imageUrl ?? colecao.coverFallbackUrl;
+    const leque = colecao.coverCards ?? [];
     return (
       <>
-        <span className="flex h-28 w-full items-center justify-center">
-          {capa ? (
+        <span className="relative flex h-40 w-full items-center justify-center">
+          {leque.length > 0 ? (
+            // As 3 mais valiosas em leque, como a capa na lista de coleções —
+            // o logo (quando há) quase nunca diz tanto quanto as cartas
+            leque.map((carta, i) => (
+              <span
+                key={`${carta.imageUrl}-${i}`}
+                className={cn(
+                  "absolute h-[88%] aspect-[5/7] overflow-hidden rounded-md shadow-lg ring-1 ring-border",
+                  FAN_POSITIONS[i],
+                )}
+              >
+                <CardImage
+                  carta={carta}
+                  tamanho="grade"
+                  alt=""
+                  fill
+                  sizes="120px"
+                  rotulo={false}
+                  className="object-cover"
+                />
+              </span>
+            ))
+          ) : capa ? (
             // Capa de coleção vem de hosts variados (ver SugestoesBusca)
             // biome-ignore lint/performance/noImgElement: capa da coleção
             <img
