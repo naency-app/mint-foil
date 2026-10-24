@@ -30,7 +30,7 @@ export interface SugestoesBuscaRef {
 /** Quanto esperar depois da última letra: curto, a lista é leve. */
 const ESPERA_MS = 120;
 
-function formatPrice(value: number) {
+export function formatPrice(value: number) {
   return value.toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -48,7 +48,7 @@ function dobrar(texto: string) {
 }
 
 /** O trecho digitado em negrito: "char" em "Charizard" → **Char**izard */
-function destacar(texto: string, termo: string): ReactNode {
+export function destacar(texto: string, termo: string): ReactNode {
   const q = dobrar(termo.trim());
   const i = q ? dobrar(texto).indexOf(q) : -1;
   if (i < 0) return texto;

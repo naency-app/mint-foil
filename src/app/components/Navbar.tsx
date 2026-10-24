@@ -12,6 +12,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BuscaRapida } from "@/app/components/BuscaRapida";
 import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
 import { CentralDeNotificacoes } from "@/app/components/social/CentralDeNotificacoes";
 import { SeletorTema } from "@/components/SeletorTema";
@@ -248,8 +249,10 @@ export function Navbar() {
             })}
           </div>
 
-          {/* ── Direita: baixar o app, usuário ── */}
+          {/* ── Direita: busca, baixar o app, usuário ── */}
           <div className="flex items-center gap-2 md:justify-self-end">
+            {/* Busca rápida: ⌘K / Ctrl+K de qualquer página */}
+            <BuscaRapida />
             {/*
               O scan só existe no app: a web precisa apontar pra ele de onde
               der. No celular quem convida é a faixa do rodapé (AbrirNoApp),
