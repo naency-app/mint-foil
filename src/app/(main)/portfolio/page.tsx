@@ -25,13 +25,13 @@ import {
   IconX as X,
 } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ShowcaseBrowser } from "@/app/(main)/showcase/profile/[handle]/showcase-browser";
 import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
+import { CardImage } from "@/app/components/CardImage";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
 import {
@@ -260,11 +260,13 @@ function PortfolioItemRow({
           }}
           className="shrink-0 h-16 w-12 rounded-md overflow-hidden flex items-center justify-center bg-muted/30"
         >
-          <Image
-            src={item.card.imageUrl}
+          <CardImage
+            carta={item.card}
+            tamanho="grade"
             alt={cardName(item.card)}
             width={48}
             height={64}
+            rotulo={false}
             className="w-full h-full object-contain"
           />
         </Link>
@@ -490,12 +492,17 @@ function PortfolioItemCard({
             }}
             className="block overflow-hidden p-2"
           >
-            <Image
-              src={item.card.imageUrl}
+            {/* CardImage e não a imagem crua: carta sem foto (ou com a foto
+                quebrada) mostrava o ícone de imagem quebrada e o nome por cima
+                de um vão vazio (23/10); o CardImage tenta os outros tamanhos e
+                cai no "sem imagem" no formato da carta, como no Explorar */}
+            <CardImage
+              carta={item.card}
+              tamanho="grade"
               alt={cardName(item.card)}
               className="w-full rounded-xl aspect-[5/7] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              width={200}
-              height={200}
+              width={400}
+              height={560}
             />
           </Link>
           {/* Quantity badge */}
