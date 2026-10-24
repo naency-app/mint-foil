@@ -436,6 +436,44 @@ export function useUserSearch(q: string) {
 }
 
 /** Invalida o social (contagens, pedidos, perfis, listas) após follow/accept. */
+// ─── Notificações — espelho de mint-foil-app/lib/queries.ts ───────────────────
+
+/**
+ * Bolinha do sino. Sem push na web: o aviso novo aparece pelo polling (e o
+ * react-query refaz ao voltar para a aba).
+ */
+export function useUnreadNotifications(enabled: boolean) {
+  return useQuery({
+    queryKey: ["notifications-unread"],
+    queryFn: () => api.notifications.unreadCount(),
+    enabled,
+    refetchInterval: 60_000,
+    select: (d) => d.count,
+  });
+}
+
+export function useNotifications(enabled: boolean) {
+  return useInfiniteQuery({
+    queryKey: ["notifications"],
+    queryFn: ({ pageParam }) => api.notifications.list(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled,
+  });
+}
+
+export function useInvalidateNotifications() {
+  const qc = useQueryClient();
+  return useCallback(
+    () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["notifications"] }),
+        qc.invalidateQueries({ queryKey: ["notifications-unread"] }),
+      ]),
+    [qc],
+  );
+}
+
 export function useInvalidateSocial() {
   const qc = useQueryClient();
   return useCallback(
