@@ -84,7 +84,7 @@ export function Navbar() {
           // também o desfoque de fundo, caro de redesenhar a cada quadro.
           "fixed left-1/2 z-50 -translate-x-1/2 transition-[top,width,padding,border-radius,background-color,border-color,box-shadow] duration-300 ease-out",
           scrolled
-            ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-[var(--glass-bg)] py-1.5 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(880px,calc(100%-32px))]"
+            ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-[var(--glass-bg)] py-2 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(1040px,calc(100%-32px))]"
             : "top-0 w-full bg-transparent py-2.5 md:py-3",
         )}
       >
@@ -94,7 +94,7 @@ export function Navbar() {
           px-10: numa tela larga o logo começava a 40px da borda enquanto o
           conteúdo começava a ~150px, e as duas bordas nunca se encontravam.
 
-          Com rolagem ela vira a pílula flutuante de 880px, que tem centro
+          Com rolagem ela vira a pílula flutuante de 1040px, que tem centro
           próprio — aí o contêiner não se aplica.
         */}
         <div
@@ -104,7 +104,7 @@ export function Navbar() {
             // (24/10): tirá-los ao rolar fazia o conteúdo se espalhar até a
             // borda da tela antes de a barra encolher e voltar com ela — o
             // "travando" da troca. Assim só a barra anima, e o conteúdo vai
-            // junto, sem vaivém. Na pílula (880 px) o limite não limita nada.
+            // junto, sem vaivém. Na pílula (1040 px) o limite não limita nada.
             "mx-auto w-full max-w-screen-2xl px-4 sm:px-6",
           )}
         >
