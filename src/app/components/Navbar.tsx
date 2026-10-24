@@ -13,6 +13,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
+import { CentralDeNotificacoes } from "@/app/components/social/CentralDeNotificacoes";
 import { SeletorTema } from "@/components/SeletorTema";
 import { UserMenu } from "@/components/UserMenu";
 import { BotaoFoil } from "@/components/ui/botao-foil";
@@ -299,6 +300,8 @@ export function Navbar() {
               </PopoverContent>
             </Popover>
 
+            {/* Sino da central de notificações: só com sessão */}
+            <CentralDeNotificacoes />
             <UserMenu />
           </div>
         </div>

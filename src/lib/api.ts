@@ -317,6 +317,39 @@ export interface BlockedUser {
   blockedAt: string;
 }
 
+/** Tipos de aviso da caixa de notificações (o mesmo do app). */
+export type NotificationType =
+  | "NEW_FOLLOWER"
+  | "FOLLOW_REQUEST"
+  | "FOLLOW_ACCEPTED"
+  | "PRICE_ALERT"
+  | "PRICE_RISE"
+  | "ANNOUNCEMENT";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  /** Contexto para navegar/desenhar: cardId + imageUrl, handle + image, url. */
+  data: {
+    cardId?: string;
+    cardIds?: string[];
+    imageUrl?: string;
+    images?: { thumb: string; grid: string; full: string };
+    handle?: string;
+    image?: string | null;
+    url?: string;
+  } | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationPage {
+  items: AppNotification[];
+  nextCursor: string | null;
+}
+
 export interface FollowRequest {
   id: string;
   user: {
@@ -482,6 +515,26 @@ export const api = {
     /** Volta para a foto do login (ou as iniciais). */
     removeAvatar: () =>
       apiFetch<{ image: null }>("/users/avatar", { method: "DELETE" }),
+  },
+  notifications: {
+    list: (cursor?: string) =>
+      apiFetch<NotificationPage>(
+        `/notifications${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`,
+      ),
+    unreadCount: () =>
+      apiFetch<{ count: number }>("/notifications/unread-count"),
+    /** Sem ids, marca todas como lidas. */
+    markRead: (ids?: string[]) =>
+      apiFetch<{ updated: number }>("/notifications/read", {
+        method: "POST",
+        body: JSON.stringify(ids?.length ? { ids } : {}),
+      }),
+    /** Apaga um aviso; sem id, limpa a caixa inteira. */
+    remove: (id?: string) =>
+      apiFetch<{ deleted: number }>(
+        `/notifications${id ? `/${encodeURIComponent(id)}` : ""}`,
+        { method: "DELETE" },
+      ),
   },
   follows: {
     /** Busca de contas por @ ou nome (exclui anônimos e o próprio). */
