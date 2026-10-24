@@ -239,17 +239,19 @@ export function BuscaRapida() {
 
   return (
     <>
-      {/* Gatilho: campo de busca falso no computador, lupa no celular */}
+      {/* Gatilho: lupa + atalho no computador (sem texto: com ele o botão
+          quebrava em duas linhas ao lado do "Baixar o app"), só a lupa no celular */}
       <button
         type="button"
         onClick={() => setAberto(true)}
         aria-label="Buscar cartas"
         aria-keyshortcuts="Meta+K Control+K"
-        className="hidden h-9 w-52 cursor-pointer items-center gap-2 rounded-full border border-border bg-muted/40 pr-1.5 pl-3 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:bg-muted/70 lg:flex"
+        className="hidden h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-muted/40 pr-1.5 pl-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-muted/70 lg:flex"
       >
         <IconSearch className="size-4 shrink-0" />
-        <span className="flex-1 text-left">Buscar cartas…</span>
-        <Kbd className="h-6 rounded-full px-2">{mac ? "⌘" : "Ctrl"} K</Kbd>
+        <Kbd className="h-6 rounded-full px-2 whitespace-nowrap">
+          {mac ? "⌘" : "Ctrl"} K
+        </Kbd>
       </button>
       <button
         type="button"
