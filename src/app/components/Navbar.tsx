@@ -263,7 +263,8 @@ export function Navbar() {
                 {/* Chamada, não botão comum: o BotaoFoil é a ação principal do sistema */}
                 <BotaoFoil
                   className={cn(
-                    "hidden md:inline-flex",
+                    // Nunca em duas linhas: em janela média ele quebrava
+                    "hidden shrink-0 whitespace-nowrap md:inline-flex",
                     scrolled && "h-8 text-[13px]",
                   )}
                 >

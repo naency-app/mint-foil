@@ -239,14 +239,15 @@ export function BuscaRapida() {
 
   return (
     <>
-      {/* Gatilho: lupa + atalho no computador (sem texto: com ele o botão
-          quebrava em duas linhas ao lado do "Baixar o app"), só a lupa no celular */}
+      {/* Gatilho: lupa + atalho em tela larga (sem texto: com ele o botão
+          quebrava em duas linhas ao lado do "Baixar o app"); só a lupa no
+          celular e em janela média, onde a navbar fica apertada */}
       <button
         type="button"
         onClick={() => setAberto(true)}
         aria-label="Buscar cartas"
         aria-keyshortcuts="Meta+K Control+K"
-        className="hidden h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-muted/40 pr-1.5 pl-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-muted/70 lg:flex"
+        className="hidden h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-muted/40 pr-1.5 pl-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-muted/70 xl:flex"
       >
         <IconSearch className="size-4 shrink-0" />
         <Kbd className="h-6 rounded-full px-2 whitespace-nowrap">
@@ -257,7 +258,7 @@ export function BuscaRapida() {
         type="button"
         onClick={() => setAberto(true)}
         aria-label="Buscar cartas"
-        className="flex size-9 cursor-pointer items-center justify-center rounded-full text-foreground hover:bg-muted/60 lg:hidden"
+        className="flex size-9 cursor-pointer items-center justify-center rounded-full text-foreground hover:bg-muted/60 xl:hidden"
       >
         <IconSearch className="size-5" />
       </button>
