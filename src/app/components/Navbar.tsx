@@ -80,9 +80,11 @@ export function Navbar() {
     <>
       <nav
         className={cn(
-          "fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out",
+          // Só o que muda de verdade anima (24/10). O `transition-all` animava
+          // também o desfoque de fundo, caro de redesenhar a cada quadro.
+          "fixed left-1/2 z-50 -translate-x-1/2 transition-[top,width,padding,border-radius,background-color,border-color,box-shadow] duration-300 ease-out",
           scrolled
-            ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-[var(--glass-bg)] px-2.5 py-1.5 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(880px,calc(100%-32px))]"
+            ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-[var(--glass-bg)] py-1.5 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(880px,calc(100%-32px))]"
             : "top-0 w-full bg-transparent py-2.5 md:py-3",
         )}
       >
@@ -98,7 +100,12 @@ export function Navbar() {
         <div
           className={cn(
             "flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]",
-            !scrolled && "mx-auto w-full max-w-screen-2xl px-4 sm:px-6",
+            // Limite de largura e respiro lateral iguais nos dois estados
+            // (24/10): tirá-los ao rolar fazia o conteúdo se espalhar até a
+            // borda da tela antes de a barra encolher e voltar com ela — o
+            // "travando" da troca. Assim só a barra anima, e o conteúdo vai
+            // junto, sem vaivém. Na pílula (880 px) o limite não limita nada.
+            "mx-auto w-full max-w-screen-2xl px-4 sm:px-6",
           )}
         >
           {/* ── Esquerda: hambúrguer (mobile) + logo ── */}
