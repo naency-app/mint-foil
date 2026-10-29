@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { api, type FollowRequest } from "@/lib/api";
 import { useFollowRequests, useInvalidateSocial } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 import { UserRow } from "./UserRow";
 
 /**
  * Pedidos para seguir (só no próprio perfil). Some quando não há pedido; com
  * pedido, mostra a contagem e abre a lista para aceitar ou recusar.
  */
-export function PedidosButton() {
+export function PedidosButton({ className }: { className?: string } = {}) {
   const { data } = useFollowRequests(true);
   const [aberto, setAberto] = useState(false);
   const pedidos = data ?? [];
@@ -28,11 +29,16 @@ export function PedidosButton() {
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+        title="Pedidos para seguir"
+        aria-label="Pedidos para seguir"
+        className={cn(
+          "relative inline-flex shrink-0 size-8 sm:h-8 sm:w-auto cursor-pointer items-center justify-center gap-1.5 rounded-full bg-background/70 p-0 sm:px-3 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60",
+          className,
+        )}
       >
-        <IconUserPlus className="size-3.5" />
-        Pedidos
-        <span className="rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">
+        <IconUserPlus className="size-4" />
+        <span className="hidden sm:inline">Pedidos</span>
+        <span className="absolute -top-1 -right-1 sm:static rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">
           {pedidos.length}
         </span>
       </button>

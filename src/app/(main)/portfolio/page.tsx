@@ -78,7 +78,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuantidadeDoItem } from "@/hooks/use-quantidade-no-portfolio";
@@ -178,7 +177,7 @@ function PortfolioItemRow({
 }: {
   item: CollectionItem;
   isSelected: boolean;
-  onSelectToggle: () => void;
+  onSelectToggle: (shiftKey?: boolean) => void;
   onUpdate: (id: string, data: { quantity: number }) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   isSelectionMode: boolean;
@@ -196,6 +195,7 @@ function PortfolioItemRow({
 
   const currentPrice = precoAtual(item.card.prices);
   const totalValue = currentPrice * qtd.quantidade;
+  const cardHref = `/card/${item.card.id}?from=portfolio${portfolioId ? `&portfolioId=${portfolioId}` : ""}`;
 
   async function handleRemove() {
     setRemoving(true);
@@ -217,7 +217,7 @@ function PortfolioItemRow({
           if (isSelectionMode) {
             e.preventDefault();
             e.stopPropagation();
-            onSelectToggle();
+            onSelectToggle(e.shiftKey);
           }
         }}
         className={cn(
@@ -228,34 +228,13 @@ function PortfolioItemRow({
           isSelectionMode && "cursor-pointer select-none",
         )}
       >
-        {/* Selection Checkbox */}
-        {isSelectionMode && (
-          <div
-            className="shrink-0 flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={(e) => {
-                e.stopPropagation();
-                onSelectToggle();
-              }}
-              className="size-4.5 rounded border-border text-primary focus:ring-primary cursor-pointer accent-primary"
-            />
-          </div>
-        )}
         <Link
-          href={
-            portfolioId
-              ? `/card/${item.card.id}?portfolioId=${portfolioId}`
-              : `/card/${item.card.id}`
-          }
+          href={cardHref}
           onClick={(e) => {
             if (isSelectionMode) {
               e.preventDefault();
               e.stopPropagation();
-              onSelectToggle();
+              onSelectToggle(e.shiftKey);
             }
           }}
           className="shrink-0 h-16 w-12 rounded-md overflow-hidden flex items-center justify-center bg-muted/30"
@@ -272,16 +251,12 @@ function PortfolioItemRow({
         </Link>
         <div className="flex-1 min-w-0">
           <Link
-            href={
-              portfolioId
-                ? `/card/${item.card.id}?portfolioId=${portfolioId}`
-                : `/card/${item.card.id}`
-            }
+            href={cardHref}
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
                 e.stopPropagation();
-                onSelectToggle();
+                onSelectToggle(e.shiftKey);
               }
             }}
           >
@@ -403,7 +378,7 @@ function PortfolioItemCard({
 }: {
   item: CollectionItem;
   isSelected: boolean;
-  onSelectToggle: () => void;
+  onSelectToggle: (shiftKey?: boolean) => void;
   onUpdate: (id: string, data: { quantity: number }) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   isSelectionMode: boolean;
@@ -422,6 +397,7 @@ function PortfolioItemCard({
 
   const currentPrice = precoAtual(item.card.prices);
   const totalValue = currentPrice * qtd.quantidade;
+  const cardHref = `/card/${item.card.id}?from=portfolio${portfolioId ? `&portfolioId=${portfolioId}` : ""}`;
 
   async function handleRemove() {
     setRemoving(true);
@@ -443,7 +419,7 @@ function PortfolioItemCard({
           if (isSelectionMode) {
             e.preventDefault();
             e.stopPropagation();
-            onSelectToggle();
+            onSelectToggle(e.shiftKey);
           }
         }}
         className={cn(
@@ -454,40 +430,14 @@ function PortfolioItemCard({
           isSelectionMode && "cursor-pointer select-none",
         )}
       >
-        {/* Checkbox overlay */}
-        {isSelectionMode && (
-          <div
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className={cn(
-              "absolute top-3 left-3 z-20 flex items-center justify-center p-1 bg-background/95 border border-border/80  rounded-md shadow-md",
-            )}
-          >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={(e) => {
-                e.stopPropagation();
-                onSelectToggle();
-              }}
-              className="size-4 rounded-md border-border text-primary focus:ring-primary cursor-pointer accent-primary"
-            />
-          </div>
-        )}
         <CardContent className="p-0 flex-1 relative">
           <Link
-            href={
-              portfolioId
-                ? `/card/${item.card.id}?portfolioId=${portfolioId}`
-                : `/card/${item.card.id}`
-            }
+            href={cardHref}
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
                 e.stopPropagation();
-                onSelectToggle();
+                onSelectToggle(e.shiftKey);
               }
             }}
             className="block overflow-hidden p-2"
@@ -505,27 +455,22 @@ function PortfolioItemCard({
               height={560}
             />
           </Link>
-          {/* Quantity badge */}
-          {!isSelectionMode && (
-            <div className="absolute top-3 right-3 bg-black/70 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center">
-              {qtd.quantidade}
+          {/* Quantity badge: pílula translúcida quando houver 2 ou mais cartas */}
+          {!isSelectionMode && qtd.quantidade > 1 && (
+            <div className="pointer-events-none absolute top-2.5 right-2.5 z-10 select-none rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[11px] font-bold text-foreground shadow-sm backdrop-blur-md tabular-nums">
+              {qtd.quantidade}x
             </div>
           )}
-          {!isSelectionMode && <AddToPortfolioButton cardId={item.card.id} />}
         </CardContent>
 
         <div className="p-3 space-y-1">
           <Link
-            href={
-              portfolioId
-                ? `/card/${item.card.id}?portfolioId=${portfolioId}`
-                : `/card/${item.card.id}`
-            }
+            href={cardHref}
             onClick={(e) => {
               if (isSelectionMode) {
                 e.preventDefault();
                 e.stopPropagation();
-                onSelectToggle();
+                onSelectToggle(e.shiftKey);
               }
             }}
           >
@@ -647,16 +592,12 @@ function PortfolioPageSkeleton() {
       <div className="relative -mt-14 w-full md:-mt-16">
         <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background" />
         <div className="relative mx-auto max-w-screen-2xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
-          <div className="mx-auto w-full max-w-sm">
-            <div className="glass-card flex flex-col items-center gap-3 !rounded-2xl p-6">
-              <Skeleton className="-mt-16 size-24 rounded-full" />
+          <div className="mx-auto mt-6 w-full max-w-sm md:mt-10 md:max-w-2xl">
+            <div className="glass-card flex flex-col items-center gap-3 !rounded-2xl p-6 md:px-10 md:pb-8">
+              <Skeleton className="-mt-[88px] size-32 rounded-full md:-mt-[104px] md:size-40" />
               <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="mt-3 h-8 w-48" />
-              <div className="mt-3 flex gap-10">
-                <Skeleton className="h-11 w-14" />
-                <Skeleton className="h-11 w-14" />
-              </div>
+              <Skeleton className="h-4 w-56" />
+              <Skeleton className="mt-3 h-36 w-full rounded-2xl md:h-20" />
             </div>
           </div>
         </div>
@@ -956,25 +897,65 @@ export default function PortfolioPage() {
   );
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const lastSelectedIdRef = useRef<string | null>(null);
   const [bulkAction, setBulkAction] = useState<
     "copy" | "move" | "delete" | null
   >(null);
   const [bulkTargetId, setBulkTargetId] = useState<string>("");
   const [bulkPhase, setBulkPhase] = useState<
-    "select" | "confirm" | "progress" | "done"
+    "select" | "new_portfolio" | "confirm" | "progress" | "done"
   >("select");
   const [bulkStatus, setBulkStatus] = useState<
     Record<string, "pending" | "done" | "error">
   >({});
+  const [newBulkPortfolioName, setNewBulkPortfolioName] = useState("");
+  const [creatingBulkPortfolio, setCreatingBulkPortfolio] = useState(false);
 
-  const toggleSelect = (id: string) => {
+  const handleCreateBulkPortfolio = async () => {
+    if (!newBulkPortfolioName.trim()) return;
+    setCreatingBulkPortfolio(true);
+    try {
+      const created = await api.collection.createPortfolio(
+        newBulkPortfolioName.trim(),
+      );
+      await invalidateCollection();
+      setBulkTargetId(created.id);
+      setBulkPhase("confirm");
+      setNewBulkPortfolioName("");
+      toast.success(`Portfólio "${created.name}" criado!`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Erro ao criar portfólio",
+      );
+    } finally {
+      setCreatingBulkPortfolio(false);
+    }
+  };
+
+  const toggleSelect = (id: string, shiftKey = false) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
+      const orderedIds = orderRef.current.ids;
+      if (shiftKey && lastSelectedIdRef.current && orderedIds.length > 0) {
+        const startIdx = orderedIds.indexOf(lastSelectedIdRef.current);
+        const endIdx = orderedIds.indexOf(id);
+        if (startIdx !== -1 && endIdx !== -1) {
+          const [from, to] =
+            startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+          for (let i = from; i <= to; i++) {
+            next.add(orderedIds[i]);
+          }
+          lastSelectedIdRef.current = id;
+          return next;
+        }
+      }
+
       if (next.has(id)) {
         next.delete(id);
       } else {
         next.add(id);
       }
+      lastSelectedIdRef.current = id;
       return next;
     });
   };
@@ -983,6 +964,7 @@ export default function PortfolioPage() {
     setBulkAction(action);
     setBulkPhase(action === "delete" ? "confirm" : "select");
     setBulkTargetId("");
+    setNewBulkPortfolioName("");
   };
 
   const executeBulkAction = async () => {
@@ -1182,6 +1164,7 @@ export default function PortfolioPage() {
         isPro={stats?.isPro ?? u.isPro ?? false}
         memberSince={stats?.memberSince ?? null}
         totalCards={stats?.totalCards ?? 0}
+        totalPortfolios={portfolios.length}
         totalSealed={stats?.totalSealed ?? 0}
         totalValue={stats?.totalValue ?? 0}
         cover={capaVisivel(
@@ -1206,42 +1189,20 @@ export default function PortfolioPage() {
             />
           ) : undefined
         }
-        actions={
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <PedidosButton />
-            <AdicionarAmigos />
-            <button
-              type="button"
-              onClick={() => setPreview((p) => !p)}
-              className="inline-flex cursor-pointer h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
-            >
-              {preview ? (
-                <>
-                  <IconEyeCancel className="size-3.5" /> Sair da
-                  pré-visualização
-                </>
-              ) : (
-                <>
-                  <IconEye className="size-3.5" /> Ver como visitante
-                </>
-              )}
-            </button>
-            {!preview && (
-              <button
-                type="button"
-                onClick={handleShareProfile}
-                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-primary px-3.5 text-[11px] font-bold text-white transition-colors hover:bg-primary/90"
-              >
-                <IconShare2 className="size-3.5" /> Compartilhar
-              </button>
-            )}
-          </div>
-        }
       />
 
       {preview ? (
         /* Pré-visualização pública (read-only) — o que os visitantes veem */
         <main className="mx-auto max-w-screen-2xl space-y-6 px-4 pb-8 sm:px-6">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setPreview(false)}
+              className="inline-flex cursor-pointer h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+            >
+              <IconEyeCancel className="size-3.5" /> Sair da pré-visualização
+            </button>
+          </div>
           {showcaseLoading || !showcaseData ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-8 animate-spin text-primary" />
@@ -1259,23 +1220,51 @@ export default function PortfolioPage() {
         </main>
       ) : (
         <main className="mx-auto max-w-370 space-y-6 px-4 pt-6 pb-6 sm:px-6 lg:px-8">
-          {/* Seletor de portfólio (dropdown) — substitui as tabs */}
+          {/* Seletor de portfólio + ações de perfil NA MESMA LINHA (ícones no mobile) */}
           {portfolios.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <PortfolioSelector
-                portfolios={portfolios}
-                activePortfolioId={activePortfolioId ?? ""}
-                onSelect={setActivePortfolioId}
-                onRefresh={invalidateCollection}
-              />
-              <Button
-                onClick={openNewPortfolioOrPaywall}
-                variant="outline"
-                size="sm"
-              >
-                <FolderPlus className="size-4" />
-                Novo Portfólio
-              </Button>
+            <div className="flex items-center justify-between gap-2 animate-in fade-in duration-300">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <PortfolioSelector
+                  portfolios={portfolios}
+                  activePortfolioId={activePortfolioId ?? ""}
+                  onSelect={setActivePortfolioId}
+                  onRefresh={invalidateCollection}
+                />
+                <button
+                  type="button"
+                  onClick={openNewPortfolioOrPaywall}
+                  title="Novo portfólio"
+                  aria-label="Novo portfólio"
+                  className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/60 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <FolderPlus className="size-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <PedidosButton />
+                <AdicionarAmigos />
+                <button
+                  type="button"
+                  onClick={() => setPreview((p) => !p)}
+                  title="Ver como visitante"
+                  aria-label="Ver como visitante"
+                  className="inline-flex size-8 sm:h-8 sm:w-auto shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-background/70 p-0 sm:px-3 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+                >
+                  <IconEye className="size-4 shrink-0" />
+                  <span className="hidden sm:inline">Ver como visitante</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShareProfile}
+                  title="Compartilhar perfil"
+                  aria-label="Compartilhar perfil"
+                  className="inline-flex size-8 sm:h-8 sm:w-auto shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-primary p-0 sm:px-3 text-[11px] font-bold text-white transition-colors hover:bg-primary/90 shadow-sm"
+                >
+                  <IconShare2 className="size-4 shrink-0" />
+                  <span className="hidden sm:inline">Compartilhar</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -1603,111 +1592,206 @@ export default function PortfolioPage() {
 
                     {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
                     <div className="min-w-0 flex-1 space-y-4">
-                      {/* Quebra em duas linhas no celular: numa linha só as
-                          ações passavam da tela e empurravam a página. */}
-                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 animate-in fade-in duration-300">
-                        {/* Conta CARTAS, não linhas: quem tem 2 cópias da mesma
-                            carta tem 2 cartas — igual ao app. */}
-                        <p className="whitespace-nowrap text-xs text-muted-foreground">
-                          {cartasFiltradas}{" "}
-                          {cartasFiltradas === 1 ? "carta" : "cartas"}
-                          {cartasFiltradas !== cartasTotal
-                            ? ` de ${cartasTotal}`
-                            : ""}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                          {/*
-                            Exportar mora aqui, e não só em settings: é
-                            benefício de Pro, e benefício que a pessoa não vê
-                            não vende. Fica no cabeçalho da lista que o arquivo
-                            representa, por isso exporta ESTE portfólio — a
-                            coleção inteira continua em settings.
-                          */}
-                          {!!activePortfolioId &&
-                            items.length > 0 &&
-                            (isPro ? (
-                              // Link direto pelo mesmo motivo do export em
-                              // settings: o endpoint depende do cookie de
-                              // sessão que a navegação do browser já manda.
-                              <a
-                                href={`${API_URL}/collection/export.xlsx?portfolioId=${activePortfolioId}`}
-                                className="glass-pill inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 px-3 text-xs font-bold text-foreground transition-colors"
-                              >
-                                <FileSpreadsheet className="size-3.5" />
-                                Exportar
-                              </a>
-                            ) : (
-                              <GlassPill
-                                onClick={() => setProModalOpen(true)}
-                                className="h-8 gap-1.5 px-3 text-xs font-bold"
-                              >
-                                <FileSpreadsheet className="size-3.5" />
-                                Exportar
-                                <Sparkles className="size-3 text-primary" />
-                              </GlassPill>
-                            ))}
-
-                          <GlassPill
-                            active={isSelectionMode}
-                            onClick={() => {
-                              if (isSelectionMode) {
+                      {isSelectionMode ? (
+                        /* Modo de Seleção: Linha única. Na direita, estritamente as 3 ações (Copiar, Mover, Excluir). Zero botões de sistema */
+                        <div className="flex items-center justify-between gap-2 animate-in fade-in duration-300">
+                          <div className="flex items-center gap-1.5 text-xs min-w-0">
+                            <button
+                              type="button"
+                              onClick={() => {
                                 setSelectedIds(new Set());
-                              }
-                              setIsSelectionMode(!isSelectionMode);
-                            }}
-                            className="h-8 gap-1.5 px-3 text-xs font-bold"
-                          >
-                            <Check className="size-3.5" />
-                            {isSelectionMode
-                              ? `Sair da Seleção`
-                              : "Selecionar Vários"}
-                          </GlassPill>
+                                lastSelectedIdRef.current = null;
+                                setIsSelectionMode(false);
+                              }}
+                              title="Cancelar seleção"
+                              className="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                            {selectedIds.size > 0 ? (
+                              <span className="font-bold text-primary whitespace-nowrap">
+                                {selectedIds.size}{" "}
+                                {selectedIds.size === 1
+                                  ? "selecionada"
+                                  : "selecionadas"}
+                              </span>
+                            ) : (
+                              <p className="whitespace-nowrap text-muted-foreground">
+                                {cartasFiltradas}{" "}
+                                {cartasFiltradas === 1 ? "carta" : "cartas"}
+                              </p>
+                            )}
+                            <span className="text-muted-foreground/40">•</span>
+                            {selectedIds.size < filteredItems.length ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedIds(
+                                    new Set(filteredItems.map((i) => i.id)),
+                                  )
+                                }
+                                className="cursor-pointer font-semibold text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
+                              >
+                                Todas
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedIds(new Set());
+                                  lastSelectedIdRef.current = null;
+                                }}
+                                className="cursor-pointer font-semibold text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
+                              >
+                                Limpar
+                              </button>
+                            )}
+                          </div>
 
-                          <Select
-                            value={sort}
-                            onValueChange={(v) => setSort(v as typeof sort)}
-                          >
-                            <SelectTrigger
-                              size="sm"
-                              className="glass-pill h-8 cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
-                            >
-                              <ArrowUpDown className="size-3.5 text-muted-foreground" />
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="value-desc">
-                                Maior valor
-                              </SelectItem>
-                              <SelectItem value="value-asc">
-                                Menor valor
-                              </SelectItem>
-                              <SelectItem value="name">Nome: A → Z</SelectItem>
-                              <SelectItem value="qty-desc">
-                                Quantidade
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-
-                          <div className="flex items-center gap-1">
-                            <GlassPill
-                              active={viewType === "grid"}
-                              onClick={() => setViewType("grid")}
-                              className="h-8 px-2.5"
-                              aria-label="Visualizar em grade"
-                            >
-                              <IconLayoutGrid className="size-4" />
-                            </GlassPill>
-                            <GlassPill
-                              active={viewType === "list"}
-                              onClick={() => setViewType("list")}
-                              className="h-8 px-2.5"
-                              aria-label="Visualizar em lista"
-                            >
-                              <IconListDetails className="size-4" />
-                            </GlassPill>
+                          {/* Ações de lote: SÃO ESTRITAMENTE AS TRÊS (Copiar, Mover, Excluir). Zero botões de sistema */}
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            {selectedIds.size > 0 && (
+                              <>
+                                <GlassPill
+                                  onClick={() => openBulkAction("copy")}
+                                  title="Copiar cartas selecionadas"
+                                  className="h-8 gap-1.5 px-2.5 sm:px-3 text-xs font-bold"
+                                >
+                                  <Copy className="size-3.5" />
+                                  <span className="hidden sm:inline">
+                                    Copiar
+                                  </span>
+                                </GlassPill>
+                                <GlassPill
+                                  onClick={() => openBulkAction("move")}
+                                  title="Mover cartas selecionadas"
+                                  className="h-8 gap-1.5 px-2.5 sm:px-3 text-xs font-bold"
+                                >
+                                  <ArrowRight className="size-3.5" />
+                                  <span className="hidden sm:inline">
+                                    Mover
+                                  </span>
+                                </GlassPill>
+                                <button
+                                  type="button"
+                                  onClick={() => openBulkAction("delete")}
+                                  title="Excluir cartas selecionadas"
+                                  className="inline-flex h-8 gap-1.5 px-2.5 sm:px-3 cursor-pointer items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold transition-colors hover:bg-destructive hover:text-white"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                  <span className="hidden sm:inline">
+                                    Excluir
+                                  </span>
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        /* Modo Normal: Tudo alinhado perfeitamente em UMA LINHA no mobile e desktop */
+                        <div className="flex items-center justify-between gap-2 animate-in fade-in duration-300">
+                          {/* Contagem de cartas */}
+                          <p className="whitespace-nowrap text-xs text-muted-foreground font-medium shrink-0">
+                            {cartasFiltradas}{" "}
+                            {cartasFiltradas === 1 ? "carta" : "cartas"}
+                            <span className="hidden sm:inline">
+                              {cartasFiltradas !== cartasTotal
+                                ? ` de ${cartasTotal}`
+                                : ""}
+                            </span>
+                          </p>
+
+                          {/* Controles: Exportar, Selecionar, Ordenação, Grid/Lista — cabe na mesma linha com botões nativos GlassPill */}
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            {!!activePortfolioId &&
+                              items.length > 0 &&
+                              (isPro ? (
+                                <a
+                                  href={`${API_URL}/collection/export.xlsx?portfolioId=${activePortfolioId}`}
+                                  title="Exportar planilha"
+                                  className="glass-pill inline-flex h-8 gap-1.5 px-2.5 sm:px-3 cursor-pointer items-center justify-center rounded-full text-xs font-bold text-foreground transition-colors"
+                                >
+                                  <FileSpreadsheet className="size-3.5 shrink-0" />
+                                  <span className="hidden sm:inline">
+                                    Exportar
+                                  </span>
+                                </a>
+                              ) : (
+                                <GlassPill
+                                  onClick={() => setProModalOpen(true)}
+                                  title="Exportar planilha"
+                                  className="h-8 gap-1.5 px-2.5 sm:px-3 text-xs font-bold"
+                                >
+                                  <FileSpreadsheet className="size-3.5 shrink-0" />
+                                  <span className="hidden sm:inline">
+                                    Exportar
+                                  </span>
+                                  <Sparkles className="hidden sm:inline size-3 text-primary" />
+                                </GlassPill>
+                              ))}
+
+                            <GlassPill
+                              onClick={() => setIsSelectionMode(true)}
+                              title="Selecionar cartas"
+                              className="h-8 gap-1.5 px-2.5 sm:px-3 text-xs font-bold"
+                            >
+                              <Check className="size-3.5 shrink-0" />
+                              <span className="hidden sm:inline">
+                                Selecionar
+                              </span>
+                            </GlassPill>
+
+                            <Select
+                              value={sort}
+                              onValueChange={(v) => setSort(v as typeof sort)}
+                            >
+                              <SelectTrigger
+                                size="sm"
+                                aria-label="Ordenar coleção"
+                                className="glass-pill h-8 cursor-pointer gap-1.5 rounded-full border px-2.5 sm:px-3 text-xs font-bold text-foreground shadow-none max-sm:[&>svg:last-child]:hidden"
+                              >
+                                <ArrowUpDown className="size-3.5 shrink-0 text-muted-foreground" />
+                                <span className="hidden sm:inline">
+                                  <SelectValue />
+                                </span>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="value-desc">
+                                  Maior valor
+                                </SelectItem>
+                                <SelectItem value="value-asc">
+                                  Menor valor
+                                </SelectItem>
+                                <SelectItem value="name">
+                                  Nome: A → Z
+                                </SelectItem>
+                                <SelectItem value="qty-desc">
+                                  Quantidade
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <div className="flex shrink-0 items-center gap-1">
+                              <GlassPill
+                                active={viewType === "grid"}
+                                onClick={() => setViewType("grid")}
+                                className="h-8 px-2.5"
+                                aria-label="Visualizar em grade"
+                              >
+                                <IconLayoutGrid className="size-4" />
+                              </GlassPill>
+                              <GlassPill
+                                active={viewType === "list"}
+                                onClick={() => setViewType("list")}
+                                className="h-8 px-2.5"
+                                aria-label="Visualizar em lista"
+                              >
+                                <IconListDetails className="size-4" />
+                              </GlassPill>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {filteredItems.length === 0 ? (
                         <EstadoVazio
@@ -1723,7 +1807,9 @@ export default function PortfolioPage() {
                               key={item.id}
                               item={item}
                               isSelected={selectedIds.has(item.id)}
-                              onSelectToggle={() => toggleSelect(item.id)}
+                              onSelectToggle={(shiftKey) =>
+                                toggleSelect(item.id, shiftKey)
+                              }
                               onUpdate={updateItem}
                               onRemove={removeItem}
                               isSelectionMode={isSelectionMode}
@@ -1738,7 +1824,9 @@ export default function PortfolioPage() {
                               key={item.id}
                               item={item}
                               isSelected={selectedIds.has(item.id)}
-                              onSelectToggle={() => toggleSelect(item.id)}
+                              onSelectToggle={(shiftKey) =>
+                                toggleSelect(item.id, shiftKey)
+                              }
                               onUpdate={updateItem}
                               onRemove={removeItem}
                               isSelectionMode={isSelectionMode}
@@ -1815,50 +1903,6 @@ export default function PortfolioPage() {
             onClose={() => setProModalOpen(false)}
           />
 
-          {/* Floating Bulk Action Bar */}
-          {selectedIds.size > 0 && (
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 glass-card !rounded-full border-primary/30 shadow-[0_0_30px_rgba(248,86,167,0.2)] px-6 py-3.5 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300">
-              <span className="text-xs font-bold text-foreground whitespace-nowrap">
-                {selectedIds.size}{" "}
-                {selectedIds.size === 1
-                  ? "item selecionado"
-                  : "itens selecionados"}
-              </span>
-              <Separator orientation="vertical" className="h-5 bg-border" />
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => openBulkAction("copy")}
-                  className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
-                >
-                  <Plus className="size-3.5" /> Copiar
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => openBulkAction("move")}
-                  className="text-xs gap-1.5 h-8 bg-muted hover:bg-muted/70 text-foreground border border-border transition-all cursor-pointer rounded-full px-3.5"
-                >
-                  <ArrowUpDown className="size-3.5" /> Mover
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => openBulkAction("delete")}
-                  className="text-xs gap-1.5 h-8 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/30 transition-all cursor-pointer rounded-full px-3.5"
-                >
-                  <Trash2 className="size-3.5" /> Excluir
-                </Button>
-              </div>
-              <Separator orientation="vertical" className="h-5 bg-border" />
-              <Button
-                size="sm"
-                onClick={() => setSelectedIds(new Set())}
-                className="text-xs h-8 bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border cursor-pointer rounded-full px-4"
-              >
-                Limpar
-              </Button>
-            </div>
-          )}
-
           {/* Bulk Action Dialog */}
           <Dialog
             open={bulkAction !== null}
@@ -1867,17 +1911,41 @@ export default function PortfolioPage() {
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>
-                  {bulkAction === "delete" && "Excluir cartas em lote"}
-                  {bulkAction === "copy" && "Copiar cartas em lote"}
-                  {bulkAction === "move" && "Mover cartas em lote"}
+                  {bulkPhase === "done"
+                    ? "Operação concluída"
+                    : bulkPhase === "progress"
+                      ? "Processando..."
+                      : bulkPhase === "new_portfolio"
+                        ? "Novo Portfólio"
+                        : bulkAction === "delete"
+                          ? "Excluir cartas em lote"
+                          : bulkAction === "copy"
+                            ? "Copiar cartas em lote"
+                            : "Mover cartas em lote"}
                 </DialogTitle>
                 <DialogDescription>
-                  {bulkAction === "delete" &&
-                    `Você está prestes a excluir ${selectedIds.size} cartas. Essa ação não pode ser desfeita.`}
-                  {bulkAction === "copy" &&
-                    `Escolha o portfólio de destino para copiar as ${selectedIds.size} cartas selecionadas.`}
-                  {bulkAction === "move" &&
-                    `As ${selectedIds.size} cartas selecionadas serão movidas para o portfólio de destino e retiradas deste.`}
+                  {bulkPhase === "done" ? (
+                    bulkAction === "delete" ? (
+                      `${selectedIds.size} ${selectedIds.size === 1 ? "carta foi excluída" : "cartas foram excluídas"} com sucesso.`
+                    ) : bulkAction === "copy" ? (
+                      `${selectedIds.size} ${selectedIds.size === 1 ? "carta foi copiada" : "cartas foram copiadas"} com sucesso.`
+                    ) : (
+                      `${selectedIds.size} ${selectedIds.size === 1 ? "carta foi movida" : "cartas foram movidas"} com sucesso.`
+                    )
+                  ) : bulkPhase === "progress" ? (
+                    "Aguarde enquanto as alterações são aplicadas..."
+                  ) : bulkPhase === "new_portfolio" ? (
+                    "Crie um novo portfólio para receber as cartas selecionadas."
+                  ) : (
+                    <>
+                      {bulkAction === "delete" &&
+                        `Você está prestes a excluir ${selectedIds.size} ${selectedIds.size === 1 ? "carta" : "cartas"}. Essa ação não pode ser desfeita.`}
+                      {bulkAction === "copy" &&
+                        `Escolha o portfólio de destino para copiar as ${selectedIds.size} ${selectedIds.size === 1 ? "carta selecionada" : "cartas selecionadas"}.`}
+                      {bulkAction === "move" &&
+                        `As ${selectedIds.size} ${selectedIds.size === 1 ? "carta selecionada será movida" : "cartas selecionadas serão movidas"} para o portfólio de destino e retiradas deste.`}
+                    </>
+                  )}
                 </DialogDescription>
               </DialogHeader>
 
@@ -1918,21 +1986,94 @@ export default function PortfolioPage() {
                       </p>
                     )}
                   </div>
-                  <DialogFooter>
+                  <DialogFooter className="flex flex-row items-center justify-between gap-2 sm:justify-between">
                     <Button
                       variant="outline"
-                      onClick={() => setBulkAction(null)}
+                      size="sm"
+                      onClick={() => {
+                        const isPro =
+                          stats?.isPro ??
+                          (session?.user as { isPro?: boolean } | undefined)
+                            ?.isPro ??
+                          false;
+                        if (!isPro && portfolios.length >= 5) {
+                          setProModalOpen(true);
+                        } else {
+                          setBulkPhase("new_portfolio");
+                        }
+                      }}
+                      className="gap-1.5 text-xs text-primary hover:text-primary cursor-pointer"
                     >
-                      <X className="size-4" />
-                      Cancelar
+                      <FolderPlus className="size-4" />
+                      Novo Portfólio
+                    </Button>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setBulkAction(null)}
+                      >
+                        <X className="size-4" />
+                        Cancelar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setBulkPhase("confirm")}
+                        disabled={!bulkTargetId}
+                        className="bg-primary hover:bg-primary/95 text-white"
+                      >
+                        Continuar
+                        <ArrowRight className="size-4" />
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </div>
+              )}
+
+              {/* Phase 1.5: Create Target Portfolio */}
+              {bulkPhase === "new_portfolio" && (
+                <div className="space-y-4 py-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Nome do portfólio
+                    </label>
+                    <Input
+                      autoFocus
+                      value={newBulkPortfolioName}
+                      onChange={(e) => setNewBulkPortfolioName(e.target.value)}
+                      placeholder="Ex: Minha coleção Pokémon"
+                      disabled={creatingBulkPortfolio}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleCreateBulkPortfolio();
+                        }
+                      }}
+                    />
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setBulkPhase("select")}
+                      disabled={creatingBulkPortfolio}
+                    >
+                      <ChevronLeft className="size-4" />
+                      Voltar
                     </Button>
                     <Button
-                      onClick={() => setBulkPhase("confirm")}
-                      disabled={!bulkTargetId}
+                      onClick={handleCreateBulkPortfolio}
+                      disabled={
+                        creatingBulkPortfolio || !newBulkPortfolioName.trim()
+                      }
                       className="bg-primary hover:bg-primary/95 text-white"
                     >
-                      <ArrowRight className="size-4" />
-                      Continuar
+                      {creatingBulkPortfolio ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <FolderPlus className="size-4" />
+                      )}
+                      Criar e Continuar
                     </Button>
                   </DialogFooter>
                 </div>

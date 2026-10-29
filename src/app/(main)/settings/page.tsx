@@ -272,7 +272,7 @@ function SidebarButton({
         // No computador é a lateral (largura cheia); no celular vira pílula do
         // tamanho do texto: largura cheia numa linha rolável deixava uma aba
         // por tela e obrigava a deslizar (21/10)
-        "justify-start h-auto w-full gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg max-md:w-auto max-md:gap-2 max-md:rounded-full max-md:px-3.5 max-md:py-1.5 max-md:text-[13px]",
+        "justify-start h-auto w-full gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg shrink-0 whitespace-nowrap max-md:w-auto max-md:gap-2 max-md:rounded-full max-md:px-3.5 max-md:py-2 max-md:text-[13px]",
         active
           ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -494,9 +494,9 @@ function SettingsContent() {
       <Separator className="my-6" />
 
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar Navigation */}
+        {/* Sidebar Navigation: Carrossel horizontal em linha única no mobile, vertical no desktop */}
         <aside className="w-full md:w-64 shrink-0">
-          <nav className="flex flex-row flex-wrap md:flex-col gap-1 max-md:gap-2 pb-3 md:pb-0 border-b border-border md:border-b-0">
+          <nav className="flex flex-row flex-nowrap overflow-x-auto gap-2 pb-2.5 md:pb-0 md:flex-col md:gap-1 border-b border-border md:border-b-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <SidebarButton
               label="Estatísticas"
               icon={IconChartBar}
@@ -515,14 +515,6 @@ function SettingsContent() {
               active={activeTab === "support"}
               onClick={() => setActiveTab("support")}
             />
-            {user.email === ADMIN_EMAIL && (
-              <SidebarButton
-                label="Painel Admin"
-                icon={IconAdjustments}
-                active={activeTab === "admin"}
-                onClick={() => setActiveTab("admin")}
-              />
-            )}
           </nav>
         </aside>
 
@@ -902,6 +894,22 @@ function SettingsContent() {
           )}
         </div>
       </div>
+
+      {user.email === ADMIN_EMAIL && (
+        <div className="pt-6 border-t border-border/40 flex justify-end">
+          <button
+            type="button"
+            onClick={() =>
+              setActiveTab((prev) => (prev === "admin" ? "stats" : "admin"))
+            }
+            className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
+          >
+            {activeTab === "admin"
+              ? "← Sair do Painel Admin"
+              : "Acesso Administrativo"}
+          </button>
+        </div>
+      )}
 
       <ProUpgradeModal
         open={proModalOpen}
