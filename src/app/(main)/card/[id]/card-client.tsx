@@ -2,7 +2,9 @@
 
 import {
   IconAlertCircle,
+  IconCash,
   IconChevronLeft,
+  IconChevronRight,
   IconExternalLink,
   IconPackage,
   IconShoppingCart,
@@ -10,6 +12,7 @@ import {
   IconTrendingUp,
   IconWorld,
 } from "@tabler/icons-react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -29,9 +32,15 @@ import { EstadoVazio } from "@/components/EstadoVazio";
 import { Trilha } from "@/components/Trilha";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CountingNumber } from "@/components/ui/counting-number";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuantidadeNoPortfolio } from "@/hooks/use-quantidade-no-portfolio";
-import { ApiError, type Card, type CollectionItem } from "@/lib/api";
+import {
+  ApiError,
+  type Card,
+  type CollectionItem,
+  type PrecoMyp,
+} from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -110,6 +119,7 @@ function getSearchUrls(
   cardName: string,
   tcgSlug?: string,
   collectorNumber?: string | null,
+  myp?: PrecoMyp | null,
 ) {
   const ligaCode = ligaSearchCode(collectorNumber);
   const urls: {
@@ -176,26 +186,124 @@ function getSearchUrls(
       logo: "/logos/sites/favicons/ligadigimon.png",
     });
   }
+  // A LigaDragonBall cobre os dois jogos de Dragon Ball (24/10)
+  if (!tcgSlug || tcgSlug === "dragonball" || tcgSlug === "fusionworld") {
+    urls.push({
+      name: "LigaDragonBall",
+      url: ligaUrl("https://www.ligadragonball.com.br", cardName, ligaCode),
+      color: "text-orange-400",
+      label: "Buscar no LigaDragonBall",
+      logo: "/logos/sites/favicons/ligadragonball.png",
+    });
+  }
+  // EpicGame, igual ao app (store-list.tsx): busca pelo nome, que ela
+  // aceita em formulário — espaço vira "+" (ficou de fora da web desde a
+  // virada para o preço internacional, 26/10)
+  urls.push({
+    name: "EpicGame",
+    url: `https://www.epicgame.com.br/?view=ecom%2Fitens&id=461&searchExactMatch=&busca=${encodeURIComponent(cardName).replace(/%20/g, "+")}`,
+    color: "text-sky-400",
+    label: "Buscar na EpicGame",
+    logo: "/logos/sites/favicons/epicgame.png",
+  });
   // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)
   // que não temos como derivar — o link de conferência vai pra busca, com a
   // mesma regra da Liga: código só quando ele identifica a carta sozinho
   // ("OP12-108"); senão, o nome completo. Buscar só a fração ("173/193") caía
   // em OUTRA versão quando a loja não tinha a da pessoa — agora ela mostra
   // que não tem.
-  const myPTcg = tcgSlug ?? "yugioh";
+  // Na MyPCards os dois Dragon Ball têm endereço próprio
+  const MYP_SLUG: Record<string, string> = {
+    dragonball: "dbsmasters",
+    fusionworld: "dbsfusion",
+  };
+  const myPTcg = (tcgSlug && MYP_SLUG[tcgSlug]) ?? tcgSlug ?? "yugioh";
   const myPUrl = `https://mypcards.com/${myPTcg}?${new URLSearchParams({
     "ProdutoSearch[marca]": myPTcg,
     "ProdutoSearch[query]": ligaCode ?? cardName,
   }).toString()}`;
-  urls.push({
-    name: "MyPCards",
-    url: myPUrl,
-    color: "text-orange-400",
-    label: "Ver no MyPCards",
-    logo: "/logos/sites/favicons/mypcards.png",
-  });
+  // Com preço da MyP ela sai da lista: já está em destaque no topo, com o
+  // botão de compra, e a lista vira "as demais lojas"
+  if (!myp)
+    urls.push({
+      name: "MyPCards",
+      url: myPUrl,
+      color: "text-orange-400",
+      label: "Ver no MyPCards",
+      logo: "/logos/sites/favicons/mypcards.png",
+    });
 
   return urls;
+}
+
+/**
+ * Uma loja: logo, nome e o ícone de link. `destaque` é como a MyP aparece
+ * colada no preço da carta, com "Confira na loja" e o link do produto — o
+ * mesmo padrão do app (LinhaDeLoja de components/store-list.tsx).
+ */
+function LinhaDeLoja({
+  label,
+  url,
+  logo,
+  cor,
+  dica,
+  destaque,
+}: {
+  label: string;
+  url: string;
+  logo?: string;
+  cor: string;
+  dica?: string;
+  destaque?: boolean;
+}) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        "flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group",
+        destaque && "mx-0 bg-primary/10 hover:bg-primary/15",
+      )}
+    >
+      <div className="flex items-center gap-3">
+        {logo ? (
+          <span className="size-7 shrink-0 rounded-md bg-white overflow-hidden flex items-center justify-center">
+            <Image
+              src={logo}
+              alt={label}
+              width={28}
+              height={28}
+              className="size-7 object-cover"
+            />
+          </span>
+        ) : (
+          <Badge
+            variant="outline"
+            className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
+          >
+            {label}
+          </Badge>
+        )}
+        <span
+          className={cn(
+            "text-sm group-hover:text-foreground",
+            destaque
+              ? "text-foreground font-semibold"
+              : "text-muted-foreground",
+          )}
+        >
+          {label}
+        </span>
+      </div>
+      <span className="flex items-center gap-2">
+        {dica && <span className="text-xs text-muted-foreground">{dica}</span>}
+        <IconExternalLink
+          className={`size-4 ${cor} opacity-50 group-hover:opacity-100 transition-opacity`}
+        />
+      </span>
+    </a>
+  );
 }
 
 function formatPrice(value: number) {
@@ -338,6 +446,10 @@ export function CardDetailClient({
     () => (ownershipData ?? []) as unknown as CollectionItem[],
     [ownershipData],
   );
+  const outrasCopias = useMemo(
+    () => ownedItems.filter((item) => item.portfolioId !== activePortfolioId),
+    [ownedItems, activePortfolioId],
+  );
 
   // Qual portfólio fica ativo quando a lista chega (favorito > salvo > primeiro).
   useEffect(() => {
@@ -425,11 +537,22 @@ export function CardDetailClient({
   const isPositive = changePercent >= 0;
 
   const currentPortfolioQuantity = ownedQtyActive;
-  const currentPortfolioValue = currentPortfolioQuantity * latestPrice;
 
   // Preço internacional (ver adr/0002): headline em BRL convertido + USD/câmbio.
   const intl = card.internationalPrice ?? null;
   const headlineBrl = intl?.brl ?? latestPrice;
+  // Preço BR da MyP (menor anunciado): quando vem, é ele a manchete
+  const myp = card.precoMyp ?? null;
+  // O total vale pelo preço da carta: o da MyP quando existe, senão o internacional
+  const currentPortfolioValue =
+    currentPortfolioQuantity * (myp?.menor ?? latestPrice);
+  const detalheIntl = [
+    intl?.usd != null ? `US$ ${intl.usd.toFixed(2)}` : null,
+    intl?.rate != null ? `câmbio ${intl.rate.toFixed(2)}` : null,
+    intl?.source ?? "TCGplayer",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const priceHistory = card.prices
     .slice()
@@ -540,50 +663,6 @@ export function CardDetailClient({
               {card.collectorNumber}
             </span>
           </div>
-        </div>
-
-        {/* Preço internacional (estimado) — ver adr/0002 */}
-        {/* Solto no canto, como no Collectr: a caixa em volta era mais uma
-            moldura na página. */}
-        <div className="flex flex-col gap-1 md:items-end md:text-right">
-          <span className="text-xs text-tertiary uppercase tracking-wider font-semibold flex items-center gap-1">
-            <IconWorld className="size-3.5" />
-            Preço internacional (estimado)
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="text-3xl font-black text-foreground font-mono">
-              R$ {formatPrice(headlineBrl)}
-            </span>
-            {headlineBrl > 0 && latestPrice > 0 && (
-              <div
-                className={cn(
-                  "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
-                  isPositive
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "bg-rose-500/10 text-rose-400",
-                )}
-              >
-                {isPositive ? (
-                  <IconTrendingUp className="size-3" />
-                ) : (
-                  <IconTrendingDown className="size-3" />
-                )}
-                <span>
-                  {isPositive ? "+" : ""}
-                  {changePercent.toFixed(1)}%
-                </span>
-              </div>
-            )}
-          </div>
-          <span className="text-sm text-muted-foreground">
-            {[
-              intl?.usd != null ? `US$ ${intl.usd.toFixed(2)}` : null,
-              intl?.rate != null ? `câmbio ${intl.rate.toFixed(2)}` : null,
-              intl?.source ?? "TCGplayer",
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
         </div>
       </div>
 
@@ -749,8 +828,96 @@ export function CardDetailClient({
         {/* Right: Collection + Shop */}
         <div className="lg:col-span-4 space-y-5">
           <div className="glass-card !rounded-2xl p-5 space-y-5">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
+            {/* O preço junto do "Adicionando em", como o card de preço do app
+                (26/10): o valor em cima, a parte de adicionar embaixo */}
+            <div className="pb-5 border-b border-border">
+              {/* Preço da MyP, no mesmo padrão do app: "Preço da carta", o menor
+                anunciado, a linha do internacional, quem fornece o preço e a
+                linha da MyP (link do produto) destacada. */}
+              {/* Título à esquerda, o resto do bloco alinhado à direita */}
+              {myp ? (
+                <div className="flex flex-col gap-1 items-end text-right">
+                  {/* Título de card, no mesmo padrão dos outros cards */}
+                  <h3 className="self-start text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <IconCash className="size-5 text-primary" />
+                    Preço da carta
+                  </h3>
+                  <span className="text-3xl font-black text-foreground font-mono">
+                    R$ {formatPrice(myp.menor)}
+                  </span>
+                  {/* O internacional convertido entra na própria linha */}
+                  <span className="text-sm text-muted-foreground">
+                    {detalheIntl}
+                    {headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
+                  </span>
+                  {/* Atribuição exigida pela MYP (link para mypcards.com):
+                      sem ela o acesso à API pode ser pausado */}
+                  <span className="text-xs text-muted-foreground">
+                    Dados:{" "}
+                    <a
+                      href="https://mypcards.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold underline underline-offset-2 hover:text-foreground"
+                    >
+                      MYP Cards
+                    </a>
+                  </span>
+                  <div className="w-full mt-1">
+                    <LinhaDeLoja
+                      label="MyPCards"
+                      url={myp.link}
+                      logo="/logos/sites/favicons/mypcards.png"
+                      cor="text-orange-400"
+                      dica="Confira na loja"
+                      destaque
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Preço internacional (estimado) — ver adr/0002 */
+                /* Solto no canto, como no Collectr: a caixa em volta era mais uma
+                moldura na página. */
+                <div className="flex flex-col gap-1 items-end text-right">
+                  <h3 className="self-start text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <IconWorld className="size-5 text-primary" />
+                    Preço internacional (estimado)
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-black text-foreground font-mono">
+                      R$ {formatPrice(headlineBrl)}
+                    </span>
+                    {headlineBrl > 0 && latestPrice > 0 && (
+                      <div
+                        className={cn(
+                          "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
+                          isPositive
+                            ? "bg-emerald-500/10 text-emerald-400"
+                            : "bg-rose-500/10 text-rose-400",
+                        )}
+                      >
+                        {isPositive ? (
+                          <IconTrendingUp className="size-3" />
+                        ) : (
+                          <IconTrendingDown className="size-3" />
+                        )}
+                        <span>
+                          {isPositive ? "+" : ""}
+                          {changePercent.toFixed(1)}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {detalheIntl}
+                  </span>
+                </div>
+              )}
+            </div>
+            {/* Como no app: onde adicionar, a quantidade e o total — sem
+                repetir o preço, que está logo acima */}
+            <div className="space-y-4">
+              <div className="min-w-0">
                 {portfolios.length > 0 ? (
                   <PortfolioSelector
                     portfolios={portfolios}
@@ -768,155 +935,124 @@ export function CardDetailClient({
                   </div>
                 )}
               </div>
-              <div className="text-right shrink-0 flex flex-col items-end">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                  Possui: {currentPortfolioQuantity}
-                </span>
-                <span className="text-sm text-muted-foreground font-mono font-bold">
-                  Total: R$ {formatPrice(currentPortfolioValue)}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-base font-semibold text-foreground">
-                  Ungraded
-                </span>
-              </div>
               <div className="flex items-center justify-between">
-                <Badge
-                  variant="outline"
-                  className="text-xs font-bold h-7 px-2.5 border-border/80 bg-muted/30"
-                >
-                  NM
-                </Badge>
-                <div className="flex items-center gap-3">
-                  <RollingCounter
-                    value={qtd.quantidade}
-                    onChange={qtd.definir}
-                    min={qtd.minimo}
-                    cell={36}
-                    redondo
-                    sucesso={qtd.sucesso}
-                    sucessoId={qtd.sucessoId}
-                    inercia={false}
-                  />
-
-                  <div className="text-right shrink-0">
-                    <div className="flex items-center justify-end gap-1">
-                      {isPositive ? (
-                        <IconTrendingUp className="size-3.5 text-emerald-400" />
-                      ) : (
-                        <IconTrendingDown className="size-3.5 text-rose-400" />
-                      )}
-                      <span className="text-base font-bold text-foreground font-mono">
-                        R$ {formatPrice(latestPrice)}
-                      </span>
-                    </div>
-                    <span
-                      className={cn(
-                        "text-xs font-mono",
-                        isPositive ? "text-emerald-400" : "text-rose-400",
-                      )}
-                    >
-                      {isPositive ? "+" : ""}BRL {changePercent.toFixed(1)}%
-                    </span>
-                  </div>
+                <RollingCounter
+                  value={qtd.quantidade}
+                  onChange={qtd.definir}
+                  min={qtd.minimo}
+                  cell={36}
+                  redondo
+                  sucesso={qtd.sucesso}
+                  sucessoId={qtd.sucessoId}
+                  inercia={false}
+                />
+                <div className="text-right">
+                  <span className="block text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                    Total
+                  </span>
+                  <span className="text-xl font-bold text-foreground font-mono">
+                    {/* Conta até o valor novo ao adicionar/remover */}
+                    R${" "}
+                    <CountingNumber
+                      value={currentPortfolioValue}
+                      decimals={2}
+                    />
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* User Holdings (Inventory) */}
-          {session?.user && ownedItems.length > 0 && (
-            <div className="glass-card !rounded-2xl p-5 space-y-3">
-              <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                <IconPackage className="size-5 text-primary animate-in zoom-in duration-200" />
-                Suas cópias (
-                {ownedItems.reduce((acc, item) => acc + item.quantity, 0)})
-              </h3>
-              <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar">
-                {ownedItems.map((item) => {
-                  const portfolioName =
-                    portfolios.find((p) => p.id === item.portfolioId)?.name ??
-                    "Coleção Principal";
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between text-sm py-1.5"
-                    >
-                      <div className="min-w-0 pr-2">
-                        <p className="font-semibold text-foreground truncate">
-                          {portfolioName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Condição: {item.condition}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="font-mono font-bold text-foreground">
-                          {item.quantity}{" "}
-                          {item.quantity === 1 ? "unidade" : "unidades"}
-                        </p>
-                        {item.buyPrice != null && (
-                          <p className="text-xs text-muted-foreground font-mono">
-                            Pago: R$ {formatPrice(item.buyPrice)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* Cópias em OUTROS portfólios: as do ativo já estão no card de
+              cima (quantidade e total), repetir aqui era a mesma informação.
+              Chega depois do resto da página (é do usuário), então entra com
+              movimento; cada linha leva ao portfólio dela (26/10) */}
+          <AnimatePresence initial={false}>
+            {session?.user && outrasCopias.length > 0 && (
+              <motion.div
+                key="suas-copias"
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="glass-card !rounded-2xl p-5 space-y-3"
+              >
+                <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                  <IconPackage className="size-5 text-primary" />
+                  Também nos seus portfólios (
+                  {outrasCopias.reduce((acc, item) => acc + item.quantity, 0)})
+                </h3>
+                <div className="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar">
+                  {outrasCopias.map((item, i) => {
+                    const portfolioName =
+                      portfolios.find((p) => p.id === item.portfolioId)?.name ??
+                      "Coleção Principal";
+                    return (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.12 + i * 0.05, duration: 0.25 }}
+                      >
+                        {/* O portfólio ativo é o do store compartilhado: marcar
+                            antes de navegar faz a página abrir nele */}
+                        <Link
+                          href="/portfolio"
+                          onClick={() => setActivePortfolioId(item.portfolioId)}
+                          className="flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors group"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <p className="font-semibold text-foreground truncate">
+                              {portfolioName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Condição: {item.condition}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="text-right">
+                              <p className="font-mono font-bold text-foreground">
+                                {item.quantity}{" "}
+                                {item.quantity === 1 ? "unidade" : "unidades"}
+                              </p>
+                              {item.buyPrice != null && (
+                                <p className="text-xs text-muted-foreground font-mono">
+                                  Pago: R$ {formatPrice(item.buyPrice)}
+                                </p>
+                              )}
+                            </div>
+                            <IconChevronRight className="size-4 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Preço real nas lojas BR — links de conferência (ver adr/0002) */}
           <div className="glass-card !rounded-2xl p-5 space-y-1">
             <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
               <IconShoppingCart className="size-5 text-emerald-400" />
-              Preço nas lojas BR
+              {myp ? "Preço nas demais lojas" : "Preço nas lojas BR"}
             </h3>
 
-            {getSearchUrls(card.name, card.tcg?.slug, card.collectorNumber).map(
-              (link) => (
-                <a
-                  key={link.name}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    {link.logo ? (
-                      <span className="size-7 shrink-0 rounded-md bg-white overflow-hidden flex items-center justify-center">
-                        <Image
-                          src={link.logo}
-                          alt={link.name}
-                          width={28}
-                          height={28}
-                          className="size-7 object-cover"
-                        />
-                      </span>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-                      >
-                        {link.name}
-                      </Badge>
-                    )}
-                    <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                      {link.label}
-                    </span>
-                  </div>
-                  <IconExternalLink
-                    className={`size-4 ${link.color} opacity-50 group-hover:opacity-100 transition-opacity`}
-                  />
-                </a>
-              ),
-            )}
+            {getSearchUrls(
+              card.name,
+              card.tcg?.slug,
+              card.collectorNumber,
+              myp,
+            ).map((link) => (
+              <LinhaDeLoja
+                key={link.name}
+                label={link.label}
+                url={link.url}
+                logo={link.logo}
+                cor={link.color}
+              />
+            ))}
           </div>
 
           <ConviteAppCartao

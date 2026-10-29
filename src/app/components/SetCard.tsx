@@ -86,7 +86,8 @@ function logoPareceQuebrado(w: number, h: number): boolean {
 }
 
 // [mais cara, 2ª, 3ª] → meio (por cima), esquerda, direita
-const FAN_POSITIONS = [
+/** Posição das 3 cartas do leque (a do meio na frente). Também na busca rápida. */
+export const FAN_POSITIONS = [
   "z-[3] -translate-y-0.5",
   "z-[2] -translate-x-[62%] translate-y-1 -rotate-10",
   "z-[1] translate-x-[62%] translate-y-1 rotate-10",

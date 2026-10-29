@@ -47,6 +47,8 @@ import { Badge } from "@/components/ui/badge";
 import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import ScrollMorphSection from "@/components/ui/scroll-morph-section";
 import { StackedCardsInteraction } from "@/components/ui/stacked-cards-interaction";
+import { PUBLICADO_NA_LOJA } from "@/lib/app-links";
+import { navbarRolada } from "@/lib/navbar-rolada";
 import { StoreBadge } from "./StoreBadge";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -645,8 +647,9 @@ function Nav({
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", fn);
+    const fn = () =>
+      setScrolled((antes) => navbarRolada(antes, window.scrollY));
+    window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
@@ -1131,10 +1134,12 @@ function Hero({ noCelular }: { noCelular: boolean }) {
               flexWrap: "wrap",
             }}
           >
-            {noCelular ? (
+            {noCelular && PUBLICADO_NA_LOJA.ios ? (
               // O scan só existe no app: no celular o convite é instalar.
-              // /download e não a loja direto enquanto o app não está
-              // publicado — o link da loja cairia em "app não encontrado".
+              // Até o app sair na App Store (24/10), o botão é o Explorar para
+              // todo mundo — quem tem iPhone usa a web, e quem tem Android vê
+              // o convite da faixa do rodapé (AbrirNoApp) dentro do Explorar.
+              // Virar PUBLICADO_NA_LOJA.ios traz o "Comece a escanear" de volta.
               <PrimaryBtn
                 onClick={() => {
                   router.push("/download");

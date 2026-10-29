@@ -12,6 +12,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BuscaRapida } from "@/app/components/BuscaRapida";
 import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
 import { CentralDeNotificacoes } from "@/app/components/social/CentralDeNotificacoes";
 import { SeletorTema } from "@/components/SeletorTema";
@@ -31,6 +32,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useExploreHref } from "@/lib/explore-href";
+import { navbarRolada } from "@/lib/navbar-rolada";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -56,7 +58,8 @@ export function Navbar() {
   const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
+    const fn = () =>
+      setScrolled((antes) => navbarRolada(antes, window.scrollY));
     fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
@@ -77,9 +80,11 @@ export function Navbar() {
     <>
       <nav
         className={cn(
-          "fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out",
+          // Só o que muda de verdade anima (24/10). O `transition-all` animava
+          // também o desfoque de fundo, caro de redesenhar a cada quadro.
+          "fixed left-1/2 z-50 -translate-x-1/2 transition-[top,width,padding,border-radius,background-color,border-color,box-shadow] duration-300 ease-out",
           scrolled
-            ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-[var(--glass-bg)] px-2.5 py-1.5 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(880px,calc(100%-32px))]"
+            ? "top-3 w-[calc(100%-16px)] rounded-2xl border border-border bg-[var(--glass-bg)] py-2 shadow-[0_8px_28px_rgba(2,6,23,0.18)] backdrop-blur-xl backdrop-saturate-150 md:w-[min(1040px,calc(100%-32px))]"
             : "top-0 w-full bg-transparent py-2.5 md:py-3",
         )}
       >
@@ -89,13 +94,18 @@ export function Navbar() {
           px-10: numa tela larga o logo começava a 40px da borda enquanto o
           conteúdo começava a ~150px, e as duas bordas nunca se encontravam.
 
-          Com rolagem ela vira a pílula flutuante de 880px, que tem centro
+          Com rolagem ela vira a pílula flutuante de 1040px, que tem centro
           próprio — aí o contêiner não se aplica.
         */}
         <div
           className={cn(
             "flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]",
-            !scrolled && "mx-auto w-full max-w-screen-2xl px-4 sm:px-6",
+            // Limite de largura e respiro lateral iguais nos dois estados
+            // (24/10): tirá-los ao rolar fazia o conteúdo se espalhar até a
+            // borda da tela antes de a barra encolher e voltar com ela — o
+            // "travando" da troca. Assim só a barra anima, e o conteúdo vai
+            // junto, sem vaivém. Na pílula (1040 px) o limite não limita nada.
+            "mx-auto w-full max-w-screen-2xl px-4 sm:px-6",
           )}
         >
           {/* ── Esquerda: hambúrguer (mobile) + logo ── */}
@@ -248,8 +258,10 @@ export function Navbar() {
             })}
           </div>
 
-          {/* ── Direita: baixar o app, usuário ── */}
+          {/* ── Direita: busca, baixar o app, usuário ── */}
           <div className="flex items-center gap-2 md:justify-self-end">
+            {/* Busca rápida: ⌘K / Ctrl+K de qualquer página */}
+            <BuscaRapida />
             {/*
               O scan só existe no app: a web precisa apontar pra ele de onde
               der. No celular quem convida é a faixa do rodapé (AbrirNoApp),
@@ -260,7 +272,8 @@ export function Navbar() {
                 {/* Chamada, não botão comum: o BotaoFoil é a ação principal do sistema */}
                 <BotaoFoil
                   className={cn(
-                    "hidden md:inline-flex",
+                    // Nunca em duas linhas: em janela média ele quebrava
+                    "hidden shrink-0 whitespace-nowrap md:inline-flex",
                     scrolled && "h-8 text-[13px]",
                   )}
                 >
