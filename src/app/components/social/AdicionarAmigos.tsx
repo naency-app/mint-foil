@@ -9,11 +9,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useUserSearch } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 import { FollowButton } from "./FollowButton";
 import { UserRow } from "./UserRow";
 
 /** "Adicionar amigos": busca por @ ou nome, com o botão de seguir em cada um. */
-export function AdicionarAmigos() {
+export function AdicionarAmigos({ className }: { className?: string } = {}) {
   const [aberto, setAberto] = useState(false);
   const [texto, setTexto] = useState("");
   const [termo, setTermo] = useState("");
@@ -32,9 +33,15 @@ export function AdicionarAmigos() {
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+        title="Adicionar amigos"
+        aria-label="Adicionar amigos"
+        className={cn(
+          "inline-flex shrink-0 size-8 sm:h-8 sm:w-auto cursor-pointer items-center justify-center gap-1.5 rounded-full bg-background/70 p-0 sm:px-3 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60",
+          className,
+        )}
       >
-        <IconUserPlus className="size-3.5" /> Adicionar amigos
+        <IconUserPlus className="size-4 shrink-0" />
+        <span className="hidden sm:inline">Adicionar amigos</span>
       </button>
 
       <Dialog open={aberto} onOpenChange={setAberto}>

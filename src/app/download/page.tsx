@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 import { StoreBadge } from "@/app/components/StoreBadge";
 import { QRCode } from "@/components/ui/qrcode";
 import { DOWNLOAD_URL, detectarPlataforma, lojaPara } from "@/lib/app-links";
+import { BotaoVoltarDownload } from "./botao-voltar";
 
 const PINK = "#F856A7";
 const GRAD = "linear-gradient(135deg, #F856A7 0%, #B50D57 100%)";
@@ -131,17 +132,7 @@ export default async function DownloadPage() {
           margin: "0 auto",
         }}
       >
-        <a
-          href="/"
-          style={{
-            color: PINK,
-            fontWeight: 700,
-            fontSize: 13,
-            textDecoration: "none",
-          }}
-        >
-          ← Voltar para o site
-        </a>
+        <BotaoVoltarDownload fallback="/portfolio" />
 
         <div className="dl-grid" style={{ marginTop: 48 }}>
           {/* Texto + lojas */}
