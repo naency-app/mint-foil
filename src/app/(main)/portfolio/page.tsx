@@ -647,12 +647,16 @@ function PortfolioPageSkeleton() {
       <div className="relative -mt-14 w-full md:-mt-16">
         <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background" />
         <div className="relative mx-auto max-w-screen-2xl px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
-          <div className="mx-auto mt-6 w-full max-w-sm md:mt-10 md:max-w-2xl">
-            <div className="glass-card flex flex-col items-center gap-3 !rounded-2xl p-6 md:px-10 md:pb-8">
-              <Skeleton className="-mt-[88px] size-32 rounded-full md:-mt-[104px] md:size-40" />
+          <div className="mx-auto w-full max-w-sm">
+            <div className="glass-card flex flex-col items-center gap-3 !rounded-2xl p-6">
+              <Skeleton className="-mt-16 size-24 rounded-full" />
               <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-4 w-56" />
-              <Skeleton className="mt-3 h-36 w-full rounded-2xl md:h-20" />
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-3 h-8 w-48" />
+              <div className="mt-3 flex gap-10">
+                <Skeleton className="h-11 w-14" />
+                <Skeleton className="h-11 w-14" />
+              </div>
             </div>
           </div>
         </div>
