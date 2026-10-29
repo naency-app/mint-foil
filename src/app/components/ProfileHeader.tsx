@@ -114,13 +114,14 @@ export function ProfileHeader({
       </div>
       {/* "Membro desde" sobe para junto do @: é sobre quem é a pessoa, e
           sozinho no rodapé do cartão parecia sobra */}
-      <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-sm font-medium text-muted-foreground">
-        <span>@{handle}</span>
-        <span className="text-muted-foreground/50">·</span>
-        <span className="font-normal">
-          Membro desde {formatMonthYear(memberSince)}
-        </span>
+      <p className="text-sm font-medium text-muted-foreground">
+        @{handle}
       </p>
+      {memberSince && (
+        <p className="text-xs font-normal text-muted-foreground/75">
+          Membro desde {formatMonthYear(memberSince)}
+        </p>
+      )}
 
       {social}
 

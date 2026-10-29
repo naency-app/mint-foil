@@ -314,7 +314,7 @@ function PortfolioItemRow({
               e.stopPropagation();
               setConfirmDelete(true);
             }}
-            className="size-8 rounded-full text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-all cursor-pointer"
+            className="size-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-all cursor-pointer"
           >
             <Trash2 className="size-4" />
           </button>
@@ -334,24 +334,24 @@ function PortfolioItemRow({
               não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
+          <DialogFooter className="gap-2">
+            <GlassPill
               onClick={(e) => {
                 e.stopPropagation();
                 setConfirmDelete(false);
               }}
+              className="h-9 justify-center px-4 text-sm font-bold"
             >
-              <X className="size-4" />
               Cancelar
-            </Button>
+            </GlassPill>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemove();
               }}
               disabled={removing}
+              className="h-9 rounded-full px-5 text-sm font-bold"
             >
               {removing ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -530,7 +530,7 @@ function PortfolioItemCard({
                   e.stopPropagation();
                   setConfirmDelete(true);
                 }}
-                className="size-7 rounded-md text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-all cursor-pointer border border-transparent hover:border-red-500/20"
+                className="size-7 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-all cursor-pointer border border-transparent hover:border-destructive/20"
               >
                 <Trash2 className="size-4" />
               </button>
@@ -552,24 +552,24 @@ function PortfolioItemCard({
               não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
+          <DialogFooter className="gap-2">
+            <GlassPill
               onClick={(e) => {
                 e.stopPropagation();
                 setConfirmDelete(false);
               }}
+              className="h-9 justify-center px-4 text-sm font-bold"
             >
-              <X className="size-4" />
               Cancelar
-            </Button>
+            </GlassPill>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemove();
               }}
               disabled={removing}
+              className="h-9 rounded-full px-5 text-sm font-bold"
             >
               {removing ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -1193,14 +1193,17 @@ export default function PortfolioPage() {
 
       {preview ? (
         /* Pré-visualização pública (read-only) — o que os visitantes veem */
-        <main className="mx-auto max-w-screen-2xl space-y-6 px-4 pb-8 sm:px-6">
-          <div className="flex flex-wrap items-center justify-end gap-2">
+        <main className="mx-auto max-w-screen-2xl space-y-4 px-4 pb-8 sm:px-6">
+          {/* Tag unificada de pré-visualização no canto direito */}
+          <div className="flex items-center justify-end pt-1 animate-in fade-in duration-200">
             <button
               type="button"
               onClick={() => setPreview(false)}
-              className="inline-flex cursor-pointer h-8 items-center gap-1.5 rounded-full bg-background/70 px-3.5 text-[11px] font-bold text-foreground backdrop-blur transition-colors hover:bg-muted/60"
+              title="Clique para sair da pré-visualização"
+              className="glass-pill animate-soft-pulse group inline-flex h-8 cursor-pointer items-center gap-2 rounded-full border border-primary/30 bg-background/70 px-3 text-xs font-medium text-foreground backdrop-blur transition-all active:scale-95"
             >
-              <IconEyeCancel className="size-3.5" /> Sair da pré-visualização
+              <span>Visualizando como visitante</span>
+              <IconEyeCancel className="size-3.5 text-primary" />
             </button>
           </div>
           {showcaseLoading || !showcaseData ? (
@@ -2108,12 +2111,8 @@ export default function PortfolioPage() {
                     </Button>
                     <Button
                       onClick={executeBulkAction}
-                      className={cn(
-                        "text-white",
-                        bulkAction === "delete"
-                          ? "bg-red-500 hover:bg-red-600"
-                          : "bg-primary hover:bg-primary/95",
-                      )}
+                      variant={bulkAction === "delete" ? "destructive" : "default"}
+                      className="rounded-full px-5 text-sm font-bold"
                     >
                       {bulkAction === "delete" && <Trash2 className="size-4" />}
                       {bulkAction === "copy" && <Copy className="size-4" />}

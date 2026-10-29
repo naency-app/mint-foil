@@ -2,6 +2,7 @@
 
 import {
   IconArrowsSort,
+  IconEyeCancel,
   IconLayoutGrid,
   IconListDetails,
   IconSearch,
@@ -225,25 +226,31 @@ export function ShowcaseBrowser({
 
         <div className="min-w-0 flex-1 space-y-4">
           {/* Barra: portfólio + sort + view */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <PortfolioSelector
-              portfolios={selectorPortfolios}
-              activePortfolioId={activeId}
-              onSelect={setActiveId}
-              readOnly
-            />
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <PortfolioSelector
+                portfolios={selectorPortfolios}
+                activePortfolioId={activeId}
+                onSelect={setActiveId}
+                readOnly
+                hidePrefixOnMobile
+              />
+            </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <Select
                 value={sort}
                 onValueChange={(v) => setSort(v as SortValue)}
               >
                 <SelectTrigger
                   size="sm"
-                  className="glass-pill cursor-pointer gap-1.5 rounded-full border text-xs font-bold text-foreground shadow-none"
+                  aria-label="Ordenar coleção"
+                  className="glass-pill h-8 cursor-pointer gap-1.5 rounded-full border px-2.5 sm:px-3 text-xs font-bold text-foreground shadow-none max-sm:[&>svg:last-child]:hidden"
                 >
-                  <IconArrowsSort className="size-3.5 text-muted-foreground" />
-                  <SelectValue />
+                  <IconArrowsSort className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="hidden sm:inline">
+                    <SelectValue />
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="value-desc">Maior valor</SelectItem>
@@ -253,11 +260,11 @@ export function ShowcaseBrowser({
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <GlassPill
                   active={view === "grid"}
                   onClick={() => setView("grid")}
-                  className="px-2.5 py-1.5"
+                  className="h-8 px-2.5"
                   aria-label="Visualizar em grade"
                 >
                   <IconLayoutGrid className="size-4" />
@@ -265,7 +272,7 @@ export function ShowcaseBrowser({
                 <GlassPill
                   active={view === "list"}
                   onClick={() => setView("list")}
-                  className="px-2.5 py-1.5"
+                  className="h-8 px-2.5"
                   aria-label="Visualizar em lista"
                 >
                   <IconListDetails className="size-4" />

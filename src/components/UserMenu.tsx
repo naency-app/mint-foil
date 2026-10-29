@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  IconLoader2,
   IconLogin,
   IconLogout,
   IconPalette,
@@ -13,6 +14,15 @@ import { useEffect, useState } from "react";
 import { FotoDoUsuario } from "@/components/FotoDoUsuario";
 import { signOut, useSession } from "@/lib/auth-client";
 import { TEMAS } from "@/lib/temas";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -57,6 +67,8 @@ export function UserMenu() {
   const router = useRouter();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [saindo, setSaindo] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -104,6 +116,7 @@ export function UserMenu() {
   const user = session.user;
 
   async function handleLogout() {
+    setSaindo(true);
     try {
       await signOut();
     } catch {
@@ -116,7 +129,8 @@ export function UserMenu() {
   }
 
   return (
-    <DropdownMenu>
+    <>
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -205,12 +219,39 @@ export function UserMenu() {
         <DropdownMenuItem
           variant="destructive"
           className="cursor-pointer rounded-lg px-2 py-2 text-sm font-medium"
-          onClick={handleLogout}
+          onSelect={() => setLogoutDialogOpen(true)}
         >
           <IconLogout className="size-4" />
           Sair
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    {/* Diálogo de confirmação para sair da conta */}
+    <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+      <AlertDialogContent className="max-w-sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Sair da sua conta?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Você precisará entrar novamente com seu e-mail para acessar sua coleção, portfólios e configurações.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel disabled={saindo}>
+            Cancelar
+          </AlertDialogCancel>
+          <Button
+            variant="destructive"
+            disabled={saindo}
+            onClick={handleLogout}
+            className="h-9 rounded-full px-5 text-sm font-bold"
+          >
+            {saindo && <IconLoader2 className="size-4 animate-spin" />}
+            Sair da conta
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }
