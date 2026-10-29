@@ -799,8 +799,18 @@ export function CardDetailClient({
                     {detalheIntl}
                     {headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
                   </span>
+                  {/* Atribuição exigida pela MYP (link para mypcards.com):
+                      sem ela o acesso à API pode ser pausado */}
                   <span className="text-xs text-muted-foreground">
-                    O preço em real é disponibilizado pela MYP Cards.
+                    Dados:{" "}
+                    <a
+                      href="https://mypcards.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold underline underline-offset-2 hover:text-foreground"
+                    >
+                      MYP Cards
+                    </a>
                   </span>
                   <div className="w-full mt-1">
                     <LinhaDeLoja
