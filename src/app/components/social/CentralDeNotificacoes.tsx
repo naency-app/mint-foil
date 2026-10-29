@@ -331,7 +331,7 @@ export function CentralDeNotificacoes() {
                     setConfirmarLimpar(false);
                     apagar();
                   }}
-                  className="cursor-pointer rounded-full bg-red-500/15 px-3 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/25"
+                  className="cursor-pointer rounded-full bg-destructive/15 px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/25 transition-colors"
                 >
                   Apagar
                 </button>
@@ -341,7 +341,7 @@ export function CentralDeNotificacoes() {
             <button
               type="button"
               onClick={() => setConfirmarLimpar(true)}
-              className="w-full cursor-pointer border-t border-border py-2.5 text-xs font-semibold text-red-400 hover:bg-red-500/10"
+              className="w-full cursor-pointer border-t border-border py-2.5 text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors"
             >
               Limpar notificações
             </button>

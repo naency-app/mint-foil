@@ -14,6 +14,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { GlassPill } from "@/components/ui/glass";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ interface PortfolioSelectorProps {
   onSelect: (id: string) => void;
   onRefresh?: () => void;
   labelPrefix?: string;
+  hidePrefixOnMobile?: boolean;
   /**
    * Modo somente-leitura (ex.: perfil público de outro usuário): esconde as
    * ações de favoritar/renomear/deletar, que
@@ -52,6 +54,7 @@ export function PortfolioSelector({
   onSelect,
   onRefresh,
   labelPrefix = "Portfólio",
+  hidePrefixOnMobile = false,
   readOnly = false,
 }: PortfolioSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -177,9 +180,16 @@ export function PortfolioSelector({
             type="button"
             className="flex min-w-0 cursor-pointer items-center gap-1.5"
           >
-            <span className="shrink-0 text-sm font-medium text-muted-foreground">
-              {labelPrefix}
-            </span>
+            {labelPrefix && (
+              <span
+                className={cn(
+                  "shrink-0 text-sm font-medium text-muted-foreground",
+                  hidePrefixOnMobile && "hidden sm:inline",
+                )}
+              >
+                {labelPrefix}
+              </span>
+            )}
             <span className="truncate text-sm font-bold text-primary">
               {activePortfolio?.name ?? "Selecionar portfólio"}
             </span>
@@ -373,19 +383,19 @@ export function PortfolioSelector({
               desfeita.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
+          <DialogFooter className="gap-2">
+            <GlassPill
               onClick={() => setDeletingPortfolio(null)}
               disabled={isDeleting}
+              className="h-9 justify-center px-4 text-sm font-bold"
             >
-              <IconX className="size-4" />
               Cancelar
-            </Button>
+            </GlassPill>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
               onClick={handleDeletePortfolio}
               disabled={isDeleting}
+              className="h-9 rounded-full px-5 text-sm font-bold"
             >
               {isDeleting ? (
                 <IconLoader2 className="size-4 animate-spin" />

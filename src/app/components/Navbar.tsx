@@ -3,8 +3,12 @@
 import {
   IconCards,
   IconCompass,
+  IconLoader2,
+  IconLogin,
+  IconLogout,
   IconMenu,
   IconScan,
+  IconSettings,
   IconStack2,
   IconX,
 } from "@tabler/icons-react";
@@ -13,11 +17,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BuscaRapida } from "@/app/components/BuscaRapida";
-import { QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
+import { FOIL, QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
 import { CentralDeNotificacoes } from "@/app/components/social/CentralDeNotificacoes";
+import { FotoDoUsuario } from "@/components/FotoDoUsuario";
 import { SeletorTema } from "@/components/SeletorTema";
 import { UserMenu } from "@/components/UserMenu";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { BotaoFoil } from "@/components/ui/botao-foil";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -31,6 +46,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { signOut, useSession } from "@/lib/auth-client";
 import { useExploreHref } from "@/lib/explore-href";
 import { navbarRolada } from "@/lib/navbar-rolada";
 import { cn } from "@/lib/utils";
@@ -39,6 +55,11 @@ const navLinks = [
   { label: "Explorar", href: "/explore", icon: IconCompass },
   { label: "Portfólio", href: "/portfolio", icon: IconCards },
   { label: "Sets", href: "/sets", icon: IconStack2 },
+];
+
+const mobileNavLinks = [
+  ...navLinks,
+  { label: "Configurações", href: "/settings", icon: IconSettings },
 ];
 
 // Mesma cara do wordmark da landing: fonte do sistema, peso 800, caixa alta
@@ -53,6 +74,20 @@ function isLinkActive(pathname: string, href: string) {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [saindo, setSaindo] = useState(false);
+  const { data: session } = useSession();
+
+  async function handleLogout() {
+    setSaindo(true);
+    try {
+      await signOut();
+    } catch {
+      // ignore
+    }
+    window.location.href = "/explore";
+  }
+
   // Padrão da nav da landing: parada no topo, vira pill flutuante ao rolar
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -123,70 +158,183 @@ export function Navbar() {
 
               <SheetContent
                 side="left"
-                className="w-72 gap-0 border-border bg-background p-0"
+                className="w-80 max-w-[85vw] gap-0 border-r border-border/50 bg-background/95 backdrop-blur-2xl p-0 flex flex-col h-full overflow-hidden"
                 showCloseButton={false}
               >
-                <SheetHeader className="border-b border-border px-5 pt-5 pb-4">
+                {/* Cabeçalho com logo oficial e botão fechar */}
+                <SheetHeader className="border-b border-border/50 px-5 pt-5 pb-4 shrink-0">
                   <div className="flex items-center justify-between">
-                    <SheetTitle>
-                      <span
-                        className="select-none text-lg font-extrabold uppercase tracking-[0.15em] text-foreground"
-                        style={{ fontFamily: WORDMARK_FONT }}
-                      >
-                        Mint <span className="foil-text">Foil</span>
-                      </span>
-                    </SheetTitle>
+                    <div className="flex items-center gap-2.5">
+                      {/* biome-ignore lint/performance/noImgElement: logo */}
+                      <img
+                        src="/landing/logo-m.png"
+                        alt=""
+                        width={24}
+                        height={24}
+                        className="size-6"
+                      />
+                      <SheetTitle className="leading-none">
+                        <span
+                          className="select-none text-base font-extrabold uppercase tracking-[0.15em] text-foreground"
+                          style={{ fontFamily: WORDMARK_FONT }}
+                        >
+                          Mint <span className="foil-text">Foil</span>
+                        </span>
+                      </SheetTitle>
+                    </div>
                     <SheetClose asChild>
                       <button
                         type="button"
-                        className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                        className="flex size-8 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                         aria-label="Fechar menu"
                       >
-                        <IconX className="size-5" />
+                        <IconX className="size-4.5" />
                       </button>
                     </SheetClose>
                   </div>
                 </SheetHeader>
 
-                {/* Itens em pílula com ícone, como o dock do app: a faixa de
-                    largura inteira com risco na borda parecia lista de
-                    configurações (21/10) */}
-                <nav className="flex flex-col gap-1 p-3">
-                  {navLinks.map((link) => {
-                    const active = isLinkActive(pathname, link.href);
-                    return (
-                      <SheetClose key={link.label} asChild>
+                {/* Conteúdo rolável para telas de qualquer altura */}
+                <div className="flex-1 overflow-y-auto">
+                  {/* Card do Usuário (se logado) ou Botão de Login (se deslogado) */}
+                  {session?.user ? (
+                    <div className="border-b border-border/50 p-3">
+                      <SheetClose asChild>
                         <Link
-                          href={destino(link.href)}
-                          className={cn(
-                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
-                            active
-                              ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                          )}
+                          href="/portfolio"
+                          className="glass-card flex items-center gap-3 rounded-2xl p-2.5 transition-all hover:bg-muted/60 group"
                         >
-                          <link.icon className="size-5" />
-                          {link.label}
+                          {session.user.image ? (
+                            <FotoDoUsuario
+                              src={session.user.image}
+                              alt={session.user.name ?? "Avatar"}
+                              width={36}
+                              height={36}
+                              className="size-9 rounded-full border border-border/60 object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-primary/10 text-xs font-bold text-primary">
+                              {(session.user.name ?? session.user.email ?? "?").charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                              {session.user.name ?? "Meu Perfil"}
+                            </p>
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {(session.user as any).handle ? `@${(session.user as any).handle}` : session.user.email ?? "Ver perfil"}
+                            </p>
+                          </div>
                         </Link>
                       </SheetClose>
-                    );
-                  })}
-                </nav>
+                    </div>
+                  ) : (
+                    <div className="border-b border-border/50 p-3">
+                      <SheetClose asChild>
+                        <Link
+                          href="/login"
+                          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary text-xs font-bold text-white shadow-xs transition-colors hover:bg-primary/90"
+                        >
+                          <IconLogin className="size-4" />
+                          <span>Entrar na sua conta</span>
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  )}
 
-                <div className="border-t border-border px-5 py-4">
-                  <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Aparência
-                  </p>
-                  <SeletorTema />
+                  {/* Links de navegação principais */}
+                  <nav className="flex flex-col gap-1 p-3">
+                    {mobileNavLinks.map((link) => {
+                      const active = isLinkActive(pathname, link.href);
+                      return (
+                        <SheetClose key={link.label} asChild>
+                          <Link
+                            href={destino(link.href)}
+                            className={cn(
+                              "group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all",
+                              active
+                                ? "border border-primary/20 bg-primary/10 text-primary shadow-xs"
+                                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                            )}
+                          >
+                            <link.icon
+                              className={cn(
+                                "size-5 transition-transform group-hover:scale-105",
+                                active
+                                  ? "text-primary"
+                                  : "text-muted-foreground group-hover:text-foreground",
+                              )}
+                            />
+                            <span>{link.label}</span>
+                          </Link>
+                        </SheetClose>
+                      );
+                    })}
+
+                    {/* Sair da conta como item de menu de conta (não colado no banner) */}
+                    {session?.user && (
+                      <button
+                        type="button"
+                        onClick={() => setLogoutDialogOpen(true)}
+                        className="group flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive cursor-pointer text-left"
+                      >
+                        <IconLogout className="size-5 transition-transform group-hover:scale-105 text-muted-foreground group-hover:text-destructive" />
+                        <span>Sair da conta</span>
+                      </button>
+                    )}
+                  </nav>
+
+                  {/* Seção de Aparência com controle segmentado de 3 opções */}
+                  <div className="border-t border-border/50 px-4 py-4">
+                    <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                      Aparência
+                    </p>
+                    <SeletorTema />
+                  </div>
                 </div>
 
-                {/* Convite pro app no pé do menu: no celular é o caminho do
-                    scan, e o selo leva direto à loja */}
-                <div className="mt-auto space-y-3 border-t border-border px-5 py-5">
-                  <p className="text-sm font-bold text-foreground">
-                    Escaneie suas cartas pelo app
-                  </p>
-                  <SelosLojas tamanho={116} origem="menu-mobile" />
+                {/* Rodapé fixo com o banner do app */}
+                <div className="border-t border-border/50 bg-background/80 p-3.5 pb-5 shrink-0">
+                  {/* Banner Foil do App */}
+                  <div
+                    className="relative w-full overflow-hidden rounded-2xl p-[1.5px]"
+                    style={{
+                      background: FOIL,
+                      backgroundSize: "200% 200%",
+                      animation: "mfFoilShift 7s linear infinite",
+                      boxShadow: "0 8px 24px rgba(248, 86, 167, 0.15)",
+                    }}
+                  >
+                    <div className="convite-banner relative overflow-hidden rounded-[calc(var(--radius-2xl)-1.5px)] p-3.5">
+                      <div className="relative z-10 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="foil-text text-[9px] font-extrabold tracking-[2px] uppercase">
+                            APP MINT FOIL
+                          </span>
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                            Grátis
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-xs font-extrabold leading-tight text-foreground">
+                            Adicione cartas pela câmera
+                          </p>
+                          <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                            Várias numa foto só, sem digitar nada.
+                          </p>
+                        </div>
+                        <SheetClose asChild>
+                          <Link
+                            href="/download"
+                            className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-white shadow-xs transition-colors hover:bg-primary/90 active:scale-95"
+                          >
+                            <IconScan className="size-4" />
+                            <span>Baixar o app</span>
+                          </Link>
+                        </SheetClose>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -315,10 +463,38 @@ export function Navbar() {
 
             {/* Sino da central de notificações: só com sessão */}
             <CentralDeNotificacoes />
-            <UserMenu />
+            <div className="hidden md:block">
+              <UserMenu />
+            </div>
           </div>
         </div>
       </nav>
+
+      {/* Diálogo de confirmação para sair da conta */}
+      <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sair da sua conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você precisará entrar novamente com seu e-mail para acessar sua coleção, portfólios e configurações.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel disabled={saindo}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={saindo}
+              onClick={handleLogout}
+              className="h-9 rounded-full px-5 text-sm font-bold"
+            >
+              {saindo && <IconLoader2 className="size-4 animate-spin" />}
+              Sair da conta
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
