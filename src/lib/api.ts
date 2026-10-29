@@ -103,6 +103,7 @@ export interface Card {
   latestPriceBrl?: number | null;
   storeLinks?: StoreLink[];
   internationalPrice?: InternationalPrice | null;
+  precoMyp?: PrecoMyp | null;
   storeBrowseLinks?: StoreBrowseLink[];
   collectorNumber?: string | null;
 }
@@ -112,6 +113,21 @@ export interface Card {
  * Estimativa de mercado internacional — a UI mostra fonte, USD e câmbio.
  * Ver docs/adr/0002.
  */
+/**
+ * Preço da MyP Cards (API oficial): `menor` é o valor da carta — o menor preço
+ * anunciado. null = sem oferta, sem ligação com o catálogo ou sem a integração.
+ * A MyP exige a atribuição visível onde o dado aparece.
+ */
+export interface PrecoMyp {
+  menor: number;
+  medio: number | null;
+  /** O anúncio mais caro: com o menor, vira a faixa "de R$ X a R$ Y" */
+  maior: number | null;
+  aVenda: number | null;
+  link: string;
+  atualizadoEm: string;
+}
+
 export interface InternationalPrice {
   usd: number | null;
   brl: number;
