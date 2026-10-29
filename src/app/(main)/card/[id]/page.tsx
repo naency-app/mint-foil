@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { precoAtual } from "@/lib/reference-price";
 import { buscarCarta } from "@/lib/servidor";
 import { cardName, cardNameEn } from "@/lib/utils";
@@ -79,5 +80,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CardDetailPage({ params }: Props) {
   const { id } = await params;
   const carta = await buscarCarta(id);
-  return <CardDetailClient id={id} inicial={carta} />;
+  return (
+    <Suspense fallback={null}>
+      <CardDetailClient id={id} inicial={carta} />
+    </Suspense>
+  );
 }

@@ -33,7 +33,8 @@ export function ProfileHeader({
   isPro,
   memberSince,
   totalCards,
-  totalSealed,
+  totalPortfolios = 0,
+  totalSealed: _totalSealed,
   totalValue,
   cover,
   bio,
@@ -47,7 +48,8 @@ export function ProfileHeader({
   isPro: boolean;
   memberSince: string | null;
   totalCards: number;
-  totalSealed: number;
+  totalPortfolios?: number;
+  totalSealed?: number;
   totalValue: number;
   cover: Cover;
   bio?: string | null;
@@ -162,12 +164,33 @@ export function ProfileHeader({
         </div>
       )}
 
-      {/* O que a pessoa tem, num painel só: valor, cartas e selados lado a
-          lado no computador, separados por linhas finas; no celular o valor
-          fica sozinho em cima. Números na fonte do sistema com algarismos
+      {/* O que a pessoa tem, num painel só: cartas, portfólios e valor estimado
+          lado a lado no computador, separados por linhas finas; no celular o
+          valor fica embaixo. Números na fonte do sistema com algarismos
           alinhados, sem a monoespaçada pesada de antes (21/10). */}
-      <div className="mt-6 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1.6fr_1fr_1fr]">
-        <div className="col-span-2 flex flex-col items-center justify-center border-b border-border/60 px-5 py-4 md:col-span-1 md:border-r md:border-b-0">
+      <div className="mt-6 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1fr_1fr_1.6fr]">
+        {[
+          { rotulo: "Cartas", valor: totalCards },
+          { rotulo: "Portfólios", valor: totalPortfolios },
+        ].map(({ rotulo, valor }, i) => (
+          <div
+            key={rotulo}
+            className={`flex flex-col items-center justify-center px-5 py-4 ${
+              i === 0
+                ? "border-r border-border/60"
+                : "md:border-r md:border-border/60"
+            }`}
+          >
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {valor}
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              {rotulo}
+            </p>
+          </div>
+        ))}
+
+        <div className="col-span-2 flex flex-col items-center justify-center border-t border-border/60 px-5 py-4 md:col-span-1 md:border-t-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
                 ao lado do gráfico, que mostra só o portfólio escolhido. */}
@@ -178,23 +201,6 @@ export function ProfileHeader({
             {formatPrice(totalValue)}
           </p>
         </div>
-
-        {[
-          { rotulo: "Cartas", valor: totalCards },
-          { rotulo: "Selados", valor: totalSealed },
-        ].map(({ rotulo, valor }, i) => (
-          <div
-            key={rotulo}
-            className={`flex flex-col items-center justify-center px-5 py-4 ${i === 0 ? "border-r border-border/60" : ""}`}
-          >
-            <p className="text-2xl font-bold text-foreground tabular-nums">
-              {valor}
-            </p>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              {rotulo}
-            </p>
-          </div>
-        ))}
       </div>
     </>
   );
@@ -234,17 +240,17 @@ export function ProfileHeader({
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
         </div>
 
-        {actions && (
-          <div className="absolute top-20 right-4 z-10 sm:top-24 sm:right-6">
-            {actions}
-          </div>
-        )}
-
         <div className="relative -mt-6 rounded-t-3xl bg-background">
-          <div className="mx-auto flex w-full max-w-sm flex-col items-center px-4 pb-10 text-center md:max-w-2xl">
+          <div className="mx-auto flex w-full max-w-sm flex-col items-center px-4 pb-6 text-center md:max-w-2xl">
             {avatar(160, "-mt-[70px] mb-3 size-[140px] md:-mt-20 md:size-40")}
             {info}
           </div>
+
+          {actions && (
+            <div className="mx-auto flex max-w-370 justify-end px-4 pb-2 sm:px-6 lg:px-8">
+              {actions}
+            </div>
+          )}
         </div>
       </div>
     );

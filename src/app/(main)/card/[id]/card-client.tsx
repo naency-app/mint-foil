@@ -2,6 +2,7 @@
 
 import {
   IconAlertCircle,
+  IconChevronLeft,
   IconExternalLink,
   IconPackage,
   IconShoppingCart,
@@ -11,7 +12,7 @@ import {
 } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
@@ -324,6 +325,10 @@ export function CardDetailClient({
   const { data: session } = useSession();
   const { pedirLogin } = useQuickAdd();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const portfolioId = searchParams.get("portfolioId");
+  const fromPortfolio =
+    searchParams.get("from") === "portfolio" || !!portfolioId;
   // Lista compartilhada com Explore/Portfólio pela chave ['portfolios'] — antes
   // esta página buscava a mesma lista DUAS vezes (aqui e dentro do fetch de
   // itens), a cada montagem e a cada mudança de quantidade.
@@ -451,25 +456,71 @@ export function CardDetailClient({
 
   return (
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <Trilha
-        className="text-sm"
-        niveis={[
-          { label: "Sets", href: "/sets" },
-          {
-            label: card.tcg?.name ?? "TCG",
-            href: `/sets/${card.tcg?.slug ?? ""}`,
-          },
-          ...(card.set
-            ? [
+      {fromPortfolio ? (
+        <div className="flex items-center justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push(
+                  portfolioId && portfolioId !== "default"
+                    ? `/portfolio?id=${portfolioId}`
+                    : "/portfolio",
+                );
+              }
+            }}
+            className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground group"
+          >
+            <IconChevronLeft className="size-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+            <span>Voltar ao portfólio</span>
+          </button>
+
+          <div className="hidden md:block">
+            <Trilha
+              className="text-sm"
+              niveis={[
+                { label: "Sets", href: "/sets" },
                 {
-                  label: card.set.name ?? card.setName ?? card.setCode ?? "",
-                  href: `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`,
+                  label: card.tcg?.name ?? "TCG",
+                  href: `/sets/${card.tcg?.slug ?? ""}`,
                 },
-              ]
-            : []),
-        ]}
-        atual={cardName(card)}
-      />
+                ...(card.set
+                  ? [
+                      {
+                        label:
+                          card.set.name ?? card.setName ?? card.setCode ?? "",
+                        href: `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`,
+                      },
+                    ]
+                  : []),
+              ]}
+              atual={cardName(card)}
+            />
+          </div>
+        </div>
+      ) : (
+        <Trilha
+          className="text-sm"
+          niveis={[
+            { label: "Sets", href: "/sets" },
+            {
+              label: card.tcg?.name ?? "TCG",
+              href: `/sets/${card.tcg?.slug ?? ""}`,
+            },
+            ...(card.set
+              ? [
+                  {
+                    label: card.set.name ?? card.setName ?? card.setCode ?? "",
+                    href: `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`,
+                  },
+                ]
+              : []),
+          ]}
+          atual={cardName(card)}
+        />
+      )}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
