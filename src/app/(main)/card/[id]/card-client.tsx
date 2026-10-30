@@ -533,6 +533,17 @@ export function CardDetailClient({
   ]
     .filter(Boolean)
     .join(" · ");
+  // Com a MyP na manchete, o internacional vira uma linha de referência com
+  // o valor em real depois do câmbio: "US$ 5.99 · câmbio 4.96 · R$ 29,74 ·
+  // TCGplayer" (30/10)
+  const linhaIntlComReal = [
+    intl?.usd != null ? `US$ ${intl.usd.toFixed(2)}` : null,
+    intl?.rate != null ? `câmbio ${intl.rate.toFixed(2)}` : null,
+    headlineBrl > 0 ? `R$ ${formatPrice(headlineBrl)}` : null,
+    intl?.source ?? "TCGplayer",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const priceHistory = card.prices
     .slice()
@@ -799,6 +810,13 @@ export function CardDetailClient({
                   MYP Cards
                 </a>
               </span>
+              {/* Com a MyP: o internacional logo abaixo da frase, no mesmo
+                  tamanho dela */}
+              {myp && (
+                <span className="text-xs text-muted-foreground">
+                  {linhaIntlComReal}
+                </span>
+              )}
             </div>
 
             {/* A MyP sempre em destaque: com preço, o link vai ao produto;
@@ -813,14 +831,6 @@ export function CardDetailClient({
               acao="Confira na loja"
               destaque
             />
-
-            {/* Com a MyP, o internacional vem depois do botão dela, com o
-                preço em real na frente e na mesma fonte da linha (30/10) */}
-            {myp && headlineBrl > 0 && (
-              <p className="text-right text-sm text-muted-foreground">
-                R$ {formatPrice(headlineBrl)} · {detalheIntl}
-              </p>
-            )}
 
             <div className="mt-2 space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
