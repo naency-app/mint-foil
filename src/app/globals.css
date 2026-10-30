@@ -260,7 +260,8 @@
   }
 
   @keyframes soft-border-pulse {
-    0%, 100% {
+    0%,
+    100% {
       border-color: rgba(248, 86, 167, 0.45);
     }
     50% {

@@ -125,9 +125,9 @@ export default function SuportePage() {
 
         <p style={S.q}>Quantos scans eu tenho?</p>
         <p style={S.p}>
-          O plano gratuito inclui 10 scans por dia. Cada carta identificada
-          consome um scan — uma foto com 8 cartas consome 8 scans. A cota
-          reinicia todo dia.
+          O plano gratuito inclui 50 scans por semana. Cada carta identificada
+          consome um scan — uma foto com 8 cartas consome 8 scans. O saldo
+          renova toda segunda-feira.
         </p>
 
         <p style={S.q}>Como gerencio ou cancelo minha assinatura?</p>
@@ -157,9 +157,11 @@ export default function SuportePage() {
         </p>
         <p style={S.p}>
           Você mesmo exclui, de dois jeitos. No app Mint Foil, em{" "}
-          <strong>Perfil → Configurações (ícone de engrenagem) → Excluir
-          conta</strong>, confirmando com a palavra EXCLUIR. Ou, sem o app
-          instalado, no site: entre em{" "}
+          <strong>
+            Perfil → Configurações (ícone de engrenagem) → Excluir conta
+          </strong>
+          , confirmando com a palavra EXCLUIR. Ou, sem o app instalado, no site:
+          entre em{" "}
           <a href="/settings" style={{ color: "#F856A7" }}>
             mintfoil.com/settings
           </a>{" "}
@@ -168,11 +170,12 @@ export default function SuportePage() {
           pelo app ou pelo e-mail abaixo.
         </p>
         <p style={S.p}>
-          A exclusão é imediata e permanente: apaga sua conta, seu perfil e foto,
-          seus portfólios e cartas, o histórico de valor da coleção, os scans,
-          os alertas de preço, as notificações e quem você segue ou te segue.
-          Não guardamos cópia. Os registros de pagamento de uma assinatura ficam
-          com a loja onde ela foi feita (Apple ou Google), pelas regras dela.
+          A exclusão é imediata e permanente: apaga sua conta, seu perfil e
+          foto, seus portfólios e cartas, o histórico de valor da coleção, os
+          scans, os alertas de preço, as notificações e quem você segue ou te
+          segue. Não guardamos cópia. Os registros de pagamento de uma
+          assinatura ficam com a loja onde ela foi feita (Apple ou Google),
+          pelas regras dela.
         </p>
         <p style={S.p}>
           Se preferir, envie o pedido para {CONTATO} a partir do e-mail

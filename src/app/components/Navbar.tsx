@@ -444,8 +444,8 @@ export function Navbar() {
                     Escaneie suas cartas pelo celular
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Aponte a câmera para o código e baixe o Mint Foil. São 10
-                    scans grátis por dia.
+                    Aponte a câmera para o código e baixe o Mint Foil. São 50
+                    scans grátis por semana.
                   </p>
                 </div>
                 <QrDoApp className="mx-auto size-40" />

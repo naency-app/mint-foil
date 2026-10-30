@@ -1982,7 +1982,7 @@ const WHY_POINTS = [
     id: "semconta",
     icon: <IconLineScan size={17} />,
     title: "Comece sem conta",
-    desc: "10 scans grátis por dia — sem cadastro, sem cartão.",
+    desc: "50 scans grátis por semana — sem cadastro, sem cartão.",
   },
   {
     id: "portfolio",
@@ -2986,26 +2986,26 @@ function KeyFeatures() {
 const PRO_FEATURES = [
   "Scans ilimitados",
   "Portfólios ilimitados",
-  "Filtros e ordenação exclusivos",
   "Exportar a coleção em planilha",
   "Fundos de perfil exclusivos",
 ];
 
-// Teto diário do plano grátis. Espelha FREE_DAILY_LIMIT do backend
-// (scan.service.ts) — se mudar lá, mude aqui: é este número que a calculadora
-// usa como divisor entre Grátis e PRO.
-const FREE_SCANS_PER_DAY = 10;
-const SCANS_SLIDER_MAX = FREE_SCANS_PER_DAY * 4;
+// Saldo semanal do plano grátis (30/10: era 10 por dia; renova na segunda).
+// Espelha o limite do backend (scan.service.ts) — se mudar lá, mude aqui: é
+// este número que a calculadora usa como divisor entre Grátis e PRO.
+const FREE_SCANS_PER_WEEK = 50;
+const SCANS_SLIDER_MAX = FREE_SCANS_PER_WEEK * 4;
 
-// Vantagens reais do plano grátis (o sistema limita só a quantidade de scans/dia
-// — todo o resto o free já tem). Mostradas quando o slider está na faixa grátis.
+// Vantagens reais do plano grátis, com os limites que o sistema aplica
+// (scans por semana e portfólios). Mostradas quando o slider está na
+// faixa grátis.
 const FREE_FEATURES = [
-  `${FREE_SCANS_PER_DAY} scans grátis por dia`,
-  "Preços de referência em R$",
-  "Link de conferência na loja",
-  "Carteira da sua coleção",
-  "Histórico de preço",
-  "Todos os TCGs disponíveis",
+  `${FREE_SCANS_PER_WEEK} scans grátis por semana`,
+  "Preço em real das lojas brasileiras",
+  "Até 5 portfólios",
+  "Gráfico e histórico de preço",
+  "Alertas de preço",
+  "Os 8 jogos",
 ];
 
 // ── Banner PRO — tratamento "foil" (holo de carta) no lugar do dourado
@@ -3031,12 +3031,12 @@ function ProBanner() {
   const isMobile = useIsMobile();
   const telaBaixa = useTelaBaixa();
   const router = useRouter();
-  // Slider embutido: até FREE_SCANS_PER_DAY = Grátis (R$ 0); acima = PRO 9,90.
+  // Slider embutido: até FREE_SCANS_PER_WEEK = Grátis (R$ 0); acima = PRO 9,90.
   // Nasce um passo acima do teto (PRO): mexendo pra baixo a pessoa descobre que
   // zera. O máximo do slider é 4x o teto grátis — com um máximo muito maior, a
   // faixa gratuita virava um fiapo do trilho e ninguém a encontrava arrastando.
-  const [scans, setScans] = useState(FREE_SCANS_PER_DAY + 1);
-  const isPro = scans > FREE_SCANS_PER_DAY;
+  const [scans, setScans] = useState(FREE_SCANS_PER_WEEK + 1);
+  const isPro = scans > FREE_SCANS_PER_WEEK;
   const pct = (scans / SCANS_SLIDER_MAX) * 100;
   return (
     <div
@@ -3126,8 +3126,8 @@ function ProBanner() {
             }}
           >
             {isPro
-              ? "Scans e portfólios ilimitados, filtros exclusivos e a coleção exportável em planilha."
-              : `Preços de referência em real, a carteira da sua coleção e ${FREE_SCANS_PER_DAY} scans grátis por dia — sem pagar nada.`}
+              ? "Scans e portfólios ilimitados, e a coleção exportável em planilha."
+              : `Preço em real, até 5 portfólios e ${FREE_SCANS_PER_WEEK} scans grátis por semana — sem pagar nada.`}
           </p>
           {/* Features em 2 colunas (3 em tela baixa: uma linha a menos) */}
           <div
@@ -3160,7 +3160,7 @@ function ProBanner() {
             ))}
           </div>
 
-          {/* Slider de scans/dia — o preço ao lado do botão responde */}
+          {/* Slider de scans/semana — o preço ao lado do botão responde */}
           <div
             style={{
               maxWidth: "440px",
@@ -3178,7 +3178,7 @@ function ProBanner() {
               <span
                 style={{ fontSize: "12.5px", color: "rgba(255,255,255,0.55)" }}
               >
-                Quantos scans você faz por dia?
+                Quantos scans você faz por semana?
               </span>
               <span
                 style={{
@@ -3199,7 +3199,7 @@ function ProBanner() {
               step={1}
               value={scans}
               onChange={(e) => setScans(Number(e.target.value))}
-              aria-label="Quantos scans você faz por dia"
+              aria-label="Quantos scans você faz por semana"
               style={{
                 width: "100%",
                 height: "8px",
@@ -3325,7 +3325,7 @@ function ProBanner() {
   );
 }
 
-// ── Calculadora de plano: até FREE_SCANS_PER_DAY = Grátis; acima = PRO ───────
+// ── Calculadora de plano: até FREE_SCANS_PER_WEEK = Grátis; acima = PRO ───────
 
 const RANGE_THUMB_CSS = `
 .mf-range { -webkit-appearance: none; appearance: none; outline: none; }

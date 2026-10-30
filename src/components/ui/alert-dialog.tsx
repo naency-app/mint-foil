@@ -157,10 +157,7 @@ function AlertDialogAction({
       className={cn("h-9 rounded-full px-5 text-sm font-bold", className)}
       asChild
     >
-      <AlertDialogPrimitive.Action
-        data-slot="alert-dialog-action"
-        {...props}
-      />
+      <AlertDialogPrimitive.Action data-slot="alert-dialog-action" {...props} />
     </Button>
   );
 }
@@ -182,10 +179,7 @@ function AlertDialogCancel({
       )}
       asChild
     >
-      <AlertDialogPrimitive.Cancel
-        data-slot="alert-dialog-cancel"
-        {...props}
-      />
+      <AlertDialogPrimitive.Cancel data-slot="alert-dialog-cancel" {...props} />
     </Button>
   );
 }
