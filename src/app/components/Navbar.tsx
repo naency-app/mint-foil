@@ -52,10 +52,27 @@ const navLinks = [
   { label: "Sets", href: "/sets", icon: IconStack2 },
 ];
 
-const mobileNavLinks = [
-  ...navLinks,
-  { label: "Configurações", href: "/settings", icon: IconSettings },
-];
+/**
+ * Item do menu lateral: o mesmo desenho para a navegação e para a conta
+ * (Configurações, Sair), que só mudam de grupo.
+ */
+function classeDoItem(ativo: boolean) {
+  return cn(
+    "group flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all",
+    ativo
+      ? "border border-primary/20 bg-primary/10 text-primary shadow-xs"
+      : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+  );
+}
+
+function classeDoIcone(ativo: boolean) {
+  return cn(
+    "size-5 transition-transform group-hover:scale-105",
+    ativo
+      ? "text-primary"
+      : "text-muted-foreground group-hover:text-foreground",
+  );
+}
 
 // Mesma cara do wordmark da landing: fonte do sistema, peso 800, caixa alta
 const WORDMARK_FONT =
@@ -182,27 +199,22 @@ export function Navbar() {
 
                 {/* Conteúdo rolável para telas de qualquer altura */}
                 <div className="flex-1 overflow-y-auto">
-                  {/* Card do Usuário (se logado) ou Botão de Login (se deslogado) */}
+                  {/* Quem está logado: só identificação, sem link — o Portfólio
+                      (que na web é o perfil) já está na lista logo abaixo, e
+                      dois caminhos para o mesmo lugar confundiam (30/10) */}
                   {session?.user ? (
                     <div className="border-b border-border/50 p-3">
-                      <SheetClose asChild>
-                        <Link
-                          href="/portfolio"
-                          className="glass-card flex items-center gap-3 rounded-2xl p-2.5 transition-all hover:bg-muted/60 group"
-                        >
-                          <AvatarDoUsuario user={session.user} tamanho={36} />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                              {session.user.name ?? "Meu Perfil"}
-                            </p>
-                            <p className="truncate text-[11px] text-muted-foreground">
-                              {handle
-                                ? `@${handle}`
-                                : (session.user.email ?? "Ver perfil")}
-                            </p>
-                          </div>
-                        </Link>
-                      </SheetClose>
+                      <div className="flex items-center gap-3 px-1.5 py-1">
+                        <AvatarDoUsuario user={session.user} tamanho={36} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold text-foreground">
+                            {session.user.name ?? "Minha conta"}
+                          </p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {handle ? `@${handle}` : session.user.email}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="border-b border-border/50 p-3">
@@ -218,46 +230,22 @@ export function Navbar() {
                     </div>
                   )}
 
-                  {/* Links de navegação principais */}
+                  {/* Navegação */}
                   <nav className="flex flex-col gap-1 p-3">
-                    {mobileNavLinks.map((link) => {
+                    {navLinks.map((link) => {
                       const active = isLinkActive(pathname, link.href);
                       return (
                         <SheetClose key={link.label} asChild>
                           <Link
                             href={destino(link.href)}
-                            className={cn(
-                              "group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all",
-                              active
-                                ? "border border-primary/20 bg-primary/10 text-primary shadow-xs"
-                                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
-                            )}
+                            className={classeDoItem(active)}
                           >
-                            <link.icon
-                              className={cn(
-                                "size-5 transition-transform group-hover:scale-105",
-                                active
-                                  ? "text-primary"
-                                  : "text-muted-foreground group-hover:text-foreground",
-                              )}
-                            />
+                            <link.icon className={classeDoIcone(active)} />
                             <span>{link.label}</span>
                           </Link>
                         </SheetClose>
                       );
                     })}
-
-                    {/* Sair da conta como item de menu de conta (não colado no banner) */}
-                    {session?.user && (
-                      <button
-                        type="button"
-                        onClick={() => setLogoutDialogOpen(true)}
-                        className="group flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive cursor-pointer text-left"
-                      >
-                        <IconLogout className="size-5 transition-transform group-hover:scale-105 text-muted-foreground group-hover:text-destructive" />
-                        <span>Sair da conta</span>
-                      </button>
-                    )}
                   </nav>
 
                   {/* Seção de Aparência com controle segmentado de 3 opções */}
@@ -267,6 +255,36 @@ export function Navbar() {
                     </p>
                     <SeletorTema />
                   </div>
+
+                  {/* Conta: separada da navegação, e o Sair (que pede
+                      confirmação) por último, longe dos links do dia a dia */}
+                  {session?.user && (
+                    <div className="flex flex-col gap-1 border-t border-border/50 p-3">
+                      <SheetClose asChild>
+                        <Link
+                          href="/settings"
+                          className={classeDoItem(
+                            isLinkActive(pathname, "/settings"),
+                          )}
+                        >
+                          <IconSettings
+                            className={classeDoIcone(
+                              isLinkActive(pathname, "/settings"),
+                            )}
+                          />
+                          <span>Configurações</span>
+                        </Link>
+                      </SheetClose>
+                      <button
+                        type="button"
+                        onClick={() => setLogoutDialogOpen(true)}
+                        className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left text-sm font-semibold text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <IconLogout className="size-5 text-muted-foreground transition-transform group-hover:scale-105 group-hover:text-destructive" />
+                        <span>Sair da conta</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Rodapé fixo com o banner do app */}
