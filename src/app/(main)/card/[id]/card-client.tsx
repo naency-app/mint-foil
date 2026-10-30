@@ -748,7 +748,9 @@ export function CardDetailClient({
               )}
               {/* Com a MyP, o número é o menor anúncio dela: é o preço que a
                   própria MyP põe como principal (30/10) */}
-              {myp ? "Preço mínimo em real" : "Preço internacional (estimado)"}
+              {myp
+                ? "Preço em real (mínimo)"
+                : "Preço internacional (estimado)"}
             </h3>
 
             <div className="flex flex-col items-end gap-1 text-right">
@@ -777,11 +779,12 @@ export function CardDetailClient({
                   R$ {formatPrice(myp ? myp.menor : headlineBrl)}
                 </span>
               </div>
-              {/* O internacional convertido, como sempre foi */}
-              <span className="text-sm text-muted-foreground">
-                {detalheIntl}
-                {myp && headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
-              </span>
+              {/* Sem a MyP, o internacional é a manchete e esta é a linha dele */}
+              {!myp && (
+                <span className="text-sm text-muted-foreground">
+                  {detalheIntl}
+                </span>
+              )}
               {/* Atribuição exigida pela MYP (link para mypcards.com), sempre
                   acima do botão, com ou sem preço dela na carta (decisão da
                   Isa, 30/10): sem ela o acesso à API pode ser pausado */}
@@ -810,6 +813,14 @@ export function CardDetailClient({
               acao="Confira na loja"
               destaque
             />
+
+            {/* Com a MyP, o internacional vem depois do botão dela, com o
+                preço em real na frente e na mesma fonte da linha (30/10) */}
+            {myp && headlineBrl > 0 && (
+              <p className="text-right text-sm text-muted-foreground">
+                R$ {formatPrice(headlineBrl)} · {detalheIntl}
+              </p>
+            )}
 
             <div className="mt-2 space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
