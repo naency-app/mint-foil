@@ -2930,7 +2930,6 @@ function KeyFeatures() {
 const PRO_FEATURES = [
   "Scans ilimitados",
   "Portfólios ilimitados",
-  "Alertas de preço ilimitados",
   "Exportar a coleção em planilha",
   "Fundos de perfil exclusivos",
 ];
@@ -2942,14 +2941,14 @@ const FREE_SCANS_PER_WEEK = 50;
 const SCANS_SLIDER_MAX = FREE_SCANS_PER_WEEK * 4;
 
 // Vantagens reais do plano grátis, com os limites que o sistema aplica
-// (scans por semana, portfólios e alertas). Mostradas quando o slider está na
+// (scans por semana e portfólios). Mostradas quando o slider está na
 // faixa grátis.
 const FREE_FEATURES = [
   `${FREE_SCANS_PER_WEEK} scans grátis por semana`,
   "Preço em real das lojas brasileiras",
   "Até 5 portfólios",
   "Gráfico e histórico de preço",
-  "3 alertas de preço",
+  "Alertas de preço",
   "Os 8 jogos",
 ];
 
@@ -3071,7 +3070,7 @@ function ProBanner() {
             }}
           >
             {isPro
-              ? "Scans, portfólios e alertas de preço ilimitados, e a coleção exportável em planilha."
+              ? "Scans e portfólios ilimitados, e a coleção exportável em planilha."
               : `Preço em real, até 5 portfólios e ${FREE_SCANS_PER_WEEK} scans grátis por semana — sem pagar nada.`}
           </p>
           {/* Features em 2 colunas (3 em tela baixa: uma linha a menos) */}
