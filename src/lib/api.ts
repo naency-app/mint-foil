@@ -1,3 +1,5 @@
+import type { CartaDaTroca } from "@/lib/troca";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
 export interface Tcg {
@@ -304,10 +306,10 @@ export interface SugestoesBusca {
  * internacional. É o mesmo que a tela da carta mostra em destaque (30/10).
  */
 export function precoDaSugestao(carta: {
-  latestPriceBrl: number | null;
+  latestPriceBrl?: number | null;
   mypMenor?: number | null;
 }): number | null {
-  return carta.mypMenor ?? carta.latestPriceBrl;
+  return carta.mypMenor ?? carta.latestPriceBrl ?? null;
 }
 
 /**
@@ -660,6 +662,11 @@ export const api = {
       return apiFetch<SugestoesBusca>(`/cards/sugestoes?${qs}`);
     },
     get: (id: string) => apiFetch<Card>(`/cards/${id}`),
+    /** Várias cartas por id, na ordem pedida: abre um link de troca (30/10). */
+    lote: (ids: string[]) =>
+      apiFetch<CartaDaTroca[]>(
+        `/cards/lote?ids=${encodeURIComponent(ids.join(","))}`,
+      ),
     /** Raridades de um TCG com carta de exemplo — guia "Identifique sua raridade" */
     rarities: (tcg: string) =>
       apiFetch<RarityExample[]>(
@@ -706,6 +713,19 @@ export const api = {
      * Em quais portfólios uma carta está. Uma requisição no lugar de baixar o
      * conteúdo completo de cada portfólio só para filtrar um item.
      */
+    /**
+     * Confirma uma troca: os itens dados saem do portfólio e as cartas
+     * recebidas entram no `portfolioId`. Tudo ou nada (30/10).
+     */
+    confirmarTroca: (dados: {
+      dar: { itemId: string; quantidade: number }[];
+      receber: { cardId: string; quantidade: number }[];
+      portfolioId?: string;
+    }) =>
+      apiFetch<{ dados: number; recebidos: number }>("/collection/troca", {
+        method: "POST",
+        body: JSON.stringify(dados),
+      }),
     itemsForCard: (cardId: string) =>
       apiFetch<
         Pick<

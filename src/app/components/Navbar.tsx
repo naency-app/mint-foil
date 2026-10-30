@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  IconArrowsExchange,
   IconCards,
   IconCompass,
   IconLogin,
@@ -50,6 +51,8 @@ const navLinks = [
   { label: "Explorar", href: "/explore", icon: IconCompass },
   { label: "Portfólio", href: "/portfolio", icon: IconCards },
   { label: "Sets", href: "/sets", icon: IconStack2 },
+  // Analisador de troca (30/10)
+  { label: "Troca", href: "/troca", icon: IconArrowsExchange },
 ];
 
 /**

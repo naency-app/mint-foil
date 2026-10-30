@@ -24,6 +24,9 @@ const publicRoutes = [
   "/loja",
   // Guia de raridades é conteúdo educativo, como no app: abre sem conta
   "/raridades",
+  // Analisador de troca: montar e abrir um link compartilhado não exigem
+  // conta; só confirmar (mexer no portfólio) exige, e isso é na API (30/10)
+  "/troca",
   // A própria página manda para o login quem não tem sessão, guardando o
   // destino (?volta=) — aqui o redirect perdia a query e podia virar ciclo
   "/completar-perfil",
