@@ -2,9 +2,6 @@
 
 import {
   IconArrowsSort,
-  IconEyeCancel,
-  IconLayoutGrid,
-  IconListDetails,
   IconSearch,
   IconX,
 } from "@tabler/icons-react";
@@ -23,8 +20,8 @@ import {
 } from "@/app/components/filters";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { TcgCard } from "@/app/components/TcgCard";
+import { AlternarVisao, type Visao } from "@/components/AlternarVisao";
 import { EstadoVazio } from "@/components/EstadoVazio";
-import { GlassPill } from "@/components/ui/glass";
 import {
   Select,
   SelectContent,
@@ -45,7 +42,7 @@ function formatPrice(value: number) {
 }
 
 type SortValue = "value-desc" | "value-asc" | "name" | "qty-desc";
-type ViewMode = "grid" | "list";
+type ViewMode = Visao;
 
 /** Id sintético da opção "todos os portfólios" — não existe no banco. */
 const TODOS = "__todos__";
@@ -263,24 +260,7 @@ export function ShowcaseBrowser({
                 </SelectContent>
               </Select>
 
-              <div className="flex shrink-0 items-center gap-1">
-                <GlassPill
-                  active={view === "grid"}
-                  onClick={() => setView("grid")}
-                  className="h-8 px-2.5"
-                  aria-label="Visualizar em grade"
-                >
-                  <IconLayoutGrid className="size-4" />
-                </GlassPill>
-                <GlassPill
-                  active={view === "list"}
-                  onClick={() => setView("list")}
-                  className="h-8 px-2.5"
-                  aria-label="Visualizar em lista"
-                >
-                  <IconListDetails className="size-4" />
-                </GlassPill>
-              </div>
+              <AlternarVisao valor={view} onChange={setView} />
             </div>
           </div>
 
