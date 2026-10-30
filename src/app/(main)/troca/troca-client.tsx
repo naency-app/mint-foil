@@ -470,8 +470,6 @@ function ResumoDaTroca({
   const titulo =
     veredito === "vazia" ? (
       "Adicione cartas nos dois lados"
-    ) : veredito === "equilibrada" ? (
-      "Troca justa"
     ) : veredito === "ganha" ? (
       <>
         Você ganha{" "}
@@ -485,24 +483,50 @@ function ResumoDaTroca({
     );
   return (
     <section className="glass-card !rounded-2xl flex flex-col items-center gap-4 p-5 text-center sm:flex-row sm:justify-between sm:text-left">
-      <div>
-        <p
-          className={cn(
-            "text-2xl font-extrabold tracking-tight",
-            veredito === "vazia" ? "text-muted-foreground" : "text-foreground",
-          )}
-        >
-          {titulo}
-        </p>
-        {veredito !== "vazia" && (
-          <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-            Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
-            {formatPrice(resumo.receber)}
-            {veredito !== "equilibrada" &&
-              ` · ${Math.abs(pct * 100).toFixed(0)}% de diferença`}
+      {veredito === "equilibrada" ? (
+        // Troca justa (30/10): o aperto de mãos e a diferença num selo, sem
+        // pintar a frase — verde e vermelho só nos números
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <IconHeartHandshake className="size-6 text-primary" />
+          </span>
+          <div>
+            <p className="flex flex-wrap items-center justify-center gap-2 text-2xl font-extrabold tracking-tight text-foreground sm:justify-start">
+              Troca justa
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tracking-normal text-muted-foreground tabular-nums">
+                {Math.abs(diferenca) < 0.005
+                  ? "valores iguais"
+                  : `diferença de R$ ${formatPrice(Math.abs(diferenca))}`}
+              </span>
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+              Os dois lados valem quase o mesmo: você entrega R${" "}
+              {formatPrice(resumo.dar)} e recebe R${" "}
+              {formatPrice(resumo.receber)}.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <p
+            className={cn(
+              "text-2xl font-extrabold tracking-tight",
+              veredito === "vazia"
+                ? "text-muted-foreground"
+                : "text-foreground",
+            )}
+          >
+            {titulo}
           </p>
-        )}
-      </div>
+          {veredito !== "vazia" && (
+            <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+              Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
+              {formatPrice(resumo.receber)}
+              {` · ${Math.abs(pct * 100).toFixed(0)}% de diferença`}
+            </p>
+          )}
+        </div>
+      )}
       {podeConfirmar ? (
         <BotaoFoil onClick={onConfirmar} className="shrink-0">
           <IconArrowsExchange />
