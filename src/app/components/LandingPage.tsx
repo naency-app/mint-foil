@@ -141,6 +141,55 @@ function useIsMobile(breakpoint = 768) {
 }
 
 /**
+ * Quanto as cartas de "Feito pro colecionador brasileiro" abrem para os lados.
+ * Era 175px fixo, e com a janela em ~1000px a coluna da direita encolhia e a
+ * carta da esquerda invadia o texto (30/10). Mede onde o texto termina e onde
+ * fica o centro das cartas: a carta da esquerda (272px, girada 12° — uns 40px
+ * a mais) para 16px antes do texto. No celular a pilha fica abaixo do texto.
+ */
+/** Onde termina a linha de texto mais comprida (não a caixa, que vai até o fim
+ * da coluna mesmo quando a frase é curta). */
+function fimDasLetras(el: HTMLElement) {
+  const passo = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const faixa = document.createRange();
+  let fim = el.getBoundingClientRect().left;
+  for (let n = passo.nextNode(); n; n = passo.nextNode()) {
+    if (!n.textContent?.trim()) continue;
+    faixa.selectNodeContents(n);
+    for (const r of faixa.getClientRects()) fim = Math.max(fim, r.right);
+  }
+  return fim;
+}
+
+function useAberturaDoLeque(
+  textoRef: React.RefObject<HTMLElement | null>,
+  cartasRef: React.RefObject<HTMLElement | null>,
+) {
+  const [abertura, setAbertura] = useState(175);
+  useEffect(() => {
+    const medir = () => {
+      if (window.innerWidth < 768) return setAbertura(44);
+      const texto = textoRef.current;
+      const cartas = cartasRef.current?.getBoundingClientRect();
+      if (!texto || !cartas) return;
+      const centro = cartas.left + cartas.width / 2;
+      const cabe = centro - 136 - 40 - 16 - fimDasLetras(texto);
+      setAbertura(Math.round(Math.min(175, Math.max(44, cabe))));
+    };
+    medir();
+    const obs = new ResizeObserver(medir);
+    if (textoRef.current) obs.observe(textoRef.current);
+    if (cartasRef.current) obs.observe(cartasRef.current);
+    window.addEventListener("resize", medir);
+    return () => {
+      obs.disconnect();
+      window.removeEventListener("resize", medir);
+    };
+  }, [textoRef, cartasRef]);
+  return abertura;
+}
+
+/**
  * Desktop com pouca altura (notebook, janela menor): o que é acessório numa
  * seção (subtítulo, nota de rodapé) sai para ela caber na tela — ver RESPIRO.
  */
@@ -1945,6 +1994,9 @@ const WHY_POINTS = [
 
 function WhyInner({ isMobile }: { isMobile: boolean }) {
   const t = useTheme();
+  const textoRef = useRef<HTMLDivElement>(null);
+  const cartasRef = useRef<HTMLDivElement>(null);
+  const abertura = useAberturaDoLeque(textoRef, cartasRef);
   return (
     <div
       style={{
@@ -1958,7 +2010,7 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
     >
       {/* Texto — as ferramentas do app. Fundo aqui é branco (mesmo no dark),
           então o accent é sempre o rosa vivo */}
-      <div>
+      <div ref={textoRef}>
         <FadeIn>
           <PinkBadge>Por que o Mint Foil</PinkBadge>
         </FadeIn>
@@ -2051,11 +2103,12 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
               pointerEvents: "none",
             }}
           />
-          <div style={{ position: "relative" }}>
+          <div ref={cartasRef} style={{ position: "relative" }}>
             <StackedCardsInteraction
               cards={STACK_CARDS}
-              // Desktop: abre bem para ver as cartas de trás (22/10)
-              spreadDistance={isMobile ? 44 : 175}
+              // Desktop: abre bem para ver as cartas de trás (22/10), até onde
+              // a coluna deixa (useAberturaDoLeque)
+              spreadDistance={abertura}
               rotationAngle={isMobile ? 10 : 12}
             />
             <p
