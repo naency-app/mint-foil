@@ -234,31 +234,31 @@ const FOOTER_BAND = [
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
-    imgs: ["/landing/pkm-card-back.jpg", "/landing/faixa/01.webp"],
+    imgs: ["/landing/pkm-card-back.webp", "/landing/faixa/01.webp"],
   },
   {
     text: "Yu-Gi-Oh!",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/blue-eyes-card.jpg"],
+    imgs: ["/landing/ygo-card-back.webp", "/landing/blue-eyes-card.webp"],
   },
   {
     text: "Magic",
-    imgs: ["/landing/mtg-card-back.jpg", "/landing/shivan-card.jpg"],
+    imgs: ["/landing/mtg-card-back.webp", "/landing/shivan-card.webp"],
   },
   {
     text: "One Piece",
-    imgs: ["/landing/op-card-back.jpg", "/landing/luffy-card.png"],
+    imgs: ["/landing/op-card-back.webp", "/landing/luffy-card.webp"],
   },
   {
     text: "Digimon",
     // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
     // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
-    imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
+    imgs: ["/landing/digimon-card-back.webp", "/landing/wargreymon-card.webp"],
   },
   {
     // Apagado e sem revelar cartas, como era o "em breve"; só a etiqueta
     // "EM BREVE" saiu (30/10: o jogo já está no app)
     text: "Dragon Ball",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
+    imgs: ["/landing/ygo-card-back.webp", "/landing/faixa/18.webp"],
     soon: true,
   },
 ];
@@ -1714,6 +1714,9 @@ function RevealItem({
           <img
             src={imgs[1]}
             alt=""
+            // Seção do meio da página: sem lazy o React pré-carregava as
+            // cartas na abertura, junto com a primeira tela (30/10)
+            loading="lazy"
             decoding="async"
             style={{
               width: "100%",
@@ -1747,6 +1750,9 @@ function RevealItem({
           <img
             src={imgs[0]}
             alt=""
+            // Seção do meio da página: sem lazy o React pré-carregava as
+            // cartas na abertura, junto com a primeira tela (30/10)
+            loading="lazy"
             decoding="async"
             style={{
               width: "100%",

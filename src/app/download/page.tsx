@@ -329,7 +329,7 @@ export default async function DownloadPage() {
           >
             {/* biome-ignore lint/performance/noImgElement: print local do app */}
             <img
-              src="/landing/home-sem-conta.jpg"
+              src="/landing/home-sem-conta.webp"
               alt="Tela inicial do Mint Foil com o valor da coleção"
               style={{
                 display: "block",
