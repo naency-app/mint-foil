@@ -619,17 +619,10 @@ export function CardDetailClient({
           ]}
           atual={cardName(card)}
           voltar={
-            <BotaoVoltar
-              padrao={
-                card.set
-                  ? {
-                      label:
-                        card.set.name ?? card.setName ?? card.setCode ?? "",
-                      href: `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`,
-                    }
-                  : { label: "Explorar", href: "/explore" }
-              }
-            />
+            // Quem abriu a carta direto (Google, link) volta ao Explorar: a
+            // coleção já tem o link roxo logo abaixo do nome, e como "voltar"
+            // levava para onde a pessoa nunca esteve (30/10)
+            <BotaoVoltar padrao={{ label: "Explorar", href: "/explore" }} />
           }
         />
       )}

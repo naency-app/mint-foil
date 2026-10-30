@@ -13,8 +13,17 @@ import { useEffect } from "react";
  */
 const caminho: string[] = [];
 
-/** Há uma tela do próprio site antes desta? */
-export function veioDeDentroDoSite(): boolean {
+/**
+ * Há uma tela do próprio site antes desta?
+ *
+ * `atual` é a tela de quem pergunta. O rastro só registra a troca no efeito
+ * dos Providers, que roda DEPOIS do efeito dos filhos: uma tela que já chega
+ * pronta do servidor (a carta) perguntava antes do registro e ouvia "não"
+ * (30/10). Se a tela atual ainda não está no rastro, a última anotada é a
+ * anterior.
+ */
+export function veioDeDentroDoSite(atual?: string): boolean {
+  if (atual && caminho.at(-1) !== atual) return caminho.length > 0;
   return caminho.length > 1;
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { IconChevronLeft } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { veioDeDentroDoSite } from "@/lib/navegacao-interna";
 import { cn } from "@/lib/utils";
@@ -22,10 +22,11 @@ export function BotaoVoltar({
   className?: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   // Só dá para saber no navegador: no servidor sai o padrão, e o rótulo
   // troca na montagem se houver tela anterior
   const [deDentro, setDeDentro] = useState(false);
-  useEffect(() => setDeDentro(veioDeDentroDoSite()), []);
+  useEffect(() => setDeDentro(veioDeDentroDoSite(pathname)), [pathname]);
 
   return (
     <button
