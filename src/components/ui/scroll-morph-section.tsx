@@ -22,10 +22,10 @@ interface FlipCardProps {
 // marcado em cada carta de IMAGES: adivinhar pelo endereço parou de funcionar
 // quando as imagens viraram arquivos locais numerados (todas caíam no Pokémon).
 const VERSO = {
-  pokemon: "/landing/pkm-card-back.jpg",
-  yugioh: "/landing/ygo-card-back.jpg",
-  magic: "/landing/mtg-card-back.jpg",
-  onepiece: "/landing/op-card-back.jpg",
+  pokemon: "/landing/pkm-card-back.webp",
+  yugioh: "/landing/ygo-card-back.webp",
+  magic: "/landing/mtg-card-back.webp",
+  onepiece: "/landing/op-card-back.webp",
 } as const;
 
 // --- FlipCard ---
@@ -104,15 +104,15 @@ function FlipCard({ src, back, target }: FlipCardProps) {
 
 // --- Cartas (mistura dos 4 TCGs; locais + hotlinks já usados na landing) ---
 const IMAGES: { src: string; jogo: keyof typeof VERSO }[] = [
-  { src: "/landing/blue-eyes-card.jpg", jogo: "yugioh" },
+  { src: "/landing/blue-eyes-card.webp", jogo: "yugioh" },
   { src: "/landing/faixa/01.webp", jogo: "pokemon" },
-  { src: "/landing/shivan-card.jpg", jogo: "magic" },
+  { src: "/landing/shivan-card.webp", jogo: "magic" },
   // Umbreon ex — Prismatic Evolutions (2025)
   { src: "/landing/faixa/02.webp", jogo: "pokemon" },
-  { src: "/landing/luffy-card.png", jogo: "onepiece" },
+  { src: "/landing/luffy-card.webp", jogo: "onepiece" },
   // Ash Blossom & Joyous Spring — staple nº 1, tem versão Starlight
   { src: "/landing/faixa/morph-1.webp", jogo: "yugioh" },
-  { src: "/landing/charizard-card.png", jogo: "pokemon" },
+  { src: "/landing/charizard-card.webp", jogo: "pokemon" },
   { src: "/landing/faixa/03.webp", jogo: "pokemon" },
   // Sheoldred, the Apocalypse — staple atual de Magic
   { src: "/landing/faixa/21.webp", jogo: "magic" },

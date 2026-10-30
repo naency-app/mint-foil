@@ -13,12 +13,6 @@ if (typeof window !== "undefined") {
 const INJECTED_STYLES = `
   .mf-gsap-reveal { visibility: hidden; }
 
-  .mf-film-grain {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 50; opacity: 0.03; mix-blend-mode: overlay;
-    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>');
-  }
-
   .mf-text-silver {
     background: linear-gradient(180deg, #FFFFFF 0%, rgba(255,255,255,0.5) 100%);
     -webkit-background-clip: text;
@@ -161,6 +155,12 @@ export interface CinematicHeroProps
 
 /** Altura do iPhone desenhado (h-[565px]), para escalar pela tela. */
 const MOCKUP_H = 565;
+// Altura da navbar fixa (com a margem de cima): o card ocupa a tela inteira e
+// fica por baixo dela, então o conteúdo começa abaixo disto
+const NAVBAR_H = 96;
+// Empilhado (até 1023px): os respiros mínimos entre marca, celular e texto, e
+// o de baixo
+const RESPIROS_EMPILHADO = 72;
 
 export function CinematicHero({
   isDark = false,
@@ -188,22 +188,36 @@ export function CinematicHero({
   const mockupRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
 
-  // Celular: o mockup cresce com a altura da tela. Com tamanho fixo ficava
-  // bom no 14 Pro e minúsculo no Pro Max, com sobra em volta (22/10).
-  // null = ainda não mediu (SSR) ou desktop: valem as classes do CSS.
-  const [escalaMobile, setEscalaMobile] = useState<number | null>(null);
+  // O mockup cresce e encolhe com a altura da tela, em qualquer largura. Com
+  // tamanho fixo ficava minúsculo no Pro Max (22/10) e, entre 768 e 1023 de
+  // largura (tablet, notebook com a janela menor), o celular de ~510px numa
+  // caixa de 360px passava por cima do "MINT FOIL" e do texto (30/10).
+  // null = ainda não mediu (SSR) ou cabe inteiro: valem as classes do CSS.
+  const [escala, setEscala] = useState<number | null>(null);
   useEffect(() => {
     const medir = () => {
-      if (window.innerWidth >= 768) {
-        setEscalaMobile(null);
+      const card = mainCardRef.current;
+      if (!card) return;
+      const altura = window.innerHeight;
+      if (window.innerWidth >= 1024) {
+        // Três colunas: o celular divide a altura só com a navbar fixa
+        const sobra = altura - NAVBAR_H - 40;
+        setEscala(sobra >= MOCKUP_H ? null : Math.max(0.5, sobra / MOCKUP_H));
         return;
       }
-      // O que não é mockup: navbar, título, "Coleção inteligente", lojas e
-      // os respiros entre eles
-      const sobra = window.innerHeight - 380;
-      setEscalaMobile(Math.min(0.85, Math.max(0.5, sobra / MOCKUP_H)));
+      // Empilhado: o que não é celular é medido de verdade — a marca, o texto
+      // e as lojas mudam de tamanho com a fonte e com a quebra de linha
+      const marca =
+        card.querySelector<HTMLElement>(".mf-card-right")?.offsetHeight ?? 0;
+      const texto =
+        card.querySelector<HTMLElement>(".mf-card-left")?.offsetHeight ?? 0;
+      const sobra = altura - NAVBAR_H - marca - texto - RESPIROS_EMPILHADO;
+      const teto = window.innerWidth < 768 ? 0.85 : 0.9;
+      setEscala(Math.min(teto, Math.max(0.45, sobra / MOCKUP_H)));
     };
     medir();
+    // A fonte da marca chega depois do primeiro desenho e muda a altura dela
+    document.fonts?.ready.then(medir);
     window.addEventListener("resize", medir);
     return () => window.removeEventListener("resize", medir);
   }, []);
@@ -243,11 +257,15 @@ export function CinematicHero({
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
     const ctx = gsap.context(() => {
+      // Desfoque animado em elemento do tamanho da tela é o que mais pesa no
+      // celular (30/10, "a landing está pesada"): lá o texto só esmaece
+      const desfoque = (px: number) =>
+        isMobile ? {} : { filter: `blur(${px}px)` };
       gsap.set(".mf-text-track", {
         autoAlpha: 0,
         y: 50,
         scale: 0.88,
-        filter: "blur(16px)",
+        ...desfoque(16),
       });
       gsap.set(".mf-text-reveal", {
         autoAlpha: 1,
@@ -272,7 +290,7 @@ export function CinematicHero({
           autoAlpha: 1,
           y: 0,
           scale: 1,
-          filter: "blur(0px)",
+          ...desfoque(0),
           ease: "expo.out",
         })
         .to(
@@ -302,8 +320,8 @@ export function CinematicHero({
           [".mf-hero-text", ".mf-bg-grid"],
           {
             scale: 1.12,
-            filter: "blur(18px)",
-            opacity: 0.15,
+            ...desfoque(18),
+            opacity: isMobile ? 0.08 : 0.15,
             ease: "power2.inOut",
             duration: 2,
           },
@@ -459,7 +477,9 @@ export function CinematicHero({
         // inline pra não depender do Tailwind gerar a utility.
         minHeight: "100dvh",
         perspective: "1500px",
-        fontFamily: '"Circular Std", "DM Sans", system-ui, sans-serif',
+        // Sem "Circular Std": a @font-face dela apontava para um .ttf que não
+        // existe (404 em toda visita) e a seção já caía no resto da lista
+        fontFamily: '"DM Sans", system-ui, sans-serif',
         backgroundColor: sectionBg,
         color: textColor,
       }}
@@ -467,7 +487,6 @@ export function CinematicHero({
     >
       {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS string, no user input */}
       <style dangerouslySetInnerHTML={{ __html: INJECTED_STYLES }} />
-      <div className="mf-film-grain" aria-hidden="true" />
 
       {/* Subtle grid */}
       <div
@@ -526,14 +545,14 @@ export function CinematicHero({
         >
           <div className="mf-card-sheen" aria-hidden="true" />
 
-          {/* Celular: o card cresce até a tela inteira e fica por baixo da
-              navbar fixa, que cobria o "MINT FOIL" (22/10). O pt-24 abre
-              espaço para ela, e título, mockup e lojas encolhem para caber
+          {/* O card cresce até a tela inteira e fica por baixo da navbar
+              fixa, que cobria o "MINT FOIL" (22/10). O pt-24 (pt-20 no
+              desktop) abre espaço para ela, e título, mockup e lojas encolhem para caber
               nos ~660px que sobram com as barras do Safari à vista. */}
-          <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 py-6 max-md:pt-24 lg:py-0">
+          <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 pt-24 pb-6 lg:pt-20 lg:pb-0">
             {/* Right / top-mobile: BRAND wordmark */}
             <div className="mf-card-right mf-gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full">
-              <h2 className="text-5xl max-md:text-[clamp(2.25rem,6vh,3.5rem)] md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
+              <h2 className="text-5xl max-md:text-[clamp(2.25rem,6vh,3.5rem)] md:text-[clamp(3rem,8vh,5.5rem)] lg:text-[clamp(4.5rem,7.5vw,7rem)] font-black uppercase tracking-tighter leading-none text-center lg:text-right">
                 <span className="mf-card-silver">MINT</span>
                 <br />
                 <span className="mf-card-foil">FOIL</span>
@@ -545,8 +564,8 @@ export function CinematicHero({
               className="mf-mockup-wrap order-2 lg:order-2 relative w-full h-[360px] max-md:h-[300px] lg:h-[580px] flex items-center justify-center z-10"
               style={{
                 perspective: "1000px",
-                height: escalaMobile
-                  ? `${Math.round(MOCKUP_H * escalaMobile)}px`
+                height: escala
+                  ? `${Math.round(MOCKUP_H * escala)}px`
                   : undefined,
               }}
             >
@@ -556,7 +575,7 @@ export function CinematicHero({
                   // `scale`, não `transform`: no Tailwind 4 o scale-[0.53] é a
                   // propriedade `scale`, que se multiplica com um transform —
                   // o celular saía com 0,53 × a escala (22/10)
-                  escalaMobile ? { scale: String(escalaMobile) } : undefined
+                  escala ? { scale: String(escala) } : undefined
                 }
               >
                 <div
@@ -609,7 +628,7 @@ export function CinematicHero({
                     <div className="mf-phone-widget relative h-full w-full">
                       {/* biome-ignore lint/performance/noImgElement: imagem local do mockup */}
                       <img
-                        src="/landing/home-sem-conta.jpg"
+                        src="/landing/home-sem-conta.webp"
                         alt="Dashboard do Mint Foil"
                         className="h-full w-full object-cover object-top"
                       />
