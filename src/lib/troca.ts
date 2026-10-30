@@ -42,11 +42,11 @@ export interface Troca {
 export const TROCA_VAZIA: Troca = { dar: [], receber: [] };
 
 /**
- * Até 10% de diferença entre os lados é "troca equilibrada": preço de
- * referência não é preço de balcão, e brigar por R$ 2 numa troca de R$ 100
- * não faz sentido. Ajustável aqui.
+ * "Troca justa" só com menos de R$ 1,00 de diferença entre os lados (30/10).
+ * Era 10%, mas a diferença sempre dá para completar com cartas de centavos —
+ * então qualquer diferença maior é ganho ou perda, e a tela mostra o valor.
  */
-export const LIMITE_EQUILIBRIO = 0.1;
+export const LIMITE_EQUILIBRIO_REAIS = 1;
 
 /** O preço da tela da carta: o da MyP quando ela tem, senão o internacional. */
 export function precoUnitario(carta: CartaDaTroca): number {
@@ -72,7 +72,8 @@ export function resumoDaTroca(troca: Troca) {
   const pct = base > 0 ? diferenca / base : 0;
   let veredito: Veredito;
   if (troca.dar.length === 0 && troca.receber.length === 0) veredito = "vazia";
-  else if (Math.abs(pct) <= LIMITE_EQUILIBRIO) veredito = "equilibrada";
+  else if (Math.abs(diferenca) < LIMITE_EQUILIBRIO_REAIS)
+    veredito = "equilibrada";
   else veredito = diferenca > 0 ? "ganha" : "perde";
   return { dar, receber, diferenca, pct, veredito };
 }
