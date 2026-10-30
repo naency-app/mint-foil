@@ -255,10 +255,11 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
   },
   {
-    // Saiu do "em breve" (30/10). Atrás o SS3 Goku, na frente o SSB Vegeta:
-    // as do Fusion World na TCGplayer vêm com o carimbo "SAMPLE"
+    // Apagado e sem revelar cartas, como era o "em breve"; só a etiqueta
+    // "EM BREVE" saiu (30/10: o jogo já está no app)
     text: "Dragon Ball",
-    imgs: ["/landing/goku-card.jpg", "/landing/vegeta-card.jpg"],
+    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
+    soon: true,
   },
 ];
 
@@ -1627,7 +1628,7 @@ function RevealItem({
 }) {
   const t = useTheme();
   const setHovered = onChange;
-  // Jogos "em breve" ficam desativados: sem reveal, apagados
+  // `soon`: nome apagado e sem reveal (hoje só o Dragon Ball, sem etiqueta)
   const hovered = active && !soon;
   // O iOS sintetiza mouseenter (e foca o botão) no PRIMEIRO toque; se o
   // click também alternasse, o mesmo toque ligava e desligava — as cartas
@@ -1691,24 +1692,6 @@ function RevealItem({
             }}
           >
             {text}
-            {soon && (
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  letterSpacing: "1.5px",
-                  verticalAlign: "super",
-                  marginLeft: "14px",
-                  padding: "4px 12px",
-                  borderRadius: "20px",
-                  border: `1px dashed ${t.muted}`,
-                  color: t.muted,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                EM BREVE
-              </span>
-            )}
           </h3>
         </button>
 
