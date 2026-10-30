@@ -3,9 +3,9 @@
 import {
   IconAlertCircle,
   IconArrowUpRight,
+  IconCards,
   IconCash,
   IconChevronRight,
-  IconFolderPlus,
   IconPackage,
   IconTrendingDown,
   IconTrendingUp,
@@ -955,11 +955,25 @@ export function CardDetailClient({
               cópias. O valor das cópias vem menor que o preço da carta, de
               propósito: são dois números, e o importante é o de cima. */}
             <div className="glass-card !rounded-2xl p-5 space-y-4">
-              <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                <IconFolderPlus className="size-5 text-primary" />
-                Adicionar ao portfólio
-              </h3>
-              <div className="flex min-w-0 items-center justify-between gap-3">
+              {/* Título com o ícone do Portfólio (o mesmo do menu): a pasta com
+                  "+" era igual à do botão de criar portfólio e confundia (30/10).
+                  O "Ver portfólio" sobe para a linha do título. */}
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                  <IconCards className="size-5 text-primary" />
+                  Adicionar ao portfólio
+                </h3>
+                {session?.user && activePortfolioId && (
+                  <Link
+                    href="/portfolio"
+                    className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    Ver portfólio
+                    <IconChevronRight className="size-3.5" />
+                  </Link>
+                )}
+              </div>
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="flex min-w-0 items-center gap-2">
                   {portfolios.length > 0 ? (
                     <PortfolioSelector
@@ -983,16 +997,6 @@ export function CardDetailClient({
                     />
                   )}
                 </div>
-                {/* Atalho para o portfólio escolhido, no canto direito (30/10) */}
-                {session?.user && activePortfolioId && (
-                  <Link
-                    href="/portfolio"
-                    className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    Ver portfólio
-                    <IconChevronRight className="size-3.5" />
-                  </Link>
-                )}
               </div>
               <div className="flex items-center justify-between">
                 <RollingCounter
