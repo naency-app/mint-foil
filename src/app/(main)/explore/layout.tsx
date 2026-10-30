@@ -5,7 +5,7 @@ export const metadata: Metadata = {
     absolute: "Explorar cartas de TCG — preço em real | Mint Foil",
   },
   description:
-    "Busque qualquer carta de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon, inclusive pelo nome em português, e veja quanto vale em real.",
+    "Busque qualquer carta de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana, Digimon e Dragon Ball, inclusive pelo nome em português, e veja quanto vale em real.",
   alternates: { canonical: "/explore" },
 };
 

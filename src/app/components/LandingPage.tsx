@@ -234,29 +234,31 @@ const FOOTER_BAND = [
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
-    imgs: ["/landing/pkm-card-back.jpg", "/landing/faixa/01.webp"],
+    imgs: ["/landing/pkm-card-back.webp", "/landing/faixa/01.webp"],
   },
   {
     text: "Yu-Gi-Oh!",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/blue-eyes-card.jpg"],
+    imgs: ["/landing/ygo-card-back.webp", "/landing/blue-eyes-card.webp"],
   },
   {
     text: "Magic",
-    imgs: ["/landing/mtg-card-back.jpg", "/landing/shivan-card.jpg"],
+    imgs: ["/landing/mtg-card-back.webp", "/landing/shivan-card.webp"],
   },
   {
     text: "One Piece",
-    imgs: ["/landing/op-card-back.jpg", "/landing/luffy-card.png"],
+    imgs: ["/landing/op-card-back.webp", "/landing/luffy-card.webp"],
   },
   {
     text: "Digimon",
     // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
     // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
-    imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
+    imgs: ["/landing/digimon-card-back.webp", "/landing/wargreymon-card.webp"],
   },
   {
+    // Apagado e sem revelar cartas, como era o "em breve"; só a etiqueta
+    // "EM BREVE" saiu (30/10: o jogo já está no app)
     text: "Dragon Ball",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
+    imgs: ["/landing/ygo-card-back.webp", "/landing/faixa/18.webp"],
     soon: true,
   },
 ];
@@ -1119,8 +1121,9 @@ function Hero({ noCelular }: { noCelular: boolean }) {
             lineHeight: 1.7,
           }}
         >
-          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e
-          Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
+          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana,
+          Digimon e Dragon Ball e acompanhe o valor da sua coleção em real.
+          Grátis pra começar.
         </motion.p>
 
         {/* CTAs */}
@@ -1625,7 +1628,7 @@ function RevealItem({
 }) {
   const t = useTheme();
   const setHovered = onChange;
-  // Jogos "em breve" ficam desativados: sem reveal, apagados
+  // `soon`: nome apagado e sem reveal (hoje só o Dragon Ball, sem etiqueta)
   const hovered = active && !soon;
   // O iOS sintetiza mouseenter (e foca o botão) no PRIMEIRO toque; se o
   // click também alternasse, o mesmo toque ligava e desligava — as cartas
@@ -1683,27 +1686,12 @@ function RevealItem({
               transition: "opacity 0.4s",
               opacity: hovered ? 0.2 : soon ? 0.35 : 1,
               letterSpacing: "-2px",
+              // "DRAGON BALL" passa 10px da coluna (650 em 640, e 345 em 335
+              // num celular de 375): numa linha só, os 10px caem no respiro
+              whiteSpace: "nowrap",
             }}
           >
             {text}
-            {soon && (
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  letterSpacing: "1.5px",
-                  verticalAlign: "super",
-                  marginLeft: "14px",
-                  padding: "4px 12px",
-                  borderRadius: "20px",
-                  border: `1px dashed ${t.muted}`,
-                  color: t.muted,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                EM BREVE
-              </span>
-            )}
           </h3>
         </button>
 
@@ -1726,6 +1714,9 @@ function RevealItem({
           <img
             src={imgs[1]}
             alt=""
+            // Seção do meio da página: sem lazy o React pré-carregava as
+            // cartas na abertura, junto com a primeira tela (30/10)
+            loading="lazy"
             decoding="async"
             style={{
               width: "100%",
@@ -1759,6 +1750,9 @@ function RevealItem({
           <img
             src={imgs[0]}
             alt=""
+            // Seção do meio da página: sem lazy o React pré-carregava as
+            // cartas na abertura, junto com a primeira tela (30/10)
+            loading="lazy"
             decoding="async"
             style={{
               width: "100%",
@@ -1929,14 +1923,14 @@ const WHY_POINTS = [
   {
     id: "brasil",
     icon: <IconCurrencyDollar size={17} />,
-    title: "Feito pro Brasil",
-    desc: "Valores em reais e links direto pras lojas brasileiras.",
+    title: "Preço em real de verdade",
+    desc: "O menor preço das lojas brasileiras, pela MYP Cards, e as maiores lojas do Brasil num lugar só.",
   },
   {
     id: "multi",
     icon: <IconDeviceGamepad2 size={17} />,
-    title: "6 jogos, 1 app",
-    desc: "Sem pular entre seis sites pra cuidar da coleção.",
+    title: "8 jogos, 1 app",
+    desc: "Sem pular entre oito sites pra cuidar da coleção.",
   },
   {
     id: "semconta",
@@ -1948,7 +1942,7 @@ const WHY_POINTS = [
     id: "portfolio",
     icon: <IconTrendingUp size={17} />,
     title: "Coleção como portfólio",
-    desc: "Valorização acompanhada dia a dia, como numa corretora.",
+    desc: "Valorização dia a dia no gráfico e alerta quando a carta chega no preço que você quer.",
   },
 ];
 
@@ -2111,7 +2105,7 @@ const SOLUTION_STEPS = [
     span: 7,
     icon: <IconCamera size={22} />,
     title: "Escaneie",
-    desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana ou Digimon.",
+    desc: "Aponte a câmera e o Mint Foil acha a carta certa, com coleção e número, em segundos. Uma carta por vez ou várias na mesma foto.",
     // O scan só existe no app nativo: o CTA leva ao download, não à web.
     cta: "Baixe o app pra escanear",
     href: "/download",
@@ -2121,7 +2115,7 @@ const SOLUTION_STEPS = [
     span: 5,
     icon: <IconCurrencyDollar size={22} />,
     title: "Veja o valor",
-    desc: "Valor de referência em reais na hora — e o link pra conferir nas lojas brasileiras.",
+    desc: "O preço em real das lojas brasileiras, pela MYP Cards, e o link de cada loja pra conferir.",
     cta: "Explore os preços",
     href: "/explore",
   },
@@ -2130,7 +2124,7 @@ const SOLUTION_STEPS = [
     span: 5,
     icon: <IconWallet size={22} />,
     title: "Adicione ao portfólio",
-    desc: "Coleção catalogada e monitorada dia a dia, com gráficos de valorização.",
+    desc: "Separe a coleção em portfólios, com o gráfico de valorização e alertas de preço.",
     cta: "Monte o seu",
     href: "/portfolio",
   },
@@ -2374,7 +2368,7 @@ const FEATURE_TABS: {
     value: "scan",
     icon: <IconCamera size={15} />,
     label: "Scan Inteligente",
-    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
+    desc: "Aponte a câmera e o Mint Foil identifica a carta certa, com coleção e número. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana, Digimon e Dragon Ball.",
     mockupIcon: <IconLineScan size={40} />,
     // Carta a carta, depois várias ao mesmo tempo (já acelerados 1,25x)
     videos: ["/landing/scan-uma.mp4", "/landing/scan-varias.mp4"],
@@ -2416,8 +2410,8 @@ const FEATURE_TABS: {
   {
     value: "multi-tcg",
     icon: <IconDeviceGamepad2 size={15} />,
-    label: "6 Jogos, 1 App",
-    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana e Digimon em um único portfólio. Sem precisar de seis sites.",
+    label: "8 Jogos, 1 App",
+    desc: "Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana, Digimon e os dois Dragon Ball num único portfólio. Sem precisar de oito sites.",
     mockupIcon: <IconDeviceGamepad2 size={40} />,
     // Explorar passando pelos jogos (1,25x)
     videos: ["/landing/jogos.mp4"],
@@ -2436,7 +2430,7 @@ const TEXTO_W = 340;
 // Altura da legenda (título + descrição de até 3 linhas) e dos pontinhos:
 // o que fica fora do celular quando ele se mede pela altura da tela
 // 22 de respiro + 28 do título + 6 + 3 linhas de 22 = 122. Com 110 a terceira
-// linha do "6 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
+// linha do "8 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
 const LEGENDA_H = 122;
 const PONTOS_H = 24;
 // No celular a legenda tem a largura da tela e quebra em mais linhas
