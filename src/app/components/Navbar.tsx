@@ -3,7 +3,6 @@
 import {
   IconCards,
   IconCompass,
-  IconLoader2,
   IconLogin,
   IconLogout,
   IconMenu,
@@ -17,22 +16,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BuscaRapida } from "@/app/components/BuscaRapida";
-import { FOIL, QrDoApp, SelosLojas } from "@/app/components/ConviteApp";
+import {
+  FOIL,
+  QrDoApp,
+  registrarClique,
+  SelosLojas,
+} from "@/app/components/ConviteApp";
 import { CentralDeNotificacoes } from "@/app/components/social/CentralDeNotificacoes";
-import { FotoDoUsuario } from "@/components/FotoDoUsuario";
+import { DialogoSair } from "@/components/DialogoSair";
+import { AvatarDoUsuario } from "@/components/FotoDoUsuario";
 import { SeletorTema } from "@/components/SeletorTema";
 import { UserMenu } from "@/components/UserMenu";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { BotaoFoil } from "@/components/ui/botao-foil";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -46,7 +41,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { useExploreHref } from "@/lib/explore-href";
 import { navbarRolada } from "@/lib/navbar-rolada";
 import { cn } from "@/lib/utils";
@@ -75,18 +70,9 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const [saindo, setSaindo] = useState(false);
   const { data: session } = useSession();
-
-  async function handleLogout() {
-    setSaindo(true);
-    try {
-      await signOut();
-    } catch {
-      // ignore
-    }
-    window.location.href = "/explore";
-  }
+  const handle = (session?.user as { handle?: string | null } | undefined)
+    ?.handle;
 
   // Padrão da nav da landing: parada no topo, vira pill flutuante ao rolar
   const [scrolled, setScrolled] = useState(false);
@@ -204,25 +190,15 @@ export function Navbar() {
                           href="/portfolio"
                           className="glass-card flex items-center gap-3 rounded-2xl p-2.5 transition-all hover:bg-muted/60 group"
                         >
-                          {session.user.image ? (
-                            <FotoDoUsuario
-                              src={session.user.image}
-                              alt={session.user.name ?? "Avatar"}
-                              width={36}
-                              height={36}
-                              className="size-9 rounded-full border border-border/60 object-cover shrink-0"
-                            />
-                          ) : (
-                            <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-primary/10 text-xs font-bold text-primary">
-                              {(session.user.name ?? session.user.email ?? "?").charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                          <AvatarDoUsuario user={session.user} tamanho={36} />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">
                               {session.user.name ?? "Meu Perfil"}
                             </p>
                             <p className="truncate text-[11px] text-muted-foreground">
-                              {(session.user as any).handle ? `@${(session.user as any).handle}` : session.user.email ?? "Ver perfil"}
+                              {handle
+                                ? `@${handle}`
+                                : (session.user.email ?? "Ver perfil")}
                             </p>
                           </div>
                         </Link>
@@ -326,6 +302,9 @@ export function Navbar() {
                         <SheetClose asChild>
                           <Link
                             href="/download"
+                            onClick={() =>
+                              registrarClique("menu-mobile", "download")
+                            }
                             className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-white shadow-xs transition-colors hover:bg-primary/90 active:scale-95"
                           >
                             <IconScan className="size-4" />
@@ -470,31 +449,7 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Diálogo de confirmação para sair da conta */}
-      <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sair da sua conta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Você precisará entrar novamente com seu e-mail para acessar sua coleção, portfólios e configurações.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel disabled={saindo}>
-              Cancelar
-            </AlertDialogCancel>
-            <Button
-              variant="destructive"
-              disabled={saindo}
-              onClick={handleLogout}
-              className="h-9 rounded-full px-5 text-sm font-bold"
-            >
-              {saindo && <IconLoader2 className="size-4 animate-spin" />}
-              Sair da conta
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DialogoSair open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen} />
     </>
   );
 }

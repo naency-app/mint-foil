@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
  * Clique num convite, no Vercel Analytics: `origem` é onde ele estava
  * (explore, carta, navbar…) e `destino` para onde levou.
  */
-function registrarClique(origem: string, destino: string) {
+export function registrarClique(origem: string, destino: string) {
   track("convite_app", { origem, destino });
 }
 
