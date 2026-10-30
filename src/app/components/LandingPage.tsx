@@ -230,8 +230,7 @@ const FOOTER_BAND = [
   { text, id: `fb${i}` },
 ]);
 
-// Reveal section — cinco jogos; Lorcana e Dragon Ball ficam só no texto
-// (com os 8 a lista ficava comprida demais, 30/10)
+// Reveal section — 6 TCGs
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
@@ -254,6 +253,11 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
     // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
+  },
+  {
+    text: "Dragon Ball",
+    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
+    soon: true,
   },
 ];
 
