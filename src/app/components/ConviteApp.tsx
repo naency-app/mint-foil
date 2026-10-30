@@ -232,7 +232,7 @@ export function ConviteAppCartao({
           </Link>
         </Button>
         <p className="text-center text-xs text-muted-foreground">
-          10 scans grátis por dia
+          50 scans grátis por semana
         </p>
       </div>
     </div>
