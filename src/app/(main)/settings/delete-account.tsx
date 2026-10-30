@@ -1,6 +1,6 @@
 "use client";
 
-import { IconAlertTriangle, IconLoader2, IconTrash } from "@tabler/icons-react";
+import { IconLoader2, IconTrash } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -13,8 +13,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { GlassPill } from "@/components/ui/glass";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { textoDoErro } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
@@ -54,35 +54,28 @@ export function DeleteAccount({ handle }: { handle: string }) {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-destructive/30 bg-destructive/5 p-6">
-      <h2 className="flex items-center gap-2 font-bold text-destructive text-sm uppercase tracking-wider">
-        <IconAlertTriangle className="size-4" />
-        Excluir conta
-      </h2>
-      <Separator className="bg-destructive/20" />
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="font-medium text-foreground text-sm">
-            Apagar a conta e todos os dados
-          </p>
+    <>
+      {/* Uma linha do card "Conta" das Configurações. O botão é discreto
+          (contorno vermelho, sem fundo): era o mais chamativo da tela, para a
+          ação mais rara e sem volta (30/10). O peso fica no diálogo. */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-medium text-foreground text-sm">Excluir conta</p>
           <p className="text-muted-foreground text-xs">
-            Seus portfólios, cartas e histórico somem para sempre. Não dá para
-            desfazer.
+            Apaga portfólios, cartas e histórico para sempre.
           </p>
         </div>
-        <Button
-          variant="destructive"
-          size="sm"
-          className="shrink-0 cursor-pointer"
+        <GlassPill
+          className="h-8 shrink-0 gap-1.5 px-3 text-xs font-bold text-destructive hover:bg-destructive/10"
           onClick={() => {
             setConfirmacao("");
             setErro(null);
             setOpen(true);
           }}
         >
-          <IconTrash className="size-4" />
-          Excluir conta
-        </Button>
+          <IconTrash className="size-3.5" />
+          Excluir
+        </GlassPill>
       </div>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -135,6 +128,6 @@ export function DeleteAccount({ handle }: { handle: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </section>
+    </>
   );
 }

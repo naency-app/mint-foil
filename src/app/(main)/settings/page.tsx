@@ -23,14 +23,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ProUpgradeModal } from "@/app/components/ProUpgradeModal";
+import { DialogoSair } from "@/components/DialogoSair";
 import { SeletorTema } from "@/components/SeletorTema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GlassPill } from "@/components/ui/glass";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type UserStats } from "@/lib/api";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { capaVisivel, coverCss, findCoverPreset } from "@/lib/cover-catalog";
 import { cn } from "@/lib/utils";
 import { ContasBloqueadas } from "./contas-bloqueadas";
@@ -366,6 +368,7 @@ function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [proModalOpen, setProModalOpen] = useState(false);
+  const [saindo, setSaindo] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "stats" | "account" | "support" | "admin"
   >("stats");
@@ -429,13 +432,6 @@ function SettingsContent() {
    */
   function refreshUser() {
     refetchSession?.();
-  }
-
-  // Mesmo destino do "Sair" do menu do avatar (UserMenu): o Explorar, com
-  // recarga completa para não sobrar sessão em memória.
-  async function handleLogout() {
-    await signOut();
-    window.location.href = "/explore";
   }
 
   if (isPending) {
@@ -744,35 +740,36 @@ function SettingsContent() {
 
               <ContasBloqueadas />
 
-              {/* Session Control */}
-              <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-4">
-                <h2 className="text-sm font-bold text-destructive uppercase tracking-wider flex items-center gap-2">
-                  <IconLogout className="size-4" />
-                  Sessão
+              {/* Conta: sair e excluir num card só, no desenho dos outros.
+                  Eram dois blocos vermelhos, mas sair não é perigoso; o
+                  vermelho fica só no botão de excluir (30/10). */}
+              <section className="glass-card !rounded-2xl p-6 space-y-4">
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <IconUser className="size-4 text-primary" />
+                  Conta
                 </h2>
-                <Separator className="bg-destructive/20" />
-                <div className="flex items-center justify-between">
-                  <div>
+                <Separator />
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">
-                      Encerrar sessão
+                      Sair da conta
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Você será redirecionado para a tela de login.
+                      Sua coleção continua salva.
                     </p>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="cursor-pointer"
+                  <GlassPill
+                    onClick={() => setSaindo(true)}
+                    className="h-8 shrink-0 gap-1.5 px-3 text-xs font-bold"
                   >
-                    <IconLogout className="size-4" />
-                    Sair da Conta
-                  </Button>
+                    <IconLogout className="size-3.5" />
+                    Sair
+                  </GlassPill>
                 </div>
+                <Separator />
+                <DeleteAccount handle={handleExibido} />
               </section>
-
-              <DeleteAccount handle={handleExibido} />
+              <DialogoSair open={saindo} onOpenChange={setSaindo} />
 
               {/* PRO Promo banner */}
               {!stats?.isPro && !user.isPro && (
