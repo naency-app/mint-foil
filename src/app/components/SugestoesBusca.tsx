@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { CardImage } from "@/app/components/CardImage";
-import type { SugestoesBusca as Sugestoes } from "@/lib/api";
+import { precoDaSugestao, type SugestoesBusca as Sugestoes } from "@/lib/api";
 import { useSugestoesBusca } from "@/lib/queries";
 
 type Nome = Sugestoes["nomes"][number];
@@ -290,9 +290,9 @@ function Linha({ item, termo }: { item: Item; termo: string }) {
           )}
         </span>
       </span>
-      {carta.latestPriceBrl != null && (
+      {precoDaSugestao(carta) != null && (
         <span className="shrink-0 font-mono text-xs font-semibold text-foreground">
-          R$ {formatPrice(carta.latestPriceBrl)}
+          R$ {formatPrice(precoDaSugestao(carta) ?? 0)}
         </span>
       )}
     </>
