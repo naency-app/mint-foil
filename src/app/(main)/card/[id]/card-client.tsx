@@ -7,7 +7,6 @@ import {
   IconChevronRight,
   IconFolderPlus,
   IconPackage,
-  IconPlus,
   IconTrendingDown,
   IconTrendingUp,
   IconWorld,
@@ -19,7 +18,10 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
-import { DialogoNovoPortfolio } from "@/app/components/DialogoNovoPortfolio";
+import {
+  BotaoNovoPortfolio,
+  DialogoNovoPortfolio,
+} from "@/app/components/DialogoNovoPortfolio";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingCounter } from "@/app/components/RollingCounter";
@@ -958,33 +960,38 @@ export function CardDetailClient({
                 Adicionar ao portfólio
               </h3>
               <div className="flex min-w-0 items-center justify-between gap-3">
-                {portfolios.length > 0 ? (
-                  <PortfolioSelector
-                    portfolios={portfolios}
-                    activePortfolioId={activePortfolioId}
-                    onSelect={setActivePortfolioId}
-                    onRefresh={handleRefresh}
-                    labelPrefix="Em"
-                  />
-                ) : (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <span>Em</span>
-                    <span className="font-semibold text-primary">
-                      Coleção Principal
-                    </span>
-                  </div>
-                )}
-                {/* Criar um portfólio sem sair da carta: o novo já fica como o
-                    "Em …", pronto para receber a carta (30/10) */}
-                {session?.user && (
-                  <button
-                    type="button"
-                    onClick={() => setNovoPortfolioAberto(true)}
-                    className="flex shrink-0 cursor-pointer items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+                <div className="flex min-w-0 items-center gap-2">
+                  {portfolios.length > 0 ? (
+                    <PortfolioSelector
+                      portfolios={portfolios}
+                      activePortfolioId={activePortfolioId}
+                      onSelect={setActivePortfolioId}
+                      onRefresh={handleRefresh}
+                      labelPrefix="Em"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <span>Em</span>
+                      <span className="font-semibold text-primary">
+                        Coleção Principal
+                      </span>
+                    </div>
+                  )}
+                  {session?.user && (
+                    <BotaoNovoPortfolio
+                      onClick={() => setNovoPortfolioAberto(true)}
+                    />
+                  )}
+                </div>
+                {/* Atalho para o portfólio escolhido, no canto direito (30/10) */}
+                {session?.user && activePortfolioId && (
+                  <Link
+                    href="/portfolio"
+                    className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
                   >
-                    <IconPlus className="size-3.5" />
-                    Novo portfólio
-                  </button>
+                    Ver portfólio
+                    <IconChevronRight className="size-3.5" />
+                  </Link>
                 )}
               </div>
               <div className="flex items-center justify-between">

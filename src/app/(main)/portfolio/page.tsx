@@ -32,7 +32,10 @@ import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CardImage } from "@/app/components/CardImage";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
-import { DialogoNovoPortfolio } from "@/app/components/DialogoNovoPortfolio";
+import {
+  BotaoNovoPortfolio,
+  DialogoNovoPortfolio,
+} from "@/app/components/DialogoNovoPortfolio";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -1212,15 +1215,7 @@ export default function PortfolioPage() {
                   onSelect={setActivePortfolioId}
                   onRefresh={invalidateCollection}
                 />
-                <button
-                  type="button"
-                  onClick={openNewPortfolioOrPaywall}
-                  title="Novo portfólio"
-                  aria-label="Novo portfólio"
-                  className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/60 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <FolderPlus className="size-4" />
-                </button>
+                <BotaoNovoPortfolio onClick={openNewPortfolioOrPaywall} />
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0">

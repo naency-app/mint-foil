@@ -96,3 +96,21 @@ export function DialogoNovoPortfolio({
     </Dialog>
   );
 }
+
+/**
+ * O botão redondo de criar portfólio, ao lado do seletor: o mesmo no
+ * Portfólio e no card "Adicionar ao portfólio" da carta (30/10).
+ */
+export function BotaoNovoPortfolio({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Novo portfólio"
+      aria-label="Novo portfólio"
+      className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/60 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
+      <IconFolderPlus className="size-4" />
+    </button>
+  );
+}
