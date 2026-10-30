@@ -813,7 +813,7 @@ export function CardDetailClient({
               {/* Com a MyP: o internacional logo abaixo da frase, no mesmo
                   tamanho dela */}
               {myp && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[13px] text-muted-foreground">
                   {linhaIntlComReal}
                 </span>
               )}
