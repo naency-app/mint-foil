@@ -76,13 +76,12 @@ export default function TermosPage() {
         <ul style={{ paddingLeft: 20, margin: 0 }}>
           <li style={S.li}>
             O plano <strong>Gratuito</strong> permite até 50 scans por semana,
-            renovados toda segunda-feira, até 5 portfólios e até 3 alertas de
-            preço, sem necessidade de conta.
+            renovados toda segunda-feira, e até 5 portfólios, sem necessidade de
+            conta.
           </li>
           <li style={S.li}>
             O plano <strong>PRO</strong> (R$ 9,90/mês ou R$ 79,90/ano) libera
-            scans ilimitados, portfólios ilimitados, alertas de preço ilimitados
-            e exportação da coleção em planilha. A assinatura pode ser cancelada
+            scans ilimitados, portfólios ilimitados e exportação da coleção em planilha. A assinatura pode ser cancelada
             a qualquer momento, sem multa; o acesso permanece até o fim do
             período pago.
           </li>

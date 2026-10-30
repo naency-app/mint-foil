@@ -308,8 +308,8 @@ export default async function DownloadPage() {
                 maxWidth: 520,
               }}
             >
-              <strong style={{ color: PINK }}>PRO</strong> — scans, portfólios e
-              alertas de preço ilimitados, e exportação da coleção em planilha.
+              <strong style={{ color: PINK }}>PRO</strong> — scans e portfólios
+              ilimitados e exportação da coleção em planilha.
               Assinado dentro do app, por R$ 9,90/mês ou R$ 79,90/ano.
             </p>
           </div>
