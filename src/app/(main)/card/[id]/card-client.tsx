@@ -790,7 +790,7 @@ export function CardDetailClient({
                   href="https://mypcards.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-foreground underline underline-offset-2 hover:text-primary"
+                  className="underline decoration-muted-foreground/40 underline-offset-2 transition-colors hover:text-foreground"
                 >
                   MYP Cards
                 </a>
