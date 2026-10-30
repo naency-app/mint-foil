@@ -136,7 +136,7 @@ export function TrocaClient() {
         <div>
           <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-foreground">
             <IconArrowsExchange className="size-7 text-primary" />
-            Analisar troca
+            Troca justa
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Monte os dois lados e veja se a troca vale a pena, com o preço em
@@ -450,7 +450,7 @@ function ResumoDaTroca({
     veredito === "vazia"
       ? "Adicione cartas nos dois lados"
       : veredito === "equilibrada"
-        ? "Troca equilibrada"
+        ? "Troca justa"
         : veredito === "ganha"
           ? `Você ganha R$ ${formatPrice(diferenca)}`
           : `Você perde R$ ${formatPrice(-diferenca)}`;

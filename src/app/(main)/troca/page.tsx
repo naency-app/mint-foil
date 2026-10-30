@@ -8,11 +8,11 @@ import { TrocaClient } from "./troca-client";
  * confirmar (mexer no portfólio) exige.
  */
 export const metadata: Metadata = {
-  title: "Analisar troca | Mint Foil",
+  title: "Troca justa | Mint Foil",
   description:
     "Monte os dois lados da troca e veja na hora se ela vale a pena, com o preço em real de cada carta.",
   openGraph: {
-    title: "Essa troca vale a pena? | Mint Foil",
+    title: "Essa troca é justa? | Mint Foil",
     description:
       "Veja os dois lados da troca com o preço em real de cada carta no Mint Foil.",
     siteName: "Mint Foil",

@@ -52,7 +52,7 @@ const navLinks = [
   { label: "Portfólio", href: "/portfolio", icon: IconCards },
   { label: "Sets", href: "/sets", icon: IconStack2 },
   // Analisador de troca (30/10)
-  { label: "Analisar trocas", href: "/troca", icon: IconArrowsExchange },
+  { label: "Troca justa", href: "/troca", icon: IconArrowsExchange },
 ];
 
 /**
