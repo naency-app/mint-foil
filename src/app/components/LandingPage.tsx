@@ -1690,6 +1690,9 @@ function RevealItem({
               transition: "opacity 0.4s",
               opacity: hovered ? 0.2 : soon ? 0.35 : 1,
               letterSpacing: "-2px",
+              // "DRAGON BALL" passa 10px da coluna (650 em 640, e 345 em 335
+              // num celular de 375): numa linha só, os 10px caem no respiro
+              whiteSpace: "nowrap",
             }}
           >
             {text}
