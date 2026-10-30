@@ -19,6 +19,7 @@ import { CardImage } from "@/app/components/CardImage";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { RollingCounter } from "@/app/components/RollingCounter";
 import { formatPrice } from "@/app/components/SugestoesBusca";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { BotaoFoil } from "@/components/ui/botao-foil";
 import {
   Dialog,
@@ -278,9 +279,18 @@ function LadoDaTroca({
       </div>
 
       {itens.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          Nenhuma carta ainda.
-        </p>
+        // Vazio dentro de card e sem botão: o compacto do padrão (30/10)
+        <EstadoVazio
+          compacto
+          className="py-6"
+          icon={IconCards}
+          titulo="Nenhuma carta ainda"
+          descricao={
+            titulo === "Você entrega"
+              ? "Busque as cartas que você vai entregar."
+              : "Busque as cartas que você vai receber."
+          }
+        />
       ) : (
         <ul className="space-y-1.5">
           {itens.map((item, i) => (
