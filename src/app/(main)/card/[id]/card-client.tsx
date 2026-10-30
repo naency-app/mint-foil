@@ -514,6 +514,8 @@ export function CardDetailClient({
     );
   }
 
+  // Produto selado (booster box, ETB, lata): sem raridade, código nem scan
+  const selado = card.productType === "SEALED";
   const latestPrice = precoAtual(card.prices);
   const previousPrice = precoAnterior(card.prices);
   const priceChange = latestPrice - previousPrice;
@@ -648,13 +650,23 @@ export function CardDetailClient({
               {card.set?.name ?? card.setName ?? card.setCode}
             </Link>
             <span className="text-muted-foreground">•</span>
-            <span className="text-base text-muted-foreground">
-              {nomeDaRaridade(card.rarity, card.tcgId)}
-            </span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-base text-muted-foreground font-mono">
-              {card.collectorNumber}
-            </span>
+            {/* Selado não tem raridade (vinha "Unknown") nem código (30/10) */}
+            {selado ? (
+              <span className="flex items-center gap-1 text-base text-muted-foreground">
+                <IconPackage className="size-4" />
+                Produto selado
+              </span>
+            ) : (
+              <>
+                <span className="text-base text-muted-foreground">
+                  {nomeDaRaridade(card.rarity, card.tcgId)}
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-base text-muted-foreground font-mono">
+                  {card.collectorNumber}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -876,67 +888,98 @@ export function CardDetailClient({
                 </p>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="mb-1 flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                      Raridade
-                    </p>
-                    <TagTutorialRaridade jogo={card.tcgId} />
-                  </div>
-                  <p className="text-base text-foreground font-medium">
-                    {nomeDaRaridade(card.rarity, card.tcgId)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                    Código
-                  </p>
-                  <p className="text-base text-primary font-mono font-bold">
-                    {card.collectorNumber}
-                  </p>
-                </div>
-                {card.cardType && (
+              {/* Selado: o que é e de onde é; raridade, código e tipo são de
+                  carta (30/10) */}
+              {selado ? (
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                      Tipo
+                      Produto
                     </p>
                     <p className="text-base text-foreground font-medium">
-                      {card.cardType}
+                      Selado
                     </p>
                   </div>
-                )}
-                {card.attribute && (
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                      Atributo
+                      Jogo
                     </p>
                     <p className="text-base text-foreground font-medium">
-                      {card.attribute}
+                      {card.tcg?.name ?? "—"}
                     </p>
                   </div>
-                )}
-                {card.atk != null && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Coleção
+                    </p>
+                    <p className="text-base text-foreground font-medium">
+                      {card.set?.name ?? card.setName ?? card.setCode ?? "—"}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="mb-1 flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Raridade
+                      </p>
+                      <TagTutorialRaridade jogo={card.tcgId} />
+                    </div>
+                    <p className="text-base text-foreground font-medium">
+                      {nomeDaRaridade(card.rarity, card.tcgId)}
+                    </p>
+                  </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                      ATK / DEF
+                      Código
                     </p>
-                    <p className="text-base text-foreground font-mono font-medium">
-                      {card.atk} / {card.def ?? "?"}
-                    </p>
-                  </div>
-                )}
-                {card.level != null && (
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                      Nível
-                    </p>
-                    <p className="text-base text-foreground font-mono font-medium">
-                      {card.level}
+                    <p className="text-base text-primary font-mono font-bold">
+                      {card.collectorNumber}
                     </p>
                   </div>
-                )}
-              </div>
+                  {card.cardType && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        Tipo
+                      </p>
+                      <p className="text-base text-foreground font-medium">
+                        {card.cardType}
+                      </p>
+                    </div>
+                  )}
+                  {card.attribute && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        Atributo
+                      </p>
+                      <p className="text-base text-foreground font-medium">
+                        {card.attribute}
+                      </p>
+                    </div>
+                  )}
+                  {card.atk != null && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        ATK / DEF
+                      </p>
+                      <p className="text-base text-foreground font-mono font-medium">
+                        {card.atk} / {card.def ?? "?"}
+                      </p>
+                    </div>
+                  )}
+                  {card.level != null && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        Nível
+                      </p>
+                      <p className="text-base text-foreground font-mono font-medium">
+                        {card.level}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1094,8 +1137,13 @@ export function CardDetailClient({
             </AnimatePresence>
 
             <ConviteAppCartao
-              titulo="Tem esta carta?"
-              texto="Escaneie no app e ela entra no seu portfólio."
+              // Selado não se escaneia: o convite é para acompanhar no app
+              titulo={selado ? "Acompanhe no app" : "Tem esta carta?"}
+              texto={
+                selado
+                  ? "Adicione ao portfólio e veja o valor dia a dia no app."
+                  : "Escaneie no app e ela entra no seu portfólio."
+              }
             />
 
             <DialogoNovoPortfolio
