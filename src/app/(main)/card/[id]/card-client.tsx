@@ -248,10 +248,12 @@ function LinhaDeLoja({
       rel="noopener noreferrer"
       aria-label={`${nome}: ${acao}`}
       className={cn(
-        "group flex items-center gap-3 rounded-xl px-3 transition-colors",
+        // Sem o contorno de foco do navegador, que aparecia como uma borda ao
+        // voltar da aba da loja (30/10); o foco pelo teclado escurece o fundo
+        "group flex items-center gap-3 rounded-xl px-3 outline-none transition-colors",
         destaque
-          ? "bg-primary/10 py-2.5 hover:bg-primary/15"
-          : "bg-muted/40 py-2 hover:bg-muted/70",
+          ? "bg-primary/10 py-2.5 hover:bg-primary/15 focus-visible:bg-primary/20"
+          : "bg-muted/40 py-2 hover:bg-muted/70 focus-visible:bg-muted/80",
       )}
     >
       {logo && (
@@ -744,7 +746,9 @@ export function CardDetailClient({
               ) : (
                 <IconWorld className="size-5 text-primary" />
               )}
-              {myp ? "Preço da carta" : "Preço internacional (estimado)"}
+              {/* Com a MyP, o número é o menor anúncio dela: é o preço que a
+                  própria MyP põe como principal (30/10) */}
+              {myp ? "Preço mínimo em real" : "Preço internacional (estimado)"}
             </h3>
 
             <div className="flex flex-col items-end gap-1 text-right">
