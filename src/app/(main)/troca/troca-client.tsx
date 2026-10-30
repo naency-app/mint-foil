@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { GlassPill } from "@/components/ui/glass";
-import { api } from "@/lib/api";
+import { ApiError, api, textoDoErro } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { usePortfolioStore } from "@/lib/portfolio-store";
 import {
@@ -660,10 +660,15 @@ function ConfirmarTroca({
       onConfirmada();
       onFechar();
     } catch (err) {
+      // Servidor sem a rota (antes do deploy) responde "Cannot POST …" em
+      // inglês: isso nunca vai para a tela (30/10). As mensagens da própria
+      // rota ("Você tem 2 cópias…") já vêm em português e passam
       toast.error(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível registrar a troca.",
+        err instanceof ApiError &&
+          err.status === 404 &&
+          /cannot post/i.test(err.message)
+          ? "Confirmar troca ainda não está disponível. Tente de novo mais tarde."
+          : textoDoErro(err, "Não foi possível registrar a troca."),
       );
     } finally {
       setEnviando(false);
