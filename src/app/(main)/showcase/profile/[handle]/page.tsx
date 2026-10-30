@@ -97,6 +97,7 @@ export default async function ShowcaseProfilePage({
         isPro={data.isPro}
         memberSince={data.memberSince}
         totalCards={data.totalCards}
+        totalPortfolios={data.portfolios.length}
         totalSealed={data.totalSealed}
         totalValue={data.totalValue}
         cover={capaVisivel(data.cover, data.isPro)}
