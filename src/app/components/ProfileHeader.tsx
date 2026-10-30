@@ -54,7 +54,7 @@ export function ProfileHeader({
   cover: Cover;
   bio?: string | null;
   socials?: Record<string, string>;
-  /** Seguidores/seguindo e o botão de seguir, logo abaixo do @. */
+  /** Seguidores/seguindo e o botão de seguir, depois da bio e dos links. */
   social?: ReactNode;
   actions?: ReactNode;
 }) {
@@ -112,21 +112,25 @@ export function ProfileHeader({
           />
         )}
       </div>
-      {/* "Membro desde" sobe para junto do @: é sobre quem é a pessoa, e
-          sozinho no rodapé do cartão parecia sobra */}
-      <p className="text-sm font-medium text-muted-foreground">
-        @{handle}
+      {/* @ e "Membro desde" na mesma linha: é sobre quem é a pessoa, e em
+          duas linhas o cabeçalho ficava comprido demais (30/10). Quebra só se
+          não couber. */}
+      <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-muted-foreground">
+        <span className="font-medium">@{handle}</span>
+        {memberSince && (
+          <>
+            <span className="text-muted-foreground/50">·</span>
+            <span className="text-xs">
+              Membro desde {formatMonthYear(memberSince)}
+            </span>
+          </>
+        )}
       </p>
-      {memberSince && (
-        <p className="text-xs font-normal text-muted-foreground/75">
-          Membro desde {formatMonthYear(memberSince)}
-        </p>
-      )}
 
-      {social}
-
+      {/* Bio e links logo abaixo da identidade; seguidores e o botão de
+          seguir vêm depois, numa linha só */}
       {bio && (
-        <p className="mt-3 max-w-md text-sm leading-relaxed text-foreground">
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-foreground">
           {bio}
         </p>
       )}
@@ -135,7 +139,7 @@ export function ProfileHeader({
         /* Quebra em linhas em vez de rolar: o card tem largura fixa, e
                  rolagem horizontal aqui não tem affordance nenhuma — o terceiro
                  link simplesmente sumia cortado na borda. */
-        <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2">
+        <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2">
           {links.map(({ link, url }) => (
             <a
               key={link.key}
@@ -165,11 +169,13 @@ export function ProfileHeader({
         </div>
       )}
 
+      {social}
+
       {/* O que a pessoa tem, num painel só: cartas, portfólios e valor estimado
           lado a lado no computador, separados por linhas finas; no celular o
           valor fica embaixo. Números na fonte do sistema com algarismos
           alinhados, sem a monoespaçada pesada de antes (21/10). */}
-      <div className="mt-6 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1fr_1fr_1.6fr]">
+      <div className="mt-5 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1fr_1fr_1.6fr]">
         {[
           { rotulo: "Cartas", valor: totalCards },
           { rotulo: "Portfólios", valor: totalPortfolios },
