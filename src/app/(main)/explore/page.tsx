@@ -10,6 +10,7 @@ import {
   IconLayoutGrid,
   IconListDetails,
   IconLoader2,
+  IconPackage,
   IconSearch,
   IconTrendingDown,
   IconTrendingUp,
@@ -1432,6 +1433,23 @@ function ExplorePageContent() {
               {t.chip}
             </GlassPill>
           ))}
+          {/* Selados (booster box, ETB, lata): ficavam escondidos atrás do
+              filtro de tipo. Liga só selados, do mais caro para o mais
+              barato, e vale junto com o jogo escolhido (30/10) */}
+          <GlassPill
+            active={productType === "sealed"}
+            onClick={() => {
+              if (productType === "sealed") {
+                setProductType("single");
+              } else {
+                setProductType("sealed");
+                if (sortBy === "best-match") setSortBy("price-desc");
+              }
+            }}
+          >
+            <IconPackage className="size-3.5" />
+            Selados
+          </GlassPill>
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
