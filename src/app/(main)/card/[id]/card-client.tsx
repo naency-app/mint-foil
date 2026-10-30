@@ -536,14 +536,13 @@ export function CardDetailClient({
   // Com a MyP na manchete, o internacional vira uma linha de referência com
   // o valor em real depois do câmbio: "US$ 5.99 · câmbio 4.96 · R$ 29,74 ·
   // TCGplayer" (30/10)
-  const linhaIntlComReal = [
+  const intlAntesDoReal = [
     intl?.usd != null ? `US$ ${intl.usd.toFixed(2)}` : null,
     intl?.rate != null ? `câmbio ${intl.rate.toFixed(2)}` : null,
-    headlineBrl > 0 ? `R$ ${formatPrice(headlineBrl)}` : null,
-    intl?.source ?? "TCGplayer",
   ]
     .filter(Boolean)
     .join(" · ");
+  const fonteIntl = intl?.source ?? "TCGplayer";
 
   const priceHistory = card.prices
     .slice()
@@ -812,9 +811,19 @@ export function CardDetailClient({
               </span>
               {/* Com a MyP: o internacional logo abaixo da frase, no mesmo
                   tamanho dela */}
+              {/* Só o valor em real um pouco maior que o resto da linha */}
               {myp && (
-                <span className="text-[13px] text-muted-foreground">
-                  {linhaIntlComReal}
+                <span className="text-xs text-muted-foreground">
+                  {intlAntesDoReal && `${intlAntesDoReal} · `}
+                  {headlineBrl > 0 && (
+                    <>
+                      <span className="text-sm">
+                        R$ {formatPrice(headlineBrl)}
+                      </span>
+                      {" · "}
+                    </>
+                  )}
+                  {fonteIntl}
                 </span>
               )}
             </div>
