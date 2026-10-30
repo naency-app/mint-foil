@@ -12,7 +12,9 @@ export default function MainLayout({
 }) {
   return (
     <QuickAddProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      {/* Coluna flex: em página curta (troca, configurações) o conteúdo cresce
+          e o rodapé fica no fim da tela, não no meio dela (30/10) */}
+      <div className="flex min-h-screen flex-col bg-background text-foreground">
         {/* Primeiro filho: fica atrás de tudo que é posicionado depois dele */}
         <FundoFoil />
         <FundoClaro />
@@ -21,9 +23,9 @@ export default function MainLayout({
         <Navbar />
 
         {/* Nav é fixed (padrão landing): o conteúdo precisa nascer abaixo dela */}
-        <div className="relative pt-14 md:pt-16">{children}</div>
+        <div className="relative flex-1 pt-14 md:pt-16">{children}</div>
 
-        <footer className="relative border-t border-border  mt-auto">
+        <footer className="relative border-t border-border">
           <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <p className="text-center text-xs text-muted-foreground">
               Mint Foil © 2026 — Gerencie sua coleção de TCG com inteligência.
