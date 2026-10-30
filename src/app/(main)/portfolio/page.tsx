@@ -1210,7 +1210,7 @@ export default function PortfolioPage() {
               <Loader2 className="size-8 animate-spin text-primary" />
             </div>
           ) : showcaseData.portfolios.some((p) => p.items.length > 0) ? (
-            <ShowcaseBrowser portfolios={showcaseData.portfolios} previa />
+            <ShowcaseBrowser portfolios={showcaseData.portfolios} />
           ) : (
             <EstadoVazio
               emCard
