@@ -778,21 +778,23 @@ export function CardDetailClient({
                 {detalheIntl}
                 {myp && headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
               </span>
-              {/* Atribuição exigida pela MYP (link para mypcards.com):
-                  sem ela o acesso à API pode ser pausado */}
-              {myp && (
-                <span className="text-xs text-muted-foreground">
-                  O preço em real é disponibilizado pela{" "}
-                  <a
-                    href="https://mypcards.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-foreground underline underline-offset-2 hover:text-primary"
-                  >
-                    MYP Cards
-                  </a>
-                </span>
-              )}
+              {/* Sempre uma frase com o link da MYP acima do botão (30/10).
+                  Com preço dela é a atribuição exigida pela API (sem ela o
+                  acesso pode ser pausado); sem, o R$ acima é o internacional
+                  convertido, então a frase convida a conferir lá. */}
+              <span className="text-xs text-muted-foreground">
+                {myp
+                  ? "O preço em real é disponibilizado pela"
+                  : "Confira o preço em real na"}{" "}
+                <a
+                  href="https://mypcards.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-foreground underline underline-offset-2 hover:text-primary"
+                >
+                  MYP Cards
+                </a>
+              </span>
             </div>
 
             {/* A MyP sempre em destaque: com preço, o link vai ao produto;
