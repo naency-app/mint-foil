@@ -4,6 +4,7 @@ import {
   IconArrowsExchange,
   IconCards,
   IconLoader2,
+  IconScale,
   IconSearch,
   IconShare2,
   IconTrash,
@@ -18,6 +19,7 @@ import { CardImage } from "@/app/components/CardImage";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { RollingCounter } from "@/app/components/RollingCounter";
 import { formatPrice } from "@/app/components/SugestoesBusca";
+import { EstadoVazio } from "@/components/EstadoVazio";
 import { BotaoFoil } from "@/components/ui/botao-foil";
 import {
   Dialog,
@@ -135,7 +137,7 @@ export function TrocaClient() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-foreground">
-            <IconArrowsExchange className="size-7 text-primary" />
+            <IconScale className="size-7 text-primary" />
             Essa troca vale a pena?
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -169,7 +171,15 @@ export function TrocaClient() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="relative grid grid-cols-1 gap-5 md:grid-cols-2">
+            {/* O que está sendo trocado, entre os dois lados (30/10). Acima
+                dos cards (z-10) e abaixo da busca aberta (focus-within:z-20) */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-1/2 z-[15] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-background shadow-lg"
+            >
+              <IconArrowsExchange className="size-5 rotate-90 text-primary md:rotate-0" />
+            </span>
             <LadoDaTroca
               titulo="Você entrega"
               itens={troca.dar}
@@ -269,9 +279,18 @@ function LadoDaTroca({
       </div>
 
       {itens.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          Nenhuma carta ainda.
-        </p>
+        // Vazio dentro de card e sem botão: o compacto do padrão (30/10)
+        <EstadoVazio
+          compacto
+          className="py-6"
+          icon={IconCards}
+          titulo="Nenhuma carta ainda"
+          descricao={
+            titulo === "Você entrega"
+              ? "Busque as cartas que você vai entregar."
+              : "Busque as cartas que você vai receber."
+          }
+        />
       ) : (
         <ul className="space-y-1.5">
           {itens.map((item, i) => (
@@ -446,25 +465,31 @@ function ResumoDaTroca({
   logado: boolean;
 }) {
   const { veredito, diferenca, pct } = resumo;
+  // A frase fica na cor do texto; só o valor ganha verde ou vermelho, como
+  // nos números do resto do sistema (30/10)
   const titulo =
-    veredito === "vazia"
-      ? "Adicione cartas nos dois lados"
-      : veredito === "equilibrada"
-        ? "Troca justa"
-        : veredito === "ganha"
-          ? `Você ganha R$ ${formatPrice(diferenca)}`
-          : `Você perde R$ ${formatPrice(-diferenca)}`;
+    veredito === "vazia" ? (
+      "Adicione cartas nos dois lados"
+    ) : veredito === "equilibrada" ? (
+      "Troca justa"
+    ) : veredito === "ganha" ? (
+      <>
+        Você ganha{" "}
+        <span className="text-emerald-400">R$ {formatPrice(diferenca)}</span>
+      </>
+    ) : (
+      <>
+        Você perde{" "}
+        <span className="text-destructive">R$ {formatPrice(-diferenca)}</span>
+      </>
+    );
   return (
     <section className="glass-card !rounded-2xl flex flex-col items-center gap-4 p-5 text-center sm:flex-row sm:justify-between sm:text-left">
       <div>
         <p
           className={cn(
             "text-2xl font-extrabold tracking-tight",
-            veredito === "equilibrada" || veredito === "ganha"
-              ? "text-emerald-400"
-              : veredito === "perde"
-                ? "text-destructive"
-                : "text-muted-foreground",
+            veredito === "vazia" ? "text-muted-foreground" : "text-foreground",
           )}
         >
           {titulo}
