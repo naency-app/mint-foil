@@ -500,9 +500,8 @@ function ResumoDaTroca({
               </span>
             </p>
             <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-              Os dois lados valem quase o mesmo: você entrega R${" "}
-              {formatPrice(resumo.dar)} e recebe R${" "}
-              {formatPrice(resumo.receber)}.
+              Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
+              {formatPrice(resumo.receber)}
             </p>
           </div>
         </div>
