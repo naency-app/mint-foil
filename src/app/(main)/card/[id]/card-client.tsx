@@ -778,14 +778,11 @@ export function CardDetailClient({
                 {detalheIntl}
                 {myp && headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
               </span>
-              {/* Sempre uma frase com o link da MYP acima do botão (30/10).
-                  Com preço dela é a atribuição exigida pela API (sem ela o
-                  acesso pode ser pausado); sem, o R$ acima é o internacional
-                  convertido, então a frase convida a conferir lá. */}
+              {/* Atribuição exigida pela MYP (link para mypcards.com), sempre
+                  acima do botão, com ou sem preço dela na carta (decisão da
+                  Isa, 30/10): sem ela o acesso à API pode ser pausado */}
               <span className="text-xs text-muted-foreground">
-                {myp
-                  ? "O preço em real é disponibilizado pela"
-                  : "Confira o preço em real na"}{" "}
+                O preço em real é disponibilizado pela{" "}
                 <a
                   href="https://mypcards.com"
                   target="_blank"
