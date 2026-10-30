@@ -66,14 +66,13 @@ export interface TcgCardProps {
   /**
    * O item NM desta carta no portfólio ativo (`null` se ainda não tem).
    * Passado, o card troca o "Quant." e o "+" pelo contador compacto, que
-   * soma E tira — só onde a quantidade é a sua (Explorar, coleções); no
-   * perfil de outra pessoa fica o "+" de sempre.
+   * soma E tira — só onde a quantidade é a sua (Explorar, coleções).
    */
   itemNm?: { id: string; quantity: number } | null;
   nomePortfolio?: string;
   /**
-   * Sem o "+": a pessoa olhando o próprio perfil como visitante não tem por
-   * que adicionar a carta que já é dela.
+   * Sem o "+": perfil público (o de outra pessoa ou o seu como visitante) é
+   * só para olhar; adicionar é pela tela da carta, escolhendo o portfólio.
    */
   semAdicionar?: boolean;
 }

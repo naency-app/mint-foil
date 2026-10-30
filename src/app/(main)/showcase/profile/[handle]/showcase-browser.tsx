@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  IconArrowsSort,
-  IconSearch,
-  IconX,
-} from "@tabler/icons-react";
+import { IconArrowsSort, IconSearch, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
@@ -47,13 +43,17 @@ type ViewMode = Visao;
 /** Id sintético da opção "todos os portfólios" — não existe no banco. */
 const TODOS = "__todos__";
 
+/**
+ * A coleção de um perfil público: só para olhar. Adicionar uma carta que a
+ * pessoa tem é pela tela da carta, onde se escolhe em qual portfólio SEU ela
+ * entra. O "+" aqui gravava no seu portfólio padrão sem perguntar e ainda
+ * subia o "Quant." da outra pessoa na tela, como se a coleção dela tivesse
+ * mudado (30/10).
+ */
 export function ShowcaseBrowser({
   portfolios,
-  previa = false,
 }: {
   portfolios: ShowcasePortfolio[];
-  /** Pré-visualização do próprio perfil (Portfólio → ver como visitante). */
-  previa?: boolean;
 }) {
   // Com mais de um portfólio, a coleção abre inteira. Antes abria no primeiro
   // (o mais antigo): quem guardava a carta nova num portfólio novo aparecia de
@@ -289,7 +289,7 @@ export function ShowcaseBrowser({
                   quantity={item.quantity}
                   cardId={item.cardId}
                   cardHref={`/card/${item.cardId}`}
-                  semAdicionar={previa}
+                  semAdicionar
                 />
               ))}
             </div>
