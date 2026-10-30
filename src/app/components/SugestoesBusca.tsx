@@ -20,7 +20,9 @@ type Carta = Sugestoes["cartas"][number];
 type Item =
   | { tipo: "nome"; chave: string; nome: Nome }
   | { tipo: "colecao"; chave: string; colecao: Colecao }
-  | { tipo: "carta"; chave: string; carta: Carta };
+  | { tipo: "carta"; chave: string; carta: Carta }
+  // Produto selado (booster box, ETB…): a mesma linha da carta (30/10)
+  | { tipo: "selado"; chave: string; carta: Carta };
 
 export interface SugestoesBuscaRef {
   /** Repasse do onKeyDown do campo. `true` = a tecla foi usada aqui. */
@@ -108,6 +110,11 @@ export const SugestoesBusca = forwardRef<
         tipo: "nome" as const,
         chave: `nome:${nome.tcg}:${nome.nome}`,
         nome,
+      })),
+      ...(data?.selados ?? []).map((carta) => ({
+        tipo: "selado" as const,
+        chave: `selado:${carta.id}`,
+        carta,
       })),
       ...(data?.colecoes ?? []).map((colecao) => ({
         tipo: "colecao" as const,
@@ -211,6 +218,7 @@ export const SugestoesBusca = forwardRef<
     >
       {secao("carta", "Carta")}
       {secao("nome", "Cartas")}
+      {secao("selado", "Selados")}
       {secao("colecao", "Coleções")}
     </div>
   );
@@ -273,7 +281,10 @@ function Linha({ item, termo }: { item: Item; termo: string }) {
           width={28}
           height={39}
           rotulo={false}
-          className="aspect-[5/7] w-full object-cover"
+          // A foto do selado é de caixa: inteira, sem o corte de carta
+          className={`aspect-[5/7] w-full ${
+            item.tipo === "selado" ? "object-contain" : "object-cover"
+          }`}
         />
       </span>
       <span className="min-w-0 flex-1">

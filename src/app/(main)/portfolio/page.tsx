@@ -42,7 +42,6 @@ import {
   facetOptions,
   PainelFiltros,
   PriceRangeFilter,
-  ProductTypeFilter,
   type ProductTypeValue,
   toggleValue,
 } from "@/app/components/filters";
@@ -53,6 +52,7 @@ import { RollingCounter } from "@/app/components/RollingCounter";
 import { AdicionarAmigos } from "@/app/components/social/AdicionarAmigos";
 import { PedidosButton } from "@/app/components/social/PedidosButton";
 import { SocialStats } from "@/app/components/social/SocialStats";
+import { AlternarTipoDeProduto } from "@/components/AlternarTipoDeProduto";
 import { AlternarVisao } from "@/components/AlternarVisao";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
@@ -1023,6 +1023,29 @@ export default function PortfolioPage() {
     50,
     ...items.map((i) => Math.ceil(precoAtual(i.card.prices))),
   );
+  // Cartas × selados (30/10): a contagem do controle Tudo · Cartas · Selados
+  // e a divisão do valor no card do total. Selado não tem variação, então o
+  // valor dele é o preço que a grade mostra; o das cartas é o resto do total,
+  // para a soma bater sempre com o número de cima.
+  const ehSelado = (i: (typeof items)[number]) =>
+    i.card.productType === "SEALED";
+  const contagemPorTipo = {
+    cartas: items
+      .filter((i) => !ehSelado(i))
+      .reduce((n, i) => n + i.quantity, 0),
+    selados: items.filter(ehSelado).reduce((n, i) => n + i.quantity, 0),
+  };
+  const valorSelados = items
+    .filter(ehSelado)
+    .reduce((soma, i) => soma + precoAtual(i.card.prices) * i.quantity, 0);
+  // "2 selados", "66 itens" ou "64 cartas": com selado na lista, "cartas"
+  // deixa de ser a palavra certa (30/10)
+  const rotuloDaContagem = (n: number) => {
+    if (productType === "sealed") return n === 1 ? "selado" : "selados";
+    if (productType === "all" && contagemPorTipo.selados > 0)
+      return n === 1 ? "item" : "itens";
+    return n === 1 ? "carta" : "cartas";
+  };
   const filteredItems = items.filter((i) => {
     const pt = i.card.productType ?? "SINGLE";
     if (productType === "single" && pt !== "SINGLE") return false;
@@ -1319,6 +1342,19 @@ export default function PortfolioPage() {
                             </>
                           )}
                         </div>
+                        {/* Quanto do total é carta e quanto é selado (30/10) */}
+                        {!loading && valorSelados > 0 && (
+                          <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+                            Cartas R${" "}
+                            {formatPrice(
+                              Math.max(
+                                0,
+                                metrics.currentEstimatedValue - valorSelados,
+                              ),
+                            )}{" "}
+                            · Selados R$ {formatPrice(valorSelados)}
+                          </p>
+                        )}
                       </div>
 
                       {/* Range Selector */}
@@ -1545,10 +1581,6 @@ export default function PortfolioPage() {
                     {/* Sidebar de filtros (igual showcase) */}
                     <aside className="hidden w-60 shrink-0 lg:block">
                       <PainelFiltros>
-                        <ProductTypeFilter
-                          value={productType}
-                          onChange={setProductType}
-                        />
                         {tcgFacets.length > 0 && (
                           <FilterSection title="Jogo / Categoria">
                             <CheckboxFilterList
@@ -1595,6 +1627,13 @@ export default function PortfolioPage() {
 
                     {/* Conteúdo: toolbar + grid/lista (cartas de gestão) */}
                     <div className="min-w-0 flex-1 space-y-4">
+                      {contagemPorTipo.selados > 0 && !isSelectionMode && (
+                        <AlternarTipoDeProduto
+                          valor={productType}
+                          onChange={setProductType}
+                          contagem={contagemPorTipo}
+                        />
+                      )}
                       {isSelectionMode ? (
                         /* Modo de Seleção: Linha única. Na direita, estritamente as 3 ações (Copiar, Mover, Excluir). Zero botões de sistema */
                         <div className="flex items-center justify-between gap-2 animate-in fade-in duration-300">
@@ -1621,7 +1660,7 @@ export default function PortfolioPage() {
                             ) : (
                               <p className="whitespace-nowrap text-muted-foreground">
                                 {cartasFiltradas}{" "}
-                                {cartasFiltradas === 1 ? "carta" : "cartas"}
+                                {rotuloDaContagem(cartasFiltradas)}
                               </p>
                             )}
                             <span className="text-muted-foreground/40">•</span>
@@ -1696,7 +1735,7 @@ export default function PortfolioPage() {
                           {/* Contagem de cartas */}
                           <p className="whitespace-nowrap text-xs text-muted-foreground font-medium shrink-0">
                             {cartasFiltradas}{" "}
-                            {cartasFiltradas === 1 ? "carta" : "cartas"}
+                            {rotuloDaContagem(cartasFiltradas)}
                             <span className="hidden sm:inline">
                               {cartasFiltradas !== cartasTotal
                                 ? ` de ${cartasTotal}`

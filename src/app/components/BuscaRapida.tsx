@@ -168,6 +168,7 @@ export function BuscaRapida() {
   const cartas = buscando ? (data?.cartas ?? []) : [];
   const nomes = buscando ? (data?.nomes ?? []) : [];
   const colecoes = buscando ? (data?.colecoes ?? []) : [];
+  const selados = buscando ? (data?.selados ?? []) : [];
 
   function limparRecentes() {
     gravarRecentes([]);
@@ -220,6 +221,8 @@ export function BuscaRapida() {
   const previas = new Map<string, Previa>();
   for (const carta of cartas)
     previas.set(`carta:${carta.id}`, { tipo: "carta", carta });
+  for (const selado of selados)
+    previas.set(`selado:${selado.id}`, { tipo: "carta", carta: selado });
   for (const nome of nomes)
     previas.set(`nome:${nome.tcg}:${nome.nome}`, { tipo: "nome", nome });
   for (const colecao of colecoes)
@@ -258,11 +261,62 @@ export function BuscaRapida() {
     buscando &&
     !isFetching &&
     esperado === termo &&
-    cartas.length + nomes.length + colecoes.length === 0;
+    cartas.length + nomes.length + colecoes.length + selados.length === 0;
   // Ícone na cor do texto: o CommandItem do shadcn pinta todo ícone de
   // muted-foreground, e no escuro eles pareciam translúcidos (24/10)
   const item =
     "gap-3 rounded-lg px-3 py-2.5 data-[selected=true]:bg-primary/10 data-[selected=true]:text-foreground [&_svg:not([class*='text-'])]:text-foreground";
+
+  // Uma carta (ou um selado) da lista: foto, nome, coleção, código e o preço
+  // da tela da carta. Selado não tem código e a foto é de caixa, então ela
+  // aparece inteira em vez de cortada no formato de carta
+  function itemDeCarta(carta: Carta, prefixo: "carta" | "selado") {
+    return (
+      <CommandItem
+        key={carta.id}
+        value={`${prefixo}:${carta.id}`}
+        onSelect={() => {
+          guardarRecente(termo);
+          ir(`/card/${carta.id}`);
+        }}
+        className={item}
+      >
+        <span className="w-7 shrink-0 overflow-hidden rounded">
+          <CardImage
+            carta={carta}
+            tamanho="miniatura"
+            alt=""
+            width={28}
+            height={39}
+            rotulo={false}
+            className={cn(
+              "aspect-[5/7] w-full",
+              prefixo === "selado" ? "object-contain" : "object-cover",
+            )}
+          />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium">
+            {carta.namePt?.trim() || carta.name}
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {carta.setName}
+            {carta.collectorNumber && (
+              <span className="font-mono">
+                {" "}
+                · {destacar(carta.collectorNumber, termo)}
+              </span>
+            )}
+          </span>
+        </span>
+        {precoDaSugestao(carta) != null && (
+          <span className="shrink-0 font-mono text-xs font-semibold">
+            R$ {formatPrice(precoDaSugestao(carta) ?? 0)}
+          </span>
+        )}
+      </CommandItem>
+    );
+  }
 
   return (
     <>
@@ -363,48 +417,7 @@ export function BuscaRapida() {
 
                 {cartas.length > 0 && (
                   <CommandGroup heading="Carta">
-                    {cartas.map((carta) => (
-                      <CommandItem
-                        key={carta.id}
-                        value={`carta:${carta.id}`}
-                        onSelect={() => {
-                          guardarRecente(termo);
-                          ir(`/card/${carta.id}`);
-                        }}
-                        className={item}
-                      >
-                        <span className="w-7 shrink-0 overflow-hidden rounded">
-                          <CardImage
-                            carta={carta}
-                            tamanho="miniatura"
-                            alt=""
-                            width={28}
-                            height={39}
-                            rotulo={false}
-                            className="aspect-[5/7] w-full object-cover"
-                          />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-medium">
-                            {carta.namePt?.trim() || carta.name}
-                          </span>
-                          <span className="block truncate text-xs text-muted-foreground">
-                            {carta.setName}
-                            {carta.collectorNumber && (
-                              <span className="font-mono">
-                                {" "}
-                                · {destacar(carta.collectorNumber, termo)}
-                              </span>
-                            )}
-                          </span>
-                        </span>
-                        {precoDaSugestao(carta) != null && (
-                          <span className="shrink-0 font-mono text-xs font-semibold">
-                            R$ {formatPrice(precoDaSugestao(carta) ?? 0)}
-                          </span>
-                        )}
-                      </CommandItem>
-                    ))}
+                    {cartas.map((carta) => itemDeCarta(carta, "carta"))}
                   </CommandGroup>
                 )}
 
@@ -426,6 +439,13 @@ export function BuscaRapida() {
                         </span>
                       </CommandItem>
                     ))}
+                  </CommandGroup>
+                )}
+
+                {/* Produtos selados que casam com o termo (30/10) */}
+                {selados.length > 0 && (
+                  <CommandGroup heading="Selados">
+                    {selados.map((selado) => itemDeCarta(selado, "selado"))}
                   </CommandGroup>
                 )}
 
