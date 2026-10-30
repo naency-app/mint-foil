@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
 import { Spinner } from "@/components/ui/spinner";
-import type { SugestoesBusca } from "@/lib/api";
+import { precoDaSugestao, type SugestoesBusca } from "@/lib/api";
 import { useExploreHref } from "@/lib/explore-href";
 import { useSugestoesBusca } from "@/lib/queries";
 import { TEMAS } from "@/lib/temas";
@@ -398,9 +398,9 @@ export function BuscaRapida() {
                             )}
                           </span>
                         </span>
-                        {carta.latestPriceBrl != null && (
+                        {precoDaSugestao(carta) != null && (
                           <span className="shrink-0 font-mono text-xs font-semibold">
-                            R$ {formatPrice(carta.latestPriceBrl)}
+                            R$ {formatPrice(precoDaSugestao(carta) ?? 0)}
                           </span>
                         )}
                       </CommandItem>
@@ -652,9 +652,9 @@ function PreviaDoItem({ previa }: { previa: Previa | undefined }) {
               ? ` · ${previa.carta.collectorNumber}`
               : ""}
           </p>
-          {previa.carta.latestPriceBrl != null && (
+          {precoDaSugestao(previa.carta) != null && (
             <p className="font-mono text-sm font-bold text-foreground">
-              R$ {formatPrice(previa.carta.latestPriceBrl)}
+              R$ {formatPrice(precoDaSugestao(previa.carta) ?? 0)}
             </p>
           )}
         </>

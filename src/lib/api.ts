@@ -288,8 +288,21 @@ export interface SugestoesBusca {
     collectorNumber: string | null;
     setName: string | null;
     latestPriceBrl: number | null;
+    /** Menor preço da MyP (ausente em backend antigo ou carta sem MyP) */
+    mypMenor?: number | null;
     tcg: { slug: string; name: string };
   }[];
+}
+
+/**
+ * O preço de uma carta da busca: o da MyP quando ela tem a carta, senão o
+ * internacional. É o mesmo que a tela da carta mostra em destaque (30/10).
+ */
+export function precoDaSugestao(carta: {
+  latestPriceBrl: number | null;
+  mypMenor?: number | null;
+}): number | null {
+  return carta.mypMenor ?? carta.latestPriceBrl;
 }
 
 /**
