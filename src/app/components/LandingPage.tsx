@@ -230,7 +230,7 @@ const FOOTER_BAND = [
   { text, id: `fb${i}` },
 ]);
 
-// Reveal section — 6 TCGs
+// Reveal section — cinco jogos com nome e "Outros"
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
@@ -255,9 +255,11 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
   },
   {
-    text: "Dragon Ball",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
-    soon: true,
+    // Lorcana e Dragon Ball (30/10): com os nomes de todos a lista ficava
+    // comprida demais. Atrás o SSB Vegeta, na frente a Elsa Enchanted
+    // (TCGplayer, sem o carimbo "SAMPLE")
+    text: "Outros",
+    imgs: ["/landing/vegeta-card.jpg", "/landing/elsa-card.jpg"],
   },
 ];
 
