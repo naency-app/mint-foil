@@ -24,12 +24,18 @@ export function SocialStats({
   followers,
   following,
   className,
+  meio,
 }: {
   handle: string;
   followers: number;
   following: number;
   /** Na linha do botão de seguir (PerfilSocial) vai sem a margem de cima */
   className?: string;
+  /**
+   * Entre os dois números, no lugar do "·": o botão de seguir fica no eixo
+   * do cabeçalho centralizado, em vez de pesar só de um lado (30/10).
+   */
+  meio?: React.ReactNode;
 }) {
   const [aberta, setAberta] = useState<Lista | null>(null);
 
@@ -46,14 +52,20 @@ export function SocialStats({
   return (
     <>
       <div
-        className={cn("mt-3 flex items-center justify-center gap-2", className)}
+        className={cn(
+          "mt-3 flex items-center justify-center",
+          // Com o botão no meio, quebra se não couber (números grandes num
+          // celular estreito) em vez de vazar pela lateral
+          meio ? "flex-wrap gap-x-4 gap-y-2" : "gap-2",
+          className,
+        )}
       >
         {item(
           "followers",
           followers,
           followers === 1 ? "seguidor" : "seguidores",
         )}
-        <span className="text-muted-foreground/50">·</span>
+        {meio ?? <span className="text-muted-foreground/50">·</span>}
         {item("following", following, "seguindo")}
       </div>
 

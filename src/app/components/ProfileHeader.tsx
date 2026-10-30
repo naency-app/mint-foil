@@ -171,11 +171,13 @@ export function ProfileHeader({
 
       {social}
 
-      {/* O que a pessoa tem, num painel só: cartas, portfólios e valor estimado
-          lado a lado no computador, separados por linhas finas; no celular o
-          valor fica embaixo. Números na fonte do sistema com algarismos
+      {/* O que a pessoa tem, num painel só: no computador Cartas | Valor |
+          Portfólios, com o valor (o número que importa) no meio e mais largo,
+          no eixo do cabeçalho centralizado; antes ele ficava à direita e o
+          bloco pesava para um lado (30/10). No celular o valor fica embaixo,
+          na largura toda. Números na fonte do sistema com algarismos
           alinhados, sem a monoespaçada pesada de antes (21/10). */}
-      <div className="mt-5 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1fr_1fr_1.6fr]">
+      <div className="mt-5 grid w-full grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 md:grid-cols-[1fr_1.6fr_1fr]">
         {[
           { rotulo: "Cartas", valor: totalCards },
           { rotulo: "Portfólios", valor: totalPortfolios },
@@ -183,9 +185,7 @@ export function ProfileHeader({
           <div
             key={rotulo}
             className={`flex flex-col items-center justify-center px-5 py-4 ${
-              i === 0
-                ? "border-r border-border/60"
-                : "md:border-r md:border-border/60"
+              i === 0 ? "border-r border-border/60" : "md:order-3"
             }`}
           >
             <p className="text-2xl font-bold text-foreground tabular-nums">
@@ -197,7 +197,7 @@ export function ProfileHeader({
           </div>
         ))}
 
-        <div className="col-span-2 flex flex-col items-center justify-center border-t border-border/60 px-5 py-4 md:col-span-1 md:border-t-0">
+        <div className="col-span-2 flex flex-col items-center justify-center border-t border-border/60 px-5 py-4 md:order-2 md:col-span-1 md:border-t-0 md:border-r">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {/* Soma todos os portfólios — "do portfólio" fazia parecer erro
                 ao lado do gráfico, que mostra só o portfólio escolhido. */}
