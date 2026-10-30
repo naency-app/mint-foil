@@ -1,7 +1,7 @@
 import { precoDaSugestao } from "@/lib/api";
 
 /**
- * Analisador de troca (30/10): dois lados, "Você dá" e "Você recebe", e o
+ * Analisador de troca (30/10): dois lados, "Você entrega" e "Você recebe", e o
  * veredito. Funções puras, sem tela: a página da web usa, e o app segue as
  * mesmas regras.
  */

@@ -171,7 +171,7 @@ export function TrocaClient() {
         <>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <LadoDaTroca
-              titulo="Você dá"
+              titulo="Você entrega"
               itens={troca.dar}
               total={resumo.dar}
               onAdicionar={(c) => adicionar("dar", c)}
@@ -471,7 +471,7 @@ function ResumoDaTroca({
         </p>
         {veredito !== "vazia" && (
           <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-            Você dá R$ {formatPrice(resumo.dar)} · recebe R${" "}
+            Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
             {formatPrice(resumo.receber)}
             {veredito !== "equilibrada" &&
               ` · ${Math.abs(pct * 100).toFixed(0)}% de diferença`}
@@ -541,7 +541,7 @@ function DoMeuPortfolio({
         <DialogHeader>
           <DialogTitle>Do meu portfólio</DialogTitle>
           <DialogDescription>
-            Escolha as cartas que você vai dar. Ao confirmar a troca, elas saem
+            Escolha as cartas que você vai entregar. Ao confirmar a troca, elas saem
             do portfólio.
           </DialogDescription>
         </DialogHeader>
@@ -579,7 +579,7 @@ function DoMeuPortfolio({
                 type="button"
                 onClick={() => {
                   onEscolher(item);
-                  toast.success(`${nomeDaCarta(item.card)} no "Você dá".`);
+                  toast.success(`${nomeDaCarta(item.card)} no "Você entrega".`);
                 }}
                 className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-primary/10"
               >
@@ -676,7 +676,7 @@ function ConfirmarTroca({
         <DialogHeader>
           <DialogTitle>Confirmar a troca?</DialogTitle>
           <DialogDescription>
-            As cartas que você dá saem do seu portfólio, e as que você recebe
+            As cartas que você entrega saem do seu portfólio, e as que você recebe
             entram no portfólio escolhido.
           </DialogDescription>
         </DialogHeader>
@@ -692,7 +692,7 @@ function ConfirmarTroca({
           <p className="rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
             {foraDoPortfolio.length === 1
               ? `${nomeDaCarta(foraDoPortfolio[0].carta)} não veio do seu portfólio e não será removida.`
-              : `${foraDoPortfolio.length} cartas do "Você dá" não vieram do seu portfólio e não serão removidas.`}
+              : `${foraDoPortfolio.length} cartas do "Você entrega" não vieram do seu portfólio e não serão removidas.`}
           </p>
         )}
         <DialogFooter className="gap-2">
