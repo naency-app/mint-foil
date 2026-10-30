@@ -230,7 +230,8 @@ const FOOTER_BAND = [
   { text, id: `fb${i}` },
 ]);
 
-// Reveal section — os jogos do app (Dragon Ball cobre Super e Fusion World)
+// Reveal section — cinco jogos; Lorcana e Dragon Ball ficam só no texto
+// (com os 8 a lista ficava comprida demais, 30/10)
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
@@ -253,17 +254,6 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     // Verso do Digi-Egg (o do baralho principal não tem imagem limpa); frente
     // do site oficial, sem o carimbo "SAMPLE" das imagens da TCGplayer
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
-  },
-  {
-    text: "Lorcana",
-    // Atrás o Mickey, na frente a Elsa Enchanted (TCGplayer, sem carimbo)
-    imgs: ["/landing/mickey-card.jpg", "/landing/elsa-card.jpg"],
-  },
-  {
-    // Antes eram o verso e uma carta de Yu-Gi-Oh! (Stardust Dragon) no lugar.
-    // O Fusion World da TCGplayer vem com "SAMPLE"; estas são do Masters
-    text: "Dragon Ball",
-    imgs: ["/landing/goku-card.jpg", "/landing/vegeta-card.jpg"],
   },
 ];
 
@@ -1690,9 +1680,6 @@ function RevealItem({
               transition: "opacity 0.4s",
               opacity: hovered ? 0.2 : soon ? 0.35 : 1,
               letterSpacing: "-2px",
-              // "DRAGON BALL" passa 10px da coluna (650 em 640, e 345 em 335
-              // num celular de 375): numa linha só, os 10px caem no respiro
-              whiteSpace: "nowrap",
             }}
           >
             {text}
