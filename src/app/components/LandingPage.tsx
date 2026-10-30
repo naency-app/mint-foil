@@ -255,9 +255,10 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
   },
   {
+    // Saiu do "em breve" (30/10). Atrás o SS3 Goku, na frente o SSB Vegeta:
+    // as do Fusion World na TCGplayer vêm com o carimbo "SAMPLE"
     text: "Dragon Ball",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
-    soon: true,
+    imgs: ["/landing/goku-card.jpg", "/landing/vegeta-card.jpg"],
   },
 ];
 
@@ -1684,6 +1685,9 @@ function RevealItem({
               transition: "opacity 0.4s",
               opacity: hovered ? 0.2 : soon ? 0.35 : 1,
               letterSpacing: "-2px",
+              // "DRAGON BALL" passa 10px da coluna (650 em 640, e 345 em 335
+              // num celular de 375): numa linha só, os 10px caem no respiro
+              whiteSpace: "nowrap",
             }}
           >
             {text}
