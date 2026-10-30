@@ -829,9 +829,10 @@ export function CardDetailClient({
             </div>
           </div>
 
-          <div className="lg:col-span-5 lg:self-start space-y-5">
+          {/* Linha 2: detalhes e adicionar ao portfólio, da mesma altura */}
+          <div className="lg:col-span-5 flex flex-col">
             {/* Details */}
-            <div className="glass-card !rounded-2xl p-5 space-y-5">
+            <div className="glass-card !rounded-2xl p-5 space-y-5 flex-1">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <IconAlertCircle className="size-5 text-tertiary" />
                 Detalhes
@@ -907,11 +908,11 @@ export function CardDetailClient({
             </div>
           </div>
 
-          <div className="lg:col-span-4 lg:self-start space-y-5">
+          <div className="lg:col-span-4 flex flex-col">
             {/* Adicionar ao portfólio: onde, quantas e quanto valem as suas
               cópias. O valor das cópias vem menor que o preço da carta, de
               propósito: são dois números, e o importante é o de cima. */}
-            <div className="glass-card !rounded-2xl p-5 space-y-4">
+            <div className="glass-card !rounded-2xl p-5 space-y-4 flex-1">
               <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <IconFolderPlus className="size-5 text-primary" />
                 Adicionar ao portfólio
@@ -960,7 +961,10 @@ export function CardDetailClient({
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* Linha 3, na coluna da direita: as outras cópias e o convite */}
+          <div className="lg:col-span-4 lg:col-start-6 space-y-5">
             {/* Cópias em OUTROS portfólios: as do ativo já estão no card de
               cima (quantidade e total), repetir aqui era a mesma informação.
               Chega depois do resto da página (é do usuário), então entra com
