@@ -1211,7 +1211,7 @@ export default function PortfolioPage() {
               <Loader2 className="size-8 animate-spin text-primary" />
             </div>
           ) : showcaseData.portfolios.some((p) => p.items.length > 0) ? (
-            <ShowcaseBrowser portfolios={showcaseData.portfolios} />
+            <ShowcaseBrowser portfolios={showcaseData.portfolios} previa />
           ) : (
             <EstadoVazio
               emCard
@@ -2111,7 +2111,9 @@ export default function PortfolioPage() {
                     </Button>
                     <Button
                       onClick={executeBulkAction}
-                      variant={bulkAction === "delete" ? "destructive" : "default"}
+                      variant={
+                        bulkAction === "delete" ? "destructive" : "default"
+                      }
                       className="rounded-full px-5 text-sm font-bold"
                     >
                       {bulkAction === "delete" && <Trash2 className="size-4" />}
