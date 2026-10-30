@@ -230,7 +230,7 @@ const FOOTER_BAND = [
   { text, id: `fb${i}` },
 ]);
 
-// Reveal section — 6 TCGs
+// Reveal section — os jogos do app (Dragon Ball cobre Super e Fusion World)
 const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Pokémon",
@@ -257,7 +257,6 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
   {
     text: "Dragon Ball",
     imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
-    soon: true,
   },
 ];
 
@@ -1119,8 +1118,9 @@ function Hero({ noCelular }: { noCelular: boolean }) {
             lineHeight: 1.7,
           }}
         >
-          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e
-          Digimon e acompanhe o valor da sua coleção. Grátis pra começar.
+          Identifique cartas de Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana,
+          Digimon e Dragon Ball e acompanhe o valor da sua coleção em real.
+          Grátis pra começar.
         </motion.p>
 
         {/* CTAs */}
@@ -1929,14 +1929,14 @@ const WHY_POINTS = [
   {
     id: "brasil",
     icon: <IconCurrencyDollar size={17} />,
-    title: "Feito pro Brasil",
-    desc: "Valores em reais e links direto pras lojas brasileiras.",
+    title: "Preço em real de verdade",
+    desc: "O menor preço das lojas brasileiras, pela MYP Cards, e as maiores lojas do Brasil num lugar só.",
   },
   {
     id: "multi",
     icon: <IconDeviceGamepad2 size={17} />,
-    title: "6 jogos, 1 app",
-    desc: "Sem pular entre seis sites pra cuidar da coleção.",
+    title: "8 jogos, 1 app",
+    desc: "Sem pular entre oito sites pra cuidar da coleção.",
   },
   {
     id: "semconta",
@@ -1948,7 +1948,7 @@ const WHY_POINTS = [
     id: "portfolio",
     icon: <IconTrendingUp size={17} />,
     title: "Coleção como portfólio",
-    desc: "Valorização acompanhada dia a dia, como numa corretora.",
+    desc: "Valorização dia a dia no gráfico e alerta quando a carta chega no preço que você quer.",
   },
 ];
 
@@ -2111,7 +2111,7 @@ const SOLUTION_STEPS = [
     span: 7,
     icon: <IconCamera size={22} />,
     title: "Escaneie",
-    desc: "Aponte a câmera e a carta é identificada em segundos — Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana ou Digimon.",
+    desc: "Aponte a câmera e o Mint Foil acha a carta certa, com coleção e número, em segundos. Uma carta por vez ou várias na mesma foto.",
     // O scan só existe no app nativo: o CTA leva ao download, não à web.
     cta: "Baixe o app pra escanear",
     href: "/download",
@@ -2121,7 +2121,7 @@ const SOLUTION_STEPS = [
     span: 5,
     icon: <IconCurrencyDollar size={22} />,
     title: "Veja o valor",
-    desc: "Valor de referência em reais na hora — e o link pra conferir nas lojas brasileiras.",
+    desc: "O preço em real das lojas brasileiras, pela MYP Cards, e o link de cada loja pra conferir.",
     cta: "Explore os preços",
     href: "/explore",
   },
@@ -2130,7 +2130,7 @@ const SOLUTION_STEPS = [
     span: 5,
     icon: <IconWallet size={22} />,
     title: "Adicione ao portfólio",
-    desc: "Coleção catalogada e monitorada dia a dia, com gráficos de valorização.",
+    desc: "Separe a coleção em portfólios, com o gráfico de valorização e alertas de preço.",
     cta: "Monte o seu",
     href: "/portfolio",
   },
@@ -2374,7 +2374,7 @@ const FEATURE_TABS: {
     value: "scan",
     icon: <IconCamera size={15} />,
     label: "Scan Inteligente",
-    desc: "Aponte a câmera e o Mint Foil identifica a carta. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana e Digimon.",
+    desc: "Aponte a câmera e o Mint Foil identifica a carta certa, com coleção e número. Funciona com Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana, Digimon e Dragon Ball.",
     mockupIcon: <IconLineScan size={40} />,
     // Carta a carta, depois várias ao mesmo tempo (já acelerados 1,25x)
     videos: ["/landing/scan-uma.mp4", "/landing/scan-varias.mp4"],
@@ -2416,8 +2416,8 @@ const FEATURE_TABS: {
   {
     value: "multi-tcg",
     icon: <IconDeviceGamepad2 size={15} />,
-    label: "6 Jogos, 1 App",
-    desc: "Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana e Digimon em um único portfólio. Sem precisar de seis sites.",
+    label: "8 Jogos, 1 App",
+    desc: "Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana, Digimon e os dois Dragon Ball num único portfólio. Sem precisar de oito sites.",
     mockupIcon: <IconDeviceGamepad2 size={40} />,
     // Explorar passando pelos jogos (1,25x)
     videos: ["/landing/jogos.mp4"],
@@ -2436,7 +2436,7 @@ const TEXTO_W = 340;
 // Altura da legenda (título + descrição de até 3 linhas) e dos pontinhos:
 // o que fica fora do celular quando ele se mede pela altura da tela
 // 22 de respiro + 28 do título + 6 + 3 linhas de 22 = 122. Com 110 a terceira
-// linha do "6 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
+// linha do "8 Jogos, 1 App" era cortada pelo palco; 130 encolhia o celular à toa.
 const LEGENDA_H = 122;
 const PONTOS_H = 24;
 // No celular a legenda tem a largura da tela e quebra em mais linhas
