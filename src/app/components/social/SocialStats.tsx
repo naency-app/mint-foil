@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useFollowList } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 import { FollowButton } from "./FollowButton";
 import { UserRow } from "./UserRow";
 
@@ -22,10 +23,13 @@ export function SocialStats({
   handle,
   followers,
   following,
+  className,
 }: {
   handle: string;
   followers: number;
   following: number;
+  /** Na linha do botão de seguir (PerfilSocial) vai sem a margem de cima */
+  className?: string;
 }) {
   const [aberta, setAberta] = useState<Lista | null>(null);
 
@@ -41,7 +45,9 @@ export function SocialStats({
 
   return (
     <>
-      <div className="mt-2 flex items-center justify-center gap-2">
+      <div
+        className={cn("mt-3 flex items-center justify-center gap-2", className)}
+      >
         {item(
           "followers",
           followers,
