@@ -10,8 +10,6 @@ import {
   IconFolderPlus as FolderPlus,
   IconEye,
   IconEyeCancel,
-  IconLayoutGrid,
-  IconListDetails,
   IconShare2,
   IconLoader2 as Loader2,
   IconPackage as Package,
@@ -51,6 +49,7 @@ import { RollingCounter } from "@/app/components/RollingCounter";
 import { AdicionarAmigos } from "@/app/components/social/AdicionarAmigos";
 import { PedidosButton } from "@/app/components/social/PedidosButton";
 import { SocialStats } from "@/app/components/social/SocialStats";
+import { AlternarVisao } from "@/components/AlternarVisao";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
@@ -1444,6 +1443,32 @@ export default function PortfolioPage() {
                         </>
                       )}
                     </div>
+
+                    {/* Exportar no pé do card do valor, como no app: na barra
+                        das cartas ele era só um ícone de planilha, e no
+                        celular sumia o ✨ que avisa que é do Pro (30/10) */}
+                    {!loading && !!activePortfolioId && items.length > 0 && (
+                      <div className="mt-3 flex justify-end">
+                        {isPro ? (
+                          <a
+                            href={`${API_URL}/collection/export.xlsx?portfolioId=${activePortfolioId}`}
+                            className="glass-pill inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-xs font-bold text-foreground transition-colors"
+                          >
+                            <FileSpreadsheet className="size-3.5 shrink-0" />
+                            Exportar planilha
+                          </a>
+                        ) : (
+                          <GlassPill
+                            onClick={() => setProModalOpen(true)}
+                            className="h-8 gap-1.5 px-3 text-xs font-bold"
+                          >
+                            <FileSpreadsheet className="size-3.5 shrink-0" />
+                            Exportar planilha
+                            <Sparkles className="size-3 text-primary" />
+                          </GlassPill>
+                        )}
+                      </div>
+                    )}
                   </Card>
                 </div>
               )}
@@ -1704,44 +1729,16 @@ export default function PortfolioPage() {
                             </span>
                           </p>
 
-                          {/* Controles: Exportar, Selecionar, Ordenação, Grid/Lista — cabe na mesma linha com botões nativos GlassPill */}
+                          {/* Selecionar, Ordenação e Grade/Lista numa linha só. O
+                              Exportar foi para o card do valor, como no app (30/10) */}
                           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                            {!!activePortfolioId &&
-                              items.length > 0 &&
-                              (isPro ? (
-                                <a
-                                  href={`${API_URL}/collection/export.xlsx?portfolioId=${activePortfolioId}`}
-                                  title="Exportar planilha"
-                                  className="glass-pill inline-flex h-8 gap-1.5 px-2.5 sm:px-3 cursor-pointer items-center justify-center rounded-full text-xs font-bold text-foreground transition-colors"
-                                >
-                                  <FileSpreadsheet className="size-3.5 shrink-0" />
-                                  <span className="hidden sm:inline">
-                                    Exportar
-                                  </span>
-                                </a>
-                              ) : (
-                                <GlassPill
-                                  onClick={() => setProModalOpen(true)}
-                                  title="Exportar planilha"
-                                  className="h-8 gap-1.5 px-2.5 sm:px-3 text-xs font-bold"
-                                >
-                                  <FileSpreadsheet className="size-3.5 shrink-0" />
-                                  <span className="hidden sm:inline">
-                                    Exportar
-                                  </span>
-                                  <Sparkles className="hidden sm:inline size-3 text-primary" />
-                                </GlassPill>
-                              ))}
-
                             <GlassPill
                               onClick={() => setIsSelectionMode(true)}
                               title="Selecionar cartas"
                               className="h-8 gap-1.5 px-2.5 sm:px-3 text-xs font-bold"
                             >
                               <Check className="size-3.5 shrink-0" />
-                              <span className="hidden sm:inline">
-                                Selecionar
-                              </span>
+                              Selecionar
                             </GlassPill>
 
                             <Select
@@ -1774,24 +1771,10 @@ export default function PortfolioPage() {
                               </SelectContent>
                             </Select>
 
-                            <div className="flex shrink-0 items-center gap-1">
-                              <GlassPill
-                                active={viewType === "grid"}
-                                onClick={() => setViewType("grid")}
-                                className="h-8 px-2.5"
-                                aria-label="Visualizar em grade"
-                              >
-                                <IconLayoutGrid className="size-4" />
-                              </GlassPill>
-                              <GlassPill
-                                active={viewType === "list"}
-                                onClick={() => setViewType("list")}
-                                className="h-8 px-2.5"
-                                aria-label="Visualizar em lista"
-                              >
-                                <IconListDetails className="size-4" />
-                              </GlassPill>
-                            </div>
+                            <AlternarVisao
+                              valor={viewType}
+                              onChange={setViewType}
+                            />
                           </div>
                         </div>
                       )}
