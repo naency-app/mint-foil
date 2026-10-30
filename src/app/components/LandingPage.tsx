@@ -141,6 +141,32 @@ function useIsMobile(breakpoint = 768) {
 }
 
 /**
+ * Quanto as cartas de "Feito pro colecionador brasileiro" abrem para os lados.
+ * Era 175px fixo, e com a janela em ~1000px a coluna da direita encolhia e a
+ * carta da esquerda invadia o texto (30/10). Agora a carta vai no máximo até o
+ * meio do espaço entre as colunas — mesma conta do grid de WhyInner: até
+ * 1100px de conteúdo, 24px de margem de cada lado, 72px de vão, 1.1fr / 1fr,
+ * carta de 272px.
+ */
+function useAberturaDoLeque() {
+  const [abertura, setAbertura] = useState(175);
+  useEffect(() => {
+    const medir = () => {
+      const w = window.innerWidth;
+      if (w < 768) return setAbertura(44);
+      const conteudo = Math.min(w - 48, 1100);
+      const coluna = (conteudo - 72) / 2.1;
+      const cabe = (coluna - 272) / 2 + 50;
+      setAbertura(Math.round(Math.min(175, Math.max(56, cabe))));
+    };
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, []);
+  return abertura;
+}
+
+/**
  * Desktop com pouca altura (notebook, janela menor): o que é acessório numa
  * seção (subtítulo, nota de rodapé) sai para ela caber na tela — ver RESPIRO.
  */
@@ -1945,6 +1971,7 @@ const WHY_POINTS = [
 
 function WhyInner({ isMobile }: { isMobile: boolean }) {
   const t = useTheme();
+  const abertura = useAberturaDoLeque();
   return (
     <div
       style={{
@@ -2054,8 +2081,9 @@ function WhyInner({ isMobile }: { isMobile: boolean }) {
           <div style={{ position: "relative" }}>
             <StackedCardsInteraction
               cards={STACK_CARDS}
-              // Desktop: abre bem para ver as cartas de trás (22/10)
-              spreadDistance={isMobile ? 44 : 175}
+              // Desktop: abre bem para ver as cartas de trás (22/10), até onde
+              // a coluna deixa (useAberturaDoLeque)
+              spreadDistance={abertura}
               rotationAngle={isMobile ? 10 : 12}
             />
             <p
