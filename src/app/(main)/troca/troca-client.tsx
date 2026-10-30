@@ -171,7 +171,7 @@ export function TrocaClient() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_1fr] md:gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-4">
             <LadoDaTroca
               titulo="Você entrega"
               itens={troca.dar}
