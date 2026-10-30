@@ -292,6 +292,11 @@ export interface SugestoesBusca {
     mypMenor?: number | null;
     tcg: { slug: string; name: string };
   }[];
+  /**
+   * Produtos selados que casam com o termo (booster box, ETB, lata), até 3.
+   * Ausente em backend antigo (30/10).
+   */
+  selados?: SugestoesBusca["cartas"];
 }
 
 /**
