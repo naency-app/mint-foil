@@ -52,8 +52,11 @@ const TODOS = "__todos__";
 
 export function ShowcaseBrowser({
   portfolios,
+  previa = false,
 }: {
   portfolios: ShowcasePortfolio[];
+  /** Pré-visualização do próprio perfil (Portfólio → ver como visitante). */
+  previa?: boolean;
 }) {
   // Com mais de um portfólio, a coleção abre inteira. Antes abria no primeiro
   // (o mais antigo): quem guardava a carta nova num portfólio novo aparecia de
@@ -306,6 +309,7 @@ export function ShowcaseBrowser({
                   quantity={item.quantity}
                   cardId={item.cardId}
                   cardHref={`/card/${item.cardId}`}
+                  semAdicionar={previa}
                 />
               ))}
             </div>

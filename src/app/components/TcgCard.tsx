@@ -71,6 +71,11 @@ export interface TcgCardProps {
    */
   itemNm?: { id: string; quantity: number } | null;
   nomePortfolio?: string;
+  /**
+   * Sem o "+": a pessoa olhando o próprio perfil como visitante não tem por
+   * que adicionar a carta que já é dela.
+   */
+  semAdicionar?: boolean;
 }
 
 function formatPrice(value: number) {
@@ -102,6 +107,7 @@ export function TcgCard({
   onLimparFiltros,
   itemNm,
   nomePortfolio,
+  semAdicionar = false,
 }: TcgCardProps) {
   const displayName = namePt?.trim() || name;
   const filtrandoPorEla = filtrosRapidos?.some((f) => f.ativo) ?? false;
@@ -475,7 +481,8 @@ export function TcgCard({
               className="shrink-0"
             />
           ) : (
-            cardId && (
+            cardId &&
+            !semAdicionar && (
               <AddIconButton
                 onClick={handleAdd}
                 success={success}
