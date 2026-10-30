@@ -7,6 +7,7 @@ import {
   IconChevronRight,
   IconFolderPlus,
   IconPackage,
+  IconPlus,
   IconTrendingDown,
   IconTrendingUp,
   IconWorld,
@@ -15,9 +16,10 @@ import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
+import { DialogoNovoPortfolio } from "@/app/components/DialogoNovoPortfolio";
 import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingCounter } from "@/app/components/RollingCounter";
@@ -439,6 +441,7 @@ export function CardDetailClient({
   }, [portfolios, storeActiveId, favoriteIds, setActivePortfolioId]);
 
   const invalidateCollection = useInvalidateCollection();
+  const [novoPortfolioAberto, setNovoPortfolioAberto] = useState(false);
   const handleRefresh = invalidateCollection;
 
   // Quantidade que o usuário já tem no portfólio ativo (condição NM) + o item
@@ -863,10 +866,10 @@ export function CardDetailClient({
             </div>
           </div>
 
-          {/* Linha 2: detalhes e adicionar ao portfólio, da mesma altura */}
-          <div className="lg:col-span-5 flex flex-col">
+          {/* Linha 2: detalhes à esquerda, cada coluna no seu tamanho */}
+          <div className="lg:col-span-5 lg:self-start">
             {/* Details */}
-            <div className="glass-card !rounded-2xl p-5 space-y-5 flex-1">
+            <div className="glass-card !rounded-2xl p-5 space-y-5">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <IconAlertCircle className="size-5 text-tertiary" />
                 Detalhes
@@ -942,16 +945,19 @@ export function CardDetailClient({
             </div>
           </div>
 
-          <div className="lg:col-span-4 flex flex-col">
+          {/* Coluna da direita da linha 2: adicionar, outras cópias e o
+              convite empilhados. O card de adicionar fica do tamanho dele:
+              esticado junto com Detalhes grandes ele sobrava vazio (30/10). */}
+          <div className="lg:col-span-4 lg:self-start space-y-5">
             {/* Adicionar ao portfólio: onde, quantas e quanto valem as suas
               cópias. O valor das cópias vem menor que o preço da carta, de
               propósito: são dois números, e o importante é o de cima. */}
-            <div className="glass-card !rounded-2xl p-5 space-y-4 flex-1">
+            <div className="glass-card !rounded-2xl p-5 space-y-4">
               <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <IconFolderPlus className="size-5 text-primary" />
                 Adicionar ao portfólio
               </h3>
-              <div className="min-w-0">
+              <div className="flex min-w-0 items-center justify-between gap-3">
                 {portfolios.length > 0 ? (
                   <PortfolioSelector
                     portfolios={portfolios}
@@ -967,6 +973,18 @@ export function CardDetailClient({
                       Coleção Principal
                     </span>
                   </div>
+                )}
+                {/* Criar um portfólio sem sair da carta: o novo já fica como o
+                    "Em …", pronto para receber a carta (30/10) */}
+                {session?.user && (
+                  <button
+                    type="button"
+                    onClick={() => setNovoPortfolioAberto(true)}
+                    className="flex shrink-0 cursor-pointer items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    <IconPlus className="size-3.5" />
+                    Novo portfólio
+                  </button>
                 )}
               </div>
               <div className="flex items-center justify-between">
@@ -995,10 +1013,7 @@ export function CardDetailClient({
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Linha 3, na coluna da direita: as outras cópias e o convite */}
-          <div className="lg:col-span-4 lg:col-start-6 space-y-5">
             {/* Cópias em OUTROS portfólios: as do ativo já estão no card de
               cima (quantidade e total), repetir aqui era a mesma informação.
               Chega depois do resto da página (é do usuário), então entra com
@@ -1077,6 +1092,15 @@ export function CardDetailClient({
             <ConviteAppCartao
               titulo="Tem esta carta?"
               texto="Escaneie no app e ela entra no seu portfólio."
+            />
+
+            <DialogoNovoPortfolio
+              open={novoPortfolioAberto}
+              onOpenChange={setNovoPortfolioAberto}
+              onCriado={async (p) => {
+                await invalidateCollection();
+                setActivePortfolioId(p.id);
+              }}
             />
           </div>
         </div>

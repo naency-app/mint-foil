@@ -32,6 +32,7 @@ import { AddToPortfolioButton } from "@/app/components/AddToPortfolioButton";
 import { CardImage } from "@/app/components/CardImage";
 import { CollectionInsights } from "@/app/components/CollectionInsights";
 import { ConviteAppFaixa } from "@/app/components/ConviteApp";
+import { DialogoNovoPortfolio } from "@/app/components/DialogoNovoPortfolio";
 import {
   CheckboxFilterList,
   FilterSection,
@@ -752,8 +753,6 @@ export default function PortfolioPage() {
     }
   }, [loading, items.length]);
   const [showNewDialog, setShowNewDialog] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [creating, setCreating] = useState(false);
   const [proModalOpen, setProModalOpen] = useState(false);
 
   const portfoliosLoaded = !portfoliosQuery.isPending;
@@ -822,25 +821,6 @@ export default function PortfolioPage() {
   useEffect(() => {
     setSelectedIds(new Set());
   }, [activePortfolioId]);
-
-  async function handleCreatePortfolio() {
-    if (!newName.trim()) return;
-    setCreating(true);
-    try {
-      const p = await api.collection.createPortfolio(newName.trim());
-      await invalidateCollection();
-      setActivePortfolioId(p.id);
-      setShowNewDialog(false);
-      setNewName("");
-      toast.success(`Portfólio "${p.name}" criado!`);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Erro ao criar portfólio",
-      );
-    } finally {
-      setCreating(false);
-    }
-  }
 
   /**
    * Aplica a mudança no cache antes da resposta do servidor — é o que faz o
@@ -1842,47 +1822,14 @@ export default function PortfolioPage() {
           )}
 
           {/* New Portfolio Dialog */}
-          <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Novo Portfólio</DialogTitle>
-                <DialogDescription>
-                  Dê um nome para seu portfólio. Contas gratuitas podem ter até
-                  5 portfólios.
-                </DialogDescription>
-              </DialogHeader>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Minha coleção Pokémon"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreatePortfolio();
-                }}
-              />
-              {/* Padrão do sistema: BotaoFoil na ação, GlassPill no cancelar
-                  (o verde destoava, 21/10) */}
-              <DialogFooter className="gap-2">
-                <GlassPill
-                  onClick={() => setShowNewDialog(false)}
-                  className="h-9 justify-center px-4 text-sm"
-                >
-                  Cancelar
-                </GlassPill>
-                <BotaoFoil
-                  onClick={handleCreatePortfolio}
-                  disabled={creating || !newName.trim()}
-                  className="justify-center"
-                >
-                  {creating ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <FolderPlus />
-                  )}
-                  Criar portfólio
-                </BotaoFoil>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <DialogoNovoPortfolio
+            open={showNewDialog}
+            onOpenChange={setShowNewDialog}
+            onCriado={async (p) => {
+              await invalidateCollection();
+              setActivePortfolioId(p.id);
+            }}
+          />
 
           <ProUpgradeModal
             open={proModalOpen}
