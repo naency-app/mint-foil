@@ -541,8 +541,8 @@ function DoMeuPortfolio({
         <DialogHeader>
           <DialogTitle>Do meu portfólio</DialogTitle>
           <DialogDescription>
-            Escolha as cartas que você vai entregar. Ao confirmar a troca, elas saem
-            do portfólio.
+            Escolha as cartas que você vai entregar. Ao confirmar a troca, elas
+            saem do portfólio.
           </DialogDescription>
         </DialogHeader>
         {portfolios.length > 0 && (
@@ -676,8 +676,8 @@ function ConfirmarTroca({
         <DialogHeader>
           <DialogTitle>Confirmar a troca?</DialogTitle>
           <DialogDescription>
-            As cartas que você entrega saem do seu portfólio, e as que você recebe
-            entram no portfólio escolhido.
+            As cartas que você entrega saem do seu portfólio, e as que você
+            recebe entram no portfólio escolhido.
           </DialogDescription>
         </DialogHeader>
         {troca.receber.length > 0 && portfolios.length > 0 && (
