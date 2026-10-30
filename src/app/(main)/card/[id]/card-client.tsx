@@ -853,7 +853,7 @@ export function CardDetailClient({
                   {/* Atribuição exigida pela MYP (link para mypcards.com):
                       sem ela o acesso à API pode ser pausado */}
                   <span className="text-xs text-muted-foreground">
-                    Dados:{" "}
+                    O preço em real é disponibilizado pela:{" "}
                     <a
                       href="https://mypcards.com"
                       target="_blank"
