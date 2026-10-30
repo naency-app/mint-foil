@@ -224,10 +224,9 @@ function getSearchUrls(
 }
 
 /**
- * Uma loja numa lista de "Onde comprar": logo, nome e a seta, sem caixa em
- * volta. Com borda em cada uma, o card virava uma pilha de botões (30/10).
- * `destaque` é a MyP: fica em primeiro e a ação vira um botão rosa pequeno
- * ("Ver na loja"); nas outras, só a seta discreta.
+ * Uma loja: logo, nome e a ação, numa linha com fundo leve e espaço entre
+ * uma e outra (sem borda nem fio separando, 30/10). `destaque` é a MyP:
+ * fundo rosa claro e "Confira na loja" em rosa; nas demais, só a seta.
  */
 function LinhaDeLoja({
   nome,
@@ -248,7 +247,12 @@ function LinhaDeLoja({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`${nome}: ${acao}`}
-      className="group -mx-2 flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/40"
+      className={cn(
+        "group flex items-center gap-3 rounded-xl px-3 transition-colors",
+        destaque
+          ? "bg-primary/10 py-2.5 hover:bg-primary/15"
+          : "bg-muted/40 py-2 hover:bg-muted/70",
+      )}
     >
       {logo && (
         <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white">
@@ -261,11 +265,16 @@ function LinhaDeLoja({
           />
         </span>
       )}
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate text-sm text-foreground",
+          destaque ? "font-semibold" : "font-medium",
+        )}
+      >
         {nome}
       </span>
       {destaque ? (
-        <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white transition-colors group-hover:bg-primary/90">
+        <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary">
           {acao}
           <IconArrowUpRight className="size-3.5" />
         </span>
@@ -662,9 +671,12 @@ export function CardDetailClient({
           </div>
         </div>
 
-        {/* Center: Chart + Details */}
-        <div className="lg:col-span-5 space-y-5">
-          <div className="glass-card !rounded-2xl p-5">
+        {/* Centro e direita num grid só: na primeira linha o gráfico e o
+            preço da carta, que ficam da mesma altura; embaixo os detalhes e
+            o adicionar ao portfólio. Em colunas separadas cada uma crescia
+            sozinha e o card de preço não batia com o gráfico (30/10). */}
+        <div className="lg:col-span-9 grid grid-cols-1 lg:grid-cols-9 gap-5">
+          <div className="lg:col-span-5 glass-card !rounded-2xl p-5">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <IconTrendingUp className="size-5 text-primary" />
               Histórico de Preço (Ungraded)
@@ -722,103 +734,54 @@ export function CardDetailClient({
             )}
           </div>
 
-          {/* Details */}
-          <div className="glass-card !rounded-2xl p-5 space-y-5">
-            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <IconAlertCircle className="size-5 text-tertiary" />
-              Detalhes
-            </h2>
-
-            {card.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                <TextoDaCarta html={card.description} />
-              </p>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="mb-1 flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Raridade
-                  </p>
-                  <TagTutorialRaridade jogo={card.tcgId} />
-                </div>
-                <p className="text-base text-foreground font-medium">
-                  {nomeDaRaridade(card.rarity, card.tcgId)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                  Código
-                </p>
-                <p className="text-base text-primary font-mono font-bold">
-                  {card.collectorNumber}
-                </p>
-              </div>
-              {card.cardType && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                    Tipo
-                  </p>
-                  <p className="text-base text-foreground font-medium">
-                    {card.cardType}
-                  </p>
-                </div>
-              )}
-              {card.attribute && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                    Atributo
-                  </p>
-                  <p className="text-base text-foreground font-medium">
-                    {card.attribute}
-                  </p>
-                </div>
-              )}
-              {card.atk != null && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                    ATK / DEF
-                  </p>
-                  <p className="text-base text-foreground font-mono font-medium">
-                    {card.atk} / {card.def ?? "?"}
-                  </p>
-                </div>
-              )}
-              {card.level != null && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                    Nível
-                  </p>
-                  <p className="text-base text-foreground font-mono font-medium">
-                    {card.level}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Collection + Shop */}
-        <div className="lg:col-span-4 space-y-5">
-          {/* Preço da carta: todos os preços num card só (o da carta, a MyP,
-              o internacional e as outras lojas). Adicionar ao portfólio fica
-              no card de baixo, com título próprio: misturados, o "Total" das
-              suas cópias competia com o preço da carta (30/10). */}
-          <div className="glass-card !rounded-2xl p-5 space-y-4">
+          {/* Preço da carta, na mesma linha (e altura) do gráfico: o preço à
+              direita, o internacional, quem fornece o preço em real, o botão
+              da MyP e as demais lojas (30/10, desenho da Isa) */}
+          <div className="lg:col-span-4 glass-card !rounded-2xl p-5 flex flex-col gap-4">
             <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <IconCash className="size-5 text-primary" />
-              Preço da carta
+              {myp ? (
+                <IconCash className="size-5 text-primary" />
+              ) : (
+                <IconWorld className="size-5 text-primary" />
+              )}
+              {myp ? "Preço da carta" : "Preço internacional (estimado)"}
             </h3>
 
-            {myp ? (
-              <div className="space-y-1">
-                <p className="text-4xl font-black text-foreground font-mono tracking-tight">
-                  R$ {formatPrice(myp.menor)}
-                </p>
-                {/* Atribuição exigida pela MYP (link para mypcards.com):
-                    sem ela o acesso à API pode ser pausado */}
-                <p className="text-xs text-muted-foreground">
+            <div className="flex flex-col items-end gap-1 text-right">
+              <div className="flex items-center gap-2">
+                {!myp && headlineBrl > 0 && latestPrice > 0 && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
+                      isPositive
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-rose-500/10 text-rose-400",
+                    )}
+                  >
+                    {isPositive ? (
+                      <IconTrendingUp className="size-3" />
+                    ) : (
+                      <IconTrendingDown className="size-3" />
+                    )}
+                    <span>
+                      {isPositive ? "+" : ""}
+                      {changePercent.toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+                <span className="text-3xl font-black text-foreground font-mono">
+                  R$ {formatPrice(myp ? myp.menor : headlineBrl)}
+                </span>
+              </div>
+              {/* O internacional convertido, como sempre foi */}
+              <span className="text-sm text-muted-foreground">
+                {detalheIntl}
+                {myp && headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
+              </span>
+              {/* Atribuição exigida pela MYP (link para mypcards.com):
+                  sem ela o acesso à API pode ser pausado */}
+              {myp && (
+                <span className="text-xs text-muted-foreground">
                   O preço em real é disponibilizado pela{" "}
                   <a
                     href="https://mypcards.com"
@@ -828,70 +791,28 @@ export function CardDetailClient({
                   >
                     MYP Cards
                   </a>
-                </p>
-              </div>
-            ) : (
-              /* Sem preço da MyP: a manchete é o internacional (ver adr/0002) */
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-4xl font-black text-foreground font-mono tracking-tight">
-                    R$ {formatPrice(headlineBrl)}
-                  </p>
-                  {headlineBrl > 0 && latestPrice > 0 && (
-                    <div
-                      className={cn(
-                        "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
-                        isPositive
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-rose-500/10 text-rose-400",
-                      )}
-                    >
-                      {isPositive ? (
-                        <IconTrendingUp className="size-3" />
-                      ) : (
-                        <IconTrendingDown className="size-3" />
-                      )}
-                      <span>
-                        {isPositive ? "+" : ""}
-                        {changePercent.toFixed(1)}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Preço internacional estimado · {detalheIntl}
-                </p>
-              </div>
-            )}
-
-            {/* Com o preço da MyP na manchete, o internacional vira referência */}
-            {myp && headlineBrl > 0 && (
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <IconWorld className="size-3.5 shrink-0" />
-                <span>
-                  Internacional: R$ {formatPrice(headlineBrl)} ({detalheIntl})
                 </span>
-              </p>
-            )}
+              )}
+            </div>
 
-            {/* Onde comprar: a MyP sempre em primeiro e em destaque (com preço,
-                o link vai ao produto; sem, à busca da carta na loja), as
-                outras lojas como linhas simples */}
-            <div className="border-t border-border pt-3">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Onde comprar
+            {/* A MyP sempre em destaque: com preço, o link vai ao produto;
+                sem, à busca da carta na loja */}
+            <LinhaDeLoja
+              nome="MYP Cards"
+              url={
+                myp?.link ??
+                buscaNaMyp(card.name, card.tcg?.slug, card.collectorNumber)
+              }
+              logo="/logos/sites/favicons/mypcards.png"
+              acao="Confira na loja"
+              destaque
+            />
+
+            <div className="mt-2 space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Demais lojas
               </p>
-              <div className="divide-y divide-border/50">
-                <LinhaDeLoja
-                  nome="MYP Cards"
-                  url={
-                    myp?.link ??
-                    buscaNaMyp(card.name, card.tcg?.slug, card.collectorNumber)
-                  }
-                  logo="/logos/sites/favicons/mypcards.png"
-                  acao={myp ? "Ver na loja" : "Buscar"}
-                  destaque
-                />
+              <div className="space-y-1.5">
                 {getSearchUrls(
                   card.name,
                   card.tcg?.slug,
@@ -909,129 +830,218 @@ export function CardDetailClient({
             </div>
           </div>
 
-          {/* Adicionar ao portfólio: onde, quantas e quanto valem as suas
-              cópias. O valor das cópias vem menor que o preço da carta, de
-              propósito: são dois números, e o importante é o de cima. */}
-          <div className="glass-card !rounded-2xl p-5 space-y-4">
-            <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <IconFolderPlus className="size-5 text-primary" />
-              Adicionar ao portfólio
-            </h3>
-            <div className="min-w-0">
-              {portfolios.length > 0 ? (
-                <PortfolioSelector
-                  portfolios={portfolios}
-                  activePortfolioId={activePortfolioId}
-                  onSelect={setActivePortfolioId}
-                  onRefresh={handleRefresh}
-                  labelPrefix="Em"
-                />
-              ) : (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span>Em</span>
-                  <span className="font-semibold text-primary">
-                    Coleção Principal
-                  </span>
-                </div>
+          <div className="lg:col-span-5 lg:self-start space-y-5">
+            {/* Details */}
+            <div className="glass-card !rounded-2xl p-5 space-y-5">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <IconAlertCircle className="size-5 text-tertiary" />
+                Detalhes
+              </h2>
+
+              {card.description && (
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                  <TextoDaCarta html={card.description} />
+                </p>
               )}
-            </div>
-            <div className="flex items-center justify-between">
-              <RollingCounter
-                value={qtd.quantidade}
-                onChange={qtd.definir}
-                min={qtd.minimo}
-                cell={36}
-                redondo
-                sucesso={qtd.sucesso}
-                sucessoId={qtd.sucessoId}
-                inercia={false}
-              />
-              <div className="text-right">
-                <span className="block text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  Suas cópias valem
-                </span>
-                <span className="text-base font-bold text-foreground font-mono">
-                  {/* Conta até o valor novo ao adicionar/remover */}
-                  R${" "}
-                  <CountingNumber value={currentPortfolioValue} decimals={2} />
-                </span>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="mb-1 flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Raridade
+                    </p>
+                    <TagTutorialRaridade jogo={card.tcgId} />
+                  </div>
+                  <p className="text-base text-foreground font-medium">
+                    {nomeDaRaridade(card.rarity, card.tcgId)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    Código
+                  </p>
+                  <p className="text-base text-primary font-mono font-bold">
+                    {card.collectorNumber}
+                  </p>
+                </div>
+                {card.cardType && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Tipo
+                    </p>
+                    <p className="text-base text-foreground font-medium">
+                      {card.cardType}
+                    </p>
+                  </div>
+                )}
+                {card.attribute && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Atributo
+                    </p>
+                    <p className="text-base text-foreground font-medium">
+                      {card.attribute}
+                    </p>
+                  </div>
+                )}
+                {card.atk != null && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      ATK / DEF
+                    </p>
+                    <p className="text-base text-foreground font-mono font-medium">
+                      {card.atk} / {card.def ?? "?"}
+                    </p>
+                  </div>
+                )}
+                {card.level != null && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Nível
+                    </p>
+                    <p className="text-base text-foreground font-mono font-medium">
+                      {card.level}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Cópias em OUTROS portfólios: as do ativo já estão no card de
+          <div className="lg:col-span-4 lg:self-start space-y-5">
+            {/* Adicionar ao portfólio: onde, quantas e quanto valem as suas
+              cópias. O valor das cópias vem menor que o preço da carta, de
+              propósito: são dois números, e o importante é o de cima. */}
+            <div className="glass-card !rounded-2xl p-5 space-y-4">
+              <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <IconFolderPlus className="size-5 text-primary" />
+                Adicionar ao portfólio
+              </h3>
+              <div className="min-w-0">
+                {portfolios.length > 0 ? (
+                  <PortfolioSelector
+                    portfolios={portfolios}
+                    activePortfolioId={activePortfolioId}
+                    onSelect={setActivePortfolioId}
+                    onRefresh={handleRefresh}
+                    labelPrefix="Em"
+                  />
+                ) : (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <span>Em</span>
+                    <span className="font-semibold text-primary">
+                      Coleção Principal
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <RollingCounter
+                  value={qtd.quantidade}
+                  onChange={qtd.definir}
+                  min={qtd.minimo}
+                  cell={36}
+                  redondo
+                  sucesso={qtd.sucesso}
+                  sucessoId={qtd.sucessoId}
+                  inercia={false}
+                />
+                <div className="text-right">
+                  <span className="block text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
+                    Suas cópias valem
+                  </span>
+                  <span className="text-base font-bold text-foreground font-mono">
+                    {/* Conta até o valor novo ao adicionar/remover */}
+                    R${" "}
+                    <CountingNumber
+                      value={currentPortfolioValue}
+                      decimals={2}
+                    />
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Cópias em OUTROS portfólios: as do ativo já estão no card de
               cima (quantidade e total), repetir aqui era a mesma informação.
               Chega depois do resto da página (é do usuário), então entra com
               movimento; cada linha leva ao portfólio dela (26/10) */}
-          <AnimatePresence initial={false}>
-            {session?.user && outrasCopias.length > 0 && (
-              <motion.div
-                key="suas-copias"
-                initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="glass-card !rounded-2xl p-5 space-y-3"
-              >
-                <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                  <IconPackage className="size-5 text-primary" />
-                  Também nos seus portfólios (
-                  {outrasCopias.reduce((acc, item) => acc + item.quantity, 0)})
-                </h3>
-                <div className="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar">
-                  {outrasCopias.map((item, i) => {
-                    const portfolioName =
-                      portfolios.find((p) => p.id === item.portfolioId)?.name ??
-                      "Coleção Principal";
-                    return (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -6 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.12 + i * 0.05, duration: 0.25 }}
-                      >
-                        {/* O portfólio ativo é o do store compartilhado: marcar
-                            antes de navegar faz a página abrir nele */}
-                        <Link
-                          href="/portfolio"
-                          onClick={() => setActivePortfolioId(item.portfolioId)}
-                          className="flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors group"
+            <AnimatePresence initial={false}>
+              {session?.user && outrasCopias.length > 0 && (
+                <motion.div
+                  key="suas-copias"
+                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className="glass-card !rounded-2xl p-5 space-y-3"
+                >
+                  <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <IconPackage className="size-5 text-primary" />
+                    Também nos seus portfólios (
+                    {outrasCopias.reduce((acc, item) => acc + item.quantity, 0)}
+                    )
+                  </h3>
+                  <div className="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar">
+                    {outrasCopias.map((item, i) => {
+                      const portfolioName =
+                        portfolios.find((p) => p.id === item.portfolioId)
+                          ?.name ?? "Coleção Principal";
+                      return (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            delay: 0.12 + i * 0.05,
+                            duration: 0.25,
+                          }}
                         >
-                          <div className="min-w-0 pr-2">
-                            <p className="font-semibold text-foreground truncate">
-                              {portfolioName}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Condição: {item.condition}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <div className="text-right">
-                              <p className="font-mono font-bold text-foreground">
-                                {item.quantity}{" "}
-                                {item.quantity === 1 ? "unidade" : "unidades"}
+                          {/* O portfólio ativo é o do store compartilhado: marcar
+                            antes de navegar faz a página abrir nele */}
+                          <Link
+                            href="/portfolio"
+                            onClick={() =>
+                              setActivePortfolioId(item.portfolioId)
+                            }
+                            className="flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors group"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <p className="font-semibold text-foreground truncate">
+                                {portfolioName}
                               </p>
-                              {item.buyPrice != null && (
-                                <p className="text-xs text-muted-foreground font-mono">
-                                  Pago: R$ {formatPrice(item.buyPrice)}
-                                </p>
-                              )}
+                              <p className="text-xs text-muted-foreground">
+                                Condição: {item.condition}
+                              </p>
                             </div>
-                            <IconChevronRight className="size-4 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="text-right">
+                                <p className="font-mono font-bold text-foreground">
+                                  {item.quantity}{" "}
+                                  {item.quantity === 1 ? "unidade" : "unidades"}
+                                </p>
+                                {item.buyPrice != null && (
+                                  <p className="text-xs text-muted-foreground font-mono">
+                                    Pago: R$ {formatPrice(item.buyPrice)}
+                                  </p>
+                                )}
+                              </div>
+                              <IconChevronRight className="size-4 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                            </div>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <ConviteAppCartao
-            titulo="Tem esta carta?"
-            texto="Escaneie no app e ela entra no seu portfólio."
-          />
+            <ConviteAppCartao
+              titulo="Tem esta carta?"
+              texto="Escaneie no app e ela entra no seu portfólio."
+            />
+          </div>
         </div>
       </div>
     </main>
