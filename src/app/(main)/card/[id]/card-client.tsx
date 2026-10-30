@@ -2,11 +2,11 @@
 
 import {
   IconAlertCircle,
+  IconArrowUpRight,
   IconCash,
   IconChevronRight,
-  IconExternalLink,
+  IconFolderPlus,
   IconPackage,
-  IconShoppingCart,
   IconTrendingDown,
   IconTrendingUp,
   IconWorld,
@@ -30,17 +30,11 @@ import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
 import { EstadoVazio } from "@/components/EstadoVazio";
 import { Trilha } from "@/components/Trilha";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CountingNumber } from "@/components/ui/counting-number";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuantidadeNoPortfolio } from "@/hooks/use-quantidade-no-portfolio";
-import {
-  ApiError,
-  type Card,
-  type CollectionItem,
-  type PrecoMyp,
-} from "@/lib/api";
+import { ApiError, type Card, type CollectionItem } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import {
   resolveActiveId,
@@ -115,97 +109,17 @@ function ligaUrl(
   return `${baseUrl}/?view=cards/card&card=${encodeURIComponent(cardName)}`;
 }
 
-function getSearchUrls(
+/**
+ * Busca da carta na MyPCards, para quando ela ainda não tem preço da MyP (com
+ * preço, o link vai direto ao produto). A MyP fica sempre em destaque no card
+ * de preço, com ou sem preço (30/10).
+ */
+function buscaNaMyp(
   cardName: string,
   tcgSlug?: string,
   collectorNumber?: string | null,
-  myp?: PrecoMyp | null,
-) {
+): string {
   const ligaCode = ligaSearchCode(collectorNumber);
-  const urls: {
-    name: string;
-    url: string;
-    color: string;
-    label: string;
-    logo?: string;
-  }[] = [];
-
-  // Favicons dos sites (fundo de marca embutido) — legíveis nos dois temas,
-  // diferente dos wordmarks transparentes que sumiam no light.
-  if (!tcgSlug || tcgSlug === "magic") {
-    urls.push({
-      name: "LigaMagic",
-      url: ligaUrl("https://www.ligamagic.com.br", cardName, ligaCode),
-      color: "text-blue-400",
-      label: "Buscar no LigaMagic",
-      logo: "/logos/sites/favicons/ligamagic.png",
-    });
-  }
-  if (!tcgSlug || tcgSlug === "pokemon") {
-    urls.push({
-      name: "LigaPokemon",
-      url: ligaUrl("https://www.ligapokemon.com.br", cardName, ligaCode),
-      color: "text-yellow-400",
-      label: "Buscar no LigaPokemon",
-      logo: "/logos/sites/favicons/ligapokemon.png",
-    });
-  }
-  if (!tcgSlug || tcgSlug === "yugioh") {
-    urls.push({
-      name: "LigaYugioh",
-      url: ligaUrl("https://www.ligayugioh.com.br", cardName, ligaCode),
-      color: "text-purple-400",
-      label: "Buscar no LigaYugioh",
-      logo: "/logos/sites/favicons/ligayugioh.png",
-    });
-  }
-  if (!tcgSlug || tcgSlug === "onepiece") {
-    urls.push({
-      name: "LigaOnePiece",
-      url: ligaUrl("https://www.ligaonepiece.com.br", cardName, ligaCode),
-      color: "text-red-400",
-      label: "Buscar no LigaOnePiece",
-      logo: "/logos/sites/favicons/ligaonepiece.png",
-    });
-  }
-  if (!tcgSlug || tcgSlug === "lorcana") {
-    urls.push({
-      name: "LigaLorcana",
-      url: ligaUrl("https://www.ligalorcana.com.br", cardName, ligaCode),
-      color: "text-amber-400",
-      label: "Buscar no LigaLorcana",
-      logo: "/logos/sites/favicons/ligalorcana.png",
-    });
-  }
-  if (!tcgSlug || tcgSlug === "digimon") {
-    urls.push({
-      name: "LigaDigimon",
-      url: ligaUrl("https://www.ligadigimon.com.br", cardName, ligaCode),
-      color: "text-sky-400",
-      label: "Buscar no LigaDigimon",
-      logo: "/logos/sites/favicons/ligadigimon.png",
-    });
-  }
-  // A LigaDragonBall cobre os dois jogos de Dragon Ball (24/10)
-  if (!tcgSlug || tcgSlug === "dragonball" || tcgSlug === "fusionworld") {
-    urls.push({
-      name: "LigaDragonBall",
-      url: ligaUrl("https://www.ligadragonball.com.br", cardName, ligaCode),
-      color: "text-orange-400",
-      label: "Buscar no LigaDragonBall",
-      logo: "/logos/sites/favicons/ligadragonball.png",
-    });
-  }
-  // EpicGame, igual ao app (store-list.tsx): busca pelo nome, que ela
-  // aceita em formulário — espaço vira "+" (ficou de fora da web desde a
-  // virada para o preço internacional, 26/10)
-  urls.push({
-    name: "EpicGame",
-    url: `https://www.epicgame.com.br/?view=ecom%2Fitens&id=461&searchExactMatch=&busca=${encodeURIComponent(cardName).replace(/%20/g, "+")}`,
-    color: "text-sky-400",
-    label: "Buscar na EpicGame",
-    logo: "/logos/sites/favicons/epicgame.png",
-  });
   // MyPCards: a página de produto usa um ID interno (ex.: /yugioh/produto/311239/…)
   // que não temos como derivar — o link de conferência vai pra busca, com a
   // mesma regra da Liga: código só quando ele identifica a carta sozinho
@@ -222,38 +136,109 @@ function getSearchUrls(
     "ProdutoSearch[marca]": myPTcg,
     "ProdutoSearch[query]": ligaCode ?? cardName,
   }).toString()}`;
-  // Com preço da MyP ela sai da lista: já está em destaque no topo, com o
-  // botão de compra, e a lista vira "as demais lojas"
-  if (!myp)
-    urls.push({
-      name: "MyPCards",
-      url: myPUrl,
-      color: "text-orange-400",
-      label: "Ver no MyPCards",
-      logo: "/logos/sites/favicons/mypcards.png",
-    });
+  return myPUrl;
+}
 
+function getSearchUrls(
+  cardName: string,
+  tcgSlug?: string,
+  collectorNumber?: string | null,
+) {
+  const ligaCode = ligaSearchCode(collectorNumber);
+  const urls: {
+    name: string;
+    url: string;
+    label: string;
+    logo?: string;
+  }[] = [];
+
+  // Favicons dos sites (fundo de marca embutido) — legíveis nos dois temas,
+  // diferente dos wordmarks transparentes que sumiam no light.
+  if (!tcgSlug || tcgSlug === "magic") {
+    urls.push({
+      name: "LigaMagic",
+      url: ligaUrl("https://www.ligamagic.com.br", cardName, ligaCode),
+      label: "Liga Magic",
+      logo: "/logos/sites/favicons/ligamagic.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "pokemon") {
+    urls.push({
+      name: "LigaPokemon",
+      url: ligaUrl("https://www.ligapokemon.com.br", cardName, ligaCode),
+      label: "Liga Pokémon",
+      logo: "/logos/sites/favicons/ligapokemon.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "yugioh") {
+    urls.push({
+      name: "LigaYugioh",
+      url: ligaUrl("https://www.ligayugioh.com.br", cardName, ligaCode),
+      label: "Liga Yu-Gi-Oh!",
+      logo: "/logos/sites/favicons/ligayugioh.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "onepiece") {
+    urls.push({
+      name: "LigaOnePiece",
+      url: ligaUrl("https://www.ligaonepiece.com.br", cardName, ligaCode),
+      label: "Liga One Piece",
+      logo: "/logos/sites/favicons/ligaonepiece.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "lorcana") {
+    urls.push({
+      name: "LigaLorcana",
+      url: ligaUrl("https://www.ligalorcana.com.br", cardName, ligaCode),
+      label: "Liga Lorcana",
+      logo: "/logos/sites/favicons/ligalorcana.png",
+    });
+  }
+  if (!tcgSlug || tcgSlug === "digimon") {
+    urls.push({
+      name: "LigaDigimon",
+      url: ligaUrl("https://www.ligadigimon.com.br", cardName, ligaCode),
+      label: "Liga Digimon",
+      logo: "/logos/sites/favicons/ligadigimon.png",
+    });
+  }
+  // A LigaDragonBall cobre os dois jogos de Dragon Ball (24/10)
+  if (!tcgSlug || tcgSlug === "dragonball" || tcgSlug === "fusionworld") {
+    urls.push({
+      name: "LigaDragonBall",
+      url: ligaUrl("https://www.ligadragonball.com.br", cardName, ligaCode),
+      label: "Liga Dragon Ball",
+      logo: "/logos/sites/favicons/ligadragonball.png",
+    });
+  }
+  // EpicGame, igual ao app (store-list.tsx): busca pelo nome, que ela
+  // aceita em formulário — espaço vira "+" (ficou de fora da web desde a
+  // virada para o preço internacional, 26/10)
+  urls.push({
+    name: "EpicGame",
+    url: `https://www.epicgame.com.br/?view=ecom%2Fitens&id=461&searchExactMatch=&busca=${encodeURIComponent(cardName).replace(/%20/g, "+")}`,
+    label: "EpicGame",
+    logo: "/logos/sites/favicons/epicgame.png",
+  });
   return urls;
 }
 
 /**
- * Uma loja: logo, nome e o ícone de link. `destaque` é como a MyP aparece
- * colada no preço da carta, com "Confira na loja" e o link do produto — o
- * mesmo padrão do app (LinhaDeLoja de components/store-list.tsx).
+ * Uma loja, como uma linha de lista: logo, nome e a ação ("Buscar ↗"). Todas
+ * no mesmo desenho, sem a cor própria de cada ícone, que parecia aleatória.
+ * `destaque` é a MyP: borda e fundo na cor da marca e a ação em rosa (30/10).
  */
 function LinhaDeLoja({
-  label,
+  nome,
   url,
   logo,
-  cor,
-  dica,
+  acao,
   destaque,
 }: {
-  label: string;
+  nome: string;
   url: string;
   logo?: string;
-  cor: string;
-  dica?: string;
+  acao: string;
   destaque?: boolean;
 }) {
   return (
@@ -262,45 +247,36 @@ function LinhaDeLoja({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group",
-        destaque && "mx-0 bg-primary/10 hover:bg-primary/15",
+        "group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors",
+        destaque
+          ? "border-primary/40 bg-primary/10 hover:bg-primary/15"
+          : "border-border/60 hover:border-border hover:bg-muted/50",
       )}
     >
-      <div className="flex items-center gap-3">
-        {logo ? (
-          <span className="size-7 shrink-0 rounded-md bg-white overflow-hidden flex items-center justify-center">
-            <Image
-              src={logo}
-              alt={label}
-              width={28}
-              height={28}
-              className="size-7 object-cover"
-            />
-          </span>
-        ) : (
-          <Badge
-            variant="outline"
-            className="border-border bg-muted text-[9px] font-bold h-5 px-1.5"
-          >
-            {label}
-          </Badge>
-        )}
-        <span
-          className={cn(
-            "text-sm group-hover:text-foreground",
-            destaque
-              ? "text-foreground font-semibold"
-              : "text-muted-foreground",
-          )}
-        >
-          {label}
+      {logo && (
+        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+          <Image
+            src={logo}
+            alt=""
+            width={32}
+            height={32}
+            className="size-8 object-cover"
+          />
         </span>
-      </div>
-      <span className="flex items-center gap-2">
-        {dica && <span className="text-xs text-muted-foreground">{dica}</span>}
-        <IconExternalLink
-          className={`size-4 ${cor} opacity-50 group-hover:opacity-100 transition-opacity`}
-        />
+      )}
+      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+        {nome}
+      </span>
+      <span
+        className={cn(
+          "flex shrink-0 items-center gap-1 text-xs font-semibold transition-colors",
+          destaque
+            ? "text-primary"
+            : "text-muted-foreground group-hover:text-foreground",
+        )}
+      >
+        {acao}
+        <IconArrowUpRight className="size-3.5" />
       </span>
     </a>
   );
@@ -831,138 +807,158 @@ export function CardDetailClient({
 
         {/* Right: Collection + Shop */}
         <div className="lg:col-span-4 space-y-5">
-          <div className="glass-card !rounded-2xl p-5 space-y-5">
-            {/* O preço junto do "Adicionando em", como o card de preço do app
-                (26/10): o valor em cima, a parte de adicionar embaixo */}
-            <div className="pb-5 border-b border-border">
-              {/* Preço da MyP, no mesmo padrão do app: "Preço da carta", o menor
-                anunciado, a linha do internacional, quem fornece o preço e a
-                linha da MyP (link do produto) destacada. */}
-              {/* Título à esquerda, o resto do bloco alinhado à direita */}
-              {myp ? (
-                <div className="flex flex-col gap-1 items-end text-right">
-                  {/* Título de card, no mesmo padrão dos outros cards */}
-                  <h3 className="self-start text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <IconCash className="size-5 text-primary" />
-                    Preço da carta
-                  </h3>
-                  <span className="text-3xl font-black text-foreground font-mono">
-                    R$ {formatPrice(myp.menor)}
-                  </span>
-                  {/* O internacional convertido entra na própria linha */}
-                  <span className="text-sm text-muted-foreground">
-                    {detalheIntl}
-                    {headlineBrl > 0 && ` ≈ R$ ${formatPrice(headlineBrl)}`}
-                  </span>
-                  {/* Atribuição exigida pela MYP (link para mypcards.com):
-                      sem ela o acesso à API pode ser pausado */}
-                  <span className="text-xs text-muted-foreground">
-                    O preço em real é disponibilizado pela:{" "}
-                    <a
-                      href="https://mypcards.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold underline underline-offset-2 hover:text-foreground"
+          {/* Preço da carta: todos os preços num card só (o da carta, a MyP,
+              o internacional e as outras lojas). Adicionar ao portfólio fica
+              no card de baixo, com título próprio: misturados, o "Total" das
+              suas cópias competia com o preço da carta (30/10). */}
+          <div className="glass-card !rounded-2xl p-5 space-y-4">
+            <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <IconCash className="size-5 text-primary" />
+              Preço da carta
+            </h3>
+
+            {myp ? (
+              <div className="space-y-1">
+                <p className="text-4xl font-black text-foreground font-mono tracking-tight">
+                  R$ {formatPrice(myp.menor)}
+                </p>
+                {/* Atribuição exigida pela MYP (link para mypcards.com):
+                    sem ela o acesso à API pode ser pausado */}
+                <p className="text-xs text-muted-foreground">
+                  O preço em real é disponibilizado pela{" "}
+                  <a
+                    href="https://mypcards.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-foreground underline underline-offset-2 hover:text-primary"
+                  >
+                    MYP Cards
+                  </a>
+                </p>
+              </div>
+            ) : (
+              /* Sem preço da MyP: a manchete é o internacional (ver adr/0002) */
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-4xl font-black text-foreground font-mono tracking-tight">
+                    R$ {formatPrice(headlineBrl)}
+                  </p>
+                  {headlineBrl > 0 && latestPrice > 0 && (
+                    <div
+                      className={cn(
+                        "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
+                        isPositive
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : "bg-rose-500/10 text-rose-400",
+                      )}
                     >
-                      MYP Cards
-                    </a>
-                  </span>
-                  <div className="w-full mt-1">
-                    <LinhaDeLoja
-                      label="MyPCards"
-                      url={myp.link}
-                      logo="/logos/sites/favicons/mypcards.png"
-                      cor="text-orange-400"
-                      dica="Confira na loja"
-                      destaque
-                    />
-                  </div>
+                      {isPositive ? (
+                        <IconTrendingUp className="size-3" />
+                      ) : (
+                        <IconTrendingDown className="size-3" />
+                      )}
+                      <span>
+                        {isPositive ? "+" : ""}
+                        {changePercent.toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Preço internacional estimado · {detalheIntl}
+                </p>
+              </div>
+            )}
+
+            {/* A MyP sempre em destaque, logo abaixo do preço: com preço, o
+                link vai ao produto; sem, à busca da carta na loja */}
+            <LinhaDeLoja
+              nome="MYP Cards"
+              url={
+                myp?.link ??
+                buscaNaMyp(card.name, card.tcg?.slug, card.collectorNumber)
+              }
+              logo="/logos/sites/favicons/mypcards.png"
+              acao={myp ? "Ver na loja" : "Buscar"}
+              destaque
+            />
+
+            {/* Com o preço da MyP na manchete, o internacional vira referência */}
+            {myp && headlineBrl > 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <IconWorld className="size-3.5 shrink-0" />
+                <span>
+                  Internacional: R$ {formatPrice(headlineBrl)} ({detalheIntl})
+                </span>
+              </p>
+            )}
+
+            <div className="space-y-2 border-t border-border pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Outras lojas
+              </p>
+              {getSearchUrls(
+                card.name,
+                card.tcg?.slug,
+                card.collectorNumber,
+              ).map((link) => (
+                <LinhaDeLoja
+                  key={link.name}
+                  nome={link.label}
+                  url={link.url}
+                  logo={link.logo}
+                  acao="Buscar"
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Adicionar ao portfólio: onde, quantas e quanto valem as suas
+              cópias. O valor das cópias vem menor que o preço da carta, de
+              propósito: são dois números, e o importante é o de cima. */}
+          <div className="glass-card !rounded-2xl p-5 space-y-4">
+            <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <IconFolderPlus className="size-5 text-primary" />
+              Adicionar ao portfólio
+            </h3>
+            <div className="min-w-0">
+              {portfolios.length > 0 ? (
+                <PortfolioSelector
+                  portfolios={portfolios}
+                  activePortfolioId={activePortfolioId}
+                  onSelect={setActivePortfolioId}
+                  onRefresh={handleRefresh}
+                  labelPrefix="Em"
+                />
               ) : (
-                /* Preço internacional (estimado) — ver adr/0002 */
-                /* Solto no canto, como no Collectr: a caixa em volta era mais uma
-                moldura na página. */
-                <div className="flex flex-col gap-1 items-end text-right">
-                  <h3 className="self-start text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <IconWorld className="size-5 text-primary" />
-                    Preço internacional (estimado)
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl font-black text-foreground font-mono">
-                      R$ {formatPrice(headlineBrl)}
-                    </span>
-                    {headlineBrl > 0 && latestPrice > 0 && (
-                      <div
-                        className={cn(
-                          "flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
-                          isPositive
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-rose-500/10 text-rose-400",
-                        )}
-                      >
-                        {isPositive ? (
-                          <IconTrendingUp className="size-3" />
-                        ) : (
-                          <IconTrendingDown className="size-3" />
-                        )}
-                        <span>
-                          {isPositive ? "+" : ""}
-                          {changePercent.toFixed(1)}%
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {detalheIntl}
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <span>Em</span>
+                  <span className="font-semibold text-primary">
+                    Coleção Principal
                   </span>
                 </div>
               )}
             </div>
-            {/* Como no app: onde adicionar, a quantidade e o total — sem
-                repetir o preço, que está logo acima */}
-            <div className="space-y-4">
-              <div className="min-w-0">
-                {portfolios.length > 0 ? (
-                  <PortfolioSelector
-                    portfolios={portfolios}
-                    activePortfolioId={activePortfolioId}
-                    onSelect={setActivePortfolioId}
-                    onRefresh={handleRefresh}
-                    labelPrefix="Adicionando em"
-                  />
-                ) : (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <span>Adicionar a:</span>
-                    <span className="font-semibold text-primary">
-                      Coleção Principal
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <RollingCounter
-                  value={qtd.quantidade}
-                  onChange={qtd.definir}
-                  min={qtd.minimo}
-                  cell={36}
-                  redondo
-                  sucesso={qtd.sucesso}
-                  sucessoId={qtd.sucessoId}
-                  inercia={false}
-                />
-                <div className="text-right">
-                  <span className="block text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                    Total
-                  </span>
-                  <span className="text-xl font-bold text-foreground font-mono">
-                    {/* Conta até o valor novo ao adicionar/remover */}
-                    R${" "}
-                    <CountingNumber
-                      value={currentPortfolioValue}
-                      decimals={2}
-                    />
-                  </span>
-                </div>
+            <div className="flex items-center justify-between">
+              <RollingCounter
+                value={qtd.quantidade}
+                onChange={qtd.definir}
+                min={qtd.minimo}
+                cell={36}
+                redondo
+                sucesso={qtd.sucesso}
+                sucessoId={qtd.sucessoId}
+                inercia={false}
+              />
+              <div className="text-right">
+                <span className="block text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  Suas cópias valem
+                </span>
+                <span className="text-base font-bold text-foreground font-mono">
+                  {/* Conta até o valor novo ao adicionar/remover */}
+                  R${" "}
+                  <CountingNumber value={currentPortfolioValue} decimals={2} />
+                </span>
               </div>
             </div>
           </div>
@@ -1035,29 +1031,6 @@ export function CardDetailClient({
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Preço real nas lojas BR — links de conferência (ver adr/0002) */}
-          <div className="glass-card !rounded-2xl p-5 space-y-1">
-            <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-              <IconShoppingCart className="size-5 text-emerald-400" />
-              {myp ? "Preço nas demais lojas" : "Preço nas lojas BR"}
-            </h3>
-
-            {getSearchUrls(
-              card.name,
-              card.tcg?.slug,
-              card.collectorNumber,
-              myp,
-            ).map((link) => (
-              <LinhaDeLoja
-                key={link.name}
-                label={link.label}
-                url={link.url}
-                logo={link.logo}
-                cor={link.color}
-              />
-            ))}
-          </div>
 
           <ConviteAppCartao
             titulo="Tem esta carta?"
