@@ -147,6 +147,20 @@ function useIsMobile(breakpoint = 768) {
  * fica o centro das cartas: a carta da esquerda (272px, girada 12° — uns 40px
  * a mais) para 16px antes do texto. No celular a pilha fica abaixo do texto.
  */
+/** Onde termina a linha de texto mais comprida (não a caixa, que vai até o fim
+ * da coluna mesmo quando a frase é curta). */
+function fimDasLetras(el: HTMLElement) {
+  const passo = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const faixa = document.createRange();
+  let fim = el.getBoundingClientRect().left;
+  for (let n = passo.nextNode(); n; n = passo.nextNode()) {
+    if (!n.textContent?.trim()) continue;
+    faixa.selectNodeContents(n);
+    for (const r of faixa.getClientRects()) fim = Math.max(fim, r.right);
+  }
+  return fim;
+}
+
 function useAberturaDoLeque(
   textoRef: React.RefObject<HTMLElement | null>,
   cartasRef: React.RefObject<HTMLElement | null>,
@@ -155,11 +169,11 @@ function useAberturaDoLeque(
   useEffect(() => {
     const medir = () => {
       if (window.innerWidth < 768) return setAbertura(44);
-      const texto = textoRef.current?.getBoundingClientRect();
+      const texto = textoRef.current;
       const cartas = cartasRef.current?.getBoundingClientRect();
       if (!texto || !cartas) return;
       const centro = cartas.left + cartas.width / 2;
-      const cabe = centro - 136 - 40 - 16 - texto.right;
+      const cabe = centro - 136 - 40 - 16 - fimDasLetras(texto);
       setAbertura(Math.round(Math.min(175, Math.max(44, cabe))));
     };
     medir();
