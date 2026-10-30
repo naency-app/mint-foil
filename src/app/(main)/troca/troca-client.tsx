@@ -3,8 +3,8 @@
 import {
   IconArrowsExchange,
   IconCards,
+  IconHeartHandshake,
   IconLoader2,
-  IconScale,
   IconSearch,
   IconShare2,
   IconTrash,
@@ -137,7 +137,7 @@ export function TrocaClient() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-foreground">
-            <IconScale className="size-7 text-primary" />
+            <IconHeartHandshake className="size-7 text-primary" />
             Essa troca vale a pena?
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -171,15 +171,7 @@ export function TrocaClient() {
         </div>
       ) : (
         <>
-          <div className="relative grid grid-cols-1 gap-5 md:grid-cols-2">
-            {/* O que está sendo trocado, entre os dois lados (30/10). Acima
-                dos cards (z-10) e abaixo da busca aberta (focus-within:z-20) */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-1/2 z-[15] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-background shadow-lg"
-            >
-              <IconArrowsExchange className="size-5 rotate-90 text-primary md:rotate-0" />
-            </span>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-4">
             <LadoDaTroca
               titulo="Você entrega"
               itens={troca.dar}
@@ -200,6 +192,14 @@ export function TrocaClient() {
                 ) : null
               }
             />
+            {/* O que está sendo trocado, numa coluna própria entre os dois
+                lados (30/10); empilhado no celular, gira para a vertical */}
+            <span
+              aria-hidden="true"
+              className="flex size-12 items-center justify-center self-center justify-self-center rounded-full bg-primary/10"
+            >
+              <IconArrowsExchange className="size-6 rotate-90 text-primary md:rotate-0" />
+            </span>
             <LadoDaTroca
               titulo="Você recebe"
               itens={troca.receber}
@@ -470,8 +470,6 @@ function ResumoDaTroca({
   const titulo =
     veredito === "vazia" ? (
       "Adicione cartas nos dois lados"
-    ) : veredito === "equilibrada" ? (
-      "Troca justa"
     ) : veredito === "ganha" ? (
       <>
         Você ganha{" "}
@@ -485,24 +483,49 @@ function ResumoDaTroca({
     );
   return (
     <section className="glass-card !rounded-2xl flex flex-col items-center gap-4 p-5 text-center sm:flex-row sm:justify-between sm:text-left">
-      <div>
-        <p
-          className={cn(
-            "text-2xl font-extrabold tracking-tight",
-            veredito === "vazia" ? "text-muted-foreground" : "text-foreground",
-          )}
-        >
-          {titulo}
-        </p>
-        {veredito !== "vazia" && (
-          <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-            Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
-            {formatPrice(resumo.receber)}
-            {veredito !== "equilibrada" &&
-              ` · ${Math.abs(pct * 100).toFixed(0)}% de diferença`}
+      {veredito === "equilibrada" ? (
+        // Troca justa (30/10): o aperto de mãos e a diferença num selo, sem
+        // pintar a frase — verde e vermelho só nos números
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <IconHeartHandshake className="size-6 text-primary" />
+          </span>
+          <div>
+            <p className="flex flex-wrap items-center justify-center gap-2 text-2xl font-extrabold tracking-tight text-foreground sm:justify-start">
+              Troca justa
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tracking-normal text-muted-foreground tabular-nums">
+                {Math.abs(diferenca) < 0.005
+                  ? "valores iguais"
+                  : `diferença de R$ ${formatPrice(Math.abs(diferenca))}`}
+              </span>
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+              Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
+              {formatPrice(resumo.receber)}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <p
+            className={cn(
+              "text-2xl font-extrabold tracking-tight",
+              veredito === "vazia"
+                ? "text-muted-foreground"
+                : "text-foreground",
+            )}
+          >
+            {titulo}
           </p>
-        )}
-      </div>
+          {veredito !== "vazia" && (
+            <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+              Você entrega R$ {formatPrice(resumo.dar)} · recebe R${" "}
+              {formatPrice(resumo.receber)}
+              {` · ${Math.abs(pct * 100).toFixed(0)}% de diferença`}
+            </p>
+          )}
+        </div>
+      )}
       {podeConfirmar ? (
         <BotaoFoil onClick={onConfirmar} className="shrink-0">
           <IconArrowsExchange />

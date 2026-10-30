@@ -426,7 +426,9 @@ export function Navbar() {
                   )}
                 >
                   <IconScan />
-                  Baixar o app
+                  {/* Entre 768 e 1023 só o ícone: com o texto a navbar não
+                      cabia numa linha e o Entrar descia (30/10) */}
+                  <span className="max-lg:sr-only">Baixar o app</span>
                 </BotaoFoil>
               </PopoverTrigger>
               {/* No computador, o QR leva o download pro celular sem sair do
@@ -463,7 +465,9 @@ export function Navbar() {
 
             {/* Sino da central de notificações: só com sessão */}
             <CentralDeNotificacoes />
-            <div className="hidden md:block">
+            {/* flex: sem conta são dois botões (tema e Entrar), que num bloco
+                quebravam linha quando a coluna apertava (30/10) */}
+            <div className="hidden shrink-0 items-center gap-2 md:flex">
               <UserMenu />
             </div>
           </div>
