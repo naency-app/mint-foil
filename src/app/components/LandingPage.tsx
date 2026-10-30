@@ -255,8 +255,15 @@ const REVEAL_ITEMS: { text: string; imgs: string[]; soon?: boolean }[] = [
     imgs: ["/landing/digimon-card-back.jpg", "/landing/wargreymon-card.jpg"],
   },
   {
+    text: "Lorcana",
+    // Atrás o Mickey, na frente a Elsa Enchanted (TCGplayer, sem carimbo)
+    imgs: ["/landing/mickey-card.jpg", "/landing/elsa-card.jpg"],
+  },
+  {
+    // Antes eram o verso e uma carta de Yu-Gi-Oh! (Stardust Dragon) no lugar.
+    // O Fusion World da TCGplayer vem com "SAMPLE"; estas são do Masters
     text: "Dragon Ball",
-    imgs: ["/landing/ygo-card-back.jpg", "/landing/faixa/18.webp"],
+    imgs: ["/landing/goku-card.jpg", "/landing/vegeta-card.jpg"],
   },
 ];
 
