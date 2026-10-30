@@ -481,11 +481,21 @@ function PortfolioItemCard({
               {cardName(item.card)}
             </h3>
           </Link>
-          {item.card.setName && (
-            <p className="text-xs text-tertiary truncate leading-tight">
-              {item.card.setName}
-            </p>
-          )}
+          {item.card.setName &&
+            // Link da coleção, como no card do Explorar (TcgCard). Precisa do
+            // slug do set, que o portfólio só manda desde 30/10
+            (item.card.tcg?.slug && item.card.set?.slug && !isSelectionMode ? (
+              <Link
+                href={`/sets/${item.card.tcg.slug}/${item.card.set.slug}`}
+                className="block truncate text-xs leading-tight text-tertiary underline decoration-tertiary/40 underline-offset-2 transition-colors hover:text-tertiary-hover hover:decoration-current"
+              >
+                {item.card.setName}
+              </Link>
+            ) : (
+              <p className="text-xs text-tertiary truncate leading-tight">
+                {item.card.setName}
+              </p>
+            ))}
           <p className="text-[10px] text-muted-foreground leading-tight">
             {/* filter: sem isto, carta com raridade e sem número virava
                 "Promo • null" na tela */}
