@@ -224,9 +224,10 @@ function getSearchUrls(
 }
 
 /**
- * Uma loja, como uma linha de lista: logo, nome e a ação ("Buscar ↗"). Todas
- * no mesmo desenho, sem a cor própria de cada ícone, que parecia aleatória.
- * `destaque` é a MyP: borda e fundo na cor da marca e a ação em rosa (30/10).
+ * Uma loja numa lista de "Onde comprar": logo, nome e a seta, sem caixa em
+ * volta. Com borda em cada uma, o card virava uma pilha de botões (30/10).
+ * `destaque` é a MyP: fica em primeiro e a ação vira um botão rosa pequeno
+ * ("Ver na loja"); nas outras, só a seta discreta.
  */
 function LinhaDeLoja({
   nome,
@@ -246,38 +247,31 @@ function LinhaDeLoja({
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn(
-        "group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors",
-        destaque
-          ? "border-primary/40 bg-primary/10 hover:bg-primary/15"
-          : "border-border/60 hover:border-border hover:bg-muted/50",
-      )}
+      aria-label={`${nome}: ${acao}`}
+      className="group -mx-2 flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/40"
     >
       {logo && (
-        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+        <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white">
           <Image
             src={logo}
             alt=""
-            width={32}
-            height={32}
-            className="size-8 object-cover"
+            width={28}
+            height={28}
+            className="size-7 object-cover"
           />
         </span>
       )}
       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
         {nome}
       </span>
-      <span
-        className={cn(
-          "flex shrink-0 items-center gap-1 text-xs font-semibold transition-colors",
-          destaque
-            ? "text-primary"
-            : "text-muted-foreground group-hover:text-foreground",
-        )}
-      >
-        {acao}
-        <IconArrowUpRight className="size-3.5" />
-      </span>
+      {destaque ? (
+        <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white transition-colors group-hover:bg-primary/90">
+          {acao}
+          <IconArrowUpRight className="size-3.5" />
+        </span>
+      ) : (
+        <IconArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+      )}
     </a>
   );
 }
@@ -870,19 +864,6 @@ export function CardDetailClient({
               </div>
             )}
 
-            {/* A MyP sempre em destaque, logo abaixo do preço: com preço, o
-                link vai ao produto; sem, à busca da carta na loja */}
-            <LinhaDeLoja
-              nome="MYP Cards"
-              url={
-                myp?.link ??
-                buscaNaMyp(card.name, card.tcg?.slug, card.collectorNumber)
-              }
-              logo="/logos/sites/favicons/mypcards.png"
-              acao={myp ? "Ver na loja" : "Buscar"}
-              destaque
-            />
-
             {/* Com o preço da MyP na manchete, o internacional vira referência */}
             {myp && headlineBrl > 0 && (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -893,23 +874,38 @@ export function CardDetailClient({
               </p>
             )}
 
-            <div className="space-y-2 border-t border-border pt-4">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Outras lojas
+            {/* Onde comprar: a MyP sempre em primeiro e em destaque (com preço,
+                o link vai ao produto; sem, à busca da carta na loja), as
+                outras lojas como linhas simples */}
+            <div className="border-t border-border pt-3">
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Onde comprar
               </p>
-              {getSearchUrls(
-                card.name,
-                card.tcg?.slug,
-                card.collectorNumber,
-              ).map((link) => (
+              <div className="divide-y divide-border/50">
                 <LinhaDeLoja
-                  key={link.name}
-                  nome={link.label}
-                  url={link.url}
-                  logo={link.logo}
-                  acao="Buscar"
+                  nome="MYP Cards"
+                  url={
+                    myp?.link ??
+                    buscaNaMyp(card.name, card.tcg?.slug, card.collectorNumber)
+                  }
+                  logo="/logos/sites/favicons/mypcards.png"
+                  acao={myp ? "Ver na loja" : "Buscar"}
+                  destaque
                 />
-              ))}
+                {getSearchUrls(
+                  card.name,
+                  card.tcg?.slug,
+                  card.collectorNumber,
+                ).map((link) => (
+                  <LinhaDeLoja
+                    key={link.name}
+                    nome={link.label}
+                    url={link.url}
+                    logo={link.logo}
+                    acao="Buscar"
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
