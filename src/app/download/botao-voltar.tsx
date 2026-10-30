@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { veioDeDentroDoSite } from "@/lib/navegacao-interna";
 
 export function BotaoVoltarDownload({ fallback = "/" }: { fallback?: string }) {
   const router = useRouter();
@@ -9,7 +10,7 @@ export function BotaoVoltarDownload({ fallback = "/" }: { fallback?: string }) {
     <button
       type="button"
       onClick={() => {
-        if (typeof window !== "undefined" && window.history.length > 1) {
+        if (veioDeDentroDoSite()) {
           router.back();
         } else {
           router.push(fallback);

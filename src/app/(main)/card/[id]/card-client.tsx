@@ -3,7 +3,6 @@
 import {
   IconAlertCircle,
   IconCash,
-  IconChevronLeft,
   IconChevronRight,
   IconExternalLink,
   IconPackage,
@@ -15,7 +14,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { CardImage } from "@/app/components/CardImage";
 import { ConviteAppCartao } from "@/app/components/ConviteApp";
@@ -23,6 +22,7 @@ import { PortfolioSelector } from "@/app/components/PortfolioSelector";
 import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingCounter } from "@/app/components/RollingCounter";
 import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import Grid from "@/components/charts/grid";
@@ -417,7 +417,6 @@ export function CardDetailClient({
     (cardQuery.error instanceof ApiError && cardQuery.error.status === 404);
   const { data: session } = useSession();
   const { pedirLogin } = useQuickAdd();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const portfolioId = searchParams.get("portfolioId");
   const fromPortfolio =
@@ -566,24 +565,16 @@ export function CardDetailClient({
     <main className="max-w-370 mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {fromPortfolio ? (
         <div className="flex items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                router.back();
-              } else {
-                router.push(
-                  portfolioId && portfolioId !== "default"
-                    ? `/portfolio?id=${portfolioId}`
-                    : "/portfolio",
-                );
-              }
+          <BotaoVoltar
+            rotulo="Voltar ao portfólio"
+            padrao={{
+              label: "Voltar ao portfólio",
+              href:
+                portfolioId && portfolioId !== "default"
+                  ? `/portfolio?id=${portfolioId}`
+                  : "/portfolio",
             }}
-            className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground group"
-          >
-            <IconChevronLeft className="size-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
-            <span>Voltar ao portfólio</span>
-          </button>
+          />
 
           <div className="hidden md:block">
             <Trilha
@@ -627,6 +618,19 @@ export function CardDetailClient({
               : []),
           ]}
           atual={cardName(card)}
+          voltar={
+            <BotaoVoltar
+              padrao={
+                card.set
+                  ? {
+                      label:
+                        card.set.name ?? card.setName ?? card.setCode ?? "",
+                      href: `/sets/${card.tcg?.slug ?? ""}/${card.set.slug}`,
+                    }
+                  : { label: "Explorar", href: "/explore" }
+              }
+            />
+          }
         />
       )}
 

@@ -5,8 +5,11 @@ import { ThemeProvider } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { useRastroDeNavegacao } from "@/lib/navegacao-interna";
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // Para o "Voltar" saber se a tela anterior é do site (BotaoVoltar)
+  useRastroDeNavegacao();
   // useState garante um QueryClient por montagem (não compartilhado entre
   // requests no SSR). Mesmos defaults do mobile (lib/query-client.ts):
   // preços mudam poucas vezes por dia — 1 min de frescor evita refetch em
