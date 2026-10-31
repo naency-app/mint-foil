@@ -4,10 +4,9 @@ import { cn } from "@/lib/utils";
 
 /**
  * Todo estado vazio do produto (lista sem itens, busca sem resultado, coleção
- * sem cartas) passa por aqui. Regra do usuário (21/10):
- *  - vazio que ocupa a página ou tem botões: pilha de placas do IconStack;
- *  - vazio dentro de um card e sem botões (gráfico sem histórico, busca sem
- *    resultado na grade): só o ícone, simples e apagado. A pilha ali pesava.
+ * sem cartas) passa por aqui, SEMPRE com a pilha de placas do IconStack — em
+ * página, em card, com ou sem botões (31/10: a versão "só o ícone apagado"
+ * para vazio dentro de card saiu; não era o padrão).
  *
  * Ações: BotaoFoil para a principal e GlassPill para a secundária, o padrão
  * do sistema.
@@ -21,7 +20,6 @@ export function EstadoVazio({
   descricao,
   cor = "neutral",
   emCard = false,
-  compacto = false,
   className,
   children,
 }: {
@@ -30,15 +28,10 @@ export function EstadoVazio({
   descricao?: React.ReactNode;
   cor?: IconStackColor;
   emCard?: boolean;
-  /** Vazio dentro de um card (um gráfico, por exemplo) sem ser o vidro dele */
-  compacto?: boolean;
   className?: string;
   /** Ações (botões, links) embaixo do texto */
   children?: React.ReactNode;
 }) {
-  const iconeSimples = !children && (emCard || compacto);
-  const Icone = icon;
-
   return (
     <div
       className={cn(
@@ -47,13 +40,9 @@ export function EstadoVazio({
         className,
       )}
     >
-      {iconeSimples ? (
-        <Icone className="mb-3 size-8 text-muted-foreground/40" />
-      ) : (
-        <IconStack size="md" color={cor} className="mb-4">
-          <IconStack.Icon icon={icon} />
-        </IconStack>
-      )}
+      <IconStack size="md" color={cor} className="mb-4">
+        <IconStack.Icon icon={icon} />
+      </IconStack>
       {/* Texto discreto, em cinza: o vazio informa, não chama atenção
           (pedido do usuário, 21/10, a partir do antigo "Histórico em
           construção") */}

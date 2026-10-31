@@ -232,7 +232,6 @@ export function CentralDeNotificacoes() {
             </div>
           ) : itens.length === 0 ? (
             <EstadoVazio
-              compacto
               icon={IconBell}
               titulo="Nenhuma notificação"
               descricao="Novos seguidores, pedidos e alertas de preço aparecem aqui."
