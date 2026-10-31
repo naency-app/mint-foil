@@ -479,6 +479,22 @@ export function textoDoErro(e: unknown, padrao: string): string {
   return padrao;
 }
 
+/** Um dia do histórico da MYP. */
+export interface PontoMyp {
+  /** AAAA-MM-DD */
+  data: string;
+  menor: number | null;
+  mediana: number | null;
+}
+
+/** Histórico de 90 dias da MYP de uma carta (GET /myp/historico/:cardId). */
+export interface HistoricoMyp {
+  /** De qual versão a série é ("Normal · NM · English") */
+  versao: string | null;
+  pontos: PontoMyp[];
+  atualizadoEm: string;
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   let res: Response;
   try {
@@ -627,6 +643,15 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ reason, details }),
       }),
+  },
+  myp: {
+    /**
+     * Histórico de 90 dias da MYP Cards (menor preço e mediana por dia, em
+     * reais) do gráfico "Em real" da carta. `null` quando a carta não tem na
+     * MYP; o gráfico abre na aba Internacional.
+     */
+    historico: (cardId: string) =>
+      apiFetch<HistoricoMyp | null>(`/myp/historico/${encodeURIComponent(cardId)}`),
   },
   cards: {
     /**
