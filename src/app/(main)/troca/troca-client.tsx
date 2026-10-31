@@ -279,9 +279,8 @@ function LadoDaTroca({
       </div>
 
       {itens.length === 0 ? (
-        // Vazio dentro de card e sem botão: o compacto do padrão (30/10)
+        // Vazio no padrão: a pilha de placas do EstadoVazio
         <EstadoVazio
-          compacto
           className="py-6"
           icon={IconCards}
           titulo="Nenhuma carta ainda"
