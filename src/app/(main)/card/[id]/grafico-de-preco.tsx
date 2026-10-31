@@ -21,19 +21,36 @@ type Aba = "myp" | "intl";
  */
 function serieDaMyp(pontos: PontoMyp[]) {
   let menor: number | null = null;
-  let mediana: number | null = null;
-  return pontos.flatMap((p) => {
+  let faixa: number | null = null;
+  let ehMedia = false;
+  const serie = pontos.flatMap((p) => {
     menor = p.menor ?? menor;
-    mediana = p.mediana ?? mediana ?? menor;
+    // Faixa: a mediana nos dias da MYP; a média nos dias do nosso histórico
+    if (p.mediana != null) {
+      faixa = p.mediana;
+      ehMedia = false;
+    } else if (p.media != null) {
+      faixa = p.media;
+      ehMedia = true;
+    }
     if (menor == null) return [];
     return [
       {
         date: new Date(`${p.data}T12:00:00`),
         menor,
-        mediana: mediana ?? menor,
+        mediana: faixa ?? menor,
+        ehMedia,
       },
     ];
   });
+  // Nosso histórico só grava ponto quando o preço muda: o último valor vale
+  // até hoje. Sem isto, carta de preço parado teria um ponto só e nunca
+  // mostraria o gráfico em real.
+  const ultimo = serie[serie.length - 1];
+  const hoje = new Date();
+  hoje.setHours(12, 0, 0, 0);
+  if (ultimo && ultimo.date < hoje) serie.push({ ...ultimo, date: hoje });
+  return serie;
 }
 
 /**
@@ -133,7 +150,7 @@ export function GraficoDePreco({
                 },
                 {
                   color: "var(--muted-foreground)",
-                  label: "Mediana",
+                  label: point.ehMedia ? "Média dos anúncios" : "Mediana",
                   value: `R$ ${formatPrice(Number(point.mediana))}`,
                 },
               ]}

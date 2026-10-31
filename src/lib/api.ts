@@ -484,7 +484,10 @@ export interface PontoMyp {
   /** AAAA-MM-DD */
   data: string;
   menor: number | null;
+  /** Mediana dos anúncios — nos dias do histórico oficial da MYP */
   mediana: number | null;
+  /** Média dos anúncios — nos dias do nosso histórico (o sync traz a média) */
+  media?: number | null;
 }
 
 /** Histórico de 90 dias da MYP de uma carta (GET /myp/historico/:cardId). */
@@ -651,7 +654,9 @@ export const api = {
      * MYP; o gráfico abre na aba Internacional.
      */
     historico: (cardId: string) =>
-      apiFetch<HistoricoMyp | null>(`/myp/historico/${encodeURIComponent(cardId)}`),
+      apiFetch<HistoricoMyp | null>(
+        `/myp/historico/${encodeURIComponent(cardId)}`,
+      ),
   },
   cards: {
     /**
