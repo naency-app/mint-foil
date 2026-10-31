@@ -27,12 +27,6 @@ import { useQuickAdd } from "@/app/components/QuickAdd";
 import { RollingCounter } from "@/app/components/RollingCounter";
 import { TagTutorialRaridade } from "@/app/components/TagTutorialRaridade";
 import { BotaoVoltar } from "@/components/BotaoVoltar";
-import { Area } from "@/components/charts/area";
-import { AreaChart } from "@/components/charts/area-chart";
-import Grid from "@/components/charts/grid";
-import { ChartTooltip } from "@/components/charts/tooltip";
-import { XAxis } from "@/components/charts/x-axis";
-import { EstadoVazio } from "@/components/EstadoVazio";
 import { Trilha } from "@/components/Trilha";
 import { Button } from "@/components/ui/button";
 import { CountingNumber } from "@/components/ui/counting-number";
@@ -54,6 +48,7 @@ import {
 import { nomeDaRaridade } from "@/lib/raridade";
 import { precoAnterior, precoAtual } from "@/lib/reference-price";
 import { cardName, cardNameEn, cn } from "@/lib/utils";
+import { GraficoDePreco } from "./grafico-de-preco";
 
 // O texto vem da base do jogo com HTML: "<br>" para quebra, "<strong>" nos
 // títulos ("Pendulum Effect"), "<em>" e às vezes "<div>"/"<span>" de enfeite.
@@ -699,60 +694,11 @@ export function CardDetailClient({
             sozinha e o card de preço não batia com o gráfico (30/10). */}
         <div className="lg:col-span-9 grid grid-cols-1 lg:grid-cols-9 gap-5">
           <div className="lg:col-span-5 glass-card !rounded-2xl p-5">
-            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-              <IconTrendingUp className="size-5 text-primary" />
-              Histórico de Preço (Ungraded)
-            </h2>
-            {priceHistory.length > 1 ? (
-              <AreaChart
-                data={priceHistory}
-                xDataKey="date"
-                margin={{ top: 20, right: 20, bottom: 40, left: 20 }}
-                animationDuration={1200}
-                aspectRatio="2.2 / 1"
-              >
-                <Grid
-                  horizontal
-                  vertical={false}
-                  numTicksRows={4}
-                  stroke="var(--chart-grid)"
-                  strokeDasharray="4,4"
-                />
-                <Area
-                  dataKey="price"
-                  fill="var(--primary)"
-                  fillOpacity={0.15}
-                  stroke="var(--primary)"
-                  strokeWidth={2.5}
-                  gradientToOpacity={0.01}
-                />
-                <ChartTooltip
-                  rows={(point) => [
-                    {
-                      color: "var(--primary)",
-                      label: "Preço",
-                      value: `R$ ${formatPrice(Number(point.price))}`,
-                    },
-                  ]}
-                />
-                <XAxis numTicks={6} />
-              </AreaChart>
-            ) : (
-              <EstadoVazio
-                className="py-10"
-                icon={IconTrendingUp}
-                titulo={
-                  priceHistory.length === 0
-                    ? "Sem histórico de preço"
-                    : "Histórico em construção"
-                }
-                descricao={
-                  priceHistory.length === 0
-                    ? "Ainda não há dados de preço para esta carta."
-                    : `O gráfico aparece com mais dados. Preço atual: R$ ${formatPrice(priceHistory[0].price)}`
-                }
-              />
-            )}
+            <GraficoDePreco
+              cardId={card.id}
+              naMyp={!!myp}
+              internacional={priceHistory}
+            />
           </div>
 
           {/* Preço da carta, na mesma linha (e altura) do gráfico: o preço à
